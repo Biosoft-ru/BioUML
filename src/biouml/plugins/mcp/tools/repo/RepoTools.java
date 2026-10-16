@@ -191,7 +191,7 @@ public final class RepoTools
 					} );
 
 			catalog.register( "biouml_repo_export_formats",
-					"List the export formats available for a repository element (in accept-priority order). Use this to discover what biouml_repo_export can produce for the element before calling it.",
+					"List the export formats available for a repository element (in accept-priority order). Use this to discover what biouml_repo_export can produce for the element before calling it. The list follows the exporter rules of the perspective in effect (biouml_perspective_list / biouml_perspective_select).",
 					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -301,7 +301,7 @@ public final class RepoTools
 					( ex, args ) -> McpRepositorySupport.preferences() );
 
 			catalog.register( "biouml_repo_import_formats",
-					"List the import formats available for a target collection (in accept-priority order). Use this to discover what biouml_repo_import can read into the collection before calling it. The first entry is always 'autodetect'.",
+					"List the import formats available for a target collection (in accept-priority order). Use this to discover what biouml_repo_import can read into the collection before calling it. The first entry is always 'autodetect'. The list (and autodetection in biouml_repo_import) follows the importer rules of the perspective in effect (biouml_perspective_list / biouml_perspective_select).",
 					"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"}},\"required\":[\"parentPath\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "parentPath" );

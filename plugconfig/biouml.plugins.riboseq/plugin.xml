@@ -57,11 +57,26 @@
 
     <extension id="RiboSeqDB perspective" point="biouml.workbench.perspective">
         <perspective name="RiboSeqDB" priority="20" intro="intro-riboseqdb">
+            <description>Ribosome profiling database: ribo-seq and mRNA-seq experiments, processed read counts and translation start sites, with the workflows and methods used to build it.</description>
             <repository>
                 <tab title="Databases" path="databases"/>
                 <tab title="Data" path="data"/>
                 <tab title="Analyses" path="analyses"/>
             </repository>
+            <entryPoints>
+                <entry path="databases/RiboSeqDB/Data/experiments" title="Ribo-seq experiments"/>
+                <entry path="databases/RiboSeqDB/Data/mRNA experiments" title="mRNA-seq experiments"/>
+                <entry path="databases/RiboSeqDB/results" title="Processed data" description="Ribo-seq and mRNA-seq read counts, translation start sites"/>
+                <entry path="analyses/Workflows/Ribo-Seq preprocessing" title="Ribo-Seq processing (Illumina)" description="Footprint counts for each transcript from raw Illumina sequencing data"/>
+                <entry path="analyses/Workflows/Ribo-Seq preprocessing SOLiD" title="Ribo-Seq processing (SOLiD)" description="Footprint counts for each transcript from raw SOLiD sequencing data"/>
+                <entry path="analyses/Workflows/mRNA-seq processing" title="mRNA-seq processing" description="mRNA-seq read counts for each transcript from raw sequencing data"/>
+                <entry path="analyses/Methods/Ribosome profiling/BuildASiteOffsetTable" title="Build A-site offset table" description="Offset of the ribosome A-site in footprints, from known translation initiation sites"/>
+                <entry path="analyses/Methods/Ribosome profiling/BuildProfileModel" title="Build profile model" description="Support vector machine model of translation initiation sites"/>
+                <entry path="analyses/Methods/Ribosome profiling/PredictStartSites" title="Predict start sites" description="Predict translation initiation sites with a trained model"/>
+                <entry path="analyses/Methods/Binding regions/Ribo-Seq and mRNA features forming" title="Ribo-Seq and mRNA features forming" description="Data matrix of Ribo-Seq and mRNA features"/>
+                <entry path="analyses/Methods/Binding regions/Regression analysis" title="Regression analysis"/>
+                <entry path="analyses/Methods/Binding regions/Classification analysis" title="Classification analysis"/>
+            </entryPoints>
             <viewparts>
                 <deny id="*"/>
                 <allow id="common.description"/>

@@ -11,9 +11,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.core.runtime.IConfigurationElement;
 
-import com.developmentontheedge.application.Application;
-import com.developmentontheedge.beans.Preferences;
-
 import biouml.workbench.perspective.Perspective;
 import biouml.workbench.perspective.PerspectiveRegistry;
 import ru.biosoft.access.core.DataCollection;
@@ -89,9 +86,7 @@ public class DataElementImporterRegistry extends DataElementRegistry<DataElement
 
     public static StreamEx<ImporterInfo> importers()
     {
-        Preferences preferences = Application.getPreferences();
-        String perspectiveStr = preferences != null ? preferences.getStringValue( "Perspective", "Default" ) : "Default";
-        Perspective perspective = PerspectiveRegistry.getPerspective( perspectiveStr );
+        Perspective perspective = PerspectiveRegistry.getPerspective( PerspectiveRegistry.getCurrentPerspectiveName( "Default" ) );
         StreamEx<ImporterInfo> initialStream = instance.stream();
         if( perspective != null )
             return initialStream.filter( ii -> perspective.isImporterAvailable( ii.getImporter().getClass().getCanonicalName() ) );

@@ -35,9 +35,13 @@ public class BioUMLPerspective implements Perspective
     private static final String TEMPLATE_ATTR = "template";
     private static final String HIDEDIAGRAMPANEL_ATTR = "hideDiagramPanel";
     private static final String CLOSEONLYONSESSIONEXPIRE_ATTR = "closeOnlyOnSessionExpire";
+    private static final String DESCRIPTION_ATTR = "description";
+    private static final String ENTRYPOINTS_ATTR = "entryPoints";
+    private static final String ENTRY_ATTR = "entry";
 
     private final String title;
     private final List<RepositoryTabInfo> tabInfo = new ArrayList<>();
+    private final List<EntryPointInfo> entryPoints = new ArrayList<>();
     private final List<Rule> viewPartRules = new ArrayList<>();
     private final List<Rule> actionRules = new ArrayList<>();
     private final List<Rule> importerRules = new ArrayList<>();
@@ -46,6 +50,7 @@ public class BioUMLPerspective implements Perspective
     private final Map<String,String> messageBundle = new HashMap<>();
 
     private int priority;
+    private String description;
     private String introPage;
     private boolean showProjectSelector = true;
     private String defaultTemplate = null;
@@ -76,6 +81,23 @@ public class BioUMLPerspective implements Perspective
                 for( IConfigurationElement tab : tabs )
                 {
                     tabInfo.add(new RepositoryTabInfo(tab));
+                }
+            }
+        }
+
+        IConfigurationElement[] descriptions = element.getChildren(DESCRIPTION_ATTR);
+        if( descriptions != null && descriptions.length > 0 && descriptions[0].getValue() != null )
+            description = descriptions[0].getValue().trim().replaceAll("\\s+", " ");
+
+        IConfigurationElement[] entryPointsArray = element.getChildren(ENTRYPOINTS_ATTR);
+        if( entryPointsArray != null && entryPointsArray.length > 0 )
+        {
+            IConfigurationElement[] entries = entryPointsArray[0].getChildren(ENTRY_ATTR);
+            if( entries != null )
+            {
+                for( IConfigurationElement entry : entries )
+                {
+                    entryPoints.add(new EntryPointInfo(entry));
                 }
             }
         }
@@ -163,9 +185,21 @@ public class BioUMLPerspective implements Perspective
     }
 
     @Override
+    public String getDescription()
+    {
+        return description;
+    }
+
+    @Override
     public List<RepositoryTabInfo> getRepositoryTabs()
     {
         return Collections.unmodifiableList(tabInfo);
+    }
+
+    @Override
+    public List<EntryPointInfo> getEntryPoints()
+    {
+        return Collections.unmodifiableList(entryPoints);
     }
 
     @Override
@@ -192,6 +226,8 @@ public class BioUMLPerspective implements Perspective
         JsonObject result = new JsonObject();
         result.add(NAME_ATTR, title);
         result.add(PRIORITY_ATTR, priority);
+        if( description != null )
+            result.add(DESCRIPTION_ATTR, description);
 
         if( introPage != null )
             result.add(INTRO_ATTR, introPage);
@@ -217,6 +253,15 @@ public class BioUMLPerspective implements Perspective
             repository.add(tab.toJSON());
         }
         result.add(REPOSITORY_ATTR, repository);
+        if( !entryPoints.isEmpty() )
+        {
+            JsonArray entries = new JsonArray();
+            for( EntryPointInfo entry : entryPoints )
+            {
+                entries.add(entry.toJSON());
+            }
+            result.add(ENTRYPOINTS_ATTR, entries);
+        }
         JsonArray viewParts = new JsonArray();
         for( Rule rule : viewPartRules )
         {
@@ -229,6 +274,18 @@ public class BioUMLPerspective implements Perspective
             actions.add( rule.toJSON() );
         }
         result.add( ACTIONS_ATTR, actions );
+        JsonArray importers = new JsonArray();
+        for( Rule rule : importerRules )
+        {
+            importers.add( rule.toJSON() );
+        }
+        result.add( IMPORTERS_ATTR, importers );
+        JsonArray exporters = new JsonArray();
+        for( Rule rule : exporterRules )
+        {
+            exporters.add( rule.toJSON() );
+        }
+        result.add( EXPORTERS_ATTR, exporters );
         return result;
     }
 

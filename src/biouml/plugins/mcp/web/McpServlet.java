@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.access.security.SessionCache;
+import ru.biosoft.access.security.SessionCacheManager;
 
 import biouml.plugins.mcp.oauth.McpOAuthConfig;
 import biouml.plugins.mcp.oauth.OAuthTokenStore;
@@ -499,7 +501,13 @@ public class McpServlet
 		try
 		{
 			SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sessionId );
+			// commonLogin installs a fresh session cache on every request. These credentials always map to this
+			// session (the same user), so keep the session state it held, e.g. the perspective selected with
+			// biouml_perspective_select.
+			SessionCache cache = SessionCacheManager.getSessionCache( sessionId );
 			SecurityManager.commonLogin( username, password, remoteAddress, null );
+			if ( cache != null )
+				SessionCacheManager.setSessionCache( sessionId, cache );
 		}
 		catch ( Exception e )
 		{

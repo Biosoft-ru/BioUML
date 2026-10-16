@@ -106,7 +106,7 @@ public class PerspectiveUI
     }
 
 
-    public static final String PERSPECTIVE_PREFERENCE = "Perspective";
+    public static final String PERSPECTIVE_PREFERENCE = PerspectiveRegistry.PERSPECTIVE_PREFERENCE;
 
     public synchronized static void initPerspectivePreference()
     {
@@ -134,6 +134,9 @@ public class PerspectiveUI
 
     public static Perspective getCurrentPerspective()
     {
+        Perspective sessionPerspective = PerspectiveRegistry.getPerspective(PerspectiveRegistry.getSessionPerspective());
+        if(sessionPerspective != null)
+            return sessionPerspective;
         Object perspectiveObject = Application.getPreferences().getValue(PERSPECTIVE_PREFERENCE);
         return perspectiveObject instanceof String ? PerspectiveRegistry.getPerspective((String)perspectiveObject) : PerspectiveRegistry.getDefaultPerspective();
     }

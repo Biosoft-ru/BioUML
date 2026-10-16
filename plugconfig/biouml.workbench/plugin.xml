@@ -629,11 +629,16 @@
   
   <extension id="Default perspective" point="biouml.workbench.perspective">
   	<perspective name="Default" priority="100">
+  		<description>General-purpose workspace: browse databases, keep project data and run any analysis or workflow.</description>
   		<repository>
   			<tab title="Databases" path="databases" databases="true"/>
   			<tab title="Data" path="data"/>
   			<tab title="Analyses" path="analyses"/>
   		</repository>
+  		<entryPoints>
+  			<entry path="analyses/Methods" title="Analysis methods" description="Analyses grouped by topic"/>
+  			<entry path="analyses/Workflows" title="Workflows" description="Ready-made multi-step workflows"/>
+  		</entryPoints>
   		<viewparts>
   			<allow id="*"/>
   			<deny id="math.editor"/>
@@ -657,6 +662,7 @@
 
   <extension id="Single-molecule sequencing" point="biouml.workbench.perspective">
   	<perspective name="Single-molecule sequencing" priority="99" intro="intro-single-molecule-sequencing">
+  		<description>Workspace for single-molecule sequencing data analysis.</description>
   		<repository>
   			<tab title="Databases" path="databases" databases="true"/>
   			<tab title="Data" path="data"/>
@@ -684,11 +690,23 @@
 
   <extension id="Microbiome perspective" point="biouml.workbench.perspective">
   	<perspective name="Microbiome" priority="99" intro="intro-microbiome">
+  		<description>Microbial genome assembly from NGS reads: read quality control and adapter clipping, de-novo assembly with SPAdes, assembly assessment with QUAST and reference-assisted scaffolding with Ragout.</description>
   		<repository>
   			<tab title="Databases" path="databases" databases="true"/>
   			<tab title="Data" path="data"/>
   			<tab title="Analyses" path="analyses"/>
   		</repository>
+  		<entryPoints>
+  			<entry path="analyses/Workflows/Microbiome/Assembly basic" title="Basic assembly workflow" description="Reads are supplied as FASTQ files, adapters as FASTA"/>
+  			<entry path="analyses/Methods/NGS utils/Track statistics" title="Quality control of NGS data"/>
+  			<entry path="analyses/Galaxy/fasta_manipulation/fastq_mcf" title="EA Utils trim and clip" description="Detects and removes adapter sequences from FASTQ files"/>
+  			<entry path="analyses/Galaxy/NGS_QC/cshl_fastx_clipper" title="FastX clip" description="Clips adapters from the 3'-end of the sequences in a FASTA/FASTQ file"/>
+  			<entry path="analyses/Galaxy/hybrid/spades" title="De-novo assembly with SPAdes" description="Assembly of standard isolates and single-cell MDA bacteria"/>
+  			<entry path="analyses/Galaxy/hybrid/filter_spades_output" title="Filter SPAdes output" description="Filters out short or low covered contigs and scaffolds"/>
+  			<entry path="analyses/Galaxy/hybrid/plot_spades_stats" title="SPAdes stats" description="Length-coverage scatter plots of contigs and scaffolds"/>
+  			<entry path="analyses/Galaxy/NGS_QC/quast" title="QUAST" description="Quality assessment of genome assemblies"/>
+  			<entry path="analyses/Galaxy/hybrid/ragout" title="Ragout" description="Chromosome-level scaffolding using multiple references"/>
+  		</entryPoints>
   		<viewparts>
   			<allow id="*"/>
   			<deny id="math.editor"/>

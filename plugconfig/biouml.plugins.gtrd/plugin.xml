@@ -46,9 +46,21 @@
   
   <extension id="GTRD perspective" point="biouml.workbench.perspective">
   	<perspective name="GTRD" priority="20" intro="intro-gtrd">
+  		<description>Gene Transcription Regulation Database: ChIP-seq, ChIP-exo, DNase-seq, ATAC-seq and other experiments with the transcription factor binding sites derived from them. Search experiments, binding sites near a gene and genes regulated by a TF; check SNVs for regulatory potential.</description>
   		<repository>
   			<tab title="databases" path="databases"/>
   		</repository>
+  		<entryPoints>
+  			<entry path="databases/GTRD/Data/experiments" title="ChIP-seq TF experiments"/>
+  			<entry path="databases/GTRD/Data/statistics" title="Database statistics"/>
+  			<entry path="databases/GTRD/Dictionaries/classification" title="Transcription factor classification tree"/>
+  			<entry path="analyses/Methods/GTRD/Open tracks for all TF" title="Display tracks" description="Open GTRD tracks in the genome browser"/>
+  			<entry path="analyses/Methods/GTRD/Open per TF view" title="Display per TF workflow results"/>
+  			<entry path="analyses/Methods/GTRD/SBSAnalysis" title="Binding sites near the specified gene"/>
+  			<entry path="analyses/Methods/GTRD/Open regulated genes table" title="Genes regulated by the specified transcription factor"/>
+  			<entry path="analyses/Methods/GTRD/Filtering experiments by cell types" title="All experiments for cell types"/>
+  			<entry path="analyses/Methods/GTRD/RegulatoryMutations" title="Regulatory mutations" description="Check SNVs from a VCF file for regulatory potential"/>
+  		</entryPoints>
   		<viewparts>
   			<deny id="*"/>
             <allow id="table.*"/>
@@ -624,11 +636,15 @@
   
    <extension point="biouml.workbench.perspective">
   	<perspective name="ChIP-seq Analysis" priority="30" intro="intro-chipseq-qc-analysis">
+  		<description>ChIP-seq processing and quality control.</description>
   		<repository>
             <tab title="ChIP-seq Analysis" path="ChIP_seq_Analysis"/>
   			<tab title="Databases" path="databases"/>
   			<tab title="Data" path="data"/>
   		</repository>
+  		<entryPoints>
+  			<entry path="analyses/Methods/ChIP-seq/ChIP-seq Quality control analysis" title="ChIP-seq quality control analysis"/>
+  		</entryPoints>
   		<viewparts>
   			<deny id=""/>
             <allow id="*"/>
@@ -641,11 +657,17 @@
 
   <extension point="biouml.workbench.perspective">
     <perspective name="Regulatory mutations" priority="40" intro="intro-regulatory-mutations">
+      <description>Discover regulatory mutations using GTRD and TRANSFAC: mutations from a VCF track (hg38) are scored with TRANSFAC site models before and after the change, then supported by GTRD ChIP-seq peaks overlapping the affected sites.</description>
       <repository>
         <tab title="Databases" path="databases" databases="true"/>
         <tab title="Data" path="data"/>
         <tab title="Analyses" path="analyses"/>
       </repository>
+      <entryPoints>
+          <entry path="analyses/Workflows/GTRD/Discover regulatory mutations using GTRD and TRANSFAC" title="Regulatory mutations workflow" description="Runs on a VCF track on the hg38 genome build"/>
+          <entry path="analyses/Galaxy/liftOver/picard_LiftoverVCF" title="Liftover VCF track" description="Converts a VCF track on another genome build to hg38"/>
+          <entry path="data/Examples/Regulatory mutations/Data/Results" title="Example results"/>
+      </entryPoints>
     <importers>
       <deny id="biouml.plugins.genomeenhancer.importer.*"/>
     </importers>

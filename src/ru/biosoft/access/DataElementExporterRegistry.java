@@ -12,9 +12,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.core.runtime.IConfigurationElement;
 
-import com.developmentontheedge.application.Application;
-import com.developmentontheedge.beans.Preferences;
-
 import biouml.workbench.perspective.Perspective;
 import biouml.workbench.perspective.PerspectiveRegistry;
 import ru.biosoft.access.core.DataElement;
@@ -151,9 +148,7 @@ public class DataElementExporterRegistry extends DataElementRegistry<DataElement
 
     public static StreamEx<ExporterInfo> exporters()
     {
-        Preferences preferences = Application.getPreferences();
-        String perspectiveStr = preferences != null ? preferences.getStringValue( "Perspective", "Default" ) : "Default";
-        Perspective perspective = PerspectiveRegistry.getPerspective( perspectiveStr );
+        Perspective perspective = PerspectiveRegistry.getPerspective( PerspectiveRegistry.getCurrentPerspectiveName( "Default" ) );
         StreamEx<ExporterInfo> initialStream = instance.stream();
         if( perspective != null )
             return initialStream.filter( ei -> perspective.isExporterAvailable( ei.getExporter().getClass().getCanonicalName() ) );

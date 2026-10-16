@@ -5,6 +5,7 @@ import biouml.plugins.mcp.tools.brain.BrainTools;
 import biouml.plugins.mcp.tools.bsa.BsaTools;
 import biouml.plugins.mcp.tools.diagram.DiagramEditTools;
 import biouml.plugins.mcp.tools.diagram.DiagramTools;
+import biouml.plugins.mcp.tools.perspective.PerspectiveTools;
 import biouml.plugins.mcp.tools.project.ProjectTools;
 import biouml.plugins.mcp.tools.repo.RepoTools;
 import biouml.plugins.mcp.tools.simulation.SimulationTools;
@@ -29,6 +30,7 @@ public final class McpServerFactory
 	public static McpToolCatalog createCatalog()
 	{
 		McpToolCatalog catalog = new McpToolCatalog();
+		PerspectiveTools.registerAll( catalog );
 		RepoTools.registerAll( catalog );
 		AnalysisTools.registerAll( catalog );
 		DiagramTools.registerAll( catalog );
