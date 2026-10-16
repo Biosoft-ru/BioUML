@@ -285,9 +285,43 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		assertEquals( Integer.valueOf( 1000 ), problems.get( 0 ).get( "count" ) );
 		assertTrue( ( (String) problems.get( 1 ).get( "message" ) ).contains( "Skip failed analysis Filter table" ) );
 		assertEquals( Integer.valueOf( 1001 ), m.get( "problemCount" ) );
+		assertEquals( Integer.valueOf( 2 ), m.get( "problemKinds" ) );
 		List<String> tail = (List<String>) m.get( "logTail" );
 		assertEquals( "INFO: done", tail.get( tail.size() - 1 ) );
+		assertTrue( "1000 lines differing in numbers are one tail line", tail.contains( "ERROR: trying to get description of gene ENSMUSG000010999 [×1000]" ) );
+		assertEquals( 4, tail.size() );
 		assertTrue( McpAnalysisSupport.summarizeLog( null ).isEmpty() );
+	}
+
+	/**
+	 * The level of a tool's line relayed into the log decides (lines of a workflow's log): Picard's INFO
+	 * lines and its echoed command line are no problems, its WARNING lines are, and a cut-off copy of a line counts
+	 * with the whole one.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testSummarizeLogLevels()
+	{
+		String contig = "INFO: WARNING\t2026-10-16 08:30:33\tLiftoverVcf\tEncountered a contig, chr7_KI270803v1_alt that is not part of";
+		StringBuilder log = new StringBuilder();
+		log.append( "INFO: [Fri Oct 16 08:30:26 CEST 2026] LiftoverVcf INPUT=/tmp/sorted.vcf OUTPUT=/tmp/out.vcf WARN_ON_MISSING_CONTIG=true LOG_FAILED_INTERVALS=true\n" );
+		log.append( "INFO: INFO\t2026-10-16 08:30:33\tLiftOver\tInterval chr4:177605081-177605084 failed to match chain 4 because intersection length 1 < minMatchSize 4.0\n" );
+		for ( int i = 0; i < 12; i++ )
+			log.append( contig ).append( " the target reference.\n" );
+		log.append( contig ).append( '\n' );
+		log.append( "ERROR: INFO\t2026-10-16 08:30:40\tLiftoverVcf\tWriting out sorted records to final VCF.\n" );
+		log.append( "INFO: Skip failed analysis Filter table with following error: x\n" );
+		log.append( "WARN: Can not find promoter for ENSG00000184701\n" );
+		log.append( "ERROR: java.io.IOException: disk full\n" ).append( "\tat ru.biosoft.Some.method(Some.java:1)\n" );
+		Map<String, Object> m = McpAnalysisSupport.summarizeLog( log.toString() );
+		List<Map<String, Object>> problems = (List<Map<String, Object>>) m.get( "problems" );
+		assertEquals( "problems: " + problems, 4, problems.size() );
+		assertEquals( contig + " the target reference.", problems.get( 0 ).get( "message" ) );
+		assertEquals( Integer.valueOf( 13 ), problems.get( 0 ).get( "count" ) );
+		assertTrue( ( (String) problems.get( 1 ).get( "message" ) ).contains( "Skip failed analysis" ) );
+		assertTrue( ( (String) problems.get( 2 ).get( "message" ) ).contains( "Can not find promoter" ) );
+		assertTrue( ( (String) problems.get( 3 ).get( "message" ) ).contains( "disk full" ) );
+		assertEquals( Integer.valueOf( 16 ), m.get( "problemCount" ) );
+		assertEquals( Integer.valueOf( 4 ), m.get( "problemKinds" ) );
 	}
 
 	/** Table rows come with their ids and can be paged. */
@@ -305,6 +339,17 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		assertEquals( 2, ( (List<?>) page.get( "rows" ) ).size() );
 		assertEquals( Integer.valueOf( 2 ), page.get( "offset" ) );
 		assertEquals( Boolean.TRUE, page.get( "truncated" ) );
+		// only the columns asked for, in that order
+		Map<String, Object> narrow = (Map<String, Object>) McpAnalysisSupport
+				.getAnalysisResult( outRoot + "/paged", 0, 2, java.util.Arrays.asList( "value", "id" ) ).getData();
+		assertEquals( java.util.Arrays.asList( "value", "id" ), narrow.get( "columns" ) );
+		assertEquals( java.util.Arrays.asList( "java.lang.Double", "java.lang.Integer" ), narrow.get( "columnTypes" ) );
+		List<List<Object>> rows = (List<List<Object>>) narrow.get( "rows" );
+		assertEquals( 2, rows.get( 0 ).size() );
+		assertEquals( ( (List<List<Object>>) all.get( "rows" ) ).get( 1 ).get( 0 ), rows.get( 1 ).get( 1 ) );
+		McpEnvelope bad = McpAnalysisSupport.getAnalysisResult( outRoot + "/paged", null, null, java.util.Arrays.asList( "nope" ) );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, bad.getCode() );
+		assertTrue( bad.getError().contains( "value" ) );
 	}
 
 	/** The project of a path is the child of the user projects folder that contains it. */

@@ -35,13 +35,13 @@ public final class BsaTools
 				} );
 
 		catalog.register( "biouml_bsa_track_genome",
-				"Report or set the genome of a track (genome build id + sequences collection) — the headless equivalent of the track's 'Genome (sequences collection)' property. Analyses that convert between builds rely on it to tell which build the positions are in (e.g. whether a track needs a liftover to hg38). VCF imports take the genome from the file's ##reference header when it names one; use this tool to check or correct it. path is the track; genome (optional) is a build id or alias ('hg19', 'GRCh37', 'hg38', ...) or the path of a sequences collection; omit it to only report. Returns {path, genomeId, sequences, availableGenomes[{genomeId, name, sequences}]}, plus changed:true when set.",
-				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"genome\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
+				"Report or set the genome of a track (genome build id + sequences collection) — the headless equivalent of the track's 'Genome (sequences collection)' property. Analyses that convert between builds rely on it to tell which build the positions are in (e.g. whether a track needs a liftover to hg38). VCF imports take the genome from the file's ##reference header when it names one; use this tool to check or correct it. path is the track; genome (optional) is a build id or alias ('hg19', 'GRCh37', 'hg38', ...) or the path of a sequences collection; omit it to only report. Returns {path, genomeId, sequences}, plus changed:true when set, plus the installed genomes (availableGenomes[{genomeId, name, sequences}]) when listGenomes is true or the track has no sequences collection.",
+				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"genome\":{\"type\":\"string\"},\"listGenomes\":{\"type\":\"boolean\"}},\"required\":[\"path\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "path" );
 					if ( v != null )
 						return v;
-					return McpBsaSupport.trackGenome( McpArgs.str( args, "path" ), McpArgs.str( args, "genome" ) );
+					return McpBsaSupport.trackGenome( McpArgs.str( args, "path" ), McpArgs.str( args, "genome" ), McpArgs.bool( args, "listGenomes", false ) );
 				} );
 
 		catalog.register( "biouml_bsa_save_selection_track",

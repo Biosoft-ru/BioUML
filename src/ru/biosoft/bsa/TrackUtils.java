@@ -2,8 +2,10 @@ package ru.biosoft.bsa;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.Nonnull;
@@ -246,9 +248,24 @@ public class TrackUtils
         return null;
     }
 
+    /** Length of chromosome 1 in each build: it tells the build of a VCF whose contig lines give lengths. */
+    private static final Map<String, String> CHR1_LENGTH_BUILDS = new HashMap<>();
+    static
+    {
+        CHR1_LENGTH_BUILDS.put( "248956422", "hg38" );
+        CHR1_LENGTH_BUILDS.put( "249250621", "hg19" );
+        CHR1_LENGTH_BUILDS.put( "247249719", "hg18" );
+        CHR1_LENGTH_BUILDS.put( "195154279", "mm39" );
+        CHR1_LENGTH_BUILDS.put( "195471971", "mm10" );
+        CHR1_LENGTH_BUILDS.put( "197195432", "mm9" );
+    }
+
     /**
-     * Genome build declared in a VCF header ({@code ##reference=}, {@code ##assembly=}, or the {@code assembly}
-     * of a {@code ##contig} line), normalized by {@link #normalizeGenomeBuild}; null if the header names none.
+     * Genome build of a VCF, normalized by {@link #normalizeGenomeBuild}; null if the header tells none. The
+     * length of chromosome 1 in the {@code ##contig} lines wins: the lines describe the coordinates, while
+     * {@code ##reference} may be stale — Picard's LiftoverVcf rewrites the contig lines for the target build and
+     * keeps the source's {@code ##reference=hg19}. Then {@code ##reference=} or {@code ##assembly=}, then the
+     * {@code assembly} of a contig line.
      */
     public static String detectVcfGenomeBuild(java.io.File file)
     {
@@ -256,29 +273,49 @@ public class TrackUtils
                 new java.io.FileInputStream( file ), java.nio.charset.StandardCharsets.UTF_8 ) ))
         {
             String line;
-            String fromContig = null;
+            String fromReference = null, fromContig = null;
             while( ( line = reader.readLine() ) != null && line.startsWith( "##" ) )
             {
                 String lower = line.toLowerCase( java.util.Locale.ENGLISH );
                 if( lower.startsWith( "##reference=" ) || lower.startsWith( "##assembly=" ) )
                 {
-                    String build = normalizeGenomeBuild( line.substring( line.indexOf( '=' ) + 1 ) );
-                    if( build != null )
-                        return build;
+                    if( fromReference == null )
+                        fromReference = normalizeGenomeBuild( line.substring( line.indexOf( '=' ) + 1 ) );
                 }
-                else if( fromContig == null && lower.startsWith( "##contig=<" ) )
+                else if( lower.startsWith( "##contig=<" ) )
                 {
-                    int pos = lower.indexOf( "assembly=" );
-                    if( pos >= 0 )
-                        fromContig = normalizeGenomeBuild( line.substring( pos + "assembly=".length() ).split( "[,>]" )[0] );
+                    String id = contigField( lower, "id" );
+                    if( "1".equals( id ) || "chr1".equals( id ) )
+                    {
+                        String build = CHR1_LENGTH_BUILDS.get( contigField( lower, "length" ) );
+                        if( build != null )
+                            return build;
+                    }
+                    String assembly = contigField( lower, "assembly" );
+                    if( fromContig == null && assembly != null )
+                        fromContig = normalizeGenomeBuild( assembly );
                 }
             }
-            return fromContig;
+            return fromReference != null ? fromReference : fromContig;
         }
         catch( Exception e )
         {
             return null;
         }
+    }
+
+    private static final Map<String, java.util.regex.Pattern> CONTIG_FIELDS = new HashMap<>();
+    static
+    {
+        for( String field : new String[] {"id", "length", "assembly"} )
+            CONTIG_FIELDS.put( field, java.util.regex.Pattern.compile( "[<,]" + field + "=([^,>]*)" ) );
+    }
+
+    /** The value of a field (id, length or assembly) of a lower-cased {@code ##contig=<ID=chr1,length=...>} line, or null. */
+    private static String contigField(String line, String field)
+    {
+        java.util.regex.Matcher m = CONTIG_FIELDS.get( field ).matcher( line );
+        return m.find() ? m.group( 1 ).trim() : null;
     }
 
     /** Omics type ("Genomics", ...) recorded for an element in its generic parent folder, or null. */

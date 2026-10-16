@@ -333,7 +333,9 @@ public class JSElement extends ScriptDataElement
 
                 DerivedScriptEnvironment trackingEnv = new DerivedScriptEnvironment( env );
                 result = JScriptContext.evaluateString( context, topLevelScope, content, getName(), trackingEnv );
-                if( !trackingEnv.hasData() && result != null )
+                // echo the value like a console does, but not a script document's "undefined" (a workflow's script steps
+                // logged nothing else)
+                if( !trackingEnv.hasData() && result != null && ( sessionContext || !"undefined".equals( result ) ) )
                     env.print( result );
 
                 for( String outVarName : new ArrayList<>( outVars.keySet() ) )

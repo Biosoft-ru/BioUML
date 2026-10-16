@@ -201,7 +201,7 @@ public final class RepoTools
 					} );
 
 			catalog.register( "biouml_repo_export",
-					"Export a repository element to a file on the server's local filesystem — the headless equivalent of the web UI's 'Export' menu item. format is one of biouml_repo_export_formats (omit to use the highest-priority format); targetDir is a server-local directory (omit for the current dir) — the output file is the element name + the format suffix. Returns {file, format, bytes}.",
+					"Export a repository element to a file on the server's local filesystem — the headless equivalent of the web UI's 'Export' menu item. format is one of biouml_repo_export_formats (omit to use the highest-priority format); targetDir is a server-local directory (omit for a new temporary one) — the output file is the element name + the format suffix. Returns {file, format, bytes, sha256, downloadId}; fetch the file's bytes with biouml_repo_download (downloadId).",
 					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"format\":{\"type\":\"string\"},\"targetDir\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -214,6 +214,22 @@ public final class RepoTools
 						if ( vt != null )
 							return vt;
 						return McpRepositorySupport.export( McpArgs.str( args, "path" ), McpArgs.str( args, "format" ), McpArgs.str( args, "targetDir" ) );
+					} );
+
+			catalog.register( "biouml_repo_download",
+					"Download a file written by biouml_repo_export (e.g. a report exported to PDF), in base64 chunks: length bytes (default 262144, max 1048576) from offset (default 0). Returns {name, offset, bytes, totalBytes, sha256, base64, done, nextOffset}; call again with offset=nextOffset until done, join the decoded chunks and check them against sha256. downloadId is the id biouml_repo_export returned; it lasts 24 h and only the user who exported can use it. All chunks come from that one export (exporting again can give different bytes, e.g. a PDF's creation time).",
+					"{\"type\":\"object\",\"properties\":{\"downloadId\":{\"type\":\"string\"},\"offset\":{\"type\":\"integer\"},\"length\":{\"type\":\"integer\"}},\"required\":[\"downloadId\"]}",
+					( ex, args ) -> {
+						McpEnvelope v = McpArgs.requiredString( args, "downloadId" );
+						if ( v == null )
+							v = McpArgs.intArg( args, "offset", 0 );
+						if ( v == null )
+							v = McpArgs.intArg( args, "length", 0 );
+						if ( v != null )
+							return v;
+						return McpRepositorySupport.download( McpArgs.str( args, "downloadId" ),
+								args.get( "offset" ) == null ? null : Integer.valueOf( McpArgs.intVal( args, "offset", 0 ) ),
+								args.get( "length" ) == null ? null : Integer.valueOf( McpArgs.intVal( args, "length", 0 ) ) );
 					} );
 
 			catalog.register( "biouml_repo_document_content",

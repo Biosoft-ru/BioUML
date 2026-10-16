@@ -36,6 +36,12 @@ public class VcfGenomeAndGenotypeTest extends TestCase
         assertEquals( "hg19", detect( "##fileformat=VCFv4.1\n##contig=<ID=1,length=249250621,assembly=b37>\n#CHROM\tPOS\n" ) );
         // ##reference wins over the contig assembly
         assertEquals( "hg38", detect( "##contig=<ID=1,assembly=b37>\n##reference=GRCh38\n#CHROM\tPOS\n" ) );
+        // Picard's LiftoverVcf output: hg38 contig lines, the source's ##reference kept; the chr1 length wins
+        assertEquals( "hg38", detect( "##fileformat=VCFv4.2\n##reference=hg19\n##contig=<ID=chr1,length=248956422>\n"
+                + "##contig=<ID=chr2,length=242193529>\n#CHROM\tPOS\n" ) );
+        assertEquals( "hg19", detect( "##reference=GRCh38\n##contig=<ID=1,length=249250621,assembly=b37>\n#CHROM\tPOS\n" ) );
+        // an unknown chr1 length does not decide
+        assertEquals( "hg19", detect( "##reference=hg19\n##contig=<ID=chr1,length=1000>\n#CHROM\tPOS\n" ) );
         assertNull( detect( "##fileformat=VCFv4.2\n#CHROM\tPOS\n1\t752721\trs3131972\tA\tG\t.\t.\t.\n" ) );
     }
 

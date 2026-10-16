@@ -151,9 +151,16 @@ public final class McpBsaSupport
 	 * @param path   full repository path of the track
 	 * @param genome null/empty to only report; otherwise a genome build id or alias ("hg19", "GRCh37",
 	 *               "hg38", ...), or the path of a sequences collection
-	 * @return {@code {path, genomeId, sequences, availableGenomes}}; when set, also {@code changed: true}.
+	 * @return {@code {path, genomeId, sequences}}; when set, also {@code changed: true}; plus the installed genomes
+	 *         ({@code availableGenomes}) when the track has no sequences collection.
 	 */
 	public static McpEnvelope trackGenome( String path, String genome )
+	{
+		return trackGenome( path, genome, false );
+	}
+
+	/** Like {@link #trackGenome(String, String)}; {@code listGenomes} lists the installed genomes in any case. */
+	public static McpEnvelope trackGenome( String path, String genome, boolean listGenomes )
 	{
 		McpEnvelope resolved = McpRepositorySupport.resolve( path );
 		if ( !resolved.isOk() )
@@ -210,6 +217,9 @@ public final class McpBsaSupport
 		m.put( "sequences", sequences );
 		if ( changed )
 			m.put( "changed", Boolean.TRUE );
+		// the list (some 40 genomes) helps to choose one; a track that has its sequences does not need it
+		if ( !listGenomes && sequences != null && !sequences.isEmpty() )
+			return McpEnvelope.ok( m );
 		List<Map<String, Object>> available = new ArrayList<Map<String, Object>>();
 		for ( SequencesDatabaseInfo db : SequencesDatabaseInfoSelector.getDatabases() )
 		{
