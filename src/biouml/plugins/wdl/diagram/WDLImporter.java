@@ -143,7 +143,6 @@ public class WDLImporter implements DataElementImporter
     
     public ScriptInfo readScript(String name, String text) throws Exception
     {
-        text = processContent(text);
         AstStart start = new WDLParser().parse( new StringReader( text ) );
         return createScriptInfo( start, name );
     }
@@ -484,13 +483,6 @@ public class WDLImporter implements DataElementImporter
         for( AstDeclaration declaration : struct.getDeclarations() )
             structInfo.addExpressions( createExpressionInfo( declaration ) );
         return structInfo;
-    }
-
-    public static String processContent(String wdlFileContent)
-    {
-        if( wdlFileContent == null )
-            return null;
-        return wdlFileContent.replace( "<<<", "{" ).replace( ">>>", "}" );
     }
 
     public static Map<String, Diagram> loadWDLDiagrams(Path path) throws Exception
