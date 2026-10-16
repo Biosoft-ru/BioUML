@@ -150,9 +150,9 @@ public interface WDLParserConstants {
   /** Lexical state. */
   int DEFAULT = 0;
   /** Lexical state. */
-  int BASH_STRING = 1;
+  int BASH_COMMAND = 1;
   /** Lexical state. */
-  int BASH_COMMAND = 2;
+  int BASH_STRING = 2;
 
   /** Literal token values. */
   String[] tokenImage = {
