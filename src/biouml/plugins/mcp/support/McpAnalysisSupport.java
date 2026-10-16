@@ -310,6 +310,9 @@ public final class McpAnalysisSupport
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "parameter validation error: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
 		}
 
+		// as if the user had opened the output's project: the run is journalled there and sees it as the current project
+		McpProjectContext.useProjectOf( bean );
+
 		if ( sync )
 		{
 			try
@@ -550,9 +553,12 @@ public final class McpAnalysisSupport
 	private static final java.util.regex.Pattern PROBLEM_LINE = java.util.regex.Pattern
 			.compile( "ERROR|SEVERE|WARN|Exception|Skip failed|failed", java.util.regex.Pattern.CASE_INSENSITIVE );
 	private static final int LOG_PROBLEMS_CAP = 20, LOG_TAIL_LINES = 10, LOG_LINE_CHARS = 300;
+	private static final java.util.regex.Pattern DIGITS = java.util.regex.Pattern.compile( "\\d+" );
 
 	/**
-	 * Add the task log's warnings/errors ({@code problems}, the latest ones) and its last lines ({@code logTail}),
+	 * Add the task log's warnings/errors ({@code problems}: distinct messages, latest last, each with its count;
+	 * {@code problemCount}: all problem lines; {@code problemKinds}: distinct messages when more than shown) and its
+	 * last lines ({@code logTail}),
 	 * so a caller can follow a long run (and see e.g. skipped workflow steps) without reading the log by script.
 	 */
 	private static void putLog( Map<String, Object> m, String taskId )
@@ -567,31 +573,54 @@ public final class McpAnalysisSupport
 		{
 			return;
 		}
+		m.putAll( summarizeLog( log ) );
+	}
+
+	/** {@code problems}, {@code problemCount}, {@code problemKinds} and {@code logTail} of a task log (see {@link #putLog}). */
+	public static Map<String, Object> summarizeLog( String log )
+	{
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
 		if ( log == null || log.isEmpty() )
-			return;
+			return m;
 		String[] lines = log.split( "\\r?\\n" );
-		java.util.LinkedList<String> problems = new java.util.LinkedList<String>();
+		// Group problem lines by message pattern (digits normalized, so 8,000 "gene ENSMUSG0000..." lines are one
+		// entry) and keep the most recently seen patterns, each with its count and latest example.
+		Map<String, Object[]> byPattern = new LinkedHashMap<String, Object[]>();
 		int problemCount = 0;
 		for ( String line : lines )
 		{
-			if ( PROBLEM_LINE.matcher( line ).find() )
-			{
-				problemCount++;
-				problems.add( clip( line ) );
-				if ( problems.size() > LOG_PROBLEMS_CAP )
-					problems.removeFirst();
-			}
+			if ( !PROBLEM_LINE.matcher( line ).find() )
+				continue;
+			problemCount++;
+			String pattern = DIGITS.matcher( line ).replaceAll( "#" );
+			Object[] entry = byPattern.remove( pattern ); // re-insert: most recent last
+			if ( entry == null )
+				entry = new Object[] { null, Integer.valueOf( 0 ) };
+			entry[ 0 ] = clip( line );
+			entry[ 1 ] = Integer.valueOf( (Integer) entry[ 1 ] + 1 );
+			byPattern.put( pattern, entry );
 		}
 		if ( problemCount > 0 )
 		{
-			m.put( "problems", new ArrayList<String>( problems ) );
-			if ( problemCount > problems.size() )
-				m.put( "problemCount", Integer.valueOf( problemCount ) );
+			List<Object[]> entries = new ArrayList<Object[]>( byPattern.values() );
+			List<Map<String, Object>> problems = new ArrayList<Map<String, Object>>();
+			for ( Object[] entry : entries.subList( Math.max( 0, entries.size() - LOG_PROBLEMS_CAP ), entries.size() ) )
+			{
+				Map<String, Object> p = new LinkedHashMap<String, Object>();
+				p.put( "message", entry[ 0 ] );
+				p.put( "count", entry[ 1 ] );
+				problems.add( p );
+			}
+			m.put( "problems", problems );
+			m.put( "problemCount", Integer.valueOf( problemCount ) );
+			if ( entries.size() > LOG_PROBLEMS_CAP )
+				m.put( "problemKinds", Integer.valueOf( entries.size() ) );
 		}
 		List<String> tail = new ArrayList<String>();
 		for ( int i = Math.max( 0, lines.length - LOG_TAIL_LINES ); i < lines.length; i++ )
 			tail.add( clip( lines[ i ] ) );
 		m.put( "logTail", tail );
+		return m;
 	}
 
 	private static String clip( String line )
@@ -685,6 +714,7 @@ public final class McpAnalysisSupport
 		if ( !( method instanceof AnalysisMethodSupport ) )
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "stored analysis is not runnable: " + ( method == null ? "null" : method.getClass().getName() ) );
 		AnalysisMethodSupport<?> support = (AnalysisMethodSupport<?>) method;
+		McpProjectContext.useProjectOf( support.getParameters() );
 		if ( sync )
 		{
 			try
@@ -721,6 +751,18 @@ public final class McpAnalysisSupport
 	 */
 	public static McpEnvelope getAnalysisResult( String path )
 	{
+		return getAnalysisResult( path, null, null );
+	}
+
+	/** At most this many table rows per call. */
+	private static final int TABLE_ROWS_LIMIT_MAX = 500;
+
+	/**
+	 * Like {@link #getAnalysisResult(String)}, reading table rows from {@code offset} (default 0), at most
+	 * {@code limit} of them (default {@link McpConstants#TABLE_ROWS_CAP}, at most {@value #TABLE_ROWS_LIMIT_MAX}).
+	 */
+	public static McpEnvelope getAnalysisResult( String path, Integer offset, Integer limit )
+	{
 		DataElement de = McpProviderSupport.resolveElement( path );
 		if ( de == null )
 			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no element at path: " + path );
@@ -740,9 +782,22 @@ public final class McpAnalysisSupport
 			m.put( "columnTypes", types );
 			m.put( "rowCount", Integer.valueOf( t.getSize() ) );
 			List<List<Object>> rows = new ArrayList<List<Object>>();
-			int n = Math.min( t.getSize(), McpConstants.TABLE_ROWS_CAP );
-			for ( int r = 0; r < n; r++ )
+			List<String> rowIds = new ArrayList<String>();
+			int from = offset == null ? 0 : Math.max( 0, Math.min( offset.intValue(), t.getSize() ) );
+			int count = limit == null || limit.intValue() <= 0 ? McpConstants.TABLE_ROWS_CAP : Math.min( limit.intValue(), TABLE_ROWS_LIMIT_MAX );
+			int to = Math.min( t.getSize(), from + count );
+			for ( int r = from; r < to; r++ )
 			{
+				String rowId;
+				try
+				{
+					rowId = t.getName( r );
+				}
+				catch ( Exception e )
+				{
+					rowId = null;
+				}
+				rowIds.add( rowId );
 				List<Object> row = new ArrayList<Object>();
 				for ( int c = 0; c < columns.size(); c++ )
 				{
@@ -757,8 +812,11 @@ public final class McpAnalysisSupport
 				}
 				rows.add( row );
 			}
+			m.put( "rowIds", rowIds );
 			m.put( "rows", rows );
-			m.put( "truncated", Boolean.valueOf( t.getSize() > n ) );
+			if ( from > 0 )
+				m.put( "offset", Integer.valueOf( from ) );
+			m.put( "truncated", Boolean.valueOf( t.getSize() > to ) );
 		}
 		else if ( de instanceof SimulationResult )
 		{

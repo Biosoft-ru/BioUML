@@ -242,6 +242,26 @@ public class McpDiagramToolsTest extends AbstractBioUMLTest
 		assertEquals( "element count after remove", 1, ( (Number) dm2.get( "elementCount" ) ).intValue() );
 	}
 
+	/** A node is copied into a compartment, as dragging it there in the web UI does; refusals are reported. */
+	@SuppressWarnings( "unchecked" )
+	public void testCopyNodeIntoCompartment()
+	{
+		String path = (String) data( McpDiagramSupport.create( "mcpg/diagrams", "dcopy", "pathway" ) ).get( "path" );
+		data( McpDiagramSupport.addNode( path, "src", "Protein", 10, 10 ) );
+		biouml.model.Diagram diagram = ru.biosoft.access.core.DataElementPath.create( path ).getDataElement( biouml.model.Diagram.class );
+		biouml.model.Compartment box = new biouml.model.Compartment( diagram, new biouml.standard.type.Stub( null, "box", "compartment" ) );
+		box.setLocation( 200, 200 );
+		box.setShapeSize( new java.awt.Dimension( 200, 200 ) );
+		diagram.put( box );
+
+		Map<String, Object> added = (Map<String, Object>) data( McpDiagramSupport.copyNode( path, "src", "box", null, null ) ).get( "added" );
+		assertTrue( "copy is inside the compartment: " + added, String.valueOf( added.get( "path" ) ).startsWith( "box." ) );
+		assertNotNull( "original stays", diagram.findNode( "src" ) );
+
+		assertEquals( McpConstants.CODE_NOT_FOUND, McpDiagramSupport.copyNode( path, "nope", "box", null, null ).getCode() );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, McpDiagramSupport.copyNode( path, "src", "src", null, null ).getCode() );
+	}
+
 	@SuppressWarnings( "unchecked" )
 	public void testSaveProducesDmlFile()
 	{
