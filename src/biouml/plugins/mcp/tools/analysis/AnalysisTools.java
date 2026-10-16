@@ -40,7 +40,7 @@ public final class AnalysisTools
 				} );
 
 		catalog.register( "biouml_task_status",
-				"ASYNC poll — Report a background task's status (queued/running/paused/done/error/cancelled), progress (0-100), and result paths. Call it REPEATEDLY (with a short delay between calls) until the status reaches a terminal state ('done' or 'error'); the task is not finished until then. This is the poll for biouml_analysis_run (async mode). taskId is the id returned by the start action. Also returns the task log's warnings/errors grouped by message (problems: the latest 20 distinct messages, each with its count; problemCount: all problem lines), e.g. skipped workflow steps, and the log's last lines (logTail).",
+				"ASYNC poll — Report a background task's status (queued/running/paused/done/error/cancelled), progress (0-100), and result paths. Call it REPEATEDLY (with a short delay between calls) until the status reaches a terminal state ('done' or 'error'); the task is not finished until then. This is the poll for biouml_analysis_run (async mode). taskId is the id returned by the start action. status is the numeric job status and state its name. Also returns the task log's warnings/errors grouped by message, ignoring numbers (problems: the latest 20 distinct messages, each with its count; problemCount: all problem lines; problemKinds: all distinct messages), e.g. skipped workflow steps, and the log's last lines (logTail; a run of lines that differ only in numbers, such as progress lines, is shown once with [×N]).",
 				"{\"type\":\"object\",\"properties\":{\"taskId\":{\"type\":\"string\"}},\"required\":[\"taskId\"]}",
 				( ex, args ) -> McpAnalysisSupport.taskStatus( str( args, "taskId" ) ) );
 
@@ -63,9 +63,29 @@ public final class AnalysisTools
 				} );
 
 		catalog.register( "biouml_analysis_get_result",
-				"Read an analysis output: for a table, column names/types, rows (from offset, default 0; at most limit, default 50, max 500; truncated tells whether more follow) and their row ids (rowIds, aligned with rows — the table's key, e.g. a gene or drug id); for a folder, its children; for a simulation result (e.g. the output of 'Simulation analysis'), the time series ({vars, times, values}, plus Q1/Q2/Q3 for stochastic results).",
-				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"offset\":{\"type\":\"integer\"},\"limit\":{\"type\":\"integer\"}},\"required\":[\"path\"]}",
-				( ex, args ) -> McpAnalysisSupport.getAnalysisResult( str( args, "path" ), integer( args, "offset" ), integer( args, "limit" ) ) );
+				"Read an analysis output: for a table, column names/types, rows (from offset, default 0; at most limit, default 50, max 500; truncated tells whether more follow) and their row ids (rowIds, aligned with rows — the table's key, e.g. a gene or drug id); columns (optional) names the columns to return, in that order — wide tables such as drug lists with synonyms are much smaller with only the columns needed; for a folder, its children; for a simulation result (e.g. the output of 'Simulation analysis'), the time series ({vars, times, values}, plus Q1/Q2/Q3 for stochastic results).",
+				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"offset\":{\"type\":\"integer\",\"description\":\"first table row to return (default 0)\"},\"limit\":{\"type\":\"integer\",\"description\":\"rows to return (default 50, max 500)\"},\"columns\":{\"type\":\"array\",\"items\":{\"type\":\"string\"},\"description\":\"table columns to return (default all)\"}},\"required\":[\"path\"]}",
+				( ex, args ) -> McpAnalysisSupport.getAnalysisResult( str( args, "path" ), integer( args, "offset" ), integer( args, "limit" ), strings( args, "columns" ) ) );
+	}
+
+	/** A list-of-strings argument; a single string may also list them comma-separated. */
+	private static java.util.List<String> strings( Map<String, Object> args, String key )
+	{
+		Object v = args == null ? null : args.get( key );
+		java.util.List<String> out = new java.util.ArrayList<String>();
+		if ( v instanceof java.util.List )
+		{
+			for ( Object o : (java.util.List<?>) v )
+				if ( o != null )
+					out.add( String.valueOf( o ) );
+		}
+		else if ( v != null )
+		{
+			for ( String s : String.valueOf( v ).split( "," ) )
+				if ( !s.trim().isEmpty() )
+					out.add( s.trim() );
+		}
+		return out;
 	}
 
 	private static Integer integer( Map<String, Object> args, String key )

@@ -326,6 +326,55 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 		assertEquals( McpConstants.CODE_PATH_ESCAPE, bad.getCode() );
 	}
 
+	/** An exported file comes back in base64 chunks, by its download id, and joins to the same bytes. */
+	@SuppressWarnings( "unchecked" )
+	public void testExportDownload() throws Exception
+	{
+		byte[] content = new byte[ 300000 ];
+		new java.util.Random( 1 ).nextBytes( content );
+		File f = new File( dir, "download-me.bin" );
+		java.nio.file.Files.write( f.toPath(), content );
+		@SuppressWarnings( "rawtypes" )
+		DataCollection projects = CollectionFactory.getDataCollection( "mcpdata/projects" );
+		projects.put( new ru.biosoft.access.file.FileDataElement( "download-me.bin", projects, f ) );
+
+		Map<String, Object> exported = (Map<String, Object>) data( McpRepositorySupport.export( "mcpdata/projects/download-me.bin", null, null ) ).getData();
+		File file = new File( (String) exported.get( "file" ) );
+		assertFalse( "omitted targetDir: a temporary directory, not the current one", file.getParentFile().getCanonicalFile().equals( new File( "." ).getCanonicalFile() ) );
+		String id = (String) exported.get( "downloadId" );
+		assertNotNull( id );
+		java.io.ByteArrayOutputStream joined = new java.io.ByteArrayOutputStream();
+		Integer offset = null;
+		int calls = 0;
+		Map<String, Object> chunk;
+		do
+		{
+			chunk = (Map<String, Object>) data( McpRepositorySupport.download( id, offset, null ) ).getData();
+			joined.write( java.util.Base64.getDecoder().decode( (String) chunk.get( "base64" ) ) );
+			offset = chunk.get( "nextOffset" ) == null ? null : Integer.valueOf( ( (Number) chunk.get( "nextOffset" ) ).intValue() );
+			calls++;
+		}
+		while ( !Boolean.TRUE.equals( chunk.get( "done" ) ) );
+		assertEquals( "300000 bytes in 256 KiB chunks", 2, calls );
+		assertTrue( java.util.Arrays.equals( java.nio.file.Files.readAllBytes( file.toPath() ), joined.toByteArray() ) );
+		assertEquals( Long.valueOf( file.length() ), chunk.get( "totalBytes" ) );
+		java.security.MessageDigest sha = java.security.MessageDigest.getInstance( "SHA-256" );
+		StringBuilder hex = new StringBuilder();
+		for ( byte b : sha.digest( joined.toByteArray() ) )
+			hex.append( String.format( "%02x", b & 0xff ) );
+		assertEquals( hex.toString(), exported.get( "sha256" ) );
+		assertEquals( hex.toString(), chunk.get( "sha256" ) );
+
+		// a chosen chunk; an offset past the end; an unknown id; a file changed since the export
+		Map<String, Object> small = (Map<String, Object>) data( McpRepositorySupport.download( id, 10, 5 ) ).getData();
+		assertEquals( Integer.valueOf( 5 ), small.get( "bytes" ) );
+		assertEquals( Long.valueOf( 15 ), small.get( "nextOffset" ) );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, McpRepositorySupport.download( id, (int) file.length() + 1, null ).getCode() );
+		assertEquals( McpConstants.CODE_NOT_FOUND, McpRepositorySupport.download( "no-such-id", null, null ).getCode() );
+		java.nio.file.Files.write( file.toPath(), new byte[] { 1 } );
+		assertEquals( McpConstants.CODE_NOT_FOUND, McpRepositorySupport.download( id, null, null ).getCode() );
+	}
+
 	@SuppressWarnings( "unchecked" )
 	public void testImportFormats()
 	{

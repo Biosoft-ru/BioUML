@@ -779,9 +779,11 @@ public final class McpRepositorySupport
 	 * @param path       full repository path of the element to export
 	 * @param format     the export format (one of {@link #exportFormats}); may be null/empty to use
 	 *                   the highest-priority available format
-	 * @param targetDir  server-local directory for the output file (null/empty = current dir); the
-	 *                   file name is the element name + the format's suffix
-	 * @return an envelope whose data is {@code {file, format, bytes}} on success.
+	 * @param targetDir  server-local directory for the output file (null/empty = a new temporary
+	 *                   directory, removed with the file when its download id expires); the file name
+	 *                   is the element name + the format's suffix
+	 * @return an envelope whose data is {@code {file, format, bytes, sha256, downloadId}} on success;
+	 *         {@link #download} reads the file by its download id.
 	 */
 	public static McpEnvelope export( String path, String format, String targetDir )
 	{
@@ -804,16 +806,33 @@ public final class McpRepositorySupport
 			String suffix = info.getSuffix();
 			if ( suffix.indexOf( '.' ) == -1 )
 				suffix = "." + suffix;
-			File dir = ( targetDir == null || targetDir.isEmpty() ) ? new File( "." ) : new File( targetDir );
+			boolean ownDir = targetDir == null || targetDir.isEmpty();
+			File dir = ownDir ? java.nio.file.Files.createTempDirectory( "biouml-mcp-export-" ).toFile() : new File( targetDir );
 			if ( !dir.isDirectory() && !dir.mkdirs() )
 				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "target directory does not exist and could not be created: " + dir );
 			File file = new File( dir, de.getName() + suffix );
 			ru.biosoft.access.DataElementExporter exporter = info.cloneExporter();
-			exporter.doExport( de, file );
+			try
+			{
+				exporter.doExport( de, file );
+			}
+			catch ( Exception e )
+			{
+				if ( ownDir )
+				{
+					file.delete();
+					dir.delete();
+				}
+				throw e;
+			}
+			ExportedFile exported = new ExportedFile( file, ownDir );
+			String downloadId = registerExport( exported );
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "file", file.getAbsolutePath() );
 			m.put( "format", info.getFormat() );
-			m.put( "bytes", Long.valueOf( file.length() ) );
+			m.put( "bytes", Long.valueOf( exported.size ) );
+			m.put( "sha256", exported.sha256 );
+			m.put( "downloadId", downloadId );
 			return McpEnvelope.ok( m );
 		}
 		catch ( Exception e )
@@ -821,6 +840,131 @@ public final class McpRepositorySupport
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL,
 					"export failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
 		}
+	}
+
+	/** How long an exported file stays downloadable. */
+	private static final long EXPORT_TTL_MS = 24L * 60L * 60L * 1000L;
+	private static final int DOWNLOAD_CHUNK_DEFAULT = 256 * 1024, DOWNLOAD_CHUNK_MAX = 1024 * 1024;
+
+	/**
+	 * The files {@link #export} wrote, by download id. Only these can be downloaded, and only by the user who
+	 * exported them; ids are random, so one cannot be guessed.
+	 */
+	private static final Map<String, ExportedFile> EXPORTS = new java.util.concurrent.ConcurrentHashMap<String, ExportedFile>();
+
+	/** A file written by {@link #export}: its size, modification time and SHA-256 when written. */
+	private static final class ExportedFile
+	{
+		final File file;
+		final boolean ownDir;
+		final String user = ru.biosoft.access.security.SecurityManager.getSessionUser();
+		final long created = System.currentTimeMillis(), size, modified;
+		final String sha256;
+
+		ExportedFile( File file, boolean ownDir ) throws java.io.IOException
+		{
+			this.file = file;
+			this.ownDir = ownDir;
+			this.size = file.length();
+			this.modified = file.lastModified();
+			this.sha256 = sha256( file );
+		}
+
+		boolean changed()
+		{
+			return !file.isFile() || file.length() != size || file.lastModified() != modified;
+		}
+
+		/** Forget the file; delete it too if it lies in a directory {@link #export} created for it. */
+		void discard()
+		{
+			if ( !ownDir )
+				return;
+			File dir = file.getParentFile();
+			file.delete();
+			if ( dir != null )
+				dir.delete();
+		}
+	}
+
+	private static String sha256( File file ) throws java.io.IOException
+	{
+		try ( java.io.InputStream in = new java.io.FileInputStream( file ) )
+		{
+			java.security.MessageDigest digest = java.security.MessageDigest.getInstance( "SHA-256" );
+			byte[] buffer = new byte[ 64 * 1024 ];
+			for ( int n; ( n = in.read( buffer ) ) > 0; )
+				digest.update( buffer, 0, n );
+			StringBuilder hex = new StringBuilder();
+			for ( byte b : digest.digest() )
+				hex.append( String.format( "%02x", b & 0xff ) );
+			return hex.toString();
+		}
+		catch ( java.security.NoSuchAlgorithmException e )
+		{
+			throw new IllegalStateException( e );
+		}
+	}
+
+	private static String registerExport( ExportedFile exported )
+	{
+		long now = System.currentTimeMillis();
+		EXPORTS.entrySet().removeIf( e -> {
+			boolean expired = now - e.getValue().created > EXPORT_TTL_MS;
+			if ( expired )
+				e.getValue().discard();
+			return expired;
+		} );
+		String id = java.util.UUID.randomUUID().toString();
+		EXPORTS.put( id, exported );
+		return id;
+	}
+
+	/**
+	 * Read a file written by {@link #export} by its download id, as base64: {@code length} bytes (default 256 KiB,
+	 * at most 1 MiB) from {@code offset} (default 0). Call again from {@code nextOffset} until {@code done}, then
+	 * check the joined bytes against {@code sha256}. The chunks come from the one file the export wrote (exporting
+	 * again may give different bytes, e.g. a PDF's creation time).
+	 *
+	 * @return {@code {downloadId, name, offset, bytes, totalBytes, sha256, base64, done, nextOffset}}
+	 */
+	public static McpEnvelope download( String downloadId, Integer offset, Integer length )
+	{
+		ExportedFile exported = downloadId == null ? null : EXPORTS.get( downloadId );
+		if ( exported == null || System.currentTimeMillis() - exported.created > EXPORT_TTL_MS
+				|| !java.util.Objects.equals( exported.user, ru.biosoft.access.security.SecurityManager.getSessionUser() ) )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND,
+					"no exported file with download id " + downloadId + " (ids last 24 h and belong to the user who exported; export again with biouml_repo_export)" );
+		if ( exported.changed() )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "the exported file " + exported.file + " changed or was removed since the export; export again" );
+		long from = offset == null ? 0 : offset.longValue();
+		if ( from < 0 || from > exported.size )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "offset must be within 0.." + exported.size );
+		int count = (int) Math.min( exported.size - from,
+				length == null || length.intValue() <= 0 ? DOWNLOAD_CHUNK_DEFAULT : Math.min( length.intValue(), DOWNLOAD_CHUNK_MAX ) );
+		byte[] chunk = new byte[ count ];
+		try ( java.io.RandomAccessFile in = new java.io.RandomAccessFile( exported.file, "r" ) )
+		{
+			in.seek( from );
+			in.readFully( chunk );
+		}
+		catch ( java.io.IOException e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not read " + exported.file + ": " + e.getMessage() );
+		}
+		long next = from + count;
+		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		m.put( "downloadId", downloadId );
+		m.put( "name", exported.file.getName() );
+		m.put( "offset", Long.valueOf( from ) );
+		m.put( "bytes", Integer.valueOf( count ) );
+		m.put( "totalBytes", Long.valueOf( exported.size ) );
+		m.put( "sha256", exported.sha256 );
+		m.put( "base64", java.util.Base64.getEncoder().encodeToString( chunk ) );
+		m.put( "done", Boolean.valueOf( next >= exported.size ) );
+		if ( next < exported.size )
+			m.put( "nextOffset", Long.valueOf( next ) );
+		return McpEnvelope.ok( m );
 	}
 
 	/**

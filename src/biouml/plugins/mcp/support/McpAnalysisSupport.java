@@ -541,24 +541,36 @@ public final class McpAnalysisSupport
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
 		m.put( "taskId", taskId );
 		Object status = resp.get( JSONResponse.ATTR_STATUS );
-		m.put( "status", status instanceof Number ? Integer.valueOf( ( (Number) status ).intValue() ) : null );
+		boolean known = status instanceof Number;
+		m.put( "status", known ? Integer.valueOf( ( (Number) status ).intValue() ) : null );
+		if ( known )
+			m.put( "state", statusOf( ( (Number) status ).intValue() ) );
 		Object percent = resp.get( JSONResponse.ATTR_PERCENT );
-		m.put( "progress", percent instanceof Number ? Integer.valueOf( ( (Number) percent ).intValue() ) : null );
+		// a workflow's last steps may not report progress: a completed task is at 100, whatever it last reported
+		boolean completed = known && ( (Number) status ).intValue() == JobControl.COMPLETED;
+		m.put( "progress", completed ? Integer.valueOf( 100 ) : percent instanceof Number ? Integer.valueOf( ( (Number) percent ).intValue() ) : null );
 		Object values = resp.get( JSONResponse.ATTR_VALUES );
 		m.put( "textStatus", values instanceof java.util.List && ! ( (java.util.List<?>) values ).isEmpty() ? ( (java.util.List<?>) values ).get( 0 ) : null );
 		putLog( m, taskId );
 		return McpEnvelope.ok( m );
 	}
 
-	private static final java.util.regex.Pattern PROBLEM_LINE = java.util.regex.Pattern
-			.compile( "ERROR|SEVERE|WARN|Exception|Skip failed|failed", java.util.regex.Pattern.CASE_INSENSITIVE );
+	/** A level at the start of a log line: the task log's own ("INFO: "), or that of a tool's line relayed into it (Picard's "WARNING\t"). */
+	private static final java.util.regex.Pattern LOG_LEVEL = java.util.regex.Pattern
+			.compile( "^\\s*(INFO|WARN|WARNING|ERROR|SEVERE|DEBUG|TRACE|CONFIG|FINE|FINER|FINEST)\\b:?\\s*" );
+	/** Whole words, so that a tool option such as WARN_ON_MISSING_CONTIG in an echoed command line does not count. */
+	private static final java.util.regex.Pattern PROBLEM_WORD = java.util.regex.Pattern
+			.compile( "\\b(ERROR|SEVERE|WARN|WARNING|failed)\\b|Exception\\b", java.util.regex.Pattern.CASE_INSENSITIVE );
+	private static final java.util.regex.Pattern STACK_FRAME = java.util.regex.Pattern.compile( "^\\s+at\\s" );
 	private static final int LOG_PROBLEMS_CAP = 20, LOG_TAIL_LINES = 10, LOG_LINE_CHARS = 300;
+	/** A problem message that is the start of another one, at least this long, is taken for a cut-off copy of it. */
+	private static final int LOG_PREFIX_MERGE_CHARS = 40;
 	private static final java.util.regex.Pattern DIGITS = java.util.regex.Pattern.compile( "\\d+" );
 
 	/**
 	 * Add the task log's warnings/errors ({@code problems}: distinct messages, latest last, each with its count;
-	 * {@code problemCount}: all problem lines; {@code problemKinds}: distinct messages when more than shown) and its
-	 * last lines ({@code logTail}),
+	 * {@code problemCount}: all problem lines; {@code problemKinds}: all distinct messages) and its last lines
+	 * ({@code logTail}, a run of lines differing only in numbers shown once with its count),
 	 * so a caller can follow a long run (and see e.g. skipped workflow steps) without reading the log by script.
 	 */
 	private static void putLog( Map<String, Object> m, String taskId )
@@ -584,43 +596,121 @@ public final class McpAnalysisSupport
 			return m;
 		String[] lines = log.split( "\\r?\\n" );
 		// Group problem lines by message pattern (digits normalized, so 8,000 "gene ENSMUSG0000..." lines are one
-		// entry) and keep the most recently seen patterns, each with its count and latest example.
-		Map<String, Object[]> byPattern = new LinkedHashMap<String, Object[]>();
+		// entry), each with its count, latest example and where it was last seen.
+		Map<String, LogGroup> byPattern = new java.util.HashMap<String, LogGroup>();
 		int problemCount = 0;
-		for ( String line : lines )
+		for ( int i = 0; i < lines.length; i++ )
 		{
-			if ( !PROBLEM_LINE.matcher( line ).find() )
+			if ( !isProblem( lines[ i ] ) )
 				continue;
 			problemCount++;
-			String pattern = DIGITS.matcher( line ).replaceAll( "#" );
-			Object[] entry = byPattern.remove( pattern ); // re-insert: most recent last
-			if ( entry == null )
-				entry = new Object[] { null, Integer.valueOf( 0 ) };
-			entry[ 0 ] = clip( line );
-			entry[ 1 ] = Integer.valueOf( (Integer) entry[ 1 ] + 1 );
-			byPattern.put( pattern, entry );
+			String pattern = DIGITS.matcher( lines[ i ] ).replaceAll( "#" );
+			LogGroup group = byPattern.get( pattern );
+			if ( group == null )
+				byPattern.put( pattern, group = new LogGroup( pattern ) );
+			group.add( lines[ i ], i );
 		}
 		if ( problemCount > 0 )
 		{
-			List<Object[]> entries = new ArrayList<Object[]>( byPattern.values() );
+			List<LogGroup> groups = mergeCutOff( byPattern.values() );
+			groups.sort( ( a, b ) -> Integer.compare( a.last, b.last ) );
 			List<Map<String, Object>> problems = new ArrayList<Map<String, Object>>();
-			for ( Object[] entry : entries.subList( Math.max( 0, entries.size() - LOG_PROBLEMS_CAP ), entries.size() ) )
+			for ( LogGroup group : groups.subList( Math.max( 0, groups.size() - LOG_PROBLEMS_CAP ), groups.size() ) )
 			{
 				Map<String, Object> p = new LinkedHashMap<String, Object>();
-				p.put( "message", entry[ 0 ] );
-				p.put( "count", entry[ 1 ] );
+				p.put( "message", clip( group.example ) );
+				p.put( "count", Integer.valueOf( group.count ) );
 				problems.add( p );
 			}
 			m.put( "problems", problems );
 			m.put( "problemCount", Integer.valueOf( problemCount ) );
-			if ( entries.size() > LOG_PROBLEMS_CAP )
-				m.put( "problemKinds", Integer.valueOf( entries.size() ) );
+			m.put( "problemKinds", Integer.valueOf( groups.size() ) );
 		}
-		List<String> tail = new ArrayList<String>();
-		for ( int i = Math.max( 0, lines.length - LOG_TAIL_LINES ); i < lines.length; i++ )
-			tail.add( clip( lines[ i ] ) );
-		m.put( "logTail", tail );
+		m.put( "logTail", tail( lines ) );
 		return m;
+	}
+
+	/** Problem lines of one message pattern. */
+	private static final class LogGroup
+	{
+		final String pattern;
+		String example;
+		int count, last;
+
+		LogGroup( String pattern )
+		{
+			this.pattern = pattern;
+		}
+
+		void add( String line, int index )
+		{
+			example = line;
+			count++;
+			last = index;
+		}
+	}
+
+	/**
+	 * Whether a log line reports a problem. A line's level decides: the level of a tool's line relayed into the log
+	 * (Picard writes "INFO\t..." and "WARNING\t..." lines to stderr, whatever level they are logged at) over the
+	 * log's own; an INFO line or one with no level counts only when it names a failure, e.g. "Skip failed analysis".
+	 */
+	private static boolean isProblem( String line )
+	{
+		java.util.regex.Matcher level = LOG_LEVEL.matcher( line );
+		if ( !level.find() )
+			return !STACK_FRAME.matcher( line ).find() && PROBLEM_WORD.matcher( line ).find();
+		String rest = line.substring( level.end() );
+		java.util.regex.Matcher toolLevel = LOG_LEVEL.matcher( rest );
+		if ( toolLevel.find() )
+			return isProblemLevel( toolLevel.group( 1 ) );
+		return isProblemLevel( level.group( 1 ) ) || "INFO".equals( level.group( 1 ) ) && PROBLEM_WORD.matcher( rest ).find();
+	}
+
+	private static boolean isProblemLevel( String level )
+	{
+		return level.startsWith( "WARN" ) || "ERROR".equals( level ) || "SEVERE".equals( level );
+	}
+
+	/**
+	 * Fold a group whose message is the start of a longer one into it: a tool line cut off in the log ("... that is
+	 * not part of") is the same problem as the whole line. In sorted order a prefix comes just before a line it starts.
+	 */
+	private static List<LogGroup> mergeCutOff( java.util.Collection<LogGroup> groups )
+	{
+		List<LogGroup> sorted = new ArrayList<LogGroup>( groups );
+		sorted.sort( ( a, b ) -> a.pattern.compareTo( b.pattern ) );
+		List<LogGroup> out = new ArrayList<LogGroup>();
+		for ( int i = 0; i < sorted.size(); i++ )
+		{
+			LogGroup group = sorted.get( i );
+			LogGroup next = i + 1 < sorted.size() ? sorted.get( i + 1 ) : null;
+			if ( next != null && group.pattern.length() >= LOG_PREFIX_MERGE_CHARS && next.pattern.startsWith( group.pattern ) )
+			{
+				next.count += group.count;
+				next.last = Math.max( next.last, group.last );
+				continue;
+			}
+			out.add( group );
+		}
+		return out;
+	}
+
+	/** The last lines of a log; consecutive lines that differ only in numbers (e.g. progress lines) are shown once, the latest, with their count. */
+	private static List<String> tail( String[] lines )
+	{
+		java.util.LinkedList<String> tail = new java.util.LinkedList<String>();
+		int i = lines.length - 1;
+		while ( i >= 0 && tail.size() < LOG_TAIL_LINES )
+		{
+			String pattern = DIGITS.matcher( lines[ i ] ).replaceAll( "#" );
+			int n = 1;
+			while ( i - n >= 0 && pattern.equals( DIGITS.matcher( lines[ i - n ] ).replaceAll( "#" ) ) )
+				n++;
+			tail.addFirst( n > 1 ? clip( lines[ i ] ) + " [×" + n + "]" : clip( lines[ i ] ) );
+			i -= n;
+		}
+		return new ArrayList<String>( tail );
 	}
 
 	private static String clip( String line )
@@ -746,7 +836,7 @@ public final class McpAnalysisSupport
 
 	/**
 	 * Read an analysis output collection: a {@link TableDataCollection} yields column names/types
-	 * and the first N rows; any other {@link DataCollection} yields a child listing; anything else
+	 * and its first rows (see the overloads for paging and column selection); any other {@link DataCollection} yields a child listing; anything else
 	 * yields a type summary. This is how an agent reads results without the UI.
 	 */
 	public static McpEnvelope getAnalysisResult( String path )
@@ -763,6 +853,15 @@ public final class McpAnalysisSupport
 	 */
 	public static McpEnvelope getAnalysisResult( String path, Integer offset, Integer limit )
 	{
+		return getAnalysisResult( path, offset, limit, null );
+	}
+
+	/**
+	 * Like {@link #getAnalysisResult(String, Integer, Integer)}, returning only the table columns named in
+	 * {@code selected} (in that order; null or empty for all of them).
+	 */
+	public static McpEnvelope getAnalysisResult( String path, Integer offset, Integer limit, List<String> selected )
+	{
 		DataElement de = McpProviderSupport.resolveElement( path );
 		if ( de == null )
 			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no element at path: " + path );
@@ -771,12 +870,24 @@ public final class McpAnalysisSupport
 		if ( de instanceof TableDataCollection )
 		{
 			TableDataCollection t = (TableDataCollection) de;
-			List<String> columns = new ArrayList<String>();
-			List<String> types = new ArrayList<String>();
+			List<String> all = new ArrayList<String>();
+			List<String> allTypes = new ArrayList<String>();
 			for ( ru.biosoft.table.TableColumn tc : t.columns() )
 			{
-				columns.add( tc.getName() );
-				types.add( tc.getValueClass() == null ? "unknown" : tc.getValueClass().getName() );
+				all.add( tc.getName() );
+				allTypes.add( tc.getValueClass() == null ? "unknown" : tc.getValueClass().getName() );
+			}
+			List<String> columns = new ArrayList<String>();
+			List<String> types = new ArrayList<String>();
+			List<Integer> indices = new ArrayList<Integer>();
+			for ( String name : selected == null || selected.isEmpty() ? all : selected )
+			{
+				int index = all.indexOf( name );
+				if ( index < 0 )
+					return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "no column '" + name + "' in " + path + "; columns: " + all );
+				columns.add( name );
+				types.add( allTypes.get( index ) );
+				indices.add( Integer.valueOf( index ) );
 			}
 			m.put( "columns", columns );
 			m.put( "columnTypes", types );
@@ -799,11 +910,11 @@ public final class McpAnalysisSupport
 				}
 				rowIds.add( rowId );
 				List<Object> row = new ArrayList<Object>();
-				for ( int c = 0; c < columns.size(); c++ )
+				for ( Integer c : indices )
 				{
 					try
 					{
-						row.add( McpJsonSafe.toJsonSafe( t.getValueAt( r, c ) ) );
+						row.add( McpJsonSafe.toJsonSafe( t.getValueAt( r, c.intValue() ) ) );
 					}
 					catch ( Exception e )
 					{

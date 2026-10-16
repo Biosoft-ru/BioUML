@@ -15,6 +15,7 @@ import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.access.task.JobControlTask;
 import ru.biosoft.access.task.Task;
 import ru.biosoft.exception.ExceptionRegistry;
+import ru.biosoft.journal.Journal;
 import ru.biosoft.journal.JournalRegistry;
 import ru.biosoft.tasks.TaskInfo;
 import ru.biosoft.tasks.TaskManager;
@@ -81,6 +82,9 @@ public abstract class ScriptDataElement extends TextDataElement
             title += " " + getName();
         title += " (" + SecurityManager.getSessionUser() + ")";
         TaskInfo taskInfo;
+        // A script joined in the calling thread is a step of whatever runs it (a workflow's script element, an analysis
+        // running R code): that one is journalled, not each of its scripts
+        Journal journal = willJoin ? null : JournalRegistry.getCurrentJournal();
         JobControlTask task = new JobControlTask( title, jc ) {
             @Override
             public double estimateWeight()
@@ -91,14 +95,13 @@ public abstract class ScriptDataElement extends TextDataElement
         };
         if( sessionContext )
         {
-            taskInfo = taskManager.addTask( TaskInfo.SCRIPT, null, jc, log, JournalRegistry.getCurrentJournal(),
-                    new DynamicPropertySetSupport(), false, task );
+            taskInfo = taskManager.addTask( TaskInfo.SCRIPT, null, jc, log, journal, new DynamicPropertySetSupport(), false, task );
             taskInfo.setData(content);
         }
         else
         {
-            taskInfo = taskManager.addTask( TaskInfo.SCRIPT_DOCUMENT, DataElementPath.create( this ), jc, log,
-                    JournalRegistry.getCurrentJournal(), new DynamicPropertySetSupport(), false, task );
+            taskInfo = taskManager.addTask( TaskInfo.SCRIPT_DOCUMENT, DataElementPath.create( this ), jc, log, journal,
+                    new DynamicPropertySetSupport(), false, task );
         }
         return taskInfo;
     }
