@@ -271,6 +271,53 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		assertTrue( "error must list a valid key ('rows')", env.getError() != null && env.getError().contains( "rows" ) );
 	}
 
+	/** Repeated log problems collapse into one entry with a count; the latest distinct ones are kept. */
+	@SuppressWarnings( "unchecked" )
+	public void testSummarizeLogGroupsRepeats()
+	{
+		StringBuilder log = new StringBuilder( "INFO: start\n" );
+		for ( int i = 0; i < 1000; i++ )
+			log.append( "ERROR: trying to get description of gene ENSMUSG0000" ).append( 10000 + i ).append( '\n' );
+		log.append( "WARNING: Skip failed analysis Filter table\n" ).append( "INFO: done\n" );
+		Map<String, Object> m = McpAnalysisSupport.summarizeLog( log.toString() );
+		List<Map<String, Object>> problems = (List<Map<String, Object>>) m.get( "problems" );
+		assertEquals( "two kinds of problems", 2, problems.size() );
+		assertEquals( Integer.valueOf( 1000 ), problems.get( 0 ).get( "count" ) );
+		assertTrue( ( (String) problems.get( 1 ).get( "message" ) ).contains( "Skip failed analysis Filter table" ) );
+		assertEquals( Integer.valueOf( 1001 ), m.get( "problemCount" ) );
+		List<String> tail = (List<String>) m.get( "logTail" );
+		assertEquals( "INFO: done", tail.get( tail.size() - 1 ) );
+		assertTrue( McpAnalysisSupport.summarizeLog( null ).isEmpty() );
+	}
+
+	/** Table rows come with their ids and can be paged. */
+	@SuppressWarnings( "unchecked" )
+	public void testGetResultPagingAndRowIds()
+	{
+		Map<String, Object> p = params( 5 );
+		p.put( "output", outRoot + "/paged" );
+		assertTrue( McpAnalysisSupport.runAnalysis( McpTestAnalysis.NAME, p, null, true ).isOk() );
+		Map<String, Object> all = (Map<String, Object>) McpAnalysisSupport.getAnalysisResult( outRoot + "/paged" ).getData();
+		assertEquals( java.util.Arrays.asList( "row0", "row1", "row2", "row3", "row4" ), all.get( "rowIds" ) );
+		assertEquals( Boolean.FALSE, all.get( "truncated" ) );
+		Map<String, Object> page = (Map<String, Object>) McpAnalysisSupport.getAnalysisResult( outRoot + "/paged", 2, 2 ).getData();
+		assertEquals( java.util.Arrays.asList( "row2", "row3" ), page.get( "rowIds" ) );
+		assertEquals( 2, ( (List<?>) page.get( "rows" ) ).size() );
+		assertEquals( Integer.valueOf( 2 ), page.get( "offset" ) );
+		assertEquals( Boolean.TRUE, page.get( "truncated" ) );
+	}
+
+	/** The project of a path is the child of the user projects folder that contains it. */
+	public void testProjectOf()
+	{
+		ru.biosoft.access.core.DataElementPath projects = ru.biosoft.access.CollectionFactoryUtils.getUserProjectsPath();
+		assertEquals( projects.getChildPath( "P" ),
+				biouml.plugins.mcp.support.McpProjectContext.projectOf( projects.getChildPath( "P", "Data", "Results", "x" ) ) );
+		assertEquals( projects.getChildPath( "P" ), biouml.plugins.mcp.support.McpProjectContext.projectOf( projects.getChildPath( "P" ) ) );
+		assertNull( biouml.plugins.mcp.support.McpProjectContext.projectOf( projects ) );
+		assertNull( biouml.plugins.mcp.support.McpProjectContext.projectOf( ru.biosoft.access.core.DataElementPath.create( "databases/x/y" ) ) );
+	}
+
 	/** A choice parameter lists its accepted values; a free-form one does not. */
 	@SuppressWarnings( "unchecked" )
 	public void testDescribeListsAllowedValues()

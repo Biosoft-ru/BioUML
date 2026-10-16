@@ -425,6 +425,7 @@ public final class McpDiagramSupport
 		if ( !d.isOk() )
 			return d;
 		Diagram diagram = (Diagram) d.getData();
+		ensureView( diagram );
 		Snapshot snapshot = new Snapshot( diagram );
 		Map<String, Object> result;
 		try
@@ -455,6 +456,28 @@ public final class McpDiagramSupport
 		if ( !declared.isEmpty() && !result.containsKey( "declaredParameters" ) )
 			result.put( "declaredParameters", declared );
 		return McpEnvelope.ok( result );
+	}
+
+	/**
+	 * Build the diagram's view if it (or any of its nodes) has none, as rendering it would. Some semantic
+	 * controllers lay out or shift elements through their views and
+	 * fail with a NullPointerException on a diagram that was loaded but never shown.
+	 */
+	static void ensureView( Diagram diagram )
+	{
+		if ( diagram.getView() != null && diagram.recursiveStream().skip( 1 ).allMatch( de -> de.getView() != null ) )
+			return;
+		try
+		{
+			synchronized ( diagram )
+			{
+				diagram.getType().getDiagramViewBuilder().createDiagramView( diagram, com.developmentontheedge.application.ApplicationUtils.getGraphics() );
+			}
+		}
+		catch ( Throwable t )
+		{
+			log.log( java.util.logging.Level.FINE, "could not build the view of " + diagram.getName(), t );
+		}
 	}
 
 	/** An exception with its chain of causes, e.g. "DataElementPutException: Cannot save ... <- NullPointerException: ...". */
@@ -937,6 +960,50 @@ public final class McpDiagramSupport
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "element", elementPath );
 			m.put( "added", added );
+			final Compartment requested = target;
+			if ( requested != diagram && diagram.recursiveStream().filter( de -> !before.contains( de ) ).noneMatch( de -> de instanceof Node && isInside( (Node) de, requested ) ) )
+				m.put( "warning", "the diagram type placed the element outside compartment " + compartmentId
+						+ "; to put a node into that compartment, copy it there with biouml_diagram_copy_node" );
+			return m;
+		} );
+	}
+
+	/**
+	 * Copy a node into a compartment of the same diagram — the headless equivalent of dragging a node onto
+	 * another compartment in the web UI ({@code WebDiagramsProvider.addNodeCopy}).
+	 */
+	public static McpEnvelope copyNode( String diagramPath, String elementId, String compartmentId, Integer x, Integer y )
+	{
+		return edit( diagramPath, "copyNode", diagram -> {
+			DiagramElement el = findElement( diagram, elementId );
+			if ( !( el instanceof Node ) || el == diagram )
+				throw new NotFoundException( "no node with id: " + elementId );
+			Compartment target = diagram;
+			if ( compartmentId != null && !compartmentId.isEmpty() )
+			{
+				DiagramElement c = findElement( diagram, compartmentId );
+				if ( c == null )
+					throw new NotFoundException( "no compartment with id: " + compartmentId );
+				if ( !( c instanceof Compartment ) )
+					throw new IllegalArgumentException( "not a compartment: " + compartmentId );
+				target = (Compartment) c;
+			}
+			Point location = point( x, y );
+			if ( location == null )
+				location = target == diagram || target.getLocation() == null ? new Point( 0, 0 )
+						: new Point( target.getLocation().x + 10, target.getLocation().y + 30 );
+			biouml.model.SemanticController controller = diagram.getType().getSemanticController();
+			String newName = biouml.model.DefaultSemanticController.generateUniqueNodeName( target, el.getName() );
+			Node copy = controller.copyNode( (Node) el, newName, target, location );
+			if ( copy == null || !controller.canAccept( target, copy ) )
+				throw new IllegalArgumentException( "compartment " + ( compartmentId == null ? "(diagram)" : compartmentId )
+						+ " does not accept a copy of " + elementId );
+			new biouml.workbench.diagram.DiagramEditorHelper( diagram ).add( copy, location );
+			if ( copy.getOrigin() == null || !copy.getOrigin().contains( copy.getName() ) )
+				target.put( copy );
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "copied", elementId );
+			m.put( "added", summary( copy ) );
 			return m;
 		} );
 	}
@@ -1060,7 +1127,11 @@ public final class McpDiagramSupport
 	{
 		if ( dx == 0 && dy == 0 )
 			return;
+		Point before = node.getLocation() == null ? null : new Point( node.getLocation() );
 		diagram.getType().getSemanticController().move( node, node.getCompartment(), new java.awt.Dimension( dx, dy ), null );
+		// some controllers do not move a plain node themselves
+		if ( before != null && before.equals( node.getLocation() ) && !( node instanceof Compartment ) )
+			node.setLocation( before.x + dx, before.y + dy );
 	}
 
 	/** Resize a node (e.g. enlarge a compartment to make room for new elements). */

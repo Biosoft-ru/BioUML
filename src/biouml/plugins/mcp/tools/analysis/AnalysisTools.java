@@ -40,7 +40,7 @@ public final class AnalysisTools
 				} );
 
 		catalog.register( "biouml_task_status",
-				"ASYNC poll — Report a background task's status (queued/running/paused/done/error/cancelled), progress (0-100), and result paths. Call it REPEATEDLY (with a short delay between calls) until the status reaches a terminal state ('done' or 'error'); the task is not finished until then. This is the poll for biouml_analysis_run (async mode). taskId is the id returned by the start action. Also returns the task log's latest warnings/errors (problems, e.g. skipped workflow steps) and its last lines (logTail).",
+				"ASYNC poll — Report a background task's status (queued/running/paused/done/error/cancelled), progress (0-100), and result paths. Call it REPEATEDLY (with a short delay between calls) until the status reaches a terminal state ('done' or 'error'); the task is not finished until then. This is the poll for biouml_analysis_run (async mode). taskId is the id returned by the start action. Also returns the task log's warnings/errors grouped by message (problems: the latest 20 distinct messages, each with its count; problemCount: all problem lines), e.g. skipped workflow steps, and the log's last lines (logTail).",
 				"{\"type\":\"object\",\"properties\":{\"taskId\":{\"type\":\"string\"}},\"required\":[\"taskId\"]}",
 				( ex, args ) -> McpAnalysisSupport.taskStatus( str( args, "taskId" ) ) );
 
@@ -63,9 +63,24 @@ public final class AnalysisTools
 				} );
 
 		catalog.register( "biouml_analysis_get_result",
-				"Read an analysis output: for a table, column names/types and the first N rows; for a folder, its children; for a simulation result (e.g. the output of 'Simulation analysis'), the time series ({vars, times, values}, plus Q1/Q2/Q3 for stochastic results).",
-				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
-				( ex, args ) -> McpAnalysisSupport.getAnalysisResult( str( args, "path" ) ) );
+				"Read an analysis output: for a table, column names/types, rows (from offset, default 0; at most limit, default 50, max 500; truncated tells whether more follow) and their row ids (rowIds, aligned with rows — the table's key, e.g. a gene or drug id); for a folder, its children; for a simulation result (e.g. the output of 'Simulation analysis'), the time series ({vars, times, values}, plus Q1/Q2/Q3 for stochastic results).",
+				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"offset\":{\"type\":\"integer\"},\"limit\":{\"type\":\"integer\"}},\"required\":[\"path\"]}",
+				( ex, args ) -> McpAnalysisSupport.getAnalysisResult( str( args, "path" ), integer( args, "offset" ), integer( args, "limit" ) ) );
+	}
+
+	private static Integer integer( Map<String, Object> args, String key )
+	{
+		Object v = args == null ? null : args.get( key );
+		if ( v instanceof Number )
+			return Integer.valueOf( ( (Number) v ).intValue() );
+		try
+		{
+			return v == null ? null : Integer.valueOf( String.valueOf( v ).trim() );
+		}
+		catch ( NumberFormatException e )
+		{
+			return null;
+		}
 	}
 
 	private static String str( Map<String, Object> args, String key )

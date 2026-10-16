@@ -899,6 +899,8 @@ public final class McpRepositorySupport
 				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not stage file for import: " + file );
 			String fileID = staged;
 
+			// the import is journalled in the target's project, as if the user had opened it
+			McpProjectContext.useProjectOf( DataElementPath.create( parentPath ) );
 			ru.biosoft.server.servlets.webservices.providers.WebProvider provider = McpProviderSupport.provider( "import" );
 			if ( provider == null )
 				return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: import" );

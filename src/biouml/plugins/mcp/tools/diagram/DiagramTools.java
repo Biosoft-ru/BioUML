@@ -120,9 +120,15 @@ public final class DiagramTools
 				} );
 
 		catalog.register( "biouml_diagram_add_data_element",
-				"Add a repository element (a track, table, diagram, ...) to a diagram — the headless equivalent of dragging it from the repository tree onto the diagram in the web UI. The diagram type decides what node it becomes. E.g. to give a diagram that describes an analysis' input data a new track, drop the track into the compartment for the data and into each other compartment it belongs to; remove the nodes of the old track with biouml_diagram_remove_element. diagramPath is the diagram; elementPath is the repository path of the element; compartment (optional) is the id of the compartment to drop it into; x/y (optional) the drop point. Returns {element, added[{id, path, name, kind, ...}]}.",
+				"Add a repository element (a track, table, diagram, ...) to a diagram — the headless equivalent of dragging it from the repository tree onto the diagram in the web UI. The diagram type decides what node it becomes. E.g. to give a diagram that describes an analysis' input data a new track, drop the track into the compartment for the data, then copy the new node into each other compartment it belongs to with biouml_diagram_copy_node; remove the nodes of the old track with biouml_diagram_remove_element. If the diagram type places the element outside the requested compartment, the result has a warning. diagramPath is the diagram; elementPath is the repository path of the element; compartment (optional) is the id of the compartment to drop it into; x/y (optional) the drop point. Returns {element, added[{id, path, name, kind, ...}]}.",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementPath\":{\"type\":\"string\"},\"compartment\":{\"type\":\"string\"},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"elementPath\"]}",
 				( ex, args ) -> McpDiagramSupport.addDataElement( str( args, "diagramPath" ), str( args, "elementPath" ), str( args, "compartment" ),
+						optInt( args, "x" ), optInt( args, "y" ) ) );
+
+		catalog.register( "biouml_diagram_copy_node",
+				"Copy a node into a compartment of the same diagram — the headless equivalent of dragging a node onto another compartment in the web UI. The diagram type decides whether the compartment accepts it. E.g. copy the node of a track added with biouml_diagram_add_data_element into another compartment it belongs to. elementId is the node (a name or a path such as 'Data.sample', the node sample in the compartment Data); compartment is the target compartment id (omit for the diagram itself); x/y (optional) the drop point. Returns {copied, added{id, path, name, ...}}.",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementId\":{\"type\":\"string\"},\"compartment\":{\"type\":\"string\"},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"elementId\"]}",
+				( ex, args ) -> McpDiagramSupport.copyNode( str( args, "diagramPath" ), str( args, "elementId" ), str( args, "compartment" ),
 						optInt( args, "x" ), optInt( args, "y" ) ) );
 
 		catalog.register( "biouml_diagram_remove_element",
