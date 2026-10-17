@@ -9,8 +9,10 @@ import biouml.plugins.mcp.McpConstants;
 import biouml.standard.simulation.SimulationResult;
 import biouml.standard.simulation.StochasticSimulationResult;
 
+import com.developmentontheedge.beans.model.ArrayProperty;
 import com.developmentontheedge.beans.model.ComponentFactory;
 import com.developmentontheedge.beans.model.ComponentModel;
+import com.developmentontheedge.beans.model.CompositeProperty;
 import com.developmentontheedge.beans.model.Property;
 
 import ru.biosoft.access.core.CollectionFactory;
@@ -136,6 +138,21 @@ public final class McpAnalysisSupport
 	 */
 	public static McpEnvelope describeMethod( String name )
 	{
+		return describeMethod( name, null, null );
+	}
+
+	/** At most this many characters of an analysis' help page are returned. */
+	private static final int HELP_CHARS = 4000;
+
+	/**
+	 * Like {@link #describeMethod(String)}, after binding {@code params} as {@link #runAnalysis} would: the choices
+	 * of some parameters depend on others (e.g. the conditions of Genome Enhancer are the categories of the chosen
+	 * annotation diagram), and array items appear once the array is set.
+	 *
+	 * @param filter when set, the allowed values of choice parameters are only those containing it (case-insensitive)
+	 */
+	public static McpEnvelope describeMethod( String name, Map<String, Object> params, String filter )
+	{
 		AnalysisMethod method;
 		try
 		{
@@ -151,24 +168,43 @@ public final class McpAnalysisSupport
 		m.put( "name", name );
 		try
 		{
-			m.put( "description", method.getDescription() );
+			String description = method.getDescription();
+			String help = help( name, description );
+			if ( help != null )
+			{
+				// the description names a help page: give its text instead of the resource path
+				m.put( "description", clipText( firstParagraph( help ), 300 ) );
+				m.put( "help", clipText( help, HELP_CHARS ) );
+			}
+			else
+				m.put( "description", description );
 		}
 		catch ( Exception e )
 		{
 			// ignore
 		}
+		if ( filter != null && !filter.isEmpty() )
+			m.put( "filter", filter );
 		// Parameter bean + schema
 		if ( method instanceof AnalysisMethodSupport )
 		{
 			AnalysisMethodSupport<?> support = (AnalysisMethodSupport<?>) method;
-			AnalysisParameters params = support.getParameters();
-			if ( params != null )
+			AnalysisParameters bean = support.getParameters();
+			if ( bean != null )
 			{
+				if ( params != null && !params.isEmpty() )
+				{
+					McpEnvelope bound = bindParameters( bean, params );
+					if ( !bound.isOk() )
+						return bound;
+					m.put( "boundParams", new ArrayList<String>( params.keySet() ) );
+				}
 				List<Map<String, Object>> props = new ArrayList<Map<String, Object>>();
-				collectProperties( ComponentFactory.getModel( params, ComponentFactory.Policy.DEFAULT, true ), "", props );
+				String lowerFilter = filter == null || filter.isEmpty() ? null : filter.toLowerCase( java.util.Locale.ENGLISH );
+				collectProperties( ComponentFactory.getModel( bean, ComponentFactory.Policy.DEFAULT, true ), "", props, lowerFilter, 0 );
 				m.put( "properties", props );
-				String[] in = params.getInputNames();
-				String[] out = params.getOutputNames();
+				String[] in = bean.getInputNames();
+				String[] out = bean.getOutputNames();
 				m.put( "inputNames", in == null ? new ArrayList<String>() : new ArrayList<String>( java.util.Arrays.asList( in ) ) );
 				m.put( "outputNames", out == null ? new ArrayList<String>() : new ArrayList<String>( java.util.Arrays.asList( out ) ) );
 			}
@@ -214,15 +250,25 @@ public final class McpAnalysisSupport
 		}
 	}
 
-	/** Recursively flatten a {@link ComponentModel} into a list of property descriptors. */
-	private static void collectProperties( ComponentModel model, String prefix, List<Map<String, Object>> out )
+	/** At most this many parameters are described (nested beans and array items included). */
+	private static final int PROPERTIES_CAP = 500;
+	private static final int NESTING_CAP = 4;
+
+	/**
+	 * Recursively flatten the properties of a bean model into a list of property descriptors: a nested bean is
+	 * listed with its fields ({@code expertSettings/cutoffFC}), an array of beans with the fields of each item
+	 * ({@code conditions/0/condition}), so every key is one {@link #runAnalysis} takes.
+	 *
+	 * @param filter lower-cased text the listed allowed values must contain, or null for all of them
+	 */
+	private static void collectProperties( Property model, String prefix, List<Map<String, Object>> out, String filter, int depth )
 	{
 		if ( model == null )
 			return;
-		for ( int i = 0; i < model.getPropertyCount(); i++ )
+		for ( int i = 0; i < model.getPropertyCount() && out.size() < PROPERTIES_CAP; i++ )
 		{
 			Property p = model.getPropertyAt( i );
-			String key = prefix.isEmpty() ? p.getName() : prefix + "/" + p.getName();
+			String key = prefix.isEmpty() ? p.getName() : prefix + "/" + ( model instanceof ArrayProperty ? String.valueOf( i ) : p.getName() );
 			Map<String, Object> pm = new LinkedHashMap<String, Object>();
 			pm.put( "name", key );
 			Class<?> vc = p.getValueClass();
@@ -240,15 +286,25 @@ public final class McpAnalysisSupport
 			String[] allowed = allowedValues( p );
 			if ( allowed != null )
 			{
-				pm.put( "allowedValues", new ArrayList<String>( java.util.Arrays.asList( allowed ).subList( 0, Math.min( allowed.length, ALLOWED_VALUES_CAP ) ) ) );
-				if ( allowed.length > ALLOWED_VALUES_CAP )
+				List<String> values = new ArrayList<String>();
+				for ( String value : allowed )
+					if ( filter == null || value.toLowerCase( java.util.Locale.ENGLISH ).contains( filter ) )
+						values.add( value );
+				pm.put( "allowedValues", new ArrayList<String>( values.subList( 0, Math.min( values.size(), ALLOWED_VALUES_CAP ) ) ) );
+				if ( filter != null )
+					pm.put( "matchingCount", Integer.valueOf( values.size() ) );
+				if ( allowed.length > ALLOWED_VALUES_CAP || filter != null )
 					pm.put( "allowedValuesCount", Integer.valueOf( allowed.length ) );
 			}
-			// A composite property (nested bean) — recurse to expose the leaves. Its own default is the
-			// whole bean, which is not JSON-friendly; the leaves carry the defaults instead.
-			if ( p instanceof ComponentModel && out.size() < McpConstants.PAYLOAD_BYTES_CAP )
+			out.add( pm );
+			// A nested bean or an array of beans: list its fields, which carry the defaults (the bean itself is
+			// not JSON-friendly)
+			if ( isNested( p ) && depth < NESTING_CAP )
+				collectProperties( p, key, out, filter, depth + 1 );
+			else if ( p instanceof ArrayProperty && hasBeanItems( (ArrayProperty) p ) && depth < NESTING_CAP )
 			{
-				collectProperties( (ComponentModel) p, key, out );
+				pm.put( "itemCount", Integer.valueOf( p.getPropertyCount() ) );
+				collectProperties( p, key, out, filter, depth + 1 );
 			}
 			else
 			{
@@ -261,8 +317,124 @@ public final class McpAnalysisSupport
 					pm.put( "default", null );
 				}
 			}
-			out.add( pm );
 		}
+	}
+
+	/**
+	 * A bean whose fields are shown as parameters, as the web UI's property inspector shows them; one with its own
+	 * editor (a repository path, a color, ...) is a single field.
+	 */
+	private static boolean isNested( Property p )
+	{
+		if ( !( p instanceof CompositeProperty ) || p.isHideChildren() || p.getPropertyEditorClass() != null )
+			return false;
+		Class<?> vc = p.getValueClass();
+		return vc == null || !DataElementPath.class.isAssignableFrom( vc ) && ( vc.getPackage() == null || !vc.getPackage().getName().startsWith( "java." ) );
+	}
+
+	/** The first line of a help text that is not a heading. */
+	private static String firstParagraph( String text )
+	{
+		for ( String line : text.split( "\n" ) )
+			if ( !line.startsWith( "## " ) && !line.trim().isEmpty() )
+				return line.trim();
+		return text;
+	}
+
+	private static String clipText( String text, int max )
+	{
+		if ( text.length() <= max )
+			return text;
+		int cut = text.lastIndexOf( ' ', max );
+		return text.substring( 0, cut > max / 2 ? cut : max ) + "…";
+	}
+
+	private static boolean hasBeanItems( ArrayProperty p )
+	{
+		Class<?> item = p.getItemClass();
+		return item != null && !item.isPrimitive() && !item.isEnum() && ( item.getPackage() == null || !item.getPackage().getName().startsWith( "java." ) )
+				&& !DataElementPath.class.isAssignableFrom( item );
+	}
+
+	/**
+	 * The text of an analysis' help page, when its description names one (a ".html" resource, as most geneXplain
+	 * analyses have it); null otherwise.
+	 */
+	private static String help( String name, String description )
+	{
+		if ( description == null || !description.trim().toLowerCase( java.util.Locale.ENGLISH ).matches( ".*\\.html?" ) )
+			return null;
+		try
+		{
+			ru.biosoft.analysiscore.AnalysisMethodInfo info = AnalysisMethodRegistry.getMethodInfo( name );
+			String html = info == null ? null : info.getDescriptionHTML();
+			if ( html == null || html.isEmpty() )
+				return null;
+			String text = McpIntroPages.htmlText( html );
+			return text.isEmpty() ? null : text;
+		}
+		catch ( Exception e )
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * The parameters of an analysis as the web UI's property inspector sees them, or null when there is no such
+	 * analysis. {@code analysis} is its name or repository path.
+	 */
+	public static ComponentModel parametersModel( String analysis )
+	{
+		try
+		{
+			AnalysisMethod method = AnalysisMethodRegistry.getAnalysisMethod( analysis );
+			if ( method == null && analysis != null && analysis.contains( "/" ) )
+				method = AnalysisMethodRegistry.getAnalysisMethod( DataElementPath.create( analysis ).getName() );
+			if ( !( method instanceof AnalysisMethodSupport ) )
+				return null;
+			AnalysisParameters bean = ( (AnalysisMethodSupport<?>) method ).getParameters();
+			return bean == null ? null : ComponentFactory.getModel( bean, ComponentFactory.Policy.DEFAULT, true );
+		}
+		catch ( Exception e )
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Whether the parameters have a top-level parameter and it accepts a value: a choice parameter one of its
+	 * allowed values, a boolean or number parameter a value of that type.
+	 * @param value the value, or null to check only that the parameter exists
+	 */
+	public static boolean accepts( ComponentModel model, String parameter, String value )
+	{
+		Property p = null;
+		for ( int i = 0; i < model.getPropertyCount() && p == null; i++ )
+			if ( model.getPropertyAt( i ).getName().equals( parameter ) )
+				p = model.getPropertyAt( i );
+		if ( p == null )
+			return false;
+		if ( value == null )
+			return true;
+		String[] allowed = allowedValues( p );
+		if ( allowed != null && !p.getValueClass().isArray() )
+			return java.util.Arrays.asList( allowed ).contains( value );
+		Class<?> vc = p.getValueClass();
+		if ( vc == Boolean.class || vc == boolean.class )
+			return "true".equals( value ) || "false".equals( value );
+		if ( vc != null && ( Number.class.isAssignableFrom( vc ) || vc == int.class || vc == double.class || vc == long.class || vc == float.class ) )
+		{
+			try
+			{
+				Double.parseDouble( value );
+				return true;
+			}
+			catch ( NumberFormatException e )
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 	// ---------------------------------------------------------------- run

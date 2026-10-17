@@ -125,8 +125,9 @@ curl -s -X POST "http://localhost:8080/bioumlweb/mcp" \
      table's row count equals the live catalog. Regenerate by running that test. -->
 | Tool | Description |
 |------|-------------|
-| `biouml_perspective_list` | List the perspectives available to the current user — BioUML's task-oriented entry points (e.g. GTRD, Microbiome, Regulatory mutations) — and the one in effect for this session. Each has a description (declared, or taken from the perspective's start page), its repository roots, and entry points: the analyses, workflows and collections work in that perspective usually starts from (pass their paths to biouml_analysis_describe or biouml_repo_describe). The perspective in effect decides which import/export formats are offered; switch it with biouml_perspective_select. |
-| `biouml_perspective_select` | Switch the perspective for this MCP session only (the user's saved web-UI perspective is not changed). name is one of biouml_perspective_list. From then on biouml_repo_import_formats, biouml_repo_export_formats and import autodetection follow the perspective's importer/exporter rules. Returns the perspective's description, repository roots, entry points and allow/deny rules, and — when the web UI files are found on the server — an intro block with what the perspective's start page offers users: more entry points (with an exists flag), analysisPresets (analysis path + parameter values to pass to biouml_analysis_run), importTargets (folders the page imports into), help links and a page summary. |
+| `biouml_perspective_list` | List the perspectives available to the current user — BioUML's task-oriented entry points (e.g. GTRD, Microbiome, Regulatory mutations, Genome Enhancer) — and the one in effect for this session. Each has a description (declared, or taken from the perspective's start page), its repository roots, entry points (the analyses, workflows and collections work in that perspective usually starts from; pass their paths to biouml_analysis_describe or biouml_repo_describe), and guide:true when biouml_perspective_select returns a step-by-step guide for doing the perspective's work with MCP tools. The perspective in effect decides which import/export formats are offered; switch it with biouml_perspective_select. |
+| `biouml_perspective_select` | Switch the perspective for this MCP session only (the user's saved web-UI perspective is not changed) and learn how work in it is done. name is one of biouml_perspective_list. From then on biouml_repo_import_formats, biouml_repo_export_formats and import autodetection follow the perspective's importer/exporter rules. Returns the perspective's description, repository roots, entry points and allow/deny rules; guide, when there is one: how to do with MCP tools what the perspective's start page does (read it first); and — when the web UI files are found on the server — an intro block with what the start page offers users: for a wizard (e.g. Genome Enhancer) its steps (title, a short guide, helpPage — read the whole help page with biouml_perspective_page), more entry points (with an exists flag), analysisPresets (the analyses the page starts, with the parameter values it passes, checked against the analysis — pass them to biouml_analysis_run — and chosenByUser, the parameters the user sets), pathTemplates (repository paths the page builds, e.g. 'GenomeEnhancer/Projects/{currentProject}/Data/Description'), exampleProjects (projects the page lists as examples, e.g. demo projects with results to learn from), importTargets (folders the page imports into), help links and a page summary. |
+| `biouml_perspective_page` | Read a page of the web UI as text: a wizard step's help page (the helpPage of a step in biouml_perspective_select), a perspective's start page or a user guide included in them. page is its path in the web application, e.g. 'ge/help/step-start.shtml'; server-side includes are expanded. Returns {page, title, text (headings as '## ...', one paragraph, list item or table row per line), totalChars, nextOffset (when more follows: call again with offset=nextOffset), links (repository paths from '#de=' links, and web links)}. |
 | `biouml_repo_collections` | List the top-level registered repository collections (databases, data, analyses, ...). |
 | `biouml_repo_list` | List the children of a repository collection. |
 | `biouml_repo_describe` | Describe a repository element (name, class, child count, children). |
@@ -171,7 +172,7 @@ curl -s -X POST "http://localhost:8080/bioumlweb/mcp" \
 | `biouml_brain_generate_composite_diagram` | Generate the brain composite diagram from a brain diagram — the headless equivalent of the web UI's 'Generate composite diagram' menu item. path is the brain diagram. Builds a composite diagram wiring the cellular+regional submodels and saves it. Returns {operation, path, status, completed}. |
 | `biouml_brain_generate_multilevel_model` | Generate the brain multi-level model from a brain diagram — the headless equivalent of the web UI's 'Generate multi-level model' menu item. path is the brain diagram. Deploys the submodels and builds the multi-level agent-model diagram. Returns {operation, path, status, completed}. |
 | `biouml_analysis_list` | List all available analysis methods grouped by their analyses group. |
-| `biouml_analysis_describe` | Describe an analysis method: its parameter input schema (name, type, default, description, and for choice parameters allowedValues — at most 200, with allowedValuesCount when there are more), input names, and output names. |
+| `biouml_analysis_describe` | Describe an analysis method: its description (and help, the text of its help page when it has one), its parameter input schema (name, type, default, description, and for choice parameters allowedValues — at most 200, with allowedValuesCount when there are more), input names, and output names. The fields of a nested bean and of each item of an array of beans are listed with the keys biouml_analysis_run takes ('expertSettings/cutoffFC', 'conditions/0/condition'). params (optional, as for biouml_analysis_run) are bound first: the choices of some parameters depend on others — e.g. the conditions of 'Generate workflow from annotation diagram' are the category titles of the annotationDiagram passed — and array items appear once the array is set. filter (optional) keeps only the allowed values that contain it, case-insensitively (matchingCount tells how many match), e.g. filter 'rosacea' to find a disease among thousands. |
 | `biouml_analysis_run` | ASYNC — Run an analysis. By default (sync=false, the default) this returns IMMEDIATELY with {taskId, status}; the analysis runs in the background and is NOT done when this call returns. To finish: (1) call this to get the taskId, (2) repeatedly call biouml_task_status (with a short delay) until its status is 'done'/'error', (3) then read the results. Set sync=true to instead run inline and wait for the result in one call (only for quick analyses). params is a map of bean-property values: nested keys use '/' separators (or pass a JSON object), array items are addressed by index ('conditions/0/condition') or passed as a JSON list ('conditions': [{'condition': '...'}]); path-typed properties take repository path strings. Choice parameters list their accepted values in biouml_analysis_describe (allowedValues). |
 | `biouml_task_status` | ASYNC poll — Report a background task's status (queued/running/paused/done/error/cancelled), progress (0-100), and result paths. Call it REPEATEDLY (with a short delay between calls) until the status reaches a terminal state ('done' or 'error'); the task is not finished until then. This is the poll for biouml_analysis_run (async mode). taskId is the id returned by the start action. status is the numeric job status and state its name. Also returns the task log's warnings/errors grouped by message, ignoring numbers (problems: the latest 20 distinct messages, each with its count; problemCount: all problem lines; problemKinds: all distinct messages), e.g. skipped workflow steps, and the log's last lines (logTail; a run of lines that differ only in numbers, such as progress lines, is shown once with [×N]). |
 | `biouml_task_cancel` | Cancel a queued or running task. |
@@ -215,7 +216,7 @@ curl -s -X POST "http://localhost:8080/bioumlweb/mcp" \
 | `biouml_simulation_plot` | Render a PLOT of a completed simulation's result ON THE SERVER and return it as a PNG image plus a tiny metadata summary — the headless equivalent of the web UI's 'New plot' / '+' action. PREFERRED over biouml_simulation_result for simply inspecting a result: the full time series stays on the server and only an image + {variables, points, timeRange, finals} come back, so a large result does not blow your context. Call it AFTER biouml_simulation_status reports 'completed'. jobID is the id returned by biouml_simulation_start. Optionally pass 'variables' (subset of the result's variable names) and 'width'/'height' (px); by default every non-time variable is plotted. Returns {jobID, plot, variables, points, timeRange, finals, image(base64 PNG), imageFormat, width, height}. |
 | `biouml_simulation_save_result` | Persist the result of a completed simulation INTO THE REPOSITORY (durable, survives server restarts) — the headless equivalent of the web UI's 'Save result' button. By default MCP simulations keep their result only in memory (it is lost when the server restarts), so use this to keep it. Call it AFTER biouml_simulation_status reports 'completed'. jobID is the id returned by biouml_simulation_start. destinationPath is the FULL repository path of the new result element to create (e.g. 'myproject/mydiagram/result1'); its parent must already exist and be writable. Returns the provider's response (usually 'ok'). |
 | `biouml_simulation_list_solvers` | List the ODE solvers available to the simulation engine (name, type, implementation class). |
-| `biouml_project_list` | List the current user's projects with their permissions (admin/canWrite/canDelete) and disk quota. |
+| `biouml_project_list` | List the current user's projects with their permissions (admin/canWrite/canDelete), disk quota and the properties the web UI reads (e.g. demo: "true" for a Genome Enhancer demo project, an example with finished results). |
 | `biouml_project_create` | Create a new project (a SQL-backed research collection) for the current user. The name may only contain latin letters, numbers, spaces and a few symbols. |
 | `biouml_project_delete` | Delete a project (and its data) for the current user. Requires delete permission. |
 | `biouml_project_size` | Report the disk usage (in bytes) of a single project's data folder. |
@@ -241,14 +242,28 @@ browser session, so the selection applies there too until the user picks a persp
 
 `biouml_perspective_select` also reads the perspective's intro page (the start page the web UI shows) when
 the web UI files are deployed next to the server, and returns what it offers users as an `intro` block:
-further entry points (each with an `exists` flag), `analysisPresets` (an analysis path plus the parameter
-values the page fills in — pass them to `biouml_analysis_run`), `importTargets`, `help` links and a page
-`summary`. Perspectives without a declared description are described by the page's heading and first
-paragraph. Pages are parsed statically (links and string literals in their scripts; scripts are not run), and
-pages they embed with an iframe or jQuery `.load()` are followed. The web UI is found at the `-Dbiouml.web.path`
+further entry points (each with an `exists` flag), `analysisPresets` (an analysis plus the parameter values
+the page passes — checked against the analysis, so a value it no longer takes is dropped — and `chosenByUser`,
+the parameters the user sets; pass them to `biouml_analysis_run`), `pathTemplates` (repository paths the page's
+scripts build, e.g. `GenomeEnhancer/Projects/{currentProject}/Data/Description`), `exampleProjects` (the user's
+projects the page lists as demo projects), `importTargets`, `help` links and a page `summary`. For a wizard
+(elements with a `step-id` attribute, as in Genome Enhancer) it returns its `steps`: each with its title, the
+first paragraphs of its help page (`help/<step-id>.shtml` next to the wizard) and the page's path, which
+`biouml_perspective_page` reads in full. Perspectives without a declared description are described by the
+page's heading (a wizard's page title) and first paragraph (a wizard's first help paragraph). Pages are parsed
+statically: links and string literals in their inline scripts and their own script files (not shared libraries
+under a `lib` folder, nor minified files); scripts are not run. Server-side includes (`<!--#include file=...-->`)
+are expanded as Tomcat does for `.shtml` pages, and pages they embed with an iframe or jQuery `.load()` are
+followed. The web UI is found at the `-Dbiouml.web.path`
 location (a directory or `.war`) if set, otherwise from the embedded Tomcat's `bioumlweb.war`, otherwise at
 `webapps/bioumlweb` (directory, then `.war`) under `catalina.base` — e.g. `/var/lib/tomcat9/webapps/bioumlweb`
 on a Debian `tomcat9` install — or under `<biouml.server.path>/tomcat`. Without it there is no `intro` block.
+
+A perspective may also have a *guide* — how to do with MCP tools what its start page does, written for agents —
+returned as `guide` by `biouml_perspective_select` (`guide: true` in the list). Guides are bundled with this plugin
+in `biouml/plugins/mcp/support/resources/perspective-guides` (`index.properties` maps a perspective name to a
+`.txt` file; the Genome Enhancer perspectives have one); a directory with the same layout set by
+`-Dbiouml.mcp.guides` wins over them, so a site can add or update guides without a rebuild.
 
 A perspective declares its description and entry points in `plugin.xml` (both optional; `title` defaults to
 the element name). Declared entry points come first and are reported even where the web UI files are not
@@ -321,6 +336,8 @@ change the diagram in memory only — finish with `diagram.save()`.
 ## Example: Genome Enhancer on a VCF file (tools only)
 
 ```jsonc
+// 0. starting fresh: the perspective's guide, wizard steps and demo projects (exampleProjects) tell how
+{"method":"tools/call","params":{"name":"biouml_perspective_select","arguments":{"name":"Genome Enhancer"}}}
 // 1. fetch + import (a Google Drive share link works too); the genome comes from the ##reference header
 {"method":"tools/call","params":{"name":"biouml_analysis_run","arguments":{"name":"Upload from FTP","params":{
    "fileURL":"https://drive.google.com/file/d/<id>/view","importerFormat":"VCF format (*.vcf)",
@@ -339,7 +356,10 @@ change the diagram in memory only — finish with `diagram.save()`.
 {"method":"tools/call","params":{"name":"biouml_diagram_copy_node","arguments":{"diagramPath":"data/Projects/P/Data/Description",
    "elementId":"Drag and drop all files you want to analyze into this box.sample_both","compartment":"Experiment"}}}
 {"method":"tools/call","params":{"name":"biouml_diagram_remove_element","arguments":{"diagramPath":"data/Projects/P/Data/Description","elementId":"<old node id>"}}}
-// 5. run; poll biouml_task_status (problems: log errors grouped with counts), page results with biouml_analysis_get_result
+// 5. the categories the conditions take, and a disease among thousands
+{"method":"tools/call","params":{"name":"biouml_analysis_describe","arguments":{"name":"Generate workflow from annotation diagram",
+   "params":{"annotationDiagram":"data/Projects/P/Data/Description"},"filter":"rosacea"}}}
+//    run (runWorkflow:false first builds the workflow without running it); poll biouml_task_status (problems: log errors grouped with counts), page results with biouml_analysis_get_result
 //    (offset/limit; columns to leave out wide ones)
 {"method":"tools/call","params":{"name":"biouml_analysis_run","arguments":{"name":"Generate workflow from annotation diagram","params":{
    "annotationDiagram":"data/Projects/P/Data/Description","conditions/0/condition":"Experiment: <name>","diseases":["<disease>"],

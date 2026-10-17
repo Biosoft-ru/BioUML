@@ -1,0 +1,32 @@
+# Genome Enhancer with MCP tools
+
+Genome Enhancer turns patient omics data (genomics: VCF, SNP tables; transcriptomics; proteomics; epigenomics; metabolomics) into a report on the genes, transcription factors, master regulators, drug targets and drugs of the studied condition. The web UI is a six-step wizard (intro.steps); below are the same steps with MCP tools. The wizard shows the user's projects as GenomeEnhancer/Projects/<project>; the paths below use data/Projects/<project>.
+
+Learn from an example first: intro.exampleProjects are demo projects with finished runs. Their Data folder holds the input data, the annotation diagram Description and the result folders (Report, BriefReport, Output, Workflow).
+
+1. Select project: biouml_project_list, or biouml_project_create (latin letters, digits, spaces and _).
+
+2. Upload my data into <project>/Data.
+   - From a URL (ftp://, http(s)://, a Google Drive share link): biouml_analysis_run 'Upload from FTP' with fileURL, resultPath <project>/Data/<name> and importerFormat (biouml_analysis_describe lists the formats, e.g. 'VCF format (*.vcf)').
+   - A file on the server: biouml_repo_import.
+   - Check a track's genome with biouml_bsa_track_genome: Genome Enhancer lifts hg19 tracks over to hg38 and takes a track without a genome to be hg38 already.
+
+3. Prepare my data: decide what to analyze. A genotyping-array VCF lists every probed site, most of them homozygous reference (0/0); keep the variant calls with biouml_analysis_run 'Filter VCF by genotype' (mode both).
+
+4. Describe my data: the annotation diagram <project>/Data/Description puts the data into the categories (conditions) to analyze.
+   - The wizard creates it with an 'Experiment' and a 'Control' category. With MCP tools copy the Description of an example project (biouml_repo_copy_element) and edit it.
+   - biouml_diagram_describe shows the data box ('Drag and drop all files you want to analyze into this box') and the category compartments with their titles.
+   - Remove the example's data nodes (biouml_diagram_remove_element), add your data to the data box (biouml_diagram_add_data_element), then copy its node into each category it belongs to (biouml_diagram_copy_node). Rename a category with biouml_diagram_rename_element (e.g. 'Experiment: rosacea'); remove the categories you do not use.
+
+5. Start analysis: biouml_analysis_run 'Generate workflow from annotation diagram' with
+   - annotationDiagram: <project>/Data/Description;
+   - conditions: one item per category to analyze, its condition being the category title, e.g. 'conditions/0/condition': 'Experiment: rosacea'. biouml_analysis_describe with params {annotationDiagram: ...} lists the titles it accepts (allowedValues of conditions/0/condition). One condition: its genes are analyzed (the top and bottom of the list when the data has values). Two: the first is compared with the second, the baseline (set baseline to its title). Three or more: each against the baseline, or clustering;
+   - diseases: MeSH disease names (biouml_analysis_describe with filter, e.g. 'rosacea', finds them among thousands); tissue (optional); speciesStr;
+   - maxStep: the last pipeline step ('Drug Targets' for the full analysis);
+   - outPath: a new folder, e.g. <project>/Data/Results.
+   Check first with runWorkflow false: within seconds it builds the workflow (outPath/Workflow) without running it. A real run takes hours; poll biouml_task_status.
+
+6. See report: in outPath, Report (the full story), BriefReport (the brief tale), MTBReport (with addMTBReport, for cancer genomics data) and Output (result tables, read with biouml_analysis_get_result, and the pharmaceutical compounds report PCReport.html).
+   - Export a report with biouml_repo_export, format 'PDF (*.pdf)' or 'Zipped HTML file', and fetch the file with biouml_repo_download.
+
+The drugs in the reports are computational predictions for a physician to consider, not treatment advice.

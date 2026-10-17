@@ -131,6 +131,146 @@ public class McpIntroPagesTest extends AbstractBioUMLTest
 		assertEquals( "only literal values", Collections.singletonMap( "input", "data/Examples/My data" ), preset.get( "params" ) );
 	}
 
+	/**
+	 * A wizard like Genome Enhancer's: an iframe to an .shtml page with server-side includes, the page's own script
+	 * files (shared libraries skipped), steps with help pages, an analysis started by a script with literal and
+	 * user-chosen parameters, repository paths built by the scripts and a project list with a demo flag.
+	 */
+	public void testWizardPage() throws Exception
+	{
+		dir = TempFiles.dir( "mcpIntroWizard" );
+		write( "intro-wiz.html", "<script>function isWiz(p) { return p && p.name; }</script>"
+				+ "<iframe id=\"wiz_iframe\" src=\"wz/index.shtml?mode=x\" width=\"99%\"></iframe>" );
+		write( "wz/index.shtml", "<!DOCTYPE html><html><head><title>Wizard Tool</title>"
+				+ "<script src=\"../lib/jquery/jquery.js\"></script><script src=\"steps.js\"></script>"
+				+ "<script src=\"lib/x.min.js\"></script><script src=\"https://cdn.example.com/y.js\"></script>"
+				+ "</head><body><!--#include file=\"wizard.shtml\"--></body></html>" );
+		write( "wz/wizard.shtml", "<div id=\"step-a\" class=\"step-content\"><!--#include file=\"title.shtml\"-->"
+				+ "<p>Project table, Delete project, Start new project and other controls of the step.</p></div>"
+				+ "<div id=\"titles\"><div step-id=\"step-a\"><button><strong>Select<br>project</strong></button></div>"
+				+ "<div step-id=\"step-b\"><button><strong>Start<br>analysis</strong></button></div></div>"
+				+ "<div id=\"bullets\"><div step-id=\"step-a\"><button></button></div><div step-id=\"step-b\"><button></button></div></div>" );
+		write( "wz/title.shtml", "<h1>Enhance everything</h1>" );
+		write( "wz/steps.js", "var mode2maxStep = {a: 'Old step'};\n"
+				+ "function projectData(name) { var root = \"wzdata/Projects\"; return root + \"/\" + name + \"/Data\"; }\n"
+				+ "function diagramPath() { return \"wzdata/Projects/\" + getCurrentProject() + \"/Data/Description\"; }\n"
+				+ "window.parent.queryBioUML(\"support/getProjectsData\", {}, function(data) { var demo = projects[i].demo == \"true\"; });\n"
+				+ "window.parent.ServerMessages.subscribe(\"importProgress/\" + id, function() {});\n"
+				+ "window.parent.refreshTreeBranch(\"wzdata/Projects\");\n"
+				+ "var url = hr + window.parent.appInfo.serverPath + 'web/content/' + id;\n"
+				+ "var last = names[0].name + \"/Report\";\n"
+				+ "function start() {\n"
+				+ "  //{name: \"species\", value: species},\n"
+				+ "  /*{name: \"cutoffFC\", value: cutoffFC},\n  {name: \"old\", value: \"x\"}*/\n"
+				+ "  var params = [{name: \"tissue\", value: tissue}, {name: \"notifyOnComplete\", value: true},\n"
+				+ "    {\"name\":\"maxStep\", \"value\":\"Old step\"}, {name: \"mode\", value: \"exact\"}];\n"
+				+ "  window.parent.queryBioUML(\"web/analysis\", { de: \"analyses/Methods/Test/mcp.test\", json: JSON.stringify(params) });\n"
+				+ "  if(window.parent.isPathExists(outPath + \"/Report\")) open(\"#de=\" + outPath + \"/Report\");\n"
+				+ "}\n" );
+		write( "lib/jquery/jquery.js", "showAnalysisControl($('#x'), 'analyses/Methods/Lib/Should not appear');" );
+		write( "wz/help/step-a.shtml", "<html><head><title>Help</title></head><body><h5>Welcome</h5>"
+				+ "<p>Hello and welcome to the Wizard tool, a pipeline that analyses things for you.</p><p>You can browse projects here.</p>"
+				+ "<!--#include file=\"guide.shtml\"--></body></html>" );
+		write( "wz/help/guide.shtml", "<h2>User guide</h2><ul><li>First the data is read.</li><li>Then it is analysed.</li></ul>"
+				+ "<a href=\"https://wiz.example.com/bioumlweb/#de=analyses/Methods/X/Y%20Z\">Y Z</a>" );
+		System.setProperty( McpIntroPages.WEB_PATH_PROPERTY, dir.getPath() );
+		File data = TempFiles.dir( "mcpIntroWizardData" );
+		try
+		{
+			registerRoot( "wzdata", data );
+
+			McpIntroPages.Intro parsed = McpIntroPages.read( "intro-wiz" );
+			assertNotNull( parsed );
+			assertEquals( "a wizard is named by its page title, described by its first step's help",
+					"Wizard Tool: Hello and welcome to the Wizard tool, a pipeline that analyses things for you.", parsed.getDescription() );
+			assertEquals( "demo", parsed.getProjectFlag() );
+			// parameter values checked against the analysis: here 'Old step' is not one of its choices
+			Map<String, Object> intro = parsed.toMap( Collections.<String>emptySet(),
+					( analysis, parameter, value ) -> !( "maxStep".equals( parameter ) && "Old step".equals( value ) ) );
+			assertEquals( Collections.singletonList( "wz/index.shtml" ), intro.get( "embeddedPages" ) );
+			assertEquals( "Wizard Tool", intro.get( "title" ) );
+			assertNull( "a wizard's text is its controls: no summary", intro.get( "summary" ) );
+
+			List<Map<String, Object>> steps = (List<Map<String, Object>>) intro.get( "steps" );
+			assertEquals( 2, steps.size() );
+			assertEquals( "step-a", steps.get( 0 ).get( "id" ) );
+			assertEquals( "Select project", steps.get( 0 ).get( "title" ) );
+			assertEquals( "wz/help/step-a.shtml", steps.get( 0 ).get( "helpPage" ) );
+			assertEquals( "Hello and welcome to the Wizard tool, a pipeline that analyses things for you. You can browse projects here.",
+					steps.get( 0 ).get( "guide" ) );
+			assertEquals( "Start analysis", steps.get( 1 ).get( "title" ) );
+			assertNull( "no help page", steps.get( 1 ).get( "helpPage" ) );
+
+			List<Map<String, Object>> presets = (List<Map<String, Object>>) intro.get( "analysisPresets" );
+			assertEquals( "the library's analysis is not read: " + presets, 1, presets.size() );
+			Map<String, Object> preset = presets.get( 0 );
+			assertEquals( "analyses/Methods/Test/mcp.test", preset.get( "analysis" ) );
+			assertEquals( "mcp.test", preset.get( "name" ) );
+			Map<String, Object> params = (Map<String, Object>) preset.get( "params" );
+			assertEquals( "true", params.get( "notifyOnComplete" ) );
+			assertEquals( "exact", params.get( "mode" ) );
+			assertFalse( "a value the analysis does not take is dropped", params.containsKey( "maxStep" ) );
+			assertEquals( "commented-out parameters are not read", Collections.singletonList( "tissue" ), preset.get( "chosenByUser" ) );
+			assertFalse( params.containsKey( "old" ) );
+
+			List<String> templates = (List<String>) intro.get( "pathTemplates" );
+			assertTrue( templates.toString(), templates.contains( "wzdata/Projects/{currentProject}/Data/Description" ) );
+			assertTrue( "a variable is replaced by its value: " + templates, templates.contains( "wzdata/Projects/{name}/Data" ) );
+			assertTrue( templates.toString(), templates.contains( "{outPath}/Report" ) );
+			assertFalse( "not a repository path: " + templates, templates.contains( "importProgress/{id}" ) );
+			assertEquals( "no URL, no tail of a member access: " + templates, 3, templates.size() );
+			assertNotNull( find( (List<Map<String, Object>>) intro.get( "entryPoints" ), "path", "wzdata/Projects" ) );
+
+			// a help page in full, includes expanded
+			Map<String, Object> page = McpIntroPages.pageText( "wz/help/step-a.shtml", 0 );
+			assertEquals( "Help", page.get( "title" ) );
+			String text = (String) page.get( "text" );
+			assertTrue( text, text.startsWith( "## Welcome\nHello and welcome to the Wizard tool" ) );
+			assertTrue( text, text.contains( "## User guide\n- First the data is read.\n- Then it is analysed." ) );
+			assertNotNull( find( (List<Map<String, Object>>) page.get( "links" ), "path", "analyses/Methods/X/Y Z" ) );
+			Map<String, Object> rest = McpIntroPages.pageText( "wz/help/step-a.shtml", 10 );
+			assertEquals( text.substring( 10 ), rest.get( "text" ) );
+			assertNull( "not a page", McpIntroPages.pageText( "wz/steps.js", 0 ) );
+			assertNull( "outside the web root", McpIntroPages.pageText( "../wz/help/step-a.shtml", 0 ) );
+			assertNull( "no such page", McpIntroPages.pageText( "wz/help/none.shtml", 0 ) );
+
+			// a changed script is read again
+			File script = new File( dir, "wz/steps.js" );
+			Files.write( script.toPath(), ( new String( Files.readAllBytes( script.toPath() ), StandardCharsets.UTF_8 )
+					+ "var more = [{name: \"rows\", value: 7}, {name: \"x\", value: y}];\nfunction go() { de = \"analyses/Methods/Test/mcp.test\"; }\n" )
+							.getBytes( StandardCharsets.UTF_8 ) );
+			script.setLastModified( script.lastModified() + 5000 );
+			Map<String, Object> again = McpIntroPages.read( "intro-wiz" ).toMap( Collections.<String>emptySet() );
+			Map<String, Object> againParams = (Map<String, Object>) ( (List<Map<String, Object>>) again.get( "analysisPresets" ) ).get( 0 ).get( "params" );
+			assertEquals( "7", againParams.get( "rows" ) );
+			assertEquals( "unchecked: all values found", "Old step", againParams.get( "maxStep" ) );
+		}
+		finally
+		{
+			ApplicationUtils.removeDir( data );
+		}
+	}
+
+	private void write( String path, String content ) throws Exception
+	{
+		File file = new File( dir, path );
+		file.getParentFile().mkdirs();
+		Files.write( file.toPath(), content.getBytes( StandardCharsets.UTF_8 ) );
+	}
+
+	/** A repository root with a "Projects" folder, so path templates under it are kept. */
+	private static void registerRoot( String name, File dir ) throws Exception
+	{
+		java.util.Properties properties = new ru.biosoft.util.ExProperties();
+		properties.setProperty( ru.biosoft.access.core.DataCollectionConfigConstants.NAME_PROPERTY, name );
+		properties.setProperty( ru.biosoft.access.core.DataCollectionConfigConstants.CLASS_PROPERTY, ru.biosoft.access.LocalRepository.class.getName() );
+		properties.setProperty( ru.biosoft.access.core.DataCollectionConfigConstants.CONFIG_PATH_PROPERTY, dir.toString() );
+		ru.biosoft.util.ExProperties.store( properties, new File( dir, ru.biosoft.access.core.DataCollectionConfigConstants.DEFAULT_CONFIG_FILE ) );
+		ru.biosoft.access.Repository repository = (ru.biosoft.access.Repository) ru.biosoft.access.core.CollectionFactory.createCollection( null, properties );
+		ru.biosoft.access.core.CollectionFactory.registerRoot( repository );
+		repository.put( ru.biosoft.access.generic.GenericDataCollection.createGenericCollection( repository, repository, "Projects", "Projects" ) );
+	}
+
 	public void testChangedPageIsReread() throws Exception
 	{
 		dir = TempFiles.dir( "mcpIntroDir" );

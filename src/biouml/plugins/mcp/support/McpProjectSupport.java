@@ -32,6 +32,9 @@ import ru.biosoft.server.servlets.support.SupportServlet;
  */
 public final class McpProjectSupport
 {
+	/** Prefix of the project properties the web UI gets (SupportServlet.getProjectsData). */
+	static final String CLIENT_PROPERTY_PREFIX = "clientProperty.";
+
 	private McpProjectSupport()
 	{
 	}
@@ -102,6 +105,13 @@ public final class McpProjectSupport
 			}
 			catch ( Exception ignore )
 			{
+			}
+			// the project's client properties, as the web UI gets them (e.g. demo: "true" for a Genome Enhancer demo project)
+			for ( Map.Entry<Object, Object> property : module.getInfo().getProperties().entrySet() )
+			{
+				String key = String.valueOf( property.getKey() );
+				if ( key.startsWith( CLIENT_PROPERTY_PREFIX ) && !m.containsKey( key.substring( CLIENT_PROPERTY_PREFIX.length() ) ) )
+					m.put( key.substring( CLIENT_PROPERTY_PREFIX.length() ), String.valueOf( property.getValue() ) );
 			}
 			out.add( m );
 		}

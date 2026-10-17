@@ -382,6 +382,50 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		assertFalse( "free-form int has no allowed values", rows.containsKey( "allowedValues" ) );
 	}
 
+	/**
+	 * describe binds params first, so array items are listed with the keys analysis_run takes; filter narrows the
+	 * allowed values; a bad param is refused as by analysis_run.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testDescribeWithParamsAndFilter()
+	{
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( "conditions/0/condition", "Experiment" );
+		params.put( "conditions/1/condition", "Control" );
+		McpEnvelope env = McpAnalysisSupport.describeMethod( McpTestAnalysis.NAME, params, "EX" );
+		assertTrue( env.toString(), env.isOk() );
+		Map<String, Object> data = (Map<String, Object>) env.getData();
+		Map<String, Map<String, Object>> byName = new java.util.LinkedHashMap<String, Map<String, Object>>();
+		for ( Map<String, Object> p : (List<Map<String, Object>>) data.get( "properties" ) )
+			byName.put( (String) p.get( "name" ), p );
+		assertEquals( Integer.valueOf( 2 ), byName.get( "conditions" ).get( "itemCount" ) );
+		assertEquals( "Experiment", byName.get( "conditions/0/condition" ).get( "default" ) );
+		assertEquals( "Control", byName.get( "conditions/1/condition" ).get( "default" ) );
+		Map<String, Object> mode = byName.get( "mode" );
+		assertEquals( java.util.Arrays.asList( "exact" ), mode.get( "allowedValues" ) );
+		assertEquals( Integer.valueOf( 1 ), mode.get( "matchingCount" ) );
+		assertEquals( Integer.valueOf( 2 ), mode.get( "allowedValuesCount" ) );
+		assertEquals( "EX", data.get( "filter" ) );
+
+		Map<String, Object> bad = new java.util.LinkedHashMap<String, Object>();
+		bad.put( "nope", "x" );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, McpAnalysisSupport.describeMethod( McpTestAnalysis.NAME, bad, null ).getCode() );
+	}
+
+	/** The values a page passes to an analysis are checked against its parameters. */
+	public void testAcceptsParameterValues()
+	{
+		com.developmentontheedge.beans.model.ComponentModel model = McpAnalysisSupport.parametersModel( McpTestAnalysis.NAME );
+		assertNotNull( model );
+		assertTrue( McpAnalysisSupport.accepts( model, "mode", "exact" ) );
+		assertFalse( "not one of the choices", McpAnalysisSupport.accepts( model, "mode", "slow" ) );
+		assertTrue( McpAnalysisSupport.accepts( model, "rows", "5" ) );
+		assertFalse( "not a number", McpAnalysisSupport.accepts( model, "rows", "many" ) );
+		assertTrue( "exists", McpAnalysisSupport.accepts( model, "conditions", null ) );
+		assertFalse( "no such parameter", McpAnalysisSupport.accepts( model, "nope", null ) );
+		assertNull( McpAnalysisSupport.parametersModel( "no such analysis" ) );
+	}
+
 	/** Array-of-bean params bind from both the 'name/0/field' key form and a JSON list of objects. */
 	public void testArrayOfBeanParams()
 	{
