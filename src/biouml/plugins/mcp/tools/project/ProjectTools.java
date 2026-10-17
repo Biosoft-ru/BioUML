@@ -24,7 +24,7 @@ public final class ProjectTools
 	public static void registerAll( McpToolCatalog catalog )
 	{
 		catalog.register( "biouml_project_list",
-				"List the current user's projects with their permissions (admin/canWrite/canDelete) and disk quota.",
+				"List the current user's projects with their permissions (admin/canWrite/canDelete), disk quota and the properties the web UI reads (e.g. demo: \"true\" for a demo project, an example with finished results).",
 				"{}",
 				( ex, args ) -> McpProjectSupport.projects() );
 

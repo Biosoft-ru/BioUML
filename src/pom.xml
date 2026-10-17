@@ -41,6 +41,7 @@
                      <include>**/simulation/resources/*</include>
                      <include>**/physicell/resources/*</include>
                      <include>**/webservices/imports/resources/*</include>
+                     <include>**/mcp/support/resources/**</include>
                  </includes>
                  <excludes>
                       <exclude>target/**</exclude>

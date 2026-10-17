@@ -1,16 +1,28 @@
 package biouml.plugins.mcp.support;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import biouml.model.Module;
 import biouml.plugins.mcp.McpConstants;
 import biouml.workbench.perspective.PerspectiveRegistry;
+
+import com.developmentontheedge.beans.model.ComponentModel;
+
+import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.server.servlets.webservices.providers.PerspectivesProvider;
 
 /**
@@ -25,7 +37,12 @@ import ru.biosoft.server.servlets.webservices.providers.PerspectivesProvider;
  *
  * <p>When the web UI files are deployed next to the server, the perspective's intro page is read too
  * (see {@link McpIntroPages}): it supplies a description for perspectives that declare none and, on selection,
- * what the page offers users (links, analysis parameter presets, import folders, help links).</p>
+ * what the page offers users (links, analysis parameter presets checked against the analyses, import folders,
+ * help links; for a wizard, its steps and help pages, the repository paths it builds and its example projects).</p>
+ *
+ * <p>A perspective may also have a guide: how to do with MCP tools what its start page does, written for agents.
+ * Guides are bundled with this plugin ({@code resources/perspective-guides}); a directory set by the
+ * {@value #GUIDES_PROPERTY} system property, with the same layout, wins over them.</p>
  */
 public final class McpPerspectiveSupport
 {
@@ -36,6 +53,14 @@ public final class McpPerspectiveSupport
 
 	/** Keys of the perspective JSON holding allow/deny rules that affect other MCP tools. */
 	private static final String[] RULE_KEYS = { "importers", "exporters", "actions" };
+
+	/** System property with a directory of perspective guides: index.properties (perspective name = file) and the files. */
+	public static final String GUIDES_PROPERTY = "biouml.mcp.guides";
+
+	private static final String GUIDES_RESOURCE = "resources/perspective-guides/";
+	private static final String GUIDES_INDEX = "index.properties";
+	private static final int MAX_GUIDE_CHARS = 20000;
+	private static final int MAX_EXAMPLE_PROJECTS = 50;
 
 	private static final String SELECT_NOTE = "Selected for this MCP session only; the user's saved perspective (used by the web UI) is unchanged. "
 			+ "biouml_repo_import_formats, biouml_repo_export_formats and import autodetection now follow this perspective's importer/exporter rules.";
@@ -63,6 +88,8 @@ public final class McpPerspectiveSupport
 					Map<String, Object> json = toMap( PerspectiveRegistry.getPerspective( name ).toJSON() );
 					McpIntroPages.Intro intro = json.get( "description" ) == null ? McpIntroPages.read( (String) json.get( "intro" ) ) : null;
 					Map<String, Object> m = summary( json, intro );
+					if ( guide( name ) != null )
+						m.put( "guide", Boolean.TRUE );
 					m.put( "current", Boolean.valueOf( name.equals( current ) ) );
 					perspectives.add( m );
 				}
@@ -135,16 +162,141 @@ public final class McpPerspectiveSupport
 			Set<String> known = entryPointPaths( selected );
 			try
 			{
-				// entry points are checked for existence with the caller's permissions
-				result.put( "intro", McpProviderSupport.inSession( () -> intro.toMap( known ) ) );
+				// entry points and example projects are checked with the caller's permissions
+				result.put( "intro", McpProviderSupport.inSession( () -> {
+					Map<String, Object> m = intro.toMap( known, parameterCheck() );
+					List<Map<String, Object>> examples = exampleProjects( intro.getProjectFlag() );
+					if ( !examples.isEmpty() )
+						m.put( "exampleProjects", examples );
+					return m;
+				} ) );
 			}
 			catch ( Exception e )
 			{
 				log.log( Level.WARNING, "Cannot describe the intro page of perspective " + name, e );
 			}
 		}
+		String guide = guide( name );
+		if ( guide != null )
+			result.put( "guide", guide );
 		result.put( "note", SELECT_NOTE );
 		return McpEnvelope.ok( result );
+	}
+
+	/**
+	 * Text of a page of the web UI: a wizard step's help page, a perspective's start page, a user guide.
+	 * @param page path in the web application, e.g. "wizard/help/step-start.shtml"
+	 * @param offset first character to return (pages are returned in parts of {@value McpIntroPages#MAX_PAGE_TEXT})
+	 */
+	public static McpEnvelope page( String page, int offset )
+	{
+		Map<String, Object> text = McpIntroPages.pageText( page, offset );
+		if ( text == null )
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no page '" + page
+					+ "' in the web UI (an .html, .htm or .shtml file of the web application, e.g. a helpPage of biouml_perspective_select), "
+					+ "or the web UI files are not found on the server" );
+		return McpEnvelope.ok( text );
+	}
+
+	/** Checks the parameter values a page passes against the analyses, each analysis looked up once. */
+	private static McpIntroPages.ParameterCheck parameterCheck()
+	{
+		Map<String, ComponentModel> models = new HashMap<String, ComponentModel>();
+		return ( analysis, parameter, value ) -> {
+			if ( !models.containsKey( analysis ) )
+				models.put( analysis, McpAnalysisSupport.parametersModel( analysis ) );
+			ComponentModel model = models.get( analysis );
+			return model == null ? null : Boolean.valueOf( McpAnalysisSupport.accepts( model, parameter, value ) );
+		};
+	}
+
+	/**
+	 * The current user's projects the start page lists as examples: those with the page's project flag set
+	 * (client property {@code demo} is "true" for a demo project).
+	 */
+	private static List<Map<String, Object>> exampleProjects( String flag )
+	{
+		List<Map<String, Object>> examples = new ArrayList<Map<String, Object>>();
+		if ( flag == null )
+			return examples;
+		try
+		{
+			for ( Object element : McpProjectSupport.userProjectsParent() )
+			{
+				if ( !( element instanceof Module ) )
+					continue;
+				Module module = (Module) element;
+				if ( "true".equals( module.getInfo().getProperty( McpProjectSupport.CLIENT_PROPERTY_PREFIX + flag ) ) )
+				{
+					Map<String, Object> m = new LinkedHashMap<String, Object>();
+					m.put( "name", module.getName() );
+					m.put( "path", DataElementPath.create( module ).toString() );
+					examples.add( m );
+				}
+				if ( examples.size() >= MAX_EXAMPLE_PROJECTS )
+					break;
+			}
+		}
+		catch ( Exception e )
+		{
+			log.log( Level.FINE, "Cannot list example projects", e );
+		}
+		return examples;
+	}
+
+	/**
+	 * The guide of a perspective: from the {@value #GUIDES_PROPERTY} directory if set and it has one, otherwise
+	 * bundled with this plugin; null when there is none.
+	 */
+	public static String guide( String perspective )
+	{
+		String dir = System.getProperty( GUIDES_PROPERTY );
+		if ( dir != null && !dir.isEmpty() )
+		{
+			File index = new File( dir, GUIDES_INDEX );
+			try (InputStream in = index.isFile() ? Files.newInputStream( index.toPath() ) : null)
+			{
+				String file = guideFile( in, perspective );
+				if ( file != null && new File( dir, file ).isFile() )
+					return clip( new String( Files.readAllBytes( new File( dir, file ).toPath() ), StandardCharsets.UTF_8 ) );
+			}
+			catch ( IOException e )
+			{
+				log.log( Level.WARNING, "Cannot read the perspective guides in " + dir, e );
+			}
+		}
+		try (InputStream in = McpPerspectiveSupport.class.getResourceAsStream( GUIDES_RESOURCE + GUIDES_INDEX ))
+		{
+			String file = guideFile( in, perspective );
+			if ( file == null )
+				return null;
+			try (InputStream guide = McpPerspectiveSupport.class.getResourceAsStream( GUIDES_RESOURCE + file ))
+			{
+				return guide == null ? null : clip( new String( guide.readAllBytes(), StandardCharsets.UTF_8 ) );
+			}
+		}
+		catch ( IOException e )
+		{
+			log.log( Level.WARNING, "Cannot read the bundled perspective guides", e );
+			return null;
+		}
+	}
+
+	/** @return the guide file the index names for the perspective, or null (also for a name that is not a plain file name) */
+	private static String guideFile( InputStream index, String perspective ) throws IOException
+	{
+		if ( index == null || perspective == null )
+			return null;
+		Properties properties = new Properties();
+		properties.load( new java.io.InputStreamReader( index, StandardCharsets.UTF_8 ) );
+		String file = properties.getProperty( perspective );
+		return file == null || file.trim().isEmpty() || file.contains( "/" ) || file.contains( "\\" ) || file.contains( ".." ) ? null : file.trim();
+	}
+
+	private static String clip( String text )
+	{
+		String trimmed = text.trim();
+		return trimmed.length() <= MAX_GUIDE_CHARS ? trimmed : trimmed.substring( 0, MAX_GUIDE_CHARS ) + "…";
 	}
 
 	private static McpEnvelope noPerspectives()

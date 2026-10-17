@@ -1,7 +1,9 @@
 package biouml.plugins.mcp._test;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -10,12 +12,14 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.developmentontheedge.application.Application;
+import com.developmentontheedge.application.ApplicationUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.access.security.SecurityProvider;
 import ru.biosoft.access.security.TestSecurityProvider;
+import ru.biosoft.util.TempFiles;
 
 import biouml.plugins.mcp.McpConstants;
 import biouml.plugins.mcp.server.McpServerFactory;
@@ -150,6 +154,56 @@ public class McpPerspectiveToolsTest extends AbstractBioUMLTest
 			List<Map<String, Object>> presets = (List<Map<String, Object>>) intro.get( "analysisPresets" );
 			assertEquals( "analyses/Methods/TF binding site search/Site search on track", presets.get( 0 ).get( "analysis" ) );
 			assertNotNull( presets.get( 0 ).get( "params" ) );
+		}
+		finally
+		{
+			if ( previous == null )
+				System.clearProperty( McpIntroPages.WEB_PATH_PROPERTY );
+			else
+				System.setProperty( McpIntroPages.WEB_PATH_PROPERTY, previous );
+		}
+	}
+
+	/** A guide comes from the configured directory, else from the bundled index (which names none for now). */
+	public void testGuides() throws Exception
+	{
+		assertNull( McpPerspectiveSupport.guide( "Default" ) );
+
+		File dir = TempFiles.dir( "mcpGuides" );
+		String previous = System.getProperty( McpPerspectiveSupport.GUIDES_PROPERTY );
+		try
+		{
+			Files.write( new File( dir, "index.properties" ).toPath(),
+					"Default=default.txt\nGTRD=../secret.txt\n".getBytes( StandardCharsets.UTF_8 ) );
+			Files.write( new File( dir, "default.txt" ).toPath(), "  Start from analyses/Methods.\n".getBytes( StandardCharsets.UTF_8 ) );
+			System.setProperty( McpPerspectiveSupport.GUIDES_PROPERTY, dir.getPath() );
+			assertEquals( "Start from analyses/Methods.", McpPerspectiveSupport.guide( "Default" ) );
+			assertNull( "not a plain file name", McpPerspectiveSupport.guide( "GTRD" ) );
+			assertNull( "neither in the directory nor bundled", McpPerspectiveSupport.guide( "Microbiome" ) );
+		}
+		finally
+		{
+			if ( previous == null )
+				System.clearProperty( McpPerspectiveSupport.GUIDES_PROPERTY );
+			else
+				System.setProperty( McpPerspectiveSupport.GUIDES_PROPERTY, previous );
+			ApplicationUtils.removeDir( dir );
+		}
+	}
+
+	/** biouml_perspective_page reads a page of the web UI as text; a missing page is a clean error. */
+	public void testPage()
+	{
+		String previous = System.getProperty( McpIntroPages.WEB_PATH_PROPERTY );
+		System.setProperty( McpIntroPages.WEB_PATH_PROPERTY, McpIntroPagesTest.WEB_FILES );
+		try
+		{
+			McpEnvelope env = McpPerspectiveSupport.page( "intro-microbiome.html", 0 );
+			assertTrue( env.toString(), env.isOk() );
+			Map<String, Object> page = (Map<String, Object>) env.getData();
+			assertTrue( String.valueOf( page.get( "text" ) ).contains( "SPAdes" ) );
+			assertEquals( McpConstants.CODE_NOT_FOUND, McpPerspectiveSupport.page( "no-such-page.html", 0 ).getCode() );
+			assertEquals( McpConstants.CODE_NOT_FOUND, McpPerspectiveSupport.page( "../../pom.xml", 0 ).getCode() );
 		}
 		finally
 		{
