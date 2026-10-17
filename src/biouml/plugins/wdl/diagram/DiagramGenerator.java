@@ -50,7 +50,7 @@ public class DiagramGenerator
     private Map<String, Compartment> tasks = new HashMap<>();
     private Map<String, Compartment> workflows = new HashMap<>();
     private int externalPosition = 0;
-
+    private boolean doLayout = true;
     public Diagram generateDiagram(ScriptInfo script, DataCollection dc, String name) throws Exception
     {
         Diagram result = new WDLDiagramType().createDiagram( dc, name );
@@ -112,13 +112,19 @@ public class DiagramGenerator
         Util.movePortsToEdge( diagram );
         //        addOutputs( diagram );
  
-        new WDLLayouter().layout( diagram );
+        if( doLayout )
+            new WDLLayouter().layout( diagram );
 
         if( !WorkflowUtil.hasOnlyTasks(diagram) )
             diagram.recursiveStream().select(Node.class).filter(n -> WorkflowUtil.isTask(n)).forEach(n -> n.setVisible(false));
 
         this.allimports.put(diagram.getName(), diagram);
         return diagram;
+    }
+    
+    public void setDoLayout(boolean doLayout)
+    {
+        this.doLayout = doLayout;
     }
 
     private void createWorkflow(Diagram diagram, WorkflowInfo workflow, boolean topLevel) throws Exception
@@ -281,10 +287,14 @@ public class DiagramGenerator
     public void createImport(DataCollection dc, ImportInfo importInfo) throws Exception
     {
         DiagramGenerator generator = new DiagramGenerator();
+        generator.setDoLayout( this.doLayout );
         Diagram importedDiagram = generator.generateDiagram( importInfo.getImported(), dc, importInfo.getImported().getName() );
-        this.allimports.putAll(generator.getAllImports());
-        this.imports.put( importInfo.getAlias(), importedDiagram );
-        importedDiagram.getAttributes().add( new DynamicProperty( "SOURCE", String.class, importInfo.getSource() ) );
+        this.allimports.putAll( generator.getAllImports() );
+        if( importInfo.getAlias() != null )
+            this.imports.put( importInfo.getAlias(), importedDiagram );
+        else
+            this.imports.put( importedDiagram.getName(), importedDiagram );
+            importedDiagram.getAttributes().add( new DynamicProperty( "SOURCE", String.class, importInfo.getSource() ) );
         if( importInfo.getTask() != null )
         {
             DiagramElement de = importedDiagram.findDiagramElement( importInfo.getTask() );

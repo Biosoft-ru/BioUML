@@ -11,7 +11,6 @@ options
   DEBUG_PARSER = false;
   TRACK_TOKENS=true;
 }
-
 /***************************************************************
                    PARSER BEGIN
 ***************************************************************/
@@ -21,8 +20,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-
 public class WDLParser
 {
 	protected Logger log = Logger.getLogger(WDLParser.class.getName());
@@ -33,68 +30,51 @@ public class WDLParser
     {
         this (new StringReader("0"));
     }
-
     public AstStart parse(Reader reader) throws ParseException
     {
         ReInit(reader);
-        AstStart astStart = Start();
-        return astStart;
+        version = "draft-2";
+        workflowExist = false;
+        return Start();
     }
-    
     public String getVersion()
     {
     	return version;
     }
-
 }
-
-
 PARSER_END(WDLParser)
-
 /***************************************************************
                        SKIP & TOKENS
 ***************************************************************/
-
 TOKEN_MGR_DECLS : {
 	int prevLexState;
 	int braceLevel = 0;
 	boolean isHeredoc = false;
 }
-
-TOKEN :
+<DEFAULT, BASH_COMMAND> TOKEN :
 {
-< EOL :   ("\n" | "\r"  | "\r\n" ) >
+    < EOL : "\r\n" | "\n" | "\r" >
 }
-
-<*> SKIP :
+<DEFAULT, BASH_COMMAND> SKIP :
 {
-  " " | "\t"
-| <"#" (~["\n","\r"])*>
+    " " | "\t"
+  | <"#" (~["\n","\r"])*>
 }
-
 TOKEN : /* STATE SWITCHERS */
 {
 < COMMAND: "command" > : BASH_COMMAND
-
 | < PARAMETER_META : "parameter_meta" > 
-
 | < META : "meta" > 
-
 | < RUNTIME: "runtime" > 
-
 | < HINTS: "hints" > 
-
 | < REQUIREMENTS:  "requirements" > 
 }
-
-
 < BASH_COMMAND > TOKEN:
 {
 < COMMAND_HEREDOC_START: "<<<" > {isHeredoc = true;}: BASH_STRING
 | < COMMAND_START:  < BRACE_L > > 
 {braceLevel+=1;}: BASH_STRING
 }
-
 < BASH_STRING > TOKEN:
 {
 < START : < BRACE_L > > {braceLevel+=1;}
@@ -107,60 +87,40 @@ TOKEN : /* STATE SWITCHERS */
 		SwitchTo(DEFAULT);
 	}
 }
-| < COMMAND_HEREDOC_END: ">>>" > : DEFAULT
-| < ANY : (~["{", "}"])+ >
+| < COMMAND_HEREDOC_END: ">>>" >
+{
+    isHeredoc = false;
+    braceLevel = 0;
+} : DEFAULT
+| < ANY : (~["{", "}", ">"])+ | ">" | ">>" >
 }
-
  TOKEN : /* RESERVED WORDS */
 {
   < TASK : "task" >
-
 | < WORKFLOW : "workflow" >
-
 | < VERSION : "version" >
-
 | < INPUT : "input" >
-
 | < OUTPUT : "output" >
-
 | < PRIMITIVE_TYPE :  "Boolean" |  "Boolean?" | "File"  | "File?" | "Directory" | "Directory?"|
                       "Float"| "Float?" | "Int" | "Int?" | "String" |  "String?" >
 | < ARRAY : "Array">
-
 | < NONE : "None" >
-
 | < OBJECT_TYPE : "Object" >
-
 | < PAIR : "Pair" >
-
 | < MAP : "Map">
-
 | < ALIAS : "alias" >
-
 | < AS : "as" >
-
 | < CALL : "call" >
-
 | < ELSE : "else" >
-
 | < TRUE_OR_FALSE : ("true"|"false") >
-
 | < IF : "if" >
-
 | < IN : "in" >
-
 | < IMPORT : "import" >
-
 | < OBJECT: "object" >
-
 | < SCATTER : "scatter" >
-
 | < STRUCT : "struct" >
-
 | < THEN : "then" >
-
 | < NULL : "null" >
-
 | < DOT : ".">
 /*
 | < STANDARD_FUNCTION :( 
@@ -173,49 +133,36 @@ TOKEN : /* STATE SWITCHERS */
 						"write_object" | "write_objects" | "prefix" | 
 						"length" | "range" | "transpose" | "cross" | "zip" | 
 						"flatten" | "select_first" | "select_all" | "defined" |
-						
 						"min" | "max" | "suffix" | "quote" | "squote" | "sep" |
 						"unzip" | "as_map" | "as_pairs" | "keys" | 
 						"collect_by_key" ) >
 */
-
 | < AND: "&&">
-
 | < OR : "||">
-
 | < NOT : "!" >
-
 | < BRAKET_L : "(">
-
 | < BRAKET_R : ")">
-
 | < COLON : ":">
-
 | < EQUAL : "=" >
-
 | < PLUS : "+">
-
 | < MINUS : "-">
-
 | < SEMICOLON : ";">
-
 | < COMMA : "," >
-
 }
-
 TOKEN : /* SPECIAL SYMBOLS */
 {
 < QUESTION_MARK: "?" >
 }
-
 TOKEN : /* LITERALS */
 {
-  < TEXT_STRING : ("\""  ( ~[ "\"", "\n", "\t" ] )* "\"")
-    | ("'" ( ~[ "'", "\n", "\t" ] )* "'")> //TODO: /"~"(?!{)/, /"$"(?!{)/
-  | < OCTAL_ESCAPE : "\\" ((["0"-"7"]){1, 3}) >
-  | < HEX_ESCAPE : "\\x" ((["0"-"9","a"-"f","A"-"F"]){2}) >
-  | < UNICODE : ("\\u" ((["0"-"9","a"-"f","A"-"F"]){4}))
-    | ("\\U" ((["0"-"9","a"-"f","A"-"F"]){8}))>
+  < TEXT_STRING :
+      "\"" ( "\\" ~[] | ~["\"", "\\", "\n", "\r"] )* "\""
+    | "'" ( "\\" ~[] | ~["'", "\\", "\n", "\r"] )* "'"
+  >
+  | < OCTAL_ESCAPE : "\\" ( ["0"-"7"] ){1,3} >
+  | < HEX_ESCAPE : "\\x" ( ["0"-"9","a"-"f","A"-"F"] ){2} >
+  | < UNICODE : "\\u" ( ["0"-"9","a"-"f","A"-"F"] ){4}
+      | "\\U" ( ["0"-"9","a"-"f","A"-"F"] ){8} >
 }
 
 TOKEN : /* IDENTIFIERS */
@@ -239,7 +186,6 @@ TOKEN : /* IDENTIFIERS */
 | < BRACE_L: "{" >
 | < BRACE_R: "}" >
 }
-
 /***************************************************************
                    GRAMMAR START
 ***************************************************************/
@@ -247,29 +193,55 @@ AstStart Start() #Start:
 {}
 {
     ( <EOL> )*  // <-- Allow leading newlines
-    version()
-
+    (version())?
     (astElement())+
-    
     <EOF>
     {
         return jjtThis;
     }
 }
-
 void astElement():
 {}
 {
 	( task()| workflow() | struct() | importWDL() | sepEol())
 }
-
 // version of WDL
 void version() #Version:
-{}
 {
-    < VERSION > (< SYMBOL > | <FLOATING_POINT_LITERAL>){this.version = token.image;}
+    StringBuilder value = new StringBuilder();
+    Token t;
 }
-
+{
+    <VERSION>
+    (
+        t = <SYMBOL>
+        {
+            value.append(t.image);
+        }
+        |
+        t = <FLOATING_POINT_LITERAL>
+        {
+            value.append(t.image);
+        }
+    )
+    (
+        t = <MINUS>
+        {
+            value.append(t.image);
+        }
+        (
+            t = <SYMBOL>
+            |
+            t = <FLOATING_POINT_LITERAL>
+        )
+        {
+            value.append(t.image);
+        }
+    )*
+    {
+        this.version = value.toString();
+    }
+}
 void task() #Task:
 {}
 {
@@ -286,40 +258,47 @@ void task() #Task:
     | meta() | parameter_meta())*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 void meta() #Meta:
 {}
 {
-	< META >
-	(sepEol())*
-	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    < META >
     (sepEol())*
-    metablock()
-    (sepEol())+
+    ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol())*
+
     (
-    metablock()
-    (sepEol())+
-    )*
+        metablock()
+        (
+            LOOKAHEAD((<EOL>)+ (<SYMBOL> | <IN> | <VERSION>))
+            (sepEol())+
+            metablock()
+        )*
+    )?
+
+    (sepEol())*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-
 }
-
 void parameter_meta() #Meta:
 {}
 {
-	< PARAMETER_META >
-	(sepEol())*
-	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    < PARAMETER_META >
     (sepEol())*
-    metablock()
-    (sepEol())+
+    ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol())*
     (
-    metablock()
-    (sepEol())+
-    )*
+        metablock()
+        (
+            LOOKAHEAD(
+                (<EOL>)+
+                (<SYMBOL> | <IN> | <VERSION>)
+            )
+            (sepEol())+
+            metablock()
+        )*
+    )?
+    (sepEol())*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 void metablock():
 {}
 {
@@ -333,7 +312,6 @@ void metablock():
 		| metaMap()		
 	)
 }
-
 void metadataFormulaElement() #MetaFormulaElement:
 {}
 {
@@ -342,7 +320,6 @@ void metadataFormulaElement() #MetaFormulaElement:
     | < FLOATING_POINT_LITERAL > 
     | < NULL > )
 }
-
 void metaArray() #Array:
 {
 }
@@ -370,32 +347,42 @@ void metaArray() #Array:
     )?
     (sepEol())*
 	((< SQUARE_BRACKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-
 }
-
 void metaMap() #Map:
+{}
 {
-}
-{
-	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-	(sepEol())*
-    metaKeyValue()
-    (
-    	LOOKAHEAD(3)
-    	(sepEol())*
-        (< COMMA > #Comma)
-        (sepEol())*
-        metaKeyValue()
-    )*
+    ((<BRACE_L> {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+
+
     (sepEol())*
-	((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 
+
+    (
+        metaKeyValue()
+        (
+            LOOKAHEAD(
+                (<EOL>)* <COMMA> (<EOL>)*
+                (<SYMBOL> | <VERSION> | <IN>) (<EOL>)* <COLON>
+            )
+            (sepEol())*
+            (<COMMA> #Comma)
+            (sepEol())*
+            metaKeyValue()
+        )*
+        (sepEol())*
+        (<COMMA> #Comma)?
+    )?
+
+
+    (sepEol())*
+
+
+    ((<BRACE_R> {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 void metaKeyValue() #KeyValue:
 {}
 {
-	( < SYMBOL > |  < IN > ) {jjtThis.setKey(token.image);}
+	( < SYMBOL > | < IN > | < VERSION > ) {jjtThis.setKey(token.image);}
 	(sepEol())*
 	(< COLON > #Colon) 
 	(sepEol())*
@@ -405,7 +392,6 @@ void metaKeyValue() #KeyValue:
 		| metaMap()		
 	)
 }
-
 void workflow() #Workflow:
 {
 	if (workflowExist)
@@ -424,7 +410,6 @@ void workflow() #Workflow:
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     {this.workflowExist = true;}
 }
-
 void scatter() #Scatter:
 {}
 {
@@ -447,7 +432,6 @@ void scatter() #Scatter:
     | call() | scatter() | conditional())*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 void conditional() #Conditional:
 {}
 {
@@ -466,35 +450,33 @@ void conditional() #Conditional:
     | scatter() 
     | conditional())*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-
 }
-
 void command() #Command:
 {}
 {
-    < COMMAND > 
+    < COMMAND >
+    (< EOL >)*
     (
-    (
-		((< COMMAND_HEREDOC_START > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-		(((< ANY > | < START > | < COMMAND_END >{jjtThis.setElement(token.image);}) #RegularFormulaElement)* #BashString)
-		((< COMMAND_HEREDOC_END > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-	)
-	|
-    (
-		((< COMMAND_START > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-		( (bashString())* #BashString)
-		((< COMMAND_END > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-	))
+        (
+            ((< COMMAND_HEREDOC_START > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+            (((< ANY > | < START > | < COMMAND_END > {jjtThis.setElement(token.image);}) #RegularFormulaElement)* #BashString)
+            ((< COMMAND_HEREDOC_END > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+        )
+        |
+        (
+            ((< COMMAND_START > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+            ((bashString())* #BashString)
+            ((< COMMAND_END > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+        )
+    )
 }
-
 void bashString():
 {}
 {
 	placeholder() 
 	| ((< ANY > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-	| ((< COMMAND_HEREDOC_END >{jjtThis.setElement(token.image);}) #RegularFormulaElement)
-}
 
+}
 void placeholder():
 {}
 {
@@ -502,96 +484,101 @@ void placeholder():
 	(bashString())*
 	((< COMMAND_END > {jjtThis.setElement(token.image);}) #RegularFormulaElement) 
 }
-
 void call() #Call:
 {}
 {
     < CALL >
-    (LOOKAHEAD(2)
-    subSymbol()
-    |
-    symbol()
-    {jjtThis.setName(token.image);}) 
+    (
+        LOOKAHEAD(2)
+        subSymbol()
+        |
+        symbol()
+        {jjtThis.setName(token.image);}
+    )
     (
         as()
     )?
     (
-    LOOKAHEAD(3)
-    (sepEol())*
-    (
-    (< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-	    (sepEol())*
-	    (
-	        (< INPUT > #Input)
-	        (sepEol())*
-	        (< COLON > #Colon)
-	        (sepEol())* 
-	        (
-	            equationSymbol()
-	            (
-	            	LOOKAHEAD(3)
-		            (sepEol())*
-		            (< COMMA > #Comma) 
-		            (sepEol())*
-		            equationSymbol()
-	            )*
-	    	    (sepEol())*
-	    	    (< COMMA > #Comma)?
-	            (sepEol())*
-	        )?
-	    )?
-    ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+        LOOKAHEAD((<EOL>)* <BRACE_L>)
+        (sepEol())*
+        ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+        (sepEol())*
+        (
+            (< INPUT > #Input)
+            (sepEol())*
+            (< COLON > #Colon)
+            (sepEol())*
+            (
+                equationSymbol()
+                (
+                    LOOKAHEAD(
+                        (<EOL>)* <COMMA> (<EOL>)*
+                        (<SYMBOL> | <IN> | <VERSION>)
+                    )
+                    (sepEol())*
+                    (< COMMA > #Comma)
+                    (sepEol())*
+                    equationSymbol()
+                )*
+                (sepEol())*
+                (< COMMA > #Comma)?
+                (sepEol())*
+            )?
+        )?
+        ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     )?
 }
-
 void subSymbol() #SubSymbol:
 {}
 {
 	symbol() ( < DOT > symbol() )+
 }
-
 void equationSymbol() #Symbol:
 {Token name;}
 {
-	( name = < SYMBOL > | name = < IN > ) { jjtThis.setName(name.image); }
-	((< EQUAL > #Equal)
-	expression())?
+    (name = <SYMBOL> | name = <IN> | name = <VERSION>)
+    {
+        jjtThis.setName(name.image);
+    }
+    (
+        (<EQUAL> #Equal)
+        (sepEol())*
+        expression()
+    )?
 }
-
 void runtime() #Runtime:
 {
-	switch (this.version) {
-		case ("1.2"):
-			log.log(Level.WARNING, "The runtime section is deprecated and will be removed in WDL 2.0.");
-			break;
-		default:
-			break;
-	}
+    switch (this.version) {
+        case ("1.2"):
+            log.log(Level.WARNING, "The runtime section is deprecated and will be removed in WDL 2.0.");
+            break;
+        default:
+            break;
+    }
 }
 {
-    < RUNTIME > 
+    < RUNTIME >
     (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     (sepEol())*
     execEngineBlock()
-    (sepEol())+
     (
-    execEngineBlock()
-    (sepEol())+
+        LOOKAHEAD((<EOL>)+ (<SYMBOL> | <IN> | <VERSION>))
+        (sepEol())+
+        execEngineBlock()
     )*
-    
+    (sepEol())*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 void requirements() #Runtime:
 {
-	switch (this.version) {
-		case ("1.0"):
-		case ("1.1"):
-			throw new ParseException("The requirements section was introduced in WDL 1.2. Use \"runtime\" instead.");
-		default:
-			break;
-	}
+    switch (this.version) {
+        case ("1.0"):
+        case ("1.1"):
+            throw new ParseException("The requirements section was introduced in WDL 1.2. Use \"runtime\" instead.");
+        default:
+            break;
+    }
 }
 {
     < REQUIREMENTS >
@@ -599,23 +586,22 @@ void requirements() #Runtime:
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     (sepEol())*
     execEngineBlock()
-    (sepEol())+
     (
-    execEngineBlock()
-    (sepEol())+
+        (sepEol())+
+        execEngineBlock()
     )*
+    (sepEol())*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 void hints() #Hints:
 {
-	switch (this.version) {
-		case ("1.0"):
-		case ("1.1"):
-			throw new ParseException("The hints section was introduced in WDL 1.2. Specify attributes in \"runtime\" instead.");
-		default:
-			break;
-	}
+    switch (this.version) {
+        case ("1.0"):
+        case ("1.1"):
+            throw new ParseException("The hints section was introduced in WDL 1.2. Specify attributes in \"runtime\" instead.");
+        default:
+            break;
+    }
 }
 {
     < HINTS >
@@ -623,14 +609,13 @@ void hints() #Hints:
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     (sepEol())*
     execEngineBlock()
-    (sepEol())+
     (
-    execEngineBlock()
-    (sepEol())+
+        (sepEol())+
+        execEngineBlock()
     )*
+    (sepEol())*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 void execEngineBlock():
 {}
 {
@@ -640,7 +625,6 @@ void execEngineBlock():
     (sepEol())*
     expression()
 }
-
 void sepEol() #EOL:
 {}
 {
@@ -655,7 +639,6 @@ void input() #Input:
     (sepEol() | declaration(true))*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 void output() #Output:
 {}
 {
@@ -665,7 +648,6 @@ void output() #Output:
     (sepEol() | declaration(true))*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 void struct() #Struct:
 {}
 {
@@ -676,17 +658,12 @@ void struct() #Struct:
     (sepEol() | declaration(false))*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 void declaration(boolean canBeInitialized) #Declaration:
 {
 }
 {
     type() {jjtThis.setType(token.image.replace(" ", ""));}
-
     symbol()
-    
-    
-    
     (
     ((< EQUAL > 
     {
@@ -694,12 +671,11 @@ void declaration(boolean canBeInitialized) #Declaration:
     		throw new ParseException("Variable can not be initialized at line " + token.beginLine);
     	jjtThis.setElement(token.image);
     }
-    ) #RegularFormulaElement) 
+    ) #RegularFormulaElement)
+    (sepEol())*
     expression()
     )?
-    
 }
-
 void type():
 {
 }
@@ -715,7 +691,6 @@ void type():
         < QUESTION_MARK > // parameter can be undefined
     )? 
 }
-
 void arrayType() #ArrayType:
 {}
 {
@@ -725,7 +700,6 @@ void arrayType() #ArrayType:
     ((< SQUARE_BRACKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     ((( < PLUS > {jjtThis.setElement(token.image);}) #RegularFormulaElement) {jjtThis.setNonEmpty(true);})? 
 }
-
 void pairType() #PairType: // TODO: values accessed via left and right
 {}
 {
@@ -736,7 +710,6 @@ void pairType() #PairType: // TODO: values accessed via left and right
     type()
     ((< SQUARE_BRACKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 void mapType() #MapType:
 {}
 {
@@ -747,36 +720,82 @@ void mapType() #MapType:
     type()
     ((< SQUARE_BRACKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 void ternary() #Ternary:
 {}
 {
     < IF >
+    (sepEol())*
     expression()
+    (sepEol())*
     (< THEN > #Then)
+    (sepEol())*
     expression()
+    (sepEol())*
     (< ELSE > #Else)
+    (sepEol())*
     expression()
 }
-
 void functionContainerElement() #ContainerElement:
 {}
 {
     function()
     (
-        < SQUARE_BRACKET_L >
-        (sepEol())*
-        expression()
-        (sepEol())*
-        < SQUARE_BRACKET_R >
+        (
+            < SQUARE_BRACKET_L >
+            (sepEol())*
+            expression()
+            (sepEol())*
+            < SQUARE_BRACKET_R >
+        )
+        |
+        (
+            < DOT >
+            symbol()
+        )
     )+
 }
-
+// Preserve EOL between declarations and before closing brackets.
+// Consume EOL only when it precedes an operator or follows one.
 void expression() #Expression:
 {}
 {
-    (LOOKAHEAD(functionContainerElement()) functionContainerElement()
-    | LOOKAHEAD(10) subsymbolChain()
+    expressionElement()
+    (
+        // Guard the entire repetition. An EOL alone is not sufficient
+        // to start another iteration: it must lead to an operator.
+        LOOKAHEAD(
+            ( (<EOL>)*
+              (<PLUS> | <MINUS> | <STAR> | <OPERATOR>
+               | <AND> | <OR> | <EQUAL>
+               | <TRIANGULAR_BRACKET_L> | <TRIANGULAR_BRACKET_R>) )
+            |
+            ( <SYMBOL> | <IN> | <VERSION> | <TRUE_OR_FALSE> | <NOT>
+              | <FLOATING_POINT_LITERAL> | <INTEGER> | <TEXT_STRING>
+              | <BRAKET_L> | <SQUARE_BRACKET_L> | <BRACE_L>
+              | <NONE> | <IF> | <OBJECT> )
+        )
+        (
+            LOOKAHEAD(
+                (<EOL>)*
+                (<PLUS> | <MINUS> | <STAR> | <OPERATOR>
+                 | <AND> | <OR> | <EQUAL>
+                 | <TRIANGULAR_BRACKET_L> | <TRIANGULAR_BRACKET_R>)
+            )
+            (<EOL>)*
+            regularFormulaElement()
+            (<EOL>)*
+            expressionElement()
+          |
+            expressionElement()
+        )
+    )*
+}
+// The original alternatives and AST nodes are preserved here.
+void expressionElement():
+{}
+{
+      LOOKAHEAD(functionContainerElement()) functionContainerElement()
+    | LOOKAHEAD(subsymbolChain()) subsymbolChain()
     | LOOKAHEAD(10) constructor()
     | LOOKAHEAD(10) expressionInBrackets()
     | text()
@@ -785,12 +804,10 @@ void expression() #Expression:
     | pair()
     | LOOKAHEAD(5) containerElement()
     | LOOKAHEAD(5) function()
-    | (< NONE > #None)
+    | (<NONE> #None)
     | regularFormulaElement()
     | ternary()
-    )+
 }
-
 void expressionInBrackets() #Expression:
 {}
 {
@@ -800,7 +817,6 @@ void expressionInBrackets() #Expression:
     (sepEol())*
     (< BRAKET_R > {jjtThis.setElement(token.image);} #RegularFormulaElement)
 }
-
 void containerElement() #ContainerElement:
 {
     String name;
@@ -810,7 +826,6 @@ void containerElement() #ContainerElement:
     {
         jjtThis.setContainerName(name);
     }
-
     (
         < SQUARE_BRACKET_L >
         (sepEol())*
@@ -819,43 +834,45 @@ void containerElement() #ContainerElement:
         < SQUARE_BRACKET_R >
     )+
 }
-
 void subsymbolChain() #SubSymbol:
 {}
 {
 	(LOOKAHEAD(5) containerElement() | symbol()) (< DOT > (LOOKAHEAD(5) containerElement() | symbol()))+
 }
-
 void constructor() #Constructor:
 {}
 {
-    (< OBJECT > | < SYMBOL > | < IN >) {jjtThis.setName(token.image);}
+    (< OBJECT > | < SYMBOL > | < IN > | < VERSION >) {jjtThis.setName(token.image);}
     (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (sepEol())*
     (
-    	LOOKAHEAD(3) (sepEol())*
         constructorKeyValue()
         (
-        	LOOKAHEAD(3) (sepEol())*
-	        (< COMMA > #Comma)
-	        (sepEol())*
-	        constructorKeyValue()
+            LOOKAHEAD(
+                (<EOL>)* <COMMA> (<EOL>)*
+                (<SYMBOL> | <IN> | <VERSION>)
+            )
+            (sepEol())*
+            (< COMMA > #Comma)
+            (sepEol())*
+            constructorKeyValue()
         )*
+        (sepEol())*
+        (< COMMA > #Comma)?
     )?
     (sepEol())*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 void constructorKeyValue() #KeyValue:
 {Token key;}
 {
-	( key = < SYMBOL > | key = < IN > ) {jjtThis.setKey(key.image);}
+	( key = < SYMBOL > | key = < IN > | key = < VERSION > ) {jjtThis.setKey(key.image);}
 	(sepEol())*
 	(< COLON > #Colon) 
 	(sepEol())*
 	expression()
 }
-
 void importWDL() #Import:
 {
 }
@@ -865,8 +882,6 @@ void importWDL() #Import:
     (LOOKAHEAD(2) (sepEol())? as())?
     (LOOKAHEAD(2) (sepEol())? alias())*
 }
-
-
 void alias() #Alias:
 {}
 {
@@ -875,8 +890,6 @@ void alias() #Alias:
 	(sepEol())*
 	as()
 }
-
-
 void text() #Text:
 {
 }
@@ -884,27 +897,27 @@ void text() #Text:
     < TEXT_STRING >
     {jjtThis.setText(token.image.substring(1, token.image.length() - 1));}
 }
-
+// Newlines in argument lists are consumed only at argument boundaries.
+// A comma is required to begin another argument.
 void function() #Function:
 {Token name;}
 {
-    ( name = < SYMBOL > | name = < IN > ){jjtThis.setName(name.image); }
+    ( name = < SYMBOL > | name = < IN > | name = < VERSION > ){jjtThis.setName(name.image); }
     (< BRAKET_L > {jjtThis.setElement(token.image);} #RegularFormulaElement)
+    (sepEol())*
     (
-    	LOOKAHEAD(3) (sepEol())*
         expression()
         (
-        	LOOKAHEAD(3) (sepEol())*
+            LOOKAHEAD( (<EOL>)* <COMMA> )
+            (sepEol())*
             (< COMMA > #Comma)
             (sepEol())*
             expression()
         )*
     )?
     (sepEol())*
-    <  BRAKET_R > {jjtThis.setElement(token.image);} #RegularFormulaElement
-
+    < BRAKET_R > {jjtThis.setElement(token.image);} #RegularFormulaElement
 }
-
 void regularFormulaElement() #RegularFormulaElement:
 {
 }
@@ -919,13 +932,9 @@ void regularFormulaElement() #RegularFormulaElement:
             | < PLUS > | < MINUS > | <AND> | <OR>
             | < FLOATING_POINT_LITERAL > {jjtThis.setNumber(true);}
             | < INTEGER > {jjtThis.setNumber(true);}
-
+			| < VERSION > {jjtThis.setVariable(true);}
     ){jjtThis.setElement(token.image);}
 }
-
-
-
-
 void as() #As:
 {}
 {
@@ -933,58 +942,73 @@ void as() #As:
     (sepEol())*
     symbol()
 }
-
-
 String symbol() #Symbol:
 {
     Token name;
 }
 {
-    ( name = < SYMBOL > | name = < IN > )
+    (name = <SYMBOL> | name = <IN> | name = <VERSION>)
     {
         jjtThis.setName(name.image);
         return name.image;
     }
 }
-
 void array() #Array:
 {
 }
 {
-	((< SQUARE_BRACKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-	(
-		LOOKAHEAD(3) (sepEol())*
-	    expression()
+    ((< SQUARE_BRACKET_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+
+    (sepEol())*
+
+    (
+        expression()
+
         (
-        	LOOKAHEAD(3) (sepEol())*
+            LOOKAHEAD(
+                (<EOL>)* <COMMA> (<EOL>)*
+                expression()
+            )
+            (sepEol())*
             (< COMMA > #Comma)
             (sepEol())*
             expression()
         )*
     )?
+
     (sepEol())*
-	((< SQUARE_BRACKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+    (< COMMA > #Comma)?
+    (sepEol())*
 
+    ((< SQUARE_BRACKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 void map() #Map:
+{}
 {
-}
-{
-	((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-	(sepEol())*
-    keyValue()
-    (
-    	LOOKAHEAD(3) (sepEol())*
-        (< COMMA > #Comma)
-        (sepEol())*
-        keyValue()
-    )*
+    ((<BRACE_L> {jjtThis.setElement(token.image);}) #RegularFormulaElement)
     (sepEol())*
-	((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-
+    (
+        keyValue()
+        (
+            LOOKAHEAD(
+                (<EOL>)* <COMMA> (<EOL>)*
+                ( <BRACE_L> | <BRAKET_L> | <SQUARE_BRACKET_L>
+                | <SYMBOL> | <IN> | <VERSION>
+                | <TEXT_STRING> | <INTEGER> | <FLOATING_POINT_LITERAL>
+                | <TRUE_OR_FALSE> | <IF> | <OBJECT> | <NONE>
+                | <NOT> | <MINUS> | <PLUS> )
+            )
+            (sepEol())*
+            (<COMMA> #Comma)
+            (sepEol())*
+            keyValue()
+        )*
+        (sepEol())*
+        (<COMMA> #Comma)?
+    )?
+    (sepEol())*
+    ((<BRACE_R> {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 }
-
 String primitiveKey():
 {
     Token key;
@@ -997,12 +1021,12 @@ String primitiveKey():
       | key = < FLOATING_POINT_LITERAL >
       | key = <SYMBOL>
       | key = <IN>
+      | key = <VERSION>
     )
     {
         return key.image;
     }
 }
-
 void keyValue() #KeyValue:
 {
     String key;
@@ -1021,7 +1045,6 @@ void keyValue() #KeyValue:
     (sepEol())*
     expression()
 }
-
 void primitiveType():
 {}
 {
@@ -1030,7 +1053,6 @@ void primitiveType():
     | < TRUE_OR_FALSE >  
     | < FLOATING_POINT_LITERAL >
 }
-
 void pair() #Pair:
 {
 }
@@ -1044,6 +1066,4 @@ void pair() #Pair:
         expression()
         (sepEol())*
 	((< BRAKET_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-
 }
-
