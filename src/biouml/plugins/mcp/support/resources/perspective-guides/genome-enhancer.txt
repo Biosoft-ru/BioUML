@@ -1,6 +1,6 @@
 # Genome Enhancer with MCP tools
 
-Genome Enhancer turns patient omics data (genomics: VCF, SNP tables; transcriptomics; proteomics; epigenomics; metabolomics) into a report on the genes, transcription factors, master regulators, drug targets and drugs of the studied condition. The web UI is a six-step wizard (intro.steps); below are the same steps with MCP tools. The wizard shows the user's projects as GenomeEnhancer/Projects/<project>; the paths below use data/Projects/<project>.
+Genome Enhancer turns patient omics data (genomics: VCF, SNP tables; transcriptomics; proteomics; epigenomics; metabolomics) into a report on the genes, transcription factors, master regulators, drug targets and drugs of the studied condition. The web UI is a six-step wizard (intro.steps); below are the same steps with MCP tools. The wizard shows the user's projects as GenomeEnhancer/Projects/<project>; the paths below use data/Projects/<project>. The tool arguments named below work even when your client's copy of a tool's schema does not list them (clients can keep the tool list of an earlier server version).
 
 Learn from an example first: intro.exampleProjects are demo projects with finished runs. Their Data folder holds the input data, the annotation diagram Description and the result folders (Report, BriefReport, Output, Workflow).
 
@@ -12,6 +12,7 @@ Learn from an example first: intro.exampleProjects are demo projects with finish
    - Check a track's genome with biouml_bsa_track_genome: Genome Enhancer lifts hg19 tracks over to hg38 and takes a track without a genome to be hg38 already.
 
 3. Prepare my data: decide what to analyze. A genotyping-array VCF lists every probed site, most of them homozygous reference (0/0); keep the variant calls with biouml_analysis_run 'Filter VCF by genotype' (mode both).
+   - biouml_analysis_get_result on a track lists its sites as rows (chromosome, from, to, strand, type and the site properties, e.g. a VCF's genotype Format_GT_<sample>): limit rows (default 50, max 500) from offset, only the columns named in columns.
 
 4. Describe my data: the annotation diagram <project>/Data/Description puts the data into the categories (conditions) to analyze.
    - The wizard creates it with an 'Experiment' and a 'Control' category. With MCP tools copy the Description of an example project (biouml_repo_copy_element) and edit it.
@@ -20,13 +21,14 @@ Learn from an example first: intro.exampleProjects are demo projects with finish
 
 5. Start analysis: biouml_analysis_run 'Generate workflow from annotation diagram' with
    - annotationDiagram: <project>/Data/Description;
-   - conditions: one item per category to analyze, its condition being the category title, e.g. 'conditions/0/condition': 'Experiment'. biouml_analysis_describe with params {annotationDiagram: ...} lists the titles it accepts (allowedValues of conditions/0/condition). One condition: its genes are analyzed (the top and bottom of the list when the data has values). Two: the first is compared with the second, the baseline (set baseline to its title). Three or more: each against the baseline, or clustering;
-   - diseases: MeSH disease names (biouml_analysis_describe with filter, a part of the name, finds them among thousands); tissue (optional); speciesStr;
+   - conditions: one item per category to analyze, its condition being the category title, e.g. 'conditions/0/condition': 'Experiment'. biouml_analysis_describe with params {annotationDiagram: ...} lists the titles it accepts (allowedValues of conditions/0/condition); add properties ['conditions'] to list only the parameters named, which keeps the answer short. One condition: its genes are analyzed (the top and bottom of the list when the data has values). Two: the first is compared with the second, the baseline (set baseline to its title). Three or more: each against the baseline, or clustering;
+   - diseases: MeSH disease names (biouml_analysis_describe with filter, a part of the name, finds them among thousands: it lists only the parameters with matching values); tissue (optional); speciesStr;
    - maxStep: the last pipeline step ('Drug Targets' for the full analysis);
    - outPath: a new folder, e.g. <project>/Data/Results.
    Check first with runWorkflow false: within seconds it builds the workflow (outPath/Workflow) without running it. A real run takes hours; poll biouml_task_status.
 
-6. See report: in outPath, Report (the full story), BriefReport (the brief tale), MTBReport (with addMTBReport, for cancer genomics data) and Output (result tables, read with biouml_analysis_get_result, and the pharmaceutical compounds report PCReport.html).
-   - Export a report with biouml_repo_export, format 'PDF (*.pdf)' or 'Zipped HTML file', and fetch the file with biouml_repo_download.
+6. See report: in outPath, Report (the full story), BriefReport (the brief tale), MTBReport (with addMTBReport, for cancer genomics data) and Output (result tables and the pharmaceutical compounds report PCReport.html).
+   - Read a table with biouml_analysis_get_result page by page: limit rows (default 50, max 500) from offset, while truncated is true; columns names the columns to return (drug tables are wide).
+   - Export a report with biouml_repo_export, format 'PDF (*.pdf)' or 'Zipped HTML file': it returns a downloadId and the file's sha256. Fetch the file with biouml_repo_download (downloadId, then offset nextOffset until done, length up to 1048576 bytes per chunk), join the decoded base64 chunks and check them against sha256.
 
 The drugs in the reports are computational predictions for a physician to consider, not treatment advice.
