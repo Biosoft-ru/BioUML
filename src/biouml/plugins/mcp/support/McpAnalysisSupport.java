@@ -153,6 +153,16 @@ public final class McpAnalysisSupport
 	 */
 	public static McpEnvelope describeMethod( String name, Map<String, Object> params, String filter )
 	{
+		return describeMethod( name, params, filter, null );
+	}
+
+	/**
+	 * Like {@link #describeMethod(String, Map, String)}, listing only some parameters: those named in {@code only}
+	 * (with their fields and items), or with a {@code filter} and no {@code only}, the choice parameters with
+	 * matching values. Either leaves the help text out: a caller looking up values has read it.
+	 */
+	public static McpEnvelope describeMethod( String name, Map<String, Object> params, String filter, List<String> only )
+	{
 		AnalysisMethod method;
 		try
 		{
@@ -174,7 +184,8 @@ public final class McpAnalysisSupport
 			{
 				// the description names a help page: give its text instead of the resource path
 				m.put( "description", clipText( firstParagraph( help ), 300 ) );
-				m.put( "help", clipText( help, HELP_CHARS ) );
+				if ( ( filter == null || filter.isEmpty() ) && ( only == null || only.isEmpty() ) )
+					m.put( "help", clipText( help, HELP_CHARS ) );
 			}
 			else
 				m.put( "description", description );
@@ -202,6 +213,13 @@ public final class McpAnalysisSupport
 				List<Map<String, Object>> props = new ArrayList<Map<String, Object>>();
 				String lowerFilter = filter == null || filter.isEmpty() ? null : filter.toLowerCase( java.util.Locale.ENGLISH );
 				collectProperties( ComponentFactory.getModel( bean, ComponentFactory.Policy.DEFAULT, true ), "", props, lowerFilter, 0 );
+				if ( only != null && !only.isEmpty() )
+				{
+					props.removeIf( p -> only.stream().noneMatch( n -> p.get( "name" ).equals( n ) || ( (String) p.get( "name" ) ).startsWith( n + "/" ) ) );
+					m.put( "only", new ArrayList<String>( only ) );
+				}
+				else if ( lowerFilter != null )
+					props.removeIf( p -> !( p.get( "matchingCount" ) instanceof Integer ) || (Integer) p.get( "matchingCount" ) == 0 );
 				m.put( "properties", props );
 				String[] in = bean.getInputNames();
 				String[] out = bean.getOutputNames();
@@ -268,6 +286,8 @@ public final class McpAnalysisSupport
 		for ( int i = 0; i < model.getPropertyCount() && out.size() < PROPERTIES_CAP; i++ )
 		{
 			Property p = model.getPropertyAt( i );
+			if ( p.getValueClass() == Class.class )
+				continue; // getClass() of a bean without BeanInfo: not a parameter
 			String key = prefix.isEmpty() ? p.getName() : prefix + "/" + ( model instanceof ArrayProperty ? String.valueOf( i ) : p.getName() );
 			Map<String, Object> pm = new LinkedHashMap<String, Object>();
 			pm.put( "name", key );
@@ -1101,6 +1121,12 @@ public final class McpAnalysisSupport
 				m.put( "offset", Integer.valueOf( from ) );
 			m.put( "truncated", Boolean.valueOf( t.getSize() > to ) );
 		}
+		else if ( de instanceof ru.biosoft.bsa.Track )
+		{
+			McpEnvelope error = putTrackSites( (ru.biosoft.bsa.Track) de, m, offset, limit, selected );
+			if ( error != null )
+				return error;
+		}
 		else if ( de instanceof SimulationResult )
 		{
 			// A simulation result (e.g. produced by the "Simulation analysis" method) carries a
@@ -1178,6 +1204,107 @@ public final class McpAnalysisSupport
 			m.put( "type", de.getClass().getName() );
 		}
 		return McpEnvelope.ok( m );
+	}
+
+	/** Columns of a track's sites before their properties. */
+	private static final String[] SITE_COLUMNS = { "chromosome", "from", "to", "strand", "type" };
+	/** A track whose sites cannot be paged by the database is read from its start: at most this far. */
+	private static final int SITE_SKIP_MAX = 100000;
+
+	/**
+	 * Put the sites of a track into {@code m} as table rows, paged like table rows: the site ids as rowIds, then its
+	 * chromosome, from, to, strand, type and properties (e.g. a VCF's RefAllele, AltAllele and genotype fields).
+	 * @return null, or an error when the sites cannot be read
+	 */
+	@SuppressWarnings( "unchecked" )
+	private static McpEnvelope putTrackSites( ru.biosoft.bsa.Track track, Map<String, Object> m, Integer offset, Integer limit, List<String> selected )
+	{
+		DataCollection<ru.biosoft.bsa.Site> sites;
+		int size;
+		try
+		{
+			sites = track.getAllSites();
+			size = sites.getSize();
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "the sites of this track can not be listed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
+		int from = offset == null ? 0 : Math.max( 0, Math.min( offset.intValue(), size ) );
+		int count = limit == null || limit.intValue() <= 0 ? McpConstants.TABLE_ROWS_CAP : Math.min( limit.intValue(), TABLE_ROWS_LIMIT_MAX );
+		int to = Math.min( size, from + count );
+		List<ru.biosoft.bsa.Site> page = new ArrayList<ru.biosoft.bsa.Site>();
+		try
+		{
+			java.util.Iterator<ru.biosoft.bsa.Site> it;
+			if ( sites instanceof ru.biosoft.access.core.SortableDataCollection )
+				// the database pages the sites (an SQL track: LIMIT from, count)
+				it = ( (ru.biosoft.access.core.SortableDataCollection<ru.biosoft.bsa.Site>) sites ).getSortedIterator( "", true, from, to );
+			else
+			{
+				if ( from > SITE_SKIP_MAX )
+					return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "this track's sites are read from its start: offset must be at most " + SITE_SKIP_MAX );
+				it = sites.iterator();
+				for ( int i = 0; i < from && it.hasNext(); i++ )
+					it.next();
+			}
+			while ( it.hasNext() && page.size() < to - from )
+				page.add( it.next() );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not read the sites of this track: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
+		}
+		List<String> all = new ArrayList<String>( java.util.Arrays.asList( SITE_COLUMNS ) );
+		for ( ru.biosoft.bsa.Site site : page )
+			if ( site.getProperties() != null )
+				for ( com.developmentontheedge.beans.DynamicProperty property : site.getProperties() )
+					if ( !all.contains( property.getName() ) )
+						all.add( property.getName() );
+		List<String> columns = selected == null || selected.isEmpty() ? all : selected;
+		for ( String column : columns )
+			if ( !all.contains( column ) && !page.isEmpty() )
+				return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "no column '" + column + "' in the sites of this track; columns: " + all );
+		List<String> rowIds = new ArrayList<String>();
+		List<List<Object>> rows = new ArrayList<List<Object>>();
+		for ( ru.biosoft.bsa.Site site : page )
+		{
+			rowIds.add( site.getName() );
+			List<Object> row = new ArrayList<Object>();
+			for ( String column : columns )
+				row.add( siteValue( site, column ) );
+			rows.add( row );
+		}
+		m.put( "type", "track" );
+		m.put( "columns", columns );
+		m.put( "rowCount", Integer.valueOf( size ) );
+		m.put( "rowIds", rowIds );
+		m.put( "rows", rows );
+		if ( from > 0 )
+			m.put( "offset", Integer.valueOf( from ) );
+		m.put( "truncated", Boolean.valueOf( size > to ) );
+		return null;
+	}
+
+	private static Object siteValue( ru.biosoft.bsa.Site site, String column )
+	{
+		switch ( column )
+		{
+			case "chromosome":
+				return site.getOriginalSequence() == null ? null : site.getOriginalSequence().getName();
+			case "from":
+				return Integer.valueOf( site.getFrom() );
+			case "to":
+				return Integer.valueOf( site.getTo() );
+			case "strand":
+				return site.getStrand() == ru.biosoft.bsa.StrandType.STRAND_PLUS ? "+" : site.getStrand() == ru.biosoft.bsa.StrandType.STRAND_MINUS ? "-"
+						: site.getStrand() == ru.biosoft.bsa.StrandType.STRAND_BOTH ? "both" : ".";
+			case "type":
+				return site.getType();
+			default:
+				com.developmentontheedge.beans.DynamicProperty property = site.getProperties() == null ? null : site.getProperties().getProperty( column );
+				return property == null ? null : McpJsonSafe.toJsonSafe( property.getValue() );
+		}
 	}
 
 	/**

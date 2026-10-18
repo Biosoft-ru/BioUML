@@ -16,12 +16,12 @@ Learn from an example first: intro.exampleProjects are demo projects with finish
 4. Describe my data: the annotation diagram <project>/Data/Description puts the data into the categories (conditions) to analyze.
    - The wizard creates it with an 'Experiment' and a 'Control' category. With MCP tools copy the Description of an example project (biouml_repo_copy_element) and edit it.
    - biouml_diagram_describe shows the data box ('Drag and drop all files you want to analyze into this box') and the category compartments with their titles.
-   - Remove the example's data nodes (biouml_diagram_remove_element), add your data to the data box (biouml_diagram_add_data_element), then copy its node into each category it belongs to (biouml_diagram_copy_node). Rename a category with biouml_diagram_rename_element (e.g. 'Experiment: rosacea'); remove the categories you do not use.
+   - Remove the example's data nodes (biouml_diagram_remove_element), add your data to the data box (biouml_diagram_add_data_element), then copy its node into each category it belongs to (biouml_diagram_copy_node). Rename a category with biouml_diagram_rename_element to say what it holds (e.g. 'Experiment: <condition of the patient>'); remove the categories you do not use.
 
 5. Start analysis: biouml_analysis_run 'Generate workflow from annotation diagram' with
    - annotationDiagram: <project>/Data/Description;
-   - conditions: one item per category to analyze, its condition being the category title, e.g. 'conditions/0/condition': 'Experiment: rosacea'. biouml_analysis_describe with params {annotationDiagram: ...} lists the titles it accepts (allowedValues of conditions/0/condition). One condition: its genes are analyzed (the top and bottom of the list when the data has values). Two: the first is compared with the second, the baseline (set baseline to its title). Three or more: each against the baseline, or clustering;
-   - diseases: MeSH disease names (biouml_analysis_describe with filter, e.g. 'rosacea', finds them among thousands); tissue (optional); speciesStr;
+   - conditions: one item per category to analyze, its condition being the category title, e.g. 'conditions/0/condition': 'Experiment'. biouml_analysis_describe with params {annotationDiagram: ...} lists the titles it accepts (allowedValues of conditions/0/condition). One condition: its genes are analyzed (the top and bottom of the list when the data has values). Two: the first is compared with the second, the baseline (set baseline to its title). Three or more: each against the baseline, or clustering;
+   - diseases: MeSH disease names (biouml_analysis_describe with filter, a part of the name, finds them among thousands); tissue (optional); speciesStr;
    - maxStep: the last pipeline step ('Drug Targets' for the full analysis);
    - outPath: a new folder, e.g. <project>/Data/Results.
    Check first with runWorkflow false: within seconds it builds the workflow (outPath/Workflow) without running it. A real run takes hours; poll biouml_task_status.

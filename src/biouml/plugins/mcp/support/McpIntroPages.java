@@ -151,6 +151,15 @@ public final class McpIntroPages
 		 * @return whether the analysis has the parameter and accepts the value; null when the analysis is not known
 		 */
 		Boolean accepts( String analysis, String parameter, String value );
+
+		/**
+		 * @return the repository path of the analysis, or null when it is not known; asked when the path a page
+		 *         names does not exist (the Genome Enhancer wizard writes "Genome enhancer" for the group "Genome Enhancer")
+		 */
+		default String pathOf( String analysis )
+		{
+			return null;
+		}
 	}
 
 	/** A wizard step: its title and the lead of its help page. */
@@ -296,10 +305,18 @@ public final class McpIntroPages
 		private static Map<String, Object> presetMap( Preset preset, ParameterCheck check )
 		{
 			Map<String, Object> p = new LinkedHashMap<String, Object>();
-			p.put( "analysis", preset.path == null ? preset.name : preset.path );
+			String path = preset.path;
+			boolean exists = path != null && exists( path );
+			String known = exists || check == null ? null : check.pathOf( preset.name );
+			if ( known != null )
+			{
+				path = known;
+				exists = true;
+			}
+			p.put( "analysis", path == null ? preset.name : path );
 			p.put( "name", preset.name );
-			if ( preset.path != null )
-				p.put( "exists", Boolean.valueOf( exists( preset.path ) ) );
+			if ( path != null )
+				p.put( "exists", Boolean.valueOf( exists ) );
 			Map<String, Object> params = new LinkedHashMap<String, Object>();
 			for ( Map.Entry<String, List<String>> param : preset.params.entrySet() )
 			{

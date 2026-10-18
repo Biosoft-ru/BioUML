@@ -198,15 +198,38 @@ public final class McpPerspectiveSupport
 		return McpEnvelope.ok( text );
 	}
 
-	/** Checks the parameter values a page passes against the analyses, each analysis looked up once. */
+	/**
+	 * Checks the parameter values a page passes against the analyses, each analysis looked up once, and finds the
+	 * repository path of an analysis the page names by a path that does not exist.
+	 */
 	private static McpIntroPages.ParameterCheck parameterCheck()
 	{
 		Map<String, ComponentModel> models = new HashMap<String, ComponentModel>();
-		return ( analysis, parameter, value ) -> {
-			if ( !models.containsKey( analysis ) )
-				models.put( analysis, McpAnalysisSupport.parametersModel( analysis ) );
-			ComponentModel model = models.get( analysis );
-			return model == null ? null : Boolean.valueOf( McpAnalysisSupport.accepts( model, parameter, value ) );
+		return new McpIntroPages.ParameterCheck()
+		{
+			@Override
+			public Boolean accepts( String analysis, String parameter, String value )
+			{
+				if ( !models.containsKey( analysis ) )
+					models.put( analysis, McpAnalysisSupport.parametersModel( analysis ) );
+				ComponentModel model = models.get( analysis );
+				return model == null ? null : Boolean.valueOf( McpAnalysisSupport.accepts( model, parameter, value ) );
+			}
+
+			@Override
+			public String pathOf( String analysis )
+			{
+				try
+				{
+					ru.biosoft.analysiscore.AnalysisMethodInfo info = ru.biosoft.analysiscore.AnalysisMethodRegistry.getMethodInfo( analysis );
+					DataElementPath path = info == null ? null : info.getCompletePath();
+					return path == null ? null : path.toString();
+				}
+				catch ( Exception e )
+				{
+					return null;
+				}
+			}
 		};
 	}
 
