@@ -48,7 +48,8 @@ public class FilterVCFAnalysisParameters extends AbstractAnalysisParameters
 
 
     @PropertyName ( "Filtering mode" )
-    @PropertyDescription ( "Specify how to perform the filtering" )
+    @PropertyDescription ( "Which variant calls to keep: heterozygote (0/1, 1/2), homozygote (1/1, haploid 1) or both. "
+            + "Homozygous reference (0/0) and missing calls are dropped in every mode" )
     public String getMode()
     {
         return mode;

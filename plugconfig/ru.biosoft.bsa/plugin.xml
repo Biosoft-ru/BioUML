@@ -677,7 +677,7 @@
   </extension>
   
   <extension id="Filter VCF by genotype" point="ru.biosoft.analysiscore.method"> 
-      <analysisClass class="ru.biosoft.bsa.analysis.FilterVCFAnalysis" group="Operations with genomic tracks" name="Filter VCF by genotype"  description="Filter VCF by genotype separately for each sample."/> 
+      <analysisClass class="ru.biosoft.bsa.analysis.FilterVCFAnalysis" group="Operations with genomic tracks" name="Filter VCF by genotype"  description="Keep the variant calls of each sample of a VCF track: one track per sample, named &lt;sample&gt;_&lt;mode&gt; in the output folder. Homozygous reference (0/0) and missing (./.) calls are dropped in every mode, so this turns a genotyping-array VCF, which lists every probed site, into the sample&apos;s variants. Mode heterozygote keeps calls with two different alleles (0/1, 1/2), homozygote calls of one alternative allele (1/1, haploid 1), both keeps either."/> 
   </extension>
   
   <extension id="Track to table" point="ru.biosoft.analysiscore.method"> 

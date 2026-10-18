@@ -352,6 +352,40 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		assertTrue( bad.getError().contains( "value" ) );
 	}
 
+	/** A track's sites are read like table rows: chromosome, position, strand and the site properties, paged. */
+	@SuppressWarnings( "unchecked" )
+	public void testGetResultTrackSites() throws Exception
+	{
+		ru.biosoft.access.core.VectorDataCollection<ru.biosoft.access.core.DataElement> root = new ru.biosoft.access.core.VectorDataCollection<>( "mcptracks" );
+		CollectionFactory.registerRoot( root );
+		ru.biosoft.bsa.Sequence seq = new ru.biosoft.bsa.LinearSequence( "chr1", "acgtacgtacgtacgtacgt",
+				ru.biosoft.bsa.Nucleotide5LetterAlphabet.getInstance() );
+		ru.biosoft.bsa.TrackImpl track = new ru.biosoft.bsa.TrackImpl( "variants", root );
+		for ( int i = 0; i < 5; i++ )
+		{
+			ru.biosoft.bsa.SiteImpl site = new ru.biosoft.bsa.SiteImpl( null, "s" + i, 2 + i, 1, ru.biosoft.bsa.StrandType.STRAND_PLUS, seq );
+			site.getProperties().add( new com.developmentontheedge.beans.DynamicProperty( "Format_GT_x", String.class, i % 2 == 0 ? "0/1" : "1/1" ) );
+			track.addSite( site );
+		}
+		root.put( track );
+
+		Map<String, Object> page = (Map<String, Object>) McpAnalysisSupport.getAnalysisResult( "mcptracks/variants", 1, 2 ).getData();
+		assertEquals( "track", page.get( "type" ) );
+		assertEquals( Integer.valueOf( 5 ), page.get( "rowCount" ) );
+		assertEquals( java.util.Arrays.asList( "s1", "s2" ), page.get( "rowIds" ) );
+		assertEquals( java.util.Arrays.asList( "chromosome", "from", "to", "strand", "type", "Format_GT_x" ), page.get( "columns" ) );
+		List<List<Object>> rows = (List<List<Object>>) page.get( "rows" );
+		assertEquals( java.util.Arrays.asList( "chr1", Integer.valueOf( 3 ), Integer.valueOf( 3 ), "+", "misc_feature", "1/1" ), rows.get( 0 ) );
+		assertEquals( Boolean.TRUE, page.get( "truncated" ) );
+
+		Map<String, Object> gt = (Map<String, Object>) McpAnalysisSupport
+				.getAnalysisResult( "mcptracks/variants", 3, 10, java.util.Arrays.asList( "Format_GT_x" ) ).getData();
+		assertEquals( java.util.Arrays.asList( java.util.Arrays.asList( "1/1" ), java.util.Arrays.asList( "0/1" ) ), gt.get( "rows" ) );
+		assertEquals( Boolean.FALSE, gt.get( "truncated" ) );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS,
+				McpAnalysisSupport.getAnalysisResult( "mcptracks/variants", 0, 1, java.util.Arrays.asList( "nope" ) ).getCode() );
+	}
+
 	/** The project of a path is the child of the user projects folder that contains it. */
 	public void testProjectOf()
 	{
@@ -383,8 +417,9 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 	}
 
 	/**
-	 * describe binds params first, so array items are listed with the keys analysis_run takes; filter narrows the
-	 * allowed values; a bad param is refused as by analysis_run.
+	 * describe binds params first, so array items are listed with the keys analysis_run takes; properties lists only
+	 * the parameters named; filter narrows the allowed values and, alone, lists only the choices with matches; a bad
+	 * param is refused as by analysis_run.
 	 */
 	@SuppressWarnings( "unchecked" )
 	public void testDescribeWithParamsAndFilter()
@@ -392,24 +427,41 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
 		params.put( "conditions/0/condition", "Experiment" );
 		params.put( "conditions/1/condition", "Control" );
-		McpEnvelope env = McpAnalysisSupport.describeMethod( McpTestAnalysis.NAME, params, "EX" );
-		assertTrue( env.toString(), env.isOk() );
-		Map<String, Object> data = (Map<String, Object>) env.getData();
-		Map<String, Map<String, Object>> byName = new java.util.LinkedHashMap<String, Map<String, Object>>();
-		for ( Map<String, Object> p : (List<Map<String, Object>>) data.get( "properties" ) )
-			byName.put( (String) p.get( "name" ), p );
+		Map<String, Map<String, Object>> byName = properties( McpAnalysisSupport.describeMethod( McpTestAnalysis.NAME, params, null,
+				java.util.Arrays.asList( "conditions" ) ) );
+		assertEquals( "only the conditions and their items: " + byName.keySet(),
+				java.util.Arrays.asList( "conditions", "conditions/0", "conditions/0/condition", "conditions/1", "conditions/1/condition" ),
+				new java.util.ArrayList<String>( byName.keySet() ) );
 		assertEquals( Integer.valueOf( 2 ), byName.get( "conditions" ).get( "itemCount" ) );
 		assertEquals( "Experiment", byName.get( "conditions/0/condition" ).get( "default" ) );
 		assertEquals( "Control", byName.get( "conditions/1/condition" ).get( "default" ) );
+
+		McpEnvelope filtered = McpAnalysisSupport.describeMethod( McpTestAnalysis.NAME, null, "EX" );
+		assertEquals( "EX", ( (Map<String, Object>) filtered.getData() ).get( "filter" ) );
+		byName = properties( filtered );
+		assertEquals( "only the choices with matches", java.util.Collections.singleton( "mode" ), byName.keySet() );
 		Map<String, Object> mode = byName.get( "mode" );
 		assertEquals( java.util.Arrays.asList( "exact" ), mode.get( "allowedValues" ) );
 		assertEquals( Integer.valueOf( 1 ), mode.get( "matchingCount" ) );
 		assertEquals( Integer.valueOf( 2 ), mode.get( "allowedValuesCount" ) );
-		assertEquals( "EX", data.get( "filter" ) );
+		assertEquals( "no choice matches", 0, properties( McpAnalysisSupport.describeMethod( McpTestAnalysis.NAME, null, "zzz" ) ).size() );
+		assertTrue( "a named parameter is kept, its values filtered",
+				( (List<?>) properties( McpAnalysisSupport.describeMethod( McpTestAnalysis.NAME, null, "zzz", java.util.Arrays.asList( "mode" ) ) )
+						.get( "mode" ).get( "allowedValues" ) ).isEmpty() );
 
 		Map<String, Object> bad = new java.util.LinkedHashMap<String, Object>();
 		bad.put( "nope", "x" );
 		assertEquals( McpConstants.CODE_INVALID_PARAMS, McpAnalysisSupport.describeMethod( McpTestAnalysis.NAME, bad, null ).getCode() );
+	}
+
+	@SuppressWarnings( "unchecked" )
+	private static Map<String, Map<String, Object>> properties( McpEnvelope env )
+	{
+		assertTrue( env.toString(), env.isOk() );
+		Map<String, Map<String, Object>> byName = new java.util.LinkedHashMap<String, Map<String, Object>>();
+		for ( Map<String, Object> p : (List<Map<String, Object>>) ( (Map<String, Object>) env.getData() ).get( "properties" ) )
+			byName.put( (String) p.get( "name" ), p );
+		return byName;
 	}
 
 	/** The values a page passes to an analysis are checked against its parameters. */

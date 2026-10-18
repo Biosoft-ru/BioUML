@@ -210,6 +210,24 @@ public class McpIntroPagesTest extends AbstractBioUMLTest
 			assertEquals( "true", params.get( "notifyOnComplete" ) );
 			assertEquals( "exact", params.get( "mode" ) );
 			assertFalse( "a value the analysis does not take is dropped", params.containsKey( "maxStep" ) );
+			assertEquals( "the page's path does not exist", Boolean.FALSE, preset.get( "exists" ) );
+			// the analysis registry knows the real path (e.g. a page writes a group name in other letter case)
+			Map<String, Object> resolved = ( (List<Map<String, Object>>) parsed.toMap( Collections.<String>emptySet(), new McpIntroPages.ParameterCheck()
+			{
+				@Override
+				public Boolean accepts( String analysis, String parameter, String value )
+				{
+					return null;
+				}
+
+				@Override
+				public String pathOf( String analysis )
+				{
+					return "mcp.test".equals( analysis ) ? "analyses/Methods/Real/mcp.test" : null;
+				}
+			} ).get( "analysisPresets" ) ).get( 0 );
+			assertEquals( "analyses/Methods/Real/mcp.test", resolved.get( "analysis" ) );
+			assertEquals( Boolean.TRUE, resolved.get( "exists" ) );
 			assertEquals( "commented-out parameters are not read", Collections.singletonList( "tissue" ), preset.get( "chosenByUser" ) );
 			assertFalse( params.containsKey( "old" ) );
 
