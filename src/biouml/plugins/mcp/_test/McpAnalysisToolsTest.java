@@ -563,7 +563,8 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 			names.add( t.name );
 		assertTrue( "analysis_list registered", names.contains( "biouml_analysis_list" ) );
 		assertTrue( "analysis_run registered", names.contains( "biouml_analysis_run" ) );
-		assertTrue( "task_status registered", names.contains( "biouml_task_status" ) );
+		assertTrue( "task registered", names.contains( "biouml_task" ) );
+		assertNotNull( "task_status stays callable", catalog.find( "biouml_task_status" ) );
 		assertTrue( "analysis_get_result registered", names.contains( "biouml_analysis_get_result" ) );
 	}
 

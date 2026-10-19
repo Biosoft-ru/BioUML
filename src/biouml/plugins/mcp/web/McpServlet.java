@@ -60,6 +60,10 @@ import biouml.plugins.mcp.server.McpServerFactory;
  * {@code X-MCP-Status} response header + a JSON-RPC error body).</p>
  *
  * <p>Non-POST → 405. POST → MCP JSON-RPC (initialize / tools/list / tools/call).</p>
+ *
+ * <p><b>Lite mode</b> — {@code /biouml/mcp?mode=lite} lists only {@code biouml_catalog} and
+ * {@code biouml_call} ({@link McpServerFactory#createLiteDispatcher()}), for models that cannot hold
+ * the whole tool list in their context; every tool stays callable.</p>
  */
 public class McpServlet
 {
@@ -67,6 +71,11 @@ public class McpServlet
 
 	private final ObjectMapper mapper = new ObjectMapper();
 	private McpJsonRpcDispatcher dispatcher;
+	private McpJsonRpcDispatcher liteDispatcher;
+
+	/** The query parameter that selects the lite tool list ({@value #MODE_LITE}). */
+	public static final String MODE_PARAM = "mode";
+	public static final String MODE_LITE = "lite";
 
 	/**
 	 * Stable session id per (username, token) for the Basic-auth path. Without this, the Basic path
@@ -88,6 +97,7 @@ public class McpServlet
 	public void init( String[] args ) throws Exception
 	{
 		this.dispatcher = McpServerFactory.createDispatcher();
+		this.liteDispatcher = McpServerFactory.createLiteDispatcher();
 	}
 
 	/**
@@ -96,6 +106,7 @@ public class McpServlet
 	public void initForTest()
 	{
 		this.dispatcher = McpServerFactory.createDispatcher();
+		this.liteDispatcher = McpServerFactory.createLiteDispatcher();
 	}
 
 	/**
@@ -137,6 +148,9 @@ public class McpServlet
 			Object sid = params.get( SecurityManager.SESSION_ID );
 			if ( sid != null )
 				query = SecurityManager.SESSION_ID + "=" + first( sid );
+			Object mode = params.get( MODE_PARAM );
+			if ( mode != null )
+				query = ( query == null ? "" : query + "&" ) + MODE_PARAM + "=" + first( mode );
 			String formBody = params.get( MCP_BODY_KEY ) == null ? "" : first( params.get( MCP_BODY_KEY ) );
 			String rawBody = params.get( MCP_RAW_BODY_KEY ) == null ? "" : first( params.get( MCP_RAW_BODY_KEY ) );
 			body = !formBody.isEmpty() ? formBody : rawBody;
@@ -340,6 +354,7 @@ public class McpServlet
 			String authorization, String remoteAddress, IssuerHints hints )
 	{
 		long start = System.currentTimeMillis();
+		boolean lite = MODE_LITE.equals( queryParam( query, MODE_PARAM ) );
 
 		// Auth path 0: an `Authorization: Bearer <token>` header — an access token minted by the
 		// MCP OAuth server (biouml.plugins.mcp.oauth). Checked first: Bearer and Basic are mutually
@@ -358,7 +373,7 @@ public class McpServlet
 			{
 				return unauthorized( "bearer token session unavailable", hints );
 			}
-			return dispatch( method, path, body, token.user, start );
+			return dispatch( method, path, body, token.user, start, lite );
 		}
 
 		// Auth path 1: an `Authorization: Basic <b64>` header carries a BioStore token. It wins over any session.
@@ -367,7 +382,7 @@ public class McpServlet
 			String user = authenticateByToken( authorization, remoteAddress );
 			if ( user == null )
 				return unauthorized( "invalid or missing Authorization credential", hints );
-			return dispatch( method, path, body, user, start );
+			return dispatch( method, path, body, user, start, lite );
 		}
 
 		// Auth path 2: an existing session (the JSESSIONID the /login flow created, or an explicit
@@ -401,17 +416,18 @@ public class McpServlet
 		if ( user == null )
 			return unauthorized( "unauthenticated", hints );
 
-		return dispatch( method, path, body, user, start );
+		return dispatch( method, path, body, user, start, lite );
 	}
 
 	/**
 	 * Parse the JSON-RPC body, dispatch it through the protocol, and log the request. Shared by both
 	 * auth paths (token and session). Assumes {@code user} is already authenticated and non-null.
 	 */
-	private HandleResult dispatch( String method, String path, String body, String user, long start )
+	private HandleResult dispatch( String method, String path, String body, String user, long start, boolean lite )
 	{
 		if ( dispatcher == null )
 			initForTest();
+		McpJsonRpcDispatcher dispatcher = lite ? liteDispatcher : this.dispatcher;
 
 		Map<String, Object> request;
 		try
@@ -516,6 +532,20 @@ public class McpServlet
 		return SecurityManager.getSessionUser();
 	}
 
+	/** The value of a parameter of a query string ({@code a=1&b=2}), or null when it has none. */
+	private static String queryParam( String query, String name )
+	{
+		if ( query == null )
+			return null;
+		for ( String pair : query.split( "&" ) )
+		{
+			int idx = pair.indexOf( '=' );
+			if ( idx > 0 && name.equals( pair.substring( 0, idx ) ) )
+				return pair.substring( idx + 1 );
+		}
+		return null;
+	}
+
 	/**
 	 * Resolve the session id: an explicit {@code sessionId} query parameter wins (matching the rest of
 	 * the BioUML web stack, which passes {@link SecurityManager#SESSION_ID}); otherwise the
@@ -524,22 +554,16 @@ public class McpServlet
 	 */
 	private String resolveSessionId( String query, Object session )
 	{
-		if ( query != null )
-		{
-			for ( String pair : query.split( "&" ) )
-			{
-				int idx = pair.indexOf( '=' );
-				if ( idx > 0 && SecurityManager.SESSION_ID.equals( pair.substring( 0, idx ) ) )
-					return pair.substring( idx + 1 );
-			}
-		}
+		String id = queryParam( query, SecurityManager.SESSION_ID );
+		if ( id != null )
+			return id;
 		if ( session != null )
 		{
 			try
 			{
-				Object id = session.getClass().getMethod( "getId" ).invoke( session );
-				if ( id != null && !id.toString().isEmpty() )
-					return id.toString();
+				Object sessionId = session.getClass().getMethod( "getId" ).invoke( session );
+				if ( sessionId != null && !sessionId.toString().isEmpty() )
+					return sessionId.toString();
 			}
 			catch ( Exception ignore )
 			{

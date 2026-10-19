@@ -120,7 +120,7 @@ public final class DiagramTools
 				} );
 
 		catalog.register( "biouml_diagram_add_data_element",
-				"Add a repository element (a track, table, diagram, ...) to a diagram — the headless equivalent of dragging it from the repository tree onto the diagram in the web UI. The diagram type decides what node it becomes. E.g. to give a diagram that describes an analysis' input data a new track, drop the track into the compartment for the data, then copy the new node into each other compartment it belongs to with biouml_diagram_copy_node; remove the nodes of the old track with biouml_diagram_remove_element. If the diagram type places the element outside the requested compartment, the result has a warning. diagramPath is the diagram; elementPath is the repository path of the element; compartment (optional) is the id of the compartment to drop it into; x/y (optional) the drop point. Returns {element, added[{id, path, name, kind, ...}]}.",
+				"Add a repository element (a track, table, diagram, ...) to a diagram — the headless equivalent of dragging it from the repository tree onto the diagram in the web UI. The diagram type decides what node it becomes. E.g. to give a diagram that describes an analysis' input data a new track, drop the track into the compartment for the data, then copy the new node into each other compartment it belongs to with biouml_diagram_copy_node; remove the nodes of the old track with biouml_diagram_edit (op remove). If the diagram type places the element outside the requested compartment, the result has a warning. diagramPath is the diagram; elementPath is the repository path of the element; compartment (optional) is the id of the compartment to drop it into; x/y (optional) the drop point. Returns {element, added[{id, path, name, kind, ...}]}.",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementPath\":{\"type\":\"string\"},\"compartment\":{\"type\":\"string\"},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"elementPath\"]}",
 				( ex, args ) -> McpDiagramSupport.addDataElement( str( args, "diagramPath" ), str( args, "elementPath" ), str( args, "compartment" ),
 						optInt( args, "x" ), optInt( args, "y" ) ) );
@@ -131,13 +131,11 @@ public final class DiagramTools
 				( ex, args ) -> McpDiagramSupport.copyNode( str( args, "diagramPath" ), str( args, "elementId" ), str( args, "compartment" ),
 						optInt( args, "x" ), optInt( args, "y" ) ) );
 
-		catalog.register( "biouml_diagram_remove_element",
-				"Remove an element (node or edge) from a diagram by its id (a name or a path such as 'default.s1'), with the edges and reaction participants that depend on it; the rate variables of removed reactions are removed too (listed in removedVariables).",
+		catalog.registerHidden( "biouml_diagram_remove_element",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementId\":{\"type\":\"string\"}},\"required\":[\"diagramPath\",\"elementId\"]}",
 				( ex, args ) -> McpDiagramSupport.removeElement( str( args, "diagramPath" ), str( args, "elementId" ) ) );
 
-		catalog.register( "biouml_diagram_move_element",
-				"Move a node to a new (x, y) position, as the diagram editor does: a compartment takes its content along and the attached edges are re-routed. Returns {id, x, y}, plus warnings when the node or a node of a moved compartment ends up at a negative x or y, i.e. beyond the left or top edge of the canvas.",
+		catalog.registerHidden( "biouml_diagram_move_element",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementId\":{\"type\":\"string\"},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"elementId\",\"x\",\"y\"]}",
 				( ex, args ) -> {
 					Integer x = optInt( args, "x" );
@@ -147,8 +145,7 @@ public final class DiagramTools
 					return McpDiagramSupport.moveElement( str( args, "diagramPath" ), str( args, "elementId" ), x, y );
 				} );
 
-		catalog.register( "biouml_diagram_move_elements",
-				"Shift several nodes by (dx, dy) in one call, e.g. a column of equations or a group of species. elements are node ids (names or paths such as 'default.s1'). A compartment takes its content along; listed elements inside a listed compartment move with it, once. Edges are re-routed. Returns {moved, movedWithCompartment, dx, dy}, plus warnings when a moved node (or a node of a moved compartment) ends up at a negative x or y, i.e. beyond the left or top edge of the canvas.",
+		catalog.registerHidden( "biouml_diagram_move_elements",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elements\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"dx\":{\"type\":\"integer\"},\"dy\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"elements\",\"dx\",\"dy\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "diagramPath" );
@@ -163,8 +160,7 @@ public final class DiagramTools
 					return McpDiagramSupport.moveElements( str( args, "diagramPath" ), McpArgs.strArray( args, "elements" ), dx.intValue(), dy.intValue() );
 				} );
 
-		catalog.register( "biouml_diagram_resize_element",
-				"Resize a node, e.g. enlarge a compartment to make room for new species and reactions. elementId is a name or a path such as 'default'; width and height are in pixels. Returns {id, width, height}.",
+		catalog.registerHidden( "biouml_diagram_resize_element",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementId\":{\"type\":\"string\"},\"width\":{\"type\":\"integer\"},\"height\":{\"type\":\"integer\"}},\"required\":[\"diagramPath\",\"elementId\",\"width\",\"height\"]}",
 				( ex, args ) -> {
 					Integer w = optInt( args, "width" );
@@ -213,13 +209,12 @@ public final class DiagramTools
 					return McpDiagramSupport.setSimulationOptions( str( args, "diagramPath" ), values[ 0 ], values[ 1 ], values[ 2 ] );
 				} );
 
-		catalog.register( "biouml_diagram_rename_element",
-				"Rename an element's display title.",
+		catalog.registerHidden( "biouml_diagram_rename_element",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementId\":{\"type\":\"string\"},\"newName\":{\"type\":\"string\"}},\"required\":[\"diagramPath\",\"elementId\",\"newName\"]}",
 				( ex, args ) -> McpDiagramSupport.renameElement( str( args, "diagramPath" ), str( args, "elementId" ), str( args, "newName" ) ) );
 
 		catalog.register( "biouml_diagram_image",
-				"Render a diagram as a PNG picture returned to the caller (an MCP image block, like biouml_simulation_plot), to check the layout. The view is built from the current state of the diagram. scale is the zoom factor (default 1); the picture is scaled down to fit maxWidth x maxHeight pixels (default 1600 x 1600). Returns {width, height, scale} plus the image.",
+				"Render a diagram as a PNG picture returned to the caller (an MCP image block, like biouml_simulation_output), to check the layout. The view is built from the current state of the diagram. scale is the zoom factor (default 1); the picture is scaled down to fit maxWidth x maxHeight pixels (default 1600 x 1600). Returns {width, height, scale} plus the image.",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"scale\":{\"type\":\"number\"},\"maxWidth\":{\"type\":\"integer\"},\"maxHeight\":{\"type\":\"integer\"}},\"required\":[\"path\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -241,13 +236,12 @@ public final class DiagramTools
 					return McpDiagramSupport.diagramImage( str( args, "path" ), k, optInt( args, "maxWidth" ), optInt( args, "maxHeight" ) );
 				} );
 
-		catalog.register( "biouml_diagram_save",
-				"Save a diagram to a DML file on disk (in targetDir, or the current directory). Returns the file path and size.",
+		catalog.registerHidden( "biouml_diagram_save",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"targetDir\":{\"type\":\"string\"}},\"required\":[\"diagramPath\"]}",
 				( ex, args ) -> McpDiagramSupport.save( str( args, "diagramPath" ), str( args, "targetDir" ) ) );
 
 		catalog.register( "biouml_diagram_export",
-				"Export a diagram to a file (DML by default). Returns the file path and size.",
+				"Write a diagram as DML to a file on the server: in targetDir (default: the server's working directory), named after the diagram, with the suffix format (default 'dml'). For other formats use biouml_repo_export. Returns the file path and size.",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"targetDir\":{\"type\":\"string\"},\"format\":{\"type\":\"string\"}},\"required\":[\"diagramPath\"]}",
 				( ex, args ) -> McpDiagramSupport.exportDiagram( str( args, "diagramPath" ), str( args, "targetDir" ), str( args, "format" ) ) );
 

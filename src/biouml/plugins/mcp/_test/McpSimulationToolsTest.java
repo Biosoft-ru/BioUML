@@ -179,9 +179,12 @@ public class McpSimulationToolsTest extends AbstractBioUMLTest
 		assertTrue( "simulation_list_solvers registered", names.contains( "biouml_simulation_list_solvers" ) );
 		assertTrue( "simulation_start registered", names.contains( "biouml_simulation_start" ) );
 		assertTrue( "simulation_status registered", names.contains( "biouml_simulation_status" ) );
-		assertTrue( "simulation_result registered", names.contains( "biouml_simulation_result" ) );
-		assertTrue( "simulation_plot registered", names.contains( "biouml_simulation_plot" ) );
-		assertTrue( "simulation_save_result registered", names.contains( "biouml_simulation_save_result" ) );
+		assertTrue( "simulation_output registered", names.contains( "biouml_simulation_output" ) );
+		for ( String merged : new String[] { "biouml_simulation_result", "biouml_simulation_plot", "biouml_simulation_save_result" } )
+		{
+			assertFalse( merged + " is an op of simulation_output, not listed", names.contains( merged ) );
+			assertNotNull( merged + " stays callable", catalog.find( merged ) );
+		}
 		assertFalse( "removed sync simulation_run is not registered", names.contains( "biouml_simulation_run" ) );
 	}
 

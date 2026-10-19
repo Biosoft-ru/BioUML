@@ -14,14 +14,16 @@ import biouml.plugins.mcp.support.McpEnvelope;
  */
 public final class DiagramEditTools
 {
+	/** The arguments of biouml_diagram_edit's align/distribute ops, renamed to those of biouml_diagram_layout. */
+	private static final String[] LAYOUT_ARGS = { "diagramPath>path", "elements>nodes" };
+
 	private DiagramEditTools()
 	{
 	}
 
 	public static void registerAll( McpToolCatalog catalog )
 	{
-		catalog.register( "biouml_diagram_layout",
-				"Apply a layout operation to the selected diagram nodes — the headless equivalent of the web UI's 'Align ...' / 'Distribute ...' diagram context-menu items. path is the diagram; op is one of align-up, align-down, align-left, align-right, align-centerx, align-centery, distribute-hor, distribute-ver; nodes is the list of node paths to lay out (>=2 for align, >=3 for distribute). The diagram view is regenerated headlessly and the nodes moved via the diagram's semantic controller. Returns {applied, op, count}. The diagram is saved; if the edit or the save fails, the change is discarded and the diagram is re-read from its last saved version.",
+		catalog.registerHidden( "biouml_diagram_layout",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"op\":{\"type\":\"string\"},\"nodes\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"path\",\"op\",\"nodes\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -36,8 +38,7 @@ public final class DiagramEditTools
 					return McpDiagramEditSupport.layout( McpArgs.str( args, "path" ), McpArgs.str( args, "op" ), McpArgs.strArray( args, "nodes" ) );
 				} );
 
-		catalog.register( "biouml_diagram_update_submodel",
-				"Update the sub-diagrams of a composite diagram — the headless equivalent of the web UI's 'Update submodel' menu item (UpdateSubModelAction). Recursively re-reads each sub-diagram's current diagram and clears its cached view so the composite reflects the latest sub-models. path is the composite diagram. Returns {applied, status}. The diagram is saved; if the edit or the save fails, the change is discarded and the diagram is re-read from its last saved version.",
+		catalog.registerHidden( "biouml_diagram_update_submodel",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -46,8 +47,7 @@ public final class DiagramEditTools
 					return McpDiagramEditSupport.updateSubmodel( McpArgs.str( args, "path" ) );
 				} );
 
-		catalog.register( "biouml_diagram_split",
-				"Split the selected elements of a composite diagram into a new diagram — the headless equivalent of the web UI's 'Split diagram' menu item (SplitDiagramAction). path is the composite diagram; elements are the node/edge paths to move to the new diagram (>=1); name is the new diagram's name (default 'Module'); targetCollection is the collection to create it in (default: the source's); autoIncludeReactions pulls in every reaction whose participants are all selected; addModule embeds the new diagram back as a sub-diagram module with connection ports. Returns {applied, status, path, created}. With addModule the source diagram is changed and saved too; if that fails, the change is discarded and the diagram is re-read from its last saved version.",
+		catalog.registerHidden( "biouml_diagram_split",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"elements\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"name\":{\"type\":\"string\"},\"targetCollection\":{\"type\":\"string\"},\"autoIncludeReactions\":{\"type\":\"boolean\"},\"addModule\":{\"type\":\"boolean\"}},\"required\":[\"path\",\"elements\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -67,8 +67,7 @@ public final class DiagramEditTools
 							McpArgs.bool( args, "autoIncludeReactions", false ), McpArgs.bool( args, "addModule", false ) );
 				} );
 
-		catalog.register( "biouml_diagram_clone_node",
-				"Clone a pathway node — the headless equivalent of the web UI's 'Clone node' menu item (CloneNodeAction). path is the pathway diagram; node is the name of the node to clone (must carry a variable role); cloneName is the new node's name (default auto-generated); separateClones creates one clone per reaction (named cloneName_reaction); reactions are the names of the reactions whose edges are redirected to the clone (default: none). Returns {applied, status, clone}. The diagram is saved; if the edit or the save fails, the change is discarded and the diagram is re-read from its last saved version.",
+		catalog.registerHidden( "biouml_diagram_clone_node",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"node\":{\"type\":\"string\"},\"cloneName\":{\"type\":\"string\"},\"separateClones\":{\"type\":\"boolean\"},\"reactions\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"path\",\"node\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -84,8 +83,7 @@ public final class DiagramEditTools
 							McpArgs.str( args, "cloneName" ), McpArgs.bool( args, "separateClones", false ), McpArgs.strArray( args, "reactions" ) );
 				} );
 
-		catalog.register( "biouml_diagram_change_subdiagram",
-				"Change a sub-diagram's target diagram — the headless equivalent of the web UI's 'Change subdiagram' menu item (ChangeSubdiagramAction). path is the composite diagram containing the sub-diagram; subdiagram is the path of the sub-diagram to replace; target is the path of the new diagram the sub-diagram should point at. The existing sub-diagram is replaced by a fresh one preserving the node name and rewiring the ports. Returns {applied, status, subdiagram, target}. The diagram is saved; if the edit or the save fails, the change is discarded and the diagram is re-read from its last saved version.",
+		catalog.registerHidden( "biouml_diagram_change_subdiagram",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"subdiagram\":{\"type\":\"string\"},\"target\":{\"type\":\"string\"}},\"required\":[\"path\",\"subdiagram\",\"target\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -100,8 +98,7 @@ public final class DiagramEditTools
 					return McpDiagramEditSupport.changeSubdiagram( McpArgs.str( args, "path" ), McpArgs.str( args, "subdiagram" ), McpArgs.str( args, "target" ) );
 				} );
 
-		catalog.register( "biouml_diagram_change_port",
-				"Change a pathway port's type — the headless equivalent of the web UI's 'Change port type' menu item (ChangePortTypeAction). path is the pathway diagram; port is the name of the port node; portType is the new type (input, output, or contact). The port is recreated with the new type and its edges are rewired. Returns {applied, status, port, portType}. The diagram is saved; if the edit or the save fails, the change is discarded and the diagram is re-read from its last saved version.",
+		catalog.registerHidden( "biouml_diagram_change_port",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"port\":{\"type\":\"string\"},\"portType\":{\"type\":\"string\"}},\"required\":[\"path\",\"port\",\"portType\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -116,8 +113,7 @@ public final class DiagramEditTools
 					return McpDiagramEditSupport.changePortType( McpArgs.str( args, "path" ), McpArgs.str( args, "port" ), McpArgs.str( args, "portType" ) );
 				} );
 
-		catalog.register( "biouml_diagram_merge_clone",
-				"Merge a cloned pathway node back into its original — the headless equivalent of the web UI's 'Merge clone' menu item (MergeCloneAction). path is the pathway diagram; clone is the name of the clone node to merge away (must be a variable-role node whose variable references a different original element). Its edges are redirected to the original and the clone is removed. Returns {applied, status, merged}. The diagram is saved; if the edit or the save fails, the change is discarded and the diagram is re-read from its last saved version.",
+		catalog.registerHidden( "biouml_diagram_merge_clone",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"clone\":{\"type\":\"string\"}},\"required\":[\"path\",\"clone\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -129,8 +125,7 @@ public final class DiagramEditTools
 					return McpDiagramEditSupport.mergeClone( McpArgs.str( args, "path" ), McpArgs.str( args, "clone" ) );
 				} );
 
-		catalog.register( "biouml_diagram_save_subset",
-				"Save a subset of a diagram's elements to a new diagram — the headless equivalent of the web UI's 'Save subset' menu item (SaveDiagramSubsetAction). path is the source diagram; elements are the node/edge paths to keep (>=1); name is the new diagram's name (default '<source> subset'); targetCollection is the collection to create it in (default: the source's). The new diagram contains only the selected elements (plus the compartments/edges that hold them). Returns {applied, status, path, created, kept}.",
+		catalog.registerHidden( "biouml_diagram_save_subset",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"elements\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"name\":{\"type\":\"string\"},\"targetCollection\":{\"type\":\"string\"}},\"required\":[\"path\",\"elements\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -158,5 +153,45 @@ public final class DiagramEditTools
 						return vd;
 					return McpDiagramEditSupport.addFromSearch( McpArgs.str( args, "path" ), McpArgs.strArray( args, "elements" ), McpArgs.str( args, "direction" ) );
 				} );
+
+		catalog.registerOps( "biouml_diagram_edit",
+				"Change existing elements of a diagram as the diagram editor does; elementId is a name or a path such as 'default.s1'. op move: move node elementId to (x, y); a compartment takes its content along and attached edges are re-routed; returns {id, x, y}. op shift: shift the nodes elements by (dx, dy), e.g. a column of equations; a listed node inside a listed compartment moves once, with it; returns {moved, movedWithCompartment, dx, dy}. Both warn when a node ends up at a negative x or y (beyond the left or top edge). op resize: set width and height (pixels) of elementId, e.g. enlarge a compartment; returns {id, width, height}. op rename: set the display title of elementId to newName. op remove: remove elementId (node or edge) with the edges and reaction participants that depend on it, and the rate variables of removed reactions (removedVariables). op align-up, align-down, align-left, align-right, align-centerx, align-centery, distribute-hor, distribute-ver: the web UI's 'Align ...' / 'Distribute ...' on the nodes elements (>=2 to align, >=3 to distribute); returns {applied, op, count}.",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"elementId\":{\"type\":\"string\"},\"elements\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"},\"dx\":{\"type\":\"integer\"},\"dy\":{\"type\":\"integer\"},\"width\":{\"type\":\"integer\"},\"height\":{\"type\":\"integer\"},\"newName\":{\"type\":\"string\"}},\"required\":[\"diagramPath\"]}",
+				null,
+				McpToolCatalog.op( "move", "biouml_diagram_move_element" ),
+				McpToolCatalog.op( "shift", "biouml_diagram_move_elements" ),
+				McpToolCatalog.op( "resize", "biouml_diagram_resize_element" ),
+				McpToolCatalog.op( "rename", "biouml_diagram_rename_element" ),
+				McpToolCatalog.op( "remove", "biouml_diagram_remove_element" ),
+				McpToolCatalog.op( "align-up", "biouml_diagram_layout", LAYOUT_ARGS ),
+				McpToolCatalog.op( "align-down", "biouml_diagram_layout", LAYOUT_ARGS ),
+				McpToolCatalog.op( "align-left", "biouml_diagram_layout", LAYOUT_ARGS ),
+				McpToolCatalog.op( "align-right", "biouml_diagram_layout", LAYOUT_ARGS ),
+				McpToolCatalog.op( "align-centerx", "biouml_diagram_layout", LAYOUT_ARGS ),
+				McpToolCatalog.op( "align-centery", "biouml_diagram_layout", LAYOUT_ARGS ),
+				McpToolCatalog.op( "distribute-hor", "biouml_diagram_layout", LAYOUT_ARGS ),
+				McpToolCatalog.op( "distribute-ver", "biouml_diagram_layout", LAYOUT_ARGS ) );
+
+		catalog.registerOps( "biouml_diagram_extract",
+				"Create a new diagram from the elements (node/edge paths, >=1) of the diagram path: name is the new diagram's name, targetCollection where to create it (default: the source's collection). op subset: the web UI's 'Save subset' — a new diagram with only the elements (plus the compartments and edges that hold them), name default '<source> subset'; returns {applied, status, path, created, kept}. op split: the web UI's 'Split diagram' of a composite diagram — the elements move to the new diagram (name default 'Module'); autoIncludeReactions pulls in every reaction whose participants are all selected; addModule embeds the new diagram back as a sub-diagram module with connection ports, changing and saving the source too; returns {applied, status, path, created}.",
+				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"elements\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"name\":{\"type\":\"string\"},\"targetCollection\":{\"type\":\"string\"},\"autoIncludeReactions\":{\"type\":\"boolean\"},\"addModule\":{\"type\":\"boolean\"}},\"required\":[\"path\",\"elements\"]}",
+				null,
+				McpToolCatalog.op( "subset", "biouml_diagram_save_subset" ),
+				McpToolCatalog.op( "split", "biouml_diagram_split" ) );
+
+		catalog.registerOps( "biouml_diagram_submodel",
+				"Edit the sub-models of the composite or pathway diagram path. op update: the web UI's 'Update submodel' — re-read every sub-diagram's diagram (recursively) so the composite shows the latest sub-models; returns {applied, status}. op change_subdiagram: point the sub-diagram subdiagram (its path) at the diagram target, keeping the node name and rewiring the ports; returns {applied, status, subdiagram, target}. op change_port: change the type of the port node port to portType (input, output or contact), rewiring its edges; returns {applied, status, port, portType}. The diagram is saved; if the edit or the save fails, it is re-read from its last saved version.",
+				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"subdiagram\":{\"type\":\"string\"},\"target\":{\"type\":\"string\"},\"port\":{\"type\":\"string\"},\"portType\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
+				null,
+				McpToolCatalog.op( "update", "biouml_diagram_update_submodel" ),
+				McpToolCatalog.op( "change_subdiagram", "biouml_diagram_change_subdiagram" ),
+				McpToolCatalog.op( "change_port", "biouml_diagram_change_port" ) );
+
+		catalog.registerOps( "biouml_diagram_clone",
+				"Clones of a node of the pathway diagram path. op clone: the web UI's 'Clone node' — clone node (a node with a variable role); cloneName defaults to a generated name; reactions are the reactions whose edges are redirected to the clone (default none); separateClones makes one clone per reaction (named cloneName_reaction); returns {applied, status, clone}. op merge: the web UI's 'Merge clone' — merge the clone node back into its original: its edges are redirected to the original and it is removed; returns {applied, status, merged}. The diagram is saved; if the edit or the save fails, it is re-read from its last saved version.",
+				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"node\":{\"type\":\"string\"},\"cloneName\":{\"type\":\"string\"},\"separateClones\":{\"type\":\"boolean\"},\"reactions\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"path\",\"node\"]}",
+				null,
+				McpToolCatalog.op( "clone", "biouml_diagram_clone_node" ),
+				McpToolCatalog.op( "merge", "biouml_diagram_merge_clone", "node>clone" ) );
 	}
 }

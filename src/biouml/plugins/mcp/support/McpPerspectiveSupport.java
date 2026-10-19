@@ -33,7 +33,7 @@ import ru.biosoft.server.servlets.webservices.providers.PerspectivesProvider;
  * {@code perspective} provider with {@code scope=session}, which keeps it in the session cache instead of the
  * user's perspective preference, so the web UI keeps the user's own choice. The perspective in effect decides
  * which import/export formats the platform offers (its importer/exporter rules), so selecting one changes what
- * {@code biouml_repo_import_formats} and {@code biouml_repo_export_formats} return.</p>
+ * {@code biouml_repo_import} and {@code biouml_repo_export} return with op {@code formats}.</p>
  *
  * <p>When the web UI files are deployed next to the server, the perspective's intro page is read too
  * (see {@link McpIntroPages}): it supplies a description for perspectives that declare none and, on selection,
@@ -63,7 +63,7 @@ public final class McpPerspectiveSupport
 	private static final int MAX_EXAMPLE_PROJECTS = 50;
 
 	private static final String SELECT_NOTE = "Selected for this MCP session only; the user's saved perspective (used by the web UI) is unchanged. "
-			+ "biouml_repo_import_formats, biouml_repo_export_formats and import autodetection now follow this perspective's importer/exporter rules.";
+			+ "The formats of biouml_repo_import and biouml_repo_export (op formats) and import autodetection now follow this perspective's importer/exporter rules.";
 
 	private McpPerspectiveSupport()
 	{

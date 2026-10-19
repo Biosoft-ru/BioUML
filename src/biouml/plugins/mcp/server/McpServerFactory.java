@@ -48,4 +48,10 @@ public final class McpServerFactory
 	{
 		return new McpJsonRpcDispatcher( createCatalog() );
 	}
+
+	/** Build a fresh dispatcher that lists only the lite tools ({@link McpLiteCatalog}) over the full catalog. */
+	public static McpJsonRpcDispatcher createLiteDispatcher()
+	{
+		return new McpJsonRpcDispatcher( McpLiteCatalog.create( createCatalog() ) );
+	}
 }

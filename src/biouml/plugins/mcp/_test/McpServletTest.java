@@ -614,6 +614,23 @@ public class McpServletTest extends TestCase
 		return names;
 	}
 
+	/** {@code ?mode=lite}: tools/list holds only biouml_catalog and biouml_call; without it the full list. */
+	public void testLiteMode() throws Exception
+	{
+		String list = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}";
+		SecurityManager.addThreadToSessionRecord( Thread.currentThread(), AUTH_SESSION );
+		Map<String, Object> params = new java.util.LinkedHashMap<String, Object>();
+		params.put( SecurityManager.SESSION_ID, new String[] { AUTH_SESSION } );
+		params.put( McpServlet.MODE_PARAM, new String[] { McpServlet.MODE_LITE } );
+		params.put( McpServlet.MCP_BODY_KEY, new String[] { list } );
+		HandleResult lite = serviceRoundTrip( params );
+		assertEquals( 200, lite.status );
+		assertEquals( java.util.Arrays.asList( "biouml_catalog", "biouml_call" ), toolNames( parse( lite.body ) ) );
+
+		List<String> full = toolNames( parse( post( AUTH_SESSION, list ).body ) );
+		assertTrue( "full list by default, was " + full.size(), full.size() > 10 );
+	}
+
 	// =================================================================== over real HTTP
 
 	/**

@@ -273,12 +273,7 @@ public class McpJsonRpcDispatcher
 
 	private McpToolCatalog.Tool findTool( String name )
 	{
-		if ( name == null )
-			return null;
-		for ( McpToolCatalog.Tool t : catalog.getTools() )
-			if ( name.equals( t.name ) )
-				return t;
-		return null;
+		return catalog.find( name );
 	}
 
 	@SuppressWarnings( "unchecked" )

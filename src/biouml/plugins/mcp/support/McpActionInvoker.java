@@ -147,9 +147,9 @@ public final class McpActionInvoker
 		if ( !( de instanceof ru.biosoft.access.core.FolderCollection ) )
 			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
 					"create-folder requires a folder collection parent: " + de.getClass().getSimpleName() );
-		// The folder name is not part of the action (the UI prompts for it); the MCP create_folder
-		// tool passes an explicit name. This entry point is used when the caller supplies it.
+		// The folder name is not part of the action (the UI prompts for it); biouml_repo_new_element
+		// (kind 'folder') passes an explicit name. This entry point is used when the caller supplies it.
 		return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
-				"use biouml_repo_create_folder with an explicit name to create a folder headlessly" );
+				"use biouml_repo_new_element with kind 'folder' and an explicit name to create a folder headlessly" );
 	}
 }
