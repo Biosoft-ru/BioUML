@@ -56,8 +56,11 @@ import ru.biosoft.journal.JournalRegistry;
 public class NewProjectPane extends JPanel
 {
     protected static final Logger log = Logger.getLogger(NewProjectPane.class.getName());
+    private final static String FILE_PROJECT = "File based project";
+    private final static String GENERIC_PROJECT = "Collection based project";
 
     protected JTextField researchName;
+    protected JComboBox<String> projectType;
     protected JComboBox<SQLInfo> sqlList;
     protected JLabel sqlLabel;
     protected String driverName;
@@ -65,9 +68,11 @@ public class NewProjectPane extends JPanel
     private final MessageBundle resources = new MessageBundle();
     private final ru.biosoft.access.generic.MessageBundle genericResources = new ru.biosoft.access.generic.MessageBundle();
 
+    protected JLabel preferredImplLabel;
     protected JComboBox<TableImplementationRecord> preferredImplementation;
     protected TabularPropertyInspector collections;
     protected List<CollectionRecord> defaultCollections;
+
 
     public NewProjectPane(JButton createButton)
     {
@@ -96,10 +101,21 @@ public class NewProjectPane extends JPanel
             }
         });
 
-        fields.add(new JLabel(genericResources.getResourceString("PN_TABLE_IMPLEMENTATION")), new GridBagConstraints(0, 8, 1, 1, 0.0, 0.0,
-                GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+        fields.add( new JLabel( genericResources.getResourceString( "PN_PROJECT_TYPE" ) ),
+                new GridBagConstraints( 0, 8, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets( 0, 0, 0, 0 ), 0, 0 ) );
+        projectType = new JComboBox<>();
+        projectType.addItem( GENERIC_PROJECT );
+        projectType.addItem( FILE_PROJECT );
+        fields.add( projectType, new GridBagConstraints( 1, 8, 1, 1, 1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets( 5, 5, 0, 0 ), 0, 0 ) );
+        projectType.addItemListener( e -> {
+            String item = e.getItem().toString();
+            updateImplementationSelector( item );
+        } );
+
+        preferredImplLabel = new JLabel( genericResources.getResourceString( "PN_TABLE_IMPLEMENTATION" ) );
+        fields.add( preferredImplLabel, new GridBagConstraints( 0, 9, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets( 0, 0, 0, 0 ), 0, 0 ) );
         preferredImplementation = new JComboBox<>(TableImplementationRecord.getTableImplementations());
-        fields.add( preferredImplementation, new GridBagConstraints( 1, 8, 1, 1, 1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets( 5, 5, 0, 0 ), 0, 0 ) );
+        fields.add( preferredImplementation, new GridBagConstraints( 1, 9, 1, 1, 1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets( 5, 5, 0, 0 ), 0, 0 ) );
         preferredImplementation.addItemListener( e -> {
             String item = e.getItem().toString();
             updateSqlSelectors( item );
@@ -108,10 +124,10 @@ public class NewProjectPane extends JPanel
         driverName = resources.getResourceString("JDBC_DEFAULT_DRIVER");
 
         sqlLabel = new JLabel( resources.getResourceString( "JDBC_SQL_FIELD" ) );
-        fields.add( sqlLabel, new GridBagConstraints( 0, 9, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets( 0, 0, 0, 0 ), 0, 0 ) );
+        fields.add( sqlLabel, new GridBagConstraints( 0, 10, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets( 0, 0, 0, 0 ), 0, 0 ) );
         List<SQLInfo> sqlConnections = SQLRegistry.getSQLServersList();
         sqlList = new JComboBox<>(sqlConnections.toArray(new SQLInfo[sqlConnections.size()]));
-        fields.add(sqlList, new GridBagConstraints(1, 9, 1, 1, 1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(5, 5,
+        fields.add( sqlList, new GridBagConstraints( 1, 10, 1, 1, 1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets( 5, 5,
                 0, 0), 0, 0));
         updateSqlSelectors( preferredImplementation.getSelectedItem().toString() );
 
@@ -120,7 +136,7 @@ public class NewProjectPane extends JPanel
         collections.getTable().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane collectionsScrollPane = new JScrollPane(collections, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        fields.add(collectionsScrollPane, new GridBagConstraints(0, 10, 2, 1, 1.0, 2.0, GridBagConstraints.WEST, GridBagConstraints.BOTH,
+        fields.add( collectionsScrollPane, new GridBagConstraints( 0, 11, 2, 1, 1.0, 2.0, GridBagConstraints.WEST, GridBagConstraints.BOTH,
                 new Insets(5, 5, 0, 0), 0, 0));
         initDefaultCollections();
         collections.explore(defaultCollections.iterator());
@@ -140,9 +156,16 @@ public class NewProjectPane extends JPanel
 
     private void updateSqlSelectors(String selectedItem)
     {
-        boolean showSql = selectedItem.equals( "SQL" );
+        boolean showSql = selectedItem.equals( TableImplementationRecord.SQL_TABLES_IMPL );
         sqlLabel.setVisible( showSql );
         sqlList.setVisible( showSql );
+    }
+
+    private void updateImplementationSelector(String selectedProjectType)
+    {
+        boolean showImpl = selectedProjectType.equals( GENERIC_PROJECT );
+        preferredImplementation.setVisible( showImpl );
+        preferredImplLabel.setVisible( showImpl );
     }
 
     /**
@@ -165,10 +188,8 @@ public class NewProjectPane extends JPanel
                 return;
             }
             
-            Properties props = new Properties();
-            props.setProperty(GenericDataCollection.PREFERED_TABLE_IMPLEMENTATION_PROPERTY, preferredImplementation.getSelectedItem()
-                    .toString());
-            boolean isFileCollection = props.getProperty( GenericDataCollection.PREFERED_TABLE_IMPLEMENTATION_PROPERTY ).equals( "File" );
+            String projectTypeStr = projectType.getSelectedItem().toString();
+            boolean isFileCollection = projectTypeStr.equals( FILE_PROJECT );
             if(isFileCollection)
             {
                 String projectsFolder = userProjectsParent.getInfo().getProperty( DataCollectionConfigConstants.FILE_PATH_PROPERTY );
@@ -186,6 +207,9 @@ public class NewProjectPane extends JPanel
             }
             else
             {
+                String tableImpl = preferredImplementation.getSelectedItem().toString();
+                Properties props = new Properties();
+                props.setProperty( GenericDataCollection.PREFERED_TABLE_IMPLEMENTATION_PROPERTY, tableImpl );
                 Object sqlConnection = sqlList.getSelectedItem();
                 if( sqlConnection instanceof SQLInfo )
                 {
@@ -204,9 +228,7 @@ public class NewProjectPane extends JPanel
                         }
                     }
                 }
-
             }
-
 
             if(applicationFrame instanceof BioUMLApplication)
             {

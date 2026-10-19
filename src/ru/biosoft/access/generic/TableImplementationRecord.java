@@ -9,9 +9,13 @@ import ru.biosoft.workbench.editors.GenericComboBoxEditor;
 
 public class TableImplementationRecord
 {
+    
+    public static final String SQL_TABLES_IMPL = "SQL";
+    public static final String FILE_TABLES_IMPL = "File";
+
     private static TableImplementationRecord[] TABLE_IMPLEMENTATIONS = {
-            new TableImplementationRecord( "File", FileTableDataCollection.class ),
-            new TableImplementationRecord( "SQL", SqlTableDataCollection.class )
+            new TableImplementationRecord( FILE_TABLES_IMPL, FileTableDataCollection.class ),
+            new TableImplementationRecord( SQL_TABLES_IMPL, SqlTableDataCollection.class ),
     };
 
     private String name;
