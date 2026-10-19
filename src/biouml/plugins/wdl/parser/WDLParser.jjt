@@ -25,6 +25,18 @@ public class WDLParser
 	protected Logger log = Logger.getLogger(WDLParser.class.getName());
 	private String version;
 	private boolean workflowExist = false;
+	private boolean inExecEngineValue = false;
+
+	private boolean isNextExecEngineAttribute()
+	{
+		int kind = getToken(1).kind;
+		if (kind != SYMBOL && kind != IN && kind != VERSION)
+			return false;
+		int index = 2;
+		while (getToken(index).kind == EOL)
+			index++;
+		return getToken(index).kind == COLON;
+	}
     /** Default constructor. */
     public WDLParser()
     {
@@ -35,6 +47,7 @@ public class WDLParser
         ReInit(reader);
         version = "draft-2";
         workflowExist = false;
+        inExecEngineValue = false;
         return Start();
     }
     public String getVersion()
@@ -59,6 +72,11 @@ TOKEN_MGR_DECLS : {
 {
     " " | "\t"
   | <"#" (~["\n","\r"])*>
+}
+
+<DEFAULT> SKIP :
+{
+    <BLOCK_COMMENT: "/*" (~["*"] | "*" ~["/"])* "*/">
 }
 TOKEN : /* STATE SWITCHERS */
 {
@@ -563,8 +581,8 @@ void runtime() #Runtime:
     (sepEol())*
     execEngineBlock()
     (
-        LOOKAHEAD((<EOL>)+ (<SYMBOL> | <IN> | <VERSION>))
-        (sepEol())+
+        LOOKAHEAD((<EOL>)* (<SYMBOL> | <IN> | <VERSION>) (<EOL>)* <COLON>)
+        (sepEol())*
         execEngineBlock()
     )*
     (sepEol())*
@@ -623,7 +641,9 @@ void execEngineBlock():
 	(sepEol())* 
     (< COLON > #RegularFormulaElement)
     (sepEol())*
+    { inExecEngineValue = true; }
     expression()
+    { inExecEngineValue = false; }
 }
 void sepEol() #EOL:
 {}
@@ -645,8 +665,19 @@ void output() #Output:
     < OUTPUT >
     (sepEol())*
     ((< BRACE_L > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-    (sepEol() | declaration(true))*
+    (
+        sepEol()
+        | LOOKAHEAD(<SYMBOL> <DOT> <STAR>) wildcardOutput()
+        | declaration(true)
+    )*
     ((< BRACE_R > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+}
+void wildcardOutput() #SubSymbol:
+{}
+{
+    symbol()
+    (< DOT > #RegularFormulaElement)
+    (< STAR > #RegularFormulaElement)
 }
 void struct() #Struct:
 {}
@@ -772,7 +803,8 @@ void expression() #Expression:
             ( <SYMBOL> | <IN> | <VERSION> | <TRUE_OR_FALSE> | <NOT>
               | <FLOATING_POINT_LITERAL> | <INTEGER> | <TEXT_STRING>
               | <BRAKET_L> | <SQUARE_BRACKET_L> | <BRACE_L>
-              | <NONE> | <IF> | <OBJECT> )
+              | <NONE> | <IF> | <OBJECT> ),
+            { !inExecEngineValue || !isNextExecEngineAttribute() }
         )
         (
             LOOKAHEAD(

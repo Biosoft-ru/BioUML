@@ -29,6 +29,18 @@ public class WDLParser/*@bgen(jjtree)*/implements WDLParserTreeConstants/*@egen*
 	protected Logger log = Logger.getLogger(WDLParser.class.getName());
 	private String version;
 	private boolean workflowExist = false;
+	private boolean inExecEngineValue = false;
+
+	private boolean isNextExecEngineAttribute()
+	{
+		int kind = getToken(1).kind;
+		if (kind != SYMBOL && kind != IN && kind != VERSION)
+			return false;
+		int index = 2;
+		while (getToken(index).kind == EOL)
+			index++;
+		return getToken(index).kind == COLON;
+	}
     /** Default constructor. */
     public WDLParser()
     {
@@ -39,6 +51,7 @@ public class WDLParser/*@bgen(jjtree)*/implements WDLParserTreeConstants/*@egen*
         ReInit(reader);
         version = "draft-2";
         workflowExist = false;
+        inExecEngineValue = false;
         return Start();
     }
     public String getVersion()
@@ -63,6 +76,11 @@ TOKEN_MGR_DECLS : {
 {
     " " | "\t"
   | <"#" (~["\n","\r"])*>
+}
+
+<DEFAULT> SKIP :
+{
+    <BLOCK_COMMENT: "/*" (~["*"] | "*" ~["/"])* "*/">
 }
 TOKEN : /* STATE SWITCHERS */
 {
@@ -421,14 +439,16 @@ void meta()      :
      }
 /*@egen*/                       )
     (sepEol())*
+
     (
         metablock()
         (
-            LOOKAHEAD((<EOL>)* (<SYMBOL> | <IN> | <VERSION>) (<EOL>)* <COLON>)
-            (sepEol())*
+            LOOKAHEAD((<EOL>)+ (<SYMBOL> | <IN> | <VERSION>))
+            (sepEol())+
             metablock()
         )*
     )?
+
     (sepEol())*
     (/*@bgen(jjtree) RegularFormulaElement */
      {
@@ -512,8 +532,11 @@ void parameter_meta()      :
     (
         metablock()
         (
-            LOOKAHEAD((<EOL>)* (<SYMBOL> | <IN> | <VERSION>) (<EOL>)* <COLON>)
-            (sepEol())*
+            LOOKAHEAD(
+                (<EOL>)+
+                (<SYMBOL> | <IN> | <VERSION>)
+            )
+            (sepEol())+
             metablock()
         )*
     )?
@@ -1865,17 +1888,12 @@ void runtime()         :
      }
 /*@egen*/                       )
     (sepEol())*
+    execEngineBlock()
     (
+        LOOKAHEAD((<EOL>)* (<SYMBOL> | <IN> | <VERSION>) (<EOL>)* <COLON>)
+        (sepEol())*
         execEngineBlock()
-        (
-            LOOKAHEAD(
-                (<EOL>)* (<SYMBOL> | <IN> | <VERSION>)
-                (<EOL>)* <COLON>
-            )
-            (sepEol())*
-            execEngineBlock()
-        )*
-    )?
+    )*
     (sepEol())*
     (/*@bgen(jjtree) RegularFormulaElement */
      {
@@ -1964,14 +1982,11 @@ void requirements()         :
      }
 /*@egen*/                       )
     (sepEol())*
+    execEngineBlock()
     (
+        (sepEol())+
         execEngineBlock()
-        (
-            LOOKAHEAD((<EOL>)* (<SYMBOL> | <IN> | <VERSION>))
-            (sepEol())*
-            execEngineBlock()
-        )*
-    )?
+    )*
     (sepEol())*
     (/*@bgen(jjtree) RegularFormulaElement */
      {
@@ -2060,14 +2075,11 @@ void hints()       :
      }
 /*@egen*/                       )
     (sepEol())*
+    execEngineBlock()
     (
+        (sepEol())+
         execEngineBlock()
-        (
-            LOOKAHEAD((<EOL>)* (<SYMBOL> | <IN> | <VERSION>))
-            (sepEol())*
-            execEngineBlock()
-        )*
-    )?
+    )*
     (sepEol())*
     (/*@bgen(jjtree) RegularFormulaElement */
      {
@@ -2135,7 +2147,9 @@ void execEngineBlock():
      }
 /*@egen*/                       )
     (sepEol())*
+    { inExecEngineValue = true; }
     expression()
+    { inExecEngineValue = false; }
 }
 void sepEol()     :
 {/*@bgen(jjtree) EOL */
@@ -2269,7 +2283,11 @@ void output()        :
        }
      }
 /*@egen*/                       )
-    (sepEol() | declaration(true))*
+    (
+        sepEol()
+        | LOOKAHEAD(<SYMBOL> <DOT> <STAR>) wildcardOutput()
+        | declaration(true)
+    )*
     (/*@bgen(jjtree) RegularFormulaElement */
      {
        AstRegularFormulaElement jjtn002 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
@@ -2285,6 +2303,71 @@ void output()        :
                     jjtn002.jjtSetLastToken(getToken(0));
                   }
 /*@egen*/ {jjtn002.setElement(token.image);})/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc002) {
+         jjtree.closeNodeScope(jjtn002, true);
+         jjtn002.jjtSetLastToken(getToken(0));
+       }
+     }
+/*@egen*/                       )/*@bgen(jjtree)*/
+    } catch (Throwable jjte000) {
+      if (jjtc000) {
+        jjtree.clearNodeScope(jjtn000);
+        jjtc000 = false;
+      } else {
+        jjtree.popNode();
+      }
+      if (jjte000 instanceof RuntimeException) {
+        throw (RuntimeException)jjte000;
+      }
+      if (jjte000 instanceof ParseException) {
+        throw (ParseException)jjte000;
+      }
+      throw (Error)jjte000;
+    } finally {
+      if (jjtc000) {
+        jjtree.closeNodeScope(jjtn000, true);
+        jjtn000.jjtSetLastToken(getToken(0));
+      }
+    }
+/*@egen*/
+}
+void wildcardOutput()           :
+{/*@bgen(jjtree) SubSymbol */
+  AstSubSymbol jjtn000 = new AstSubSymbol(JJTSUBSYMBOL);
+  boolean jjtc000 = true;
+  jjtree.openNodeScope(jjtn000);
+  jjtn000.jjtSetFirstToken(getToken(1));
+/*@egen*/}
+{/*@bgen(jjtree) SubSymbol */
+    try {
+/*@egen*/
+    symbol()
+    (/*@bgen(jjtree) RegularFormulaElement */
+     {
+       AstRegularFormulaElement jjtn001 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+       boolean jjtc001 = true;
+       jjtree.openNodeScope(jjtn001);
+       jjtn001.jjtSetFirstToken(getToken(1));
+     }
+     try {
+/*@egen*/< DOT >/*@bgen(jjtree)*/
+     } finally {
+       if (jjtc001) {
+         jjtree.closeNodeScope(jjtn001, true);
+         jjtn001.jjtSetLastToken(getToken(0));
+       }
+     }
+/*@egen*/                       )
+    (/*@bgen(jjtree) RegularFormulaElement */
+     {
+       AstRegularFormulaElement jjtn002 = new AstRegularFormulaElement(JJTREGULARFORMULAELEMENT);
+       boolean jjtc002 = true;
+       jjtree.openNodeScope(jjtn002);
+       jjtn002.jjtSetFirstToken(getToken(1));
+     }
+     try {
+/*@egen*/< STAR >/*@bgen(jjtree)*/
      } finally {
        if (jjtc002) {
          jjtree.closeNodeScope(jjtn002, true);
@@ -2926,7 +3009,8 @@ void expression()            :
             ( <SYMBOL> | <IN> | <VERSION> | <TRUE_OR_FALSE> | <NOT>
               | <FLOATING_POINT_LITERAL> | <INTEGER> | <TEXT_STRING>
               | <BRAKET_L> | <SQUARE_BRACKET_L> | <BRACE_L>
-              | <NONE> | <IF> | <OBJECT> )
+              | <NONE> | <IF> | <OBJECT> ),
+            { !inExecEngineValue || !isNextExecEngineAttribute() }
         )
         (
             LOOKAHEAD(
