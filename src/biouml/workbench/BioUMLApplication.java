@@ -65,6 +65,7 @@ import biouml.workbench.module.xml.NewCompositeModuleAction;
 import biouml.workbench.perspective.Perspective;
 import biouml.workbench.perspective.PerspectiveRegistry;
 import biouml.workbench.perspective.PerspectiveUI;
+import biouml.workbench.project.RemoveProjectAction;
 import biouml.workbench.resources.MessageBundle;
 import ru.biosoft.access.AccessCoreInit;
 import ru.biosoft.access.ClassLoading;
@@ -433,6 +434,9 @@ public class BioUMLApplication extends ApplicationFrame implements ChangeListene
         actionManager.addAction(RemoveModuleAction.KEY, new RemoveModuleAction());
         actionManager.addAction(ExportModuleAction.KEY, new ExportModuleAction());
         actionManager.addAction(EditModuleAction.KEY, new EditModuleAction());
+
+        // --- project actions -----------------------------------------/
+        actionManager.addAction(RemoveProjectAction.KEY, new RemoveProjectAction());
 
         // --- diagram actions -----------------------------------------/
         actionManager.addAction(NewDiagramAction.KEY, new NewDiagramAction());
