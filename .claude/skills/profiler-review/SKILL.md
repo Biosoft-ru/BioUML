@@ -228,7 +228,9 @@ If tests fail, fix the breakage before proceeding. Check the Surefire exclusion 
 
 ### Step 6: Create GitHub PR
 
-Create a new branch, commit changes, and open a PR:
+Create a new branch, commit changes, and open a PR. Target the branch the
+server is built from (the server → branch mapping is in local memory
+`server-source-branches`; do not hardcode it here).
 
 ```bash
 git checkout -b profiler-optimize/<short-description>
@@ -237,7 +239,8 @@ git commit -m "perf(profiler): optimize hot paths identified by async-profiler
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
 git push -u origin profiler-optimize/<short-description>
-gh pr create --title "perf(profiler): optimize hot paths from async-profiler" \
+gh pr create --base <base branch for this server> \
+  --title "perf(profiler): optimize hot paths from async-profiler" \
   --body "Optimizations based on async-profiler analysis from $PROFILE_SERVER_URL (the server URL provided by the user).
 
 ## Profiles Analyzed
