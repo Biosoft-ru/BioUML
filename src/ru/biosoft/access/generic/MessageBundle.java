@@ -37,5 +37,7 @@ public class MessageBundle extends ListResourceBundle
         {"PD_DATABASE_PASSWORD", "Database password"},
         {"PN_TABLE_IMPLEMENTATION", "Table implementation"},
         {"PD_TABLE_IMPLEMENTATION", "Table implementation"},
+        {"PN_PROJECT_TYPE", "Project type"},
+        {"PD_PROJECT_TYPE", "Project type"},
     };
 }

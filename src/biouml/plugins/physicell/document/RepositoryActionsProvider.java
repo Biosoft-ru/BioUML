@@ -26,7 +26,6 @@ public class RepositoryActionsProvider implements ActionsProvider, RepositoryLis
         if( !initialized )
         {
             initialized = true;
-
             Action newPhysicellResultAction = new OpenPhysicellResultAction();
             actionManager.addAction( OpenPhysicellResultAction.KEY, newPhysicellResultAction );
 
@@ -36,7 +35,11 @@ public class RepositoryActionsProvider implements ActionsProvider, RepositoryLis
             initListeners();
         }
 
-        return new Action[] {actionManager.getAction( OpenPhysicellResultAction.KEY )};
+        if( obj instanceof PhysicellSimulationResult )
+        {
+            return new Action[] { actionManager.getAction( OpenPhysicellResultAction.KEY ) };
+        }
+        return null;
     }
 
     protected void initListeners()
