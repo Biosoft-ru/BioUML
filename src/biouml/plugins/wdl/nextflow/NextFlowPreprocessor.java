@@ -46,12 +46,19 @@ public class NextFlowPreprocessor
 
     private String versionWDL = "1.2";
     private String publishDir = "";
-
+    private Map<String, Diagram> allDiagrams = null;
+    
     public void NextFlowPreprocessor()
     {
 
     }
 
+    public void setAllDiagrams(Map<String, Diagram> diagrams)
+    {
+        this.allDiagrams = diagrams;
+    }
+    
+    
     public void setPublishDir(String publishDir)
     {
         this.publishDir = publishDir;
@@ -163,8 +170,11 @@ public class NextFlowPreprocessor
                     }
                     if( expression == null )
                         expression = info.getExpression();
-                    expression = processExpression( expression, diagram, getVariables( task ) );
-                    info.setExpression( expression );
+                    if( expression != null )
+                    {
+                        expression = processExpression( expression, diagram, getVariables( task ) );
+                        info.setExpression( expression );
+                    }
                 }
             }
 
@@ -848,7 +858,7 @@ public class NextFlowPreprocessor
         }
     }
 
-    private static void wrapProcesses(Diagram diagram) throws Exception
+    private void wrapProcesses(Diagram diagram) throws Exception
     {
         for( Compartment c : WorkflowUtil.getAllCalls( diagram ) )
         {
@@ -857,8 +867,12 @@ public class NextFlowPreprocessor
             {
                 for( Node node : funNeedsWrapper )
                 {
-                    Compartment task = WorkflowUtil.findTask( WorkflowUtil.getTaskRef( c ), diagram );
-                    Node taskOutput = WorkflowUtil.findOutput( WorkflowUtil.getName( node ), task );
+                    Compartment task = WorkflowUtil.findCallee( c , allDiagrams);
+                    Node taskOutput = null;
+                    if( task instanceof Diagram )
+                        taskOutput = WorkflowUtil.findExternalOutput( WorkflowUtil.getName( node ), task );
+                    else
+                        taskOutput = WorkflowUtil.findOutput( WorkflowUtil.getName( node ), task );
 
                     String type = WorkflowUtil.getType( node );
                     if( !type.equals( "File?" ) )
@@ -1090,6 +1104,8 @@ public class NextFlowPreprocessor
             try
             {
                 String expression = WorkflowUtil.getExpression( output );
+                if (expression == null)
+                    continue;
                 expression = new GlobProcessor().process( expression );
                 WorkflowUtil.setExpression( output, expression );
                 ExpressionInfo info = WorkflowUtil.getExpressionInfo( output );

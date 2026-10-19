@@ -2,6 +2,7 @@ package biouml.plugins.wdl.parser;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import one.util.streamex.StreamEx;
 
@@ -80,10 +81,15 @@ public class ExpressionFormatter
     protected void processText(AstText node)
     {
         String content = node.toString();
-        boolean hasQuote = content.contains( "\"" );
-        result.append( hasQuote? "\'": "\"" );
-        result.append( content );
-        result.append( hasQuote? "\'": "\"" );
+//        boolean hasQuote = content.contains( "\"" );
+//        result.append( hasQuote? "\'": "\"" );
+//        result.append( content );
+//        result.append( hasQuote? "\'": "\"" );
+        boolean hasQuote = Pattern.compile("(?<!\\\\)\"").matcher(content).find();
+
+        result.append(hasQuote ? "'" : "\"");
+        result.append(content);
+        result.append(hasQuote ? "'" : "\"");
     }
 
     protected void processContainer(AstContainerElement node)

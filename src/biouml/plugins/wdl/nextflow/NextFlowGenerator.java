@@ -1,5 +1,7 @@
 package biouml.plugins.wdl.nextflow;
 
+import java.util.Map;
+
 import biouml.model.Diagram;
 import biouml.plugins.wdl.WorkflowTextGenerator;
 import biouml.plugins.wdl.WorkflowVelocityHelper;
@@ -12,7 +14,13 @@ public class NextFlowGenerator extends WorkflowTextGenerator
     private String publishDir = "";
     private NextflowSettings settings = null;
     private String resultPath = "";
-            
+    private Map<String, Diagram> allDiagrams = null;
+    
+    public void setAllDiagrams(Map<String, Diagram> diagrams)
+    {
+        this.allDiagrams = diagrams;
+    }
+    
     public NextFlowGenerator()
     {
         this.isEntryWorkflow = true;
@@ -58,6 +66,7 @@ public class NextFlowGenerator extends WorkflowTextGenerator
     public Diagram preprocess(Diagram diagram) throws Exception
     {
         NextFlowPreprocessor preprocessor = new NextFlowPreprocessor();
+        preprocessor.setAllDiagrams( allDiagrams );
         preprocessor.setPublishDir( publishDir );
         return preprocessor.preprocess( diagram );
     }

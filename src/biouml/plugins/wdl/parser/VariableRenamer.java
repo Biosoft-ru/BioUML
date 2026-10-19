@@ -42,7 +42,7 @@ public class VariableRenamer
 
     private void visit(AstSymbol node)
     {
-        if( ! ( oldName.equals( node.getName() ) ) )
+        if( node.getName() == null || ! ( oldName.equals( node.getName() ) ) ) //TODO: check null name
             return;
         SimpleNode parent = (SimpleNode)node.jjtGetParent();
         int index = ParserUtil.findIndex( parent, node );

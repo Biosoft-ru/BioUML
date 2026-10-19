@@ -17,7 +17,9 @@ public class AstImport extends SimpleNode
     @Override
     public String toString()
     {
-        return "import "+getSource()+" as "+getAlias();
+        if( getAlias() == null )
+            return "import " + getSource();
+        return "import " + getSource() + " as " + getAlias();
     }
     
     public String getSource()
@@ -27,6 +29,8 @@ public class AstImport extends SimpleNode
     
     public String getAlias()
     {
+        if (getChildren().length == 1)
+            return null;
         return ((AstAs)this.getChildren()[1]).getAlias();
     }
 

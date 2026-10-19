@@ -755,7 +755,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
             {
                 for( ExpressionInfo declaration : (ExpressionInfo[])before )
                 {
-                    if( declaration.getExpression().contains( funName ) )
+                    if( declaration.getExpression() != null && declaration.getExpression().contains( funName ) )
                         return true;
                 }
             }
@@ -790,8 +790,12 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     public String writePrivateDeclaration(ExpressionInfo declaration)
     {
         String expression = declaration.getExpression();
-        expression = expression.replace( "~{", "${" );
-        return declaration.getName() + " = " + expression;
+        if( expression != null )
+        {
+            expression = expression.replace( "~{", "${" );
+            return declaration.getName() + " = " + expression;
+        }
+        return declaration.getName();
     }
 
     public Object getPrivateDeclarations(Compartment task)

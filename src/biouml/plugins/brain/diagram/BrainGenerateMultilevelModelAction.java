@@ -987,7 +987,7 @@ public class BrainGenerateMultilevelModelAction extends BackgroundDynamicAction
         List<Node> rightPorts = new ArrayList<>();
         double rightPortsOffsetMultiplier = 1.5;
         List<String> rightBusNames = new ArrayList<>();
-        for (String entity : new String[]{"FR_norm", "state_cell"})
+        for (String entity : new String[]{"FR_norm", "W", "state_cell"})
         {
             Node port = BrainUtils.findOutputPortByTitle(cellularSubDiagram, entity);
             movePortToSide(port, cellularSubDiagram, Side.RIGHT, builder);
@@ -999,6 +999,9 @@ public class BrainGenerateMultilevelModelAction extends BackgroundDynamicAction
             {
                 case "FR_norm": 
                 	mapped = "u_exc";
+                	break;
+                case "W": 
+                	mapped = "W";     
                 	break;
                 case "state_cell": 
                 	mapped = "state_cell";     
@@ -1179,7 +1182,8 @@ public class BrainGenerateMultilevelModelAction extends BackgroundDynamicAction
                     	mapped = "u_exc";
                     	break;
                     case "W": 
-                    	mapped = "k_AMPA";     
+                    	//mapped = "k_AMPA";
+                    	mapped = "W"; 
                     	break;
                     default:        
                     	mapped = entity;

@@ -15,7 +15,7 @@ public abstract class ScriptLoader
     public final static String WDL_TYPE = "WDL";
     public final static String NEXTFLOW_TYPE = "Nextflow";
     
-    private String type;
+    protected String type;
     
     public ScriptLoader(String type)
     {
