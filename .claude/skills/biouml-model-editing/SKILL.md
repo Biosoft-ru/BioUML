@@ -9,7 +9,7 @@ Use this skill when the user wants to simulate a BioUML diagram, look at its res
 
 ## 1. Golden rules
 
-1. **Never edit the original.** Copy first with `biouml_repo_copy_element(srcPath, destPath)`. When the user asks for a new version, copy the previous version to a new name and edit the copy.
+1. **Never edit the original.** Copy first with `biouml_repo_copy(op="element", srcPath, destPath)`. When the user asks for a new version, copy the previous version to a new name and edit the copy.
 2. **To reset a broken copy**, `biouml_repo_remove(path)` and copy again. Do not try to patch a corrupted diagram.
 3. **Never call `engine.preprocess(diagram)` on the stored diagram.** Preprocessing mutates it in place (adds `RATE_OF_*` rules etc.); after saving, the model fails to compile with errors like `Duplicate assignment rules for variable RATE_OF_default_s9`. If you need to validate, only do it without saving afterwards, or better, just run the simulation.
 4. **Prefer the MCP diagram tools for edits** (section 5). A conversation keeps the tool list it got when it started: after the server is updated, start a new conversation to see new tools and parameters. Each call saves the diagram; a call that fails is undone (or the diagram is re-read from its last saved version), so it never leaves a half-made element behind. Scripts change the diagram in memory only and must end with `diagram.save()`.
@@ -19,13 +19,13 @@ Use this skill when the user wants to simulate a BioUML diagram, look at its res
 
 1. `biouml_simulation_start(diagramPath)` returns a `jobID` immediately.
 2. Wait (use `sleep 10`-`15` in Bash; do not poll faster than every ~10 s), then `biouml_simulation_status(jobID)` until `completed: true`. Read `message`: a successful run ends with `simulation finished`; a failed one contains `SEVERE - ... Model was not generated!` with the reason.
-3. View results with `biouml_simulation_plot(jobID, variables=[...], width, height)`. It returns a PNG plus `finals` (last values). Always pass a short `variables` list; the default plots every variable and is unreadable. Species are named `$<compartment>.<id>`, e.g. `$default.s6`; parameters and assignment-rule variables by bare name, e.g. `Recovered`.
-4. Avoid `biouml_simulation_result`: it returns the full time series and can overflow the context.
-5. To persist a result: `biouml_simulation_save_result(jobID, destinationPath)`. The parent folder must exist (otherwise `DataElementNotFoundException`). An existing element at that path is silently overwritten. The saved element is a `biouml.standard.simulation.SimulationResult`.
+3. View results with `biouml_simulation_output(jobID, variables=[...], width, height)` (op `plot`, the default). It returns a PNG plus `finals` (last values). Always pass a short `variables` list; the default plots every variable and is unreadable. Species are named `$<compartment>.<id>`, e.g. `$default.s6`; parameters and assignment-rule variables by bare name, e.g. `Recovered`.
+4. Avoid `biouml_simulation_output` with op `data`: it returns the full time series and can overflow the context.
+5. To persist a result: `biouml_simulation_output(op="save", jobID, destinationPath)`. The parent folder must exist (otherwise `DataElementNotFoundException`). An existing element at that path is silently overwritten. The saved element is a `biouml.standard.simulation.SimulationResult`.
 
 ## 3. Running scripts
 
-- `biouml_repo_run_script(script, type="js")` returns a `jobID`. Wait ~8 s, then `biouml_repo_job_status(jobID)`; the `message` field contains everything written with `print()`.
+- `biouml_repo_script(op="run", script, type="js")` returns a `jobID`. Wait ~8 s, then `biouml_repo_job_status(jobID)`; the `message` field contains everything written with `print()`.
 - An uncaught exception can reduce the whole output to `null` or a single error line. Wrap each step:
 
 ```js
@@ -80,18 +80,18 @@ Ids are element names (`s6`) or paths in the diagram (`default.s6`); a new eleme
 | Participant of an existing reaction | `biouml_diagram_add_edge(diagramPath, sourceId="s6", targetId="re8", edgeType="reactant")` (`product` for reaction -> species, `modifier`) |
 | Assignment rule / rate rule / initial assignment | `biouml_diagram_add_equation(diagramPath, name="population_rule", type="scalar", variable="Population", formula="$default.s1 + $default.s2", x, y)` — a missing target parameter is declared |
 | Event | `biouml_diagram_add_event(diagramPath, name="vaccination_start", trigger="time >= Vaccination_start_day", assignments=["Vaccination_on = 1"], parameters={"Vaccination_start_day": 30, "Vaccination_on": 0}, x, y)` — `delay` optional; assignments is a list and runs in its order |
-| Remove an element | `biouml_diagram_remove_element(diagramPath, elementId)` — also removes its edges, reaction participants and the rate variables of removed reactions |
-| Clone / merge a species | `biouml_diagram_clone_node`, `biouml_diagram_merge_clone` |
+| Remove an element | `biouml_diagram_edit(op="remove", diagramPath, elementId)` — also removes its edges, reaction participants and the rate variables of removed reactions |
+| Clone / merge a species | `biouml_diagram_clone` with op `clone` or `merge` |
 | Change a kinetic law or a rule | `biouml_diagram_set_formula(diagramPath, elementId="re8", formula="k*$default.s6", parameters={"k": 0.1})`, or `variable="Population"` instead of `elementId` for the rule that defines it |
 | Simulation span and step | `biouml_diagram_set_simulation_options(diagramPath, completionTime=730, timeIncrement=0.1)` — `describe` shows the current values |
-| Move / align / resize | `biouml_diagram_move_element` (one node to x, y), `biouml_diagram_move_elements(diagramPath, elements=[...], dx, dy)` (shift a group in one call), `biouml_diagram_layout`, `biouml_diagram_resize_element` (e.g. enlarge a compartment). A moved compartment takes its content along; edges are re-routed. The result has `warnings` when a node lands at a negative x or y (off the left or top edge): move it back |
+| Move / align / resize | `biouml_diagram_edit` with op `move` (one node to x, y), `shift` (`elements=[...]`, `dx`, `dy`: a group in one call), `align-left`/`distribute-ver`/... (`elements`), `resize` (`width`, `height`, e.g. enlarge a compartment). A moved compartment takes its content along; edges are re-routed. The result has `warnings` when a node lands at a negative x or y (off the left or top edge): move it back |
 | Look at the diagram | `biouml_diagram_image(path, scale, maxWidth, maxHeight)` — returns the rendered diagram as a picture |
 
 `add_reaction` creates everything the simulator needs: the node, the participant edges, the `$$rate_<name>` variable and the participants' rate equations. Do not build reactions from `add_node` + `add_edge` unless you are extending an existing reaction.
 
 ### With a script
 
-Every edit above can also be scripted with `biouml_repo_run_script` (e.g. many similar edits in one call). The `model` functions create elements the same way the tools do. Always end with a save:
+Every edit above can also be scripted with `biouml_repo_script` (op `run`) (e.g. many similar edits in one call). The `model` functions create elements the same way the tools do. Always end with a save:
 
 ```js
 var diagram = data.get(path);
@@ -141,7 +141,7 @@ diagram.save();
 
 ### Remove an element
 
-`biouml_diagram_remove_element`, or in a script `diagram.remove("end_of_epidemic")` (`comp.remove(name)` for nodes inside a compartment) followed by `diagram.save()`.
+`biouml_diagram_edit` with op `remove`, or in a script `diagram.remove("end_of_epidemic")` (`comp.remove(name)` for nodes inside a compartment) followed by `diagram.save()`.
 
 Before removing an event or rule, understand what it does: some models contain irreversible switches (e.g. an event that zeroes transmission forever) that block the dynamics you are adding.
 
@@ -162,8 +162,8 @@ New nodes default to overlapping existing ones. Before placing anything, list th
 
 - **Equations and events** (`math-equation`, `math-event` top-level nodes) usually sit in a column below the reaction scheme. Put new ones in the same column, continuing the existing vertical spacing below the last one.
 - **Match the existing species**: same `nodeType` (glyph), size and look (`styleFrom` a neighbouring species) as the species around them, a readable `title`.
-- **New species and reactions** go inside the compartment: pass `x`, `y` to the tools (without them a reaction is placed between its participants, other nodes at (0, 0)). If there is no free space, enlarge it with `biouml_diagram_resize_element` and place them in a new row below the existing scheme, near the species they connect to.
-- Edges follow moved nodes: the move tools re-route them, and SBML models re-route edges when the diagram is drawn, so no path reset is needed. To shift a column of equations or a group of species, use one `biouml_diagram_move_elements` call. Keep coordinates non-negative: a move result with `warnings` names the nodes that left the canvas.
+- **New species and reactions** go inside the compartment: pass `x`, `y` to the tools (without them a reaction is placed between its participants, other nodes at (0, 0)). If there is no free space, enlarge it with `biouml_diagram_edit` (op `resize`) and place them in a new row below the existing scheme, near the species they connect to.
+- Edges follow moved nodes: the move tools re-route them, and SBML models re-route edges when the diagram is drawn, so no path reset is needed. To shift a column of equations or a group of species, use one `biouml_diagram_edit` call with op `shift`. Keep coordinates non-negative: a move result with `warnings` names the nodes that left the canvas.
 - Layout changes do not affect the math, but re-run the simulation once to confirm the diagram still loads and compiles.
 
 ## 7. Typical workflow
@@ -174,7 +174,7 @@ New nodes default to overlapping existing ones. Before placing anything, list th
 4. Look up current literature values for any new parameters with web search, and note which values are assumptions.
 5. Apply the edits with the MCP tools (section 5). A script (with `step()` logging, ending with `diagram.save()`) is only worth it for many similar edits.
 6. Simulate; on `Model was not generated!` read the reason, fix (usually a parameter left at 0 or undeclared, a typo in a formula, or a preprocessed diagram), and retry. If the diagram is corrupted, remove and re-copy.
-7. Plot before/after with the same variable list; save the result with `biouml_simulation_save_result` if the user wants it kept.
+7. Plot before/after with the same variable list; save the result with `biouml_simulation_output` (op `save`) if the user wants it kept.
 8. Report what changed, the key numbers, and the model's remaining limitations.
 
 ## 8. Worked example: modernising a 2020 COVID-19 SEIR model

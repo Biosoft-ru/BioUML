@@ -72,9 +72,8 @@ public class McpInProcessServerTest extends TestCase
 		assertTrue( "analysis tool present", names.contains( "biouml_analysis_list" ) );
 		assertTrue( "diagram tool present", names.contains( "biouml_diagram_create" ) );
 		assertTrue( "simulation tool present", names.contains( "biouml_simulation_start" ) );
-		assertTrue( "project tool present", names.contains( "biouml_project_create" ) );
-		assertTrue( "project list tool present", names.contains( "biouml_project_list" ) );
-		assertTrue( "user info tool present", names.contains( "biouml_user_info" ) );
+		assertTrue( "project tool present", names.contains( "biouml_project" ) );
+		assertTrue( "user tool present", names.contains( "biouml_user" ) );
 		assertTrue( "at least 10 tools, was " + names.size(), names.size() >= 10 );
 
 		// 4) tools/call — repo_collections works headlessly (lists registered roots, possibly empty)

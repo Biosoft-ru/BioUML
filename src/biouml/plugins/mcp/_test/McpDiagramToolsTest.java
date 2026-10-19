@@ -366,7 +366,9 @@ public class McpDiagramToolsTest extends AbstractBioUMLTest
 		assertTrue( "diagram_create registered", names.contains( "biouml_diagram_create" ) );
 		assertTrue( "diagram_describe registered", names.contains( "biouml_diagram_describe" ) );
 		assertTrue( "diagram_add_node registered", names.contains( "biouml_diagram_add_node" ) );
-		assertTrue( "diagram_save registered", names.contains( "biouml_diagram_save" ) );
+		assertTrue( "diagram_export registered", names.contains( "biouml_diagram_export" ) );
+		assertFalse( "diagram_save (same as export) is not listed", names.contains( "biouml_diagram_save" ) );
+		assertNotNull( "diagram_save stays callable", catalog.find( "biouml_diagram_save" ) );
 		assertTrue( "diagram_import registered", names.contains( "biouml_diagram_import" ) );
 		assertTrue( "diagram_node_types registered", names.contains( "biouml_diagram_node_types" ) );
 	}

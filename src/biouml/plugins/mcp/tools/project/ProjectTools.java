@@ -23,13 +23,11 @@ public final class ProjectTools
 
 	public static void registerAll( McpToolCatalog catalog )
 	{
-		catalog.register( "biouml_project_list",
-				"List the current user's projects with their permissions (admin/canWrite/canDelete), disk quota and the properties the web UI reads (e.g. demo: \"true\" for a Genome Enhancer demo project, an example with finished results).",
+		catalog.registerHidden( "biouml_project_list",
 				"{}",
 				( ex, args ) -> McpProjectSupport.projects() );
 
-		catalog.register( "biouml_project_create",
-				"Create a new project (a SQL-backed research collection) for the current user. The name may only contain latin letters, numbers, spaces and a few symbols.",
+		catalog.registerHidden( "biouml_project_create",
 				"{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\",\"description\":\"Project name\"}},\"required\":[\"name\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "name" );
@@ -38,8 +36,7 @@ public final class ProjectTools
 					return McpProjectSupport.create( McpArgs.str( args, "name" ) );
 				} );
 
-		catalog.register( "biouml_project_delete",
-				"Delete a project (and its data) for the current user. Requires delete permission.",
+		catalog.registerHidden( "biouml_project_delete",
 				"{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\",\"description\":\"Project name\"}},\"required\":[\"name\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "name" );
@@ -48,8 +45,7 @@ public final class ProjectTools
 					return McpProjectSupport.delete( McpArgs.str( args, "name" ) );
 				} );
 
-		catalog.register( "biouml_project_size",
-				"Report the disk usage (in bytes) of a single project's data folder.",
+		catalog.registerHidden( "biouml_project_size",
 				"{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\",\"description\":\"Project name\"}},\"required\":[\"name\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "name" );
@@ -58,13 +54,11 @@ public final class ProjectTools
 					return McpProjectSupport.projectSize( McpArgs.str( args, "name" ) );
 				} );
 
-		catalog.register( "biouml_user_info",
-				"Return the current user's profile (username and profile fields) from the security provider.",
+		catalog.registerHidden( "biouml_user_info",
 				"{}",
 				( ex, args ) -> McpProjectSupport.userInfo() );
 
-		catalog.register( "biouml_user_change_password",
-				"Change the current user's password. Requires the current (old) password and a new one.",
+		catalog.registerHidden( "biouml_user_change_password",
 				"{\"type\":\"object\",\"properties\":{\"oldPassword\":{\"type\":\"string\"},\"newPassword\":{\"type\":\"string\"}},\"required\":[\"oldPassword\",\"newPassword\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "oldPassword" );
@@ -76,8 +70,7 @@ public final class ProjectTools
 					return McpProjectSupport.changePassword( McpArgs.str( args, "oldPassword" ), McpArgs.str( args, "newPassword" ) );
 				} );
 
-		catalog.register( "biouml_user_change_info",
-				"Update the current user's profile fields (e.g. name, email) in the security provider. Pass a flat object of field name -> value.",
+		catalog.registerHidden( "biouml_user_change_info",
 				"{\"type\":\"object\",\"properties\":{\"fields\":{\"type\":\"object\",\"description\":\"Profile fields to update (e.g. email, name)\"}},\"required\":[\"fields\"]}",
 				( ex, args ) -> {
 					Object f = args.get( "fields" );
@@ -87,5 +80,22 @@ public final class ProjectTools
 					Map<String, Object> fields = (Map<String, Object>) f;
 					return McpProjectSupport.changeInfo( fields );
 				} );
+
+		catalog.registerOps( "biouml_project",
+				"The current user's projects. op list: the projects with their permissions (admin/canWrite/canDelete), disk quota and the properties the web UI reads (e.g. demo: \"true\" for a Genome Enhancer demo project, an example with finished results). op create: create the project name (a SQL-backed research collection; latin letters, numbers, spaces and a few symbols). op delete: delete the project name with its data (needs delete permission). op size: the disk usage in bytes of the project's data folder.",
+				"{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\",\"description\":\"Project name\"}}}",
+				null,
+				McpToolCatalog.op( "list", "biouml_project_list" ),
+				McpToolCatalog.op( "create", "biouml_project_create" ),
+				McpToolCatalog.op( "delete", "biouml_project_delete" ),
+				McpToolCatalog.op( "size", "biouml_project_size" ) );
+
+		catalog.registerOps( "biouml_user",
+				"The current user's account. op info: the profile (username and profile fields). op change_password: change the password from oldPassword to newPassword. op change_info: update the profile fields given as a flat object fields (e.g. name, email).",
+				"{\"type\":\"object\",\"properties\":{\"oldPassword\":{\"type\":\"string\"},\"newPassword\":{\"type\":\"string\"},\"fields\":{\"type\":\"object\",\"description\":\"Profile fields to update (e.g. email, name)\"}}}",
+				null,
+				McpToolCatalog.op( "info", "biouml_user_info" ),
+				McpToolCatalog.op( "change_password", "biouml_user_change_password" ),
+				McpToolCatalog.op( "change_info", "biouml_user_change_info" ) );
 	}
 }

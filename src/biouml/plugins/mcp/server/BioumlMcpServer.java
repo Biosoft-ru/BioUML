@@ -33,6 +33,12 @@ public final class BioumlMcpServer
 		return new BioumlMcpServer( McpServerFactory.createDispatcher() );
 	}
 
+	/** Create a fresh in-process server that lists only the lite tools ({@link McpLiteCatalog}). */
+	public static BioumlMcpServer createLite()
+	{
+		return new BioumlMcpServer( McpServerFactory.createLiteDispatcher() );
+	}
+
 	/**
 	 * Handle one JSON-RPC request map and return the JSON response string (empty string for a
 	 * notification).

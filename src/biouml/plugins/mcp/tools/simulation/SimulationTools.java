@@ -25,7 +25,7 @@ public final class SimulationTools
 				( ex, args ) -> McpSimulationSupport.listSolvers() );
 
 		catalog.register( "biouml_simulation_start",
-				"ASYNC — Start a diagram simulation as a background job. This returns IMMEDIATELY with a jobID; the simulation runs in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_simulation_status (with a short delay) until 'completed' is true, (3) then call biouml_simulation_result to fetch the time series. The diagram must have a dynamic model with at least one rate (ODE) equation. Delegates to the platform's simulation provider.",
+				"ASYNC — Start a diagram simulation as a background job. This returns IMMEDIATELY with a jobID; the simulation runs in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_simulation_status (with a short delay) until 'completed' is true, (3) then call biouml_simulation_output to plot or fetch the result. The diagram must have a dynamic model with at least one rate (ODE) equation. Delegates to the platform's simulation provider.",
 				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"}},\"required\":[\"diagramPath\"]}",
 				( ex, args ) -> McpSimulationSupport.startSimulation( str( args, "diagramPath" ) ) );
 
@@ -34,13 +34,11 @@ public final class SimulationTools
 				"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
 				( ex, args ) -> McpSimulationSupport.simulationStatus( str( args, "jobID" ) ) );
 
-		catalog.register( "biouml_simulation_result",
-				"ASYNC result — Fetch the <em>raw time-series</em> result of a completed simulation job. ⚠️ USE ONLY AS A LAST RESORT: this returns the ENTIRE numeric series, which for any non-trivial simulation is a huge amount of data that can exhaust your context (it has caused context-overflow errors before). If you want to SEE or SUMMARIZE the result, do NOT call this tool — call biouml_simulation_plot instead, which returns a compact image + a tiny metadata summary ({variables, points, timeRange, finals}) with no raw numbers. Call it only AFTER biouml_simulation_status reports 'completed', and only if you genuinely need every number (e.g. to compute a statistic no other tool provides). Delegates to the platform's simulation provider. jobID is the id returned by biouml_simulation_start. Returns {vars, times, values} (and Q1/Q2/Q3 for stochastic results).",
+		catalog.registerHidden( "biouml_simulation_result",
 				"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
 				( ex, args ) -> McpSimulationSupport.simulationResult( str( args, "jobID" ) ) );
 
-		catalog.register( "biouml_simulation_plot",
-				"Render a PLOT of a completed simulation's result ON THE SERVER and return it as a PNG image plus a tiny metadata summary — the headless equivalent of the web UI's 'New plot' / '+' action. PREFERRED over biouml_simulation_result for simply inspecting a result: the full time series stays on the server and only an image + {variables, points, timeRange, finals} come back, so a large result does not blow your context. Call it AFTER biouml_simulation_status reports 'completed'. jobID is the id returned by biouml_simulation_start. Optionally pass 'variables' (subset of the result's variable names) and 'width'/'height' (px); by default every non-time variable is plotted. Returns {jobID, plot, variables, points, timeRange, finals, image(base64 PNG), imageFormat, width, height}.",
+		catalog.registerHidden( "biouml_simulation_plot",
 				"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"},\"variables\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"width\":{\"type\":\"integer\"},\"height\":{\"type\":\"integer\"}},\"required\":[\"jobID\"]}",
 				( ex, args ) -> McpSimulationSupport.plotSimulationResult(
 						str( args, "jobID" ),
@@ -48,12 +46,19 @@ public final class SimulationTools
 						optInt( args, "width" ),
 						optInt( args, "height" ) ) );
 
-		catalog.register( "biouml_simulation_save_result",
-				"Persist the result of a completed simulation INTO THE REPOSITORY (durable, survives server restarts) — the headless equivalent of the web UI's 'Save result' button. By default MCP simulations keep their result only in memory (it is lost when the server restarts), so use this to keep it. Call it AFTER biouml_simulation_status reports 'completed'. jobID is the id returned by biouml_simulation_start. destinationPath is the FULL repository path of the new result element to create (e.g. 'myproject/mydiagram/result1'); its parent must already exist and be writable. Returns the provider's response (usually 'ok').",
+		catalog.registerHidden( "biouml_simulation_save_result",
 				"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"},\"destinationPath\":{\"type\":\"string\"}},\"required\":[\"jobID\",\"destinationPath\"]}",
 				( ex, args ) -> McpSimulationSupport.saveSimulationResult(
 						str( args, "jobID" ),
 						str( args, "destinationPath" ) ) );
+
+		catalog.registerOps( "biouml_simulation_output",
+				"The result of the simulation job jobID (from biouml_simulation_start), once biouml_simulation_status reports 'completed'. op plot (default): render it as a plot on the server — the web UI's 'New plot' — and return a PNG image plus {jobID, plot, variables, points, timeRange, finals, imageFormat, width, height}; variables picks the result variables (default: all but time); width/height in px. The series stays on the server, so use this to look at a result. op data: the raw time series {vars, times, values} (plus Q1/Q2/Q3 for stochastic results) — every number, which for any non-trivial simulation can exhaust your context; only when you need the numbers. op save: store the result in the repository at destinationPath (the full path of the new element; its parent must exist and be writable) — the web UI's 'Save result'; otherwise a result lives in memory only and is lost when the server restarts.",
+				"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"},\"variables\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"width\":{\"type\":\"integer\"},\"height\":{\"type\":\"integer\"},\"destinationPath\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
+				"plot",
+				McpToolCatalog.op( "plot", "biouml_simulation_plot" ),
+				McpToolCatalog.op( "data", "biouml_simulation_result" ),
+				McpToolCatalog.op( "save", "biouml_simulation_save_result" ) );
 	}
 
 	private static String str( Map<String, Object> args, String key )

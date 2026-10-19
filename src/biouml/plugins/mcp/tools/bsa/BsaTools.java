@@ -18,8 +18,7 @@ public final class BsaTools
 
 	public static void registerAll( McpToolCatalog catalog )
 	{
-		catalog.register( "biouml_bsa_save_selection",
-				"Save the selected site models into a new SiteModelCollection — the headless equivalent of the web UI's 'Save selection' menu item (SiteModelTransformer.createCollection + clone + save). sourcePath is the collection holding the site models; modelNames is the list of site-model names to save; destinationPath is the full path of the new collection to create. Returns {created, count}.",
+		catalog.registerHidden( "biouml_bsa_save_selection.models",
 				"{\"type\":\"object\",\"properties\":{\"sourcePath\":{\"type\":\"string\"},\"modelNames\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"destinationPath\":{\"type\":\"string\"}},\"required\":[\"sourcePath\",\"modelNames\",\"destinationPath\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "sourcePath" );
@@ -44,8 +43,7 @@ public final class BsaTools
 					return McpBsaSupport.trackGenome( McpArgs.str( args, "path" ), McpArgs.str( args, "genome" ), McpArgs.bool( args, "listGenomes", false ) );
 				} );
 
-		catalog.register( "biouml_bsa_save_selection_track",
-				"Save the selected sites into a new track — the headless equivalent of the web UI's 'Save selection as track' menu item (SqlTrack.createTrack + addSite + save). sourcePath is the source track; siteNames is the list of site names to save; destinationPath is the full path of the new track to create. Returns {created, count}.",
+		catalog.registerHidden( "biouml_bsa_save_selection_track",
 				"{\"type\":\"object\",\"properties\":{\"sourcePath\":{\"type\":\"string\"},\"siteNames\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"destinationPath\":{\"type\":\"string\"}},\"required\":[\"sourcePath\",\"siteNames\",\"destinationPath\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "sourcePath" );
@@ -59,5 +57,12 @@ public final class BsaTools
 						return vd;
 					return McpBsaSupport.saveTrackSelection( McpArgs.str( args, "sourcePath" ), McpArgs.strArray( args, "siteNames" ), McpArgs.str( args, "destinationPath" ) );
 				} );
+
+		catalog.registerOps( "biouml_bsa_save_selection",
+				"Save selected items of sourcePath into a new collection or track at destinationPath (its full path) — the web UI's 'Save selection' menu items; names are the items to save. op models (default): site models of a site-model collection, into a new SiteModelCollection. op track: sites of a track, into a new track. Returns {created, count}.",
+				"{\"type\":\"object\",\"properties\":{\"sourcePath\":{\"type\":\"string\"},\"names\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"destinationPath\":{\"type\":\"string\"}},\"required\":[\"sourcePath\",\"names\",\"destinationPath\"]}",
+				"models",
+				McpToolCatalog.op( "models", "biouml_bsa_save_selection.models", "names>modelNames" ),
+				McpToolCatalog.op( "track", "biouml_bsa_save_selection_track", "names>siteNames" ) );
 	}
 }

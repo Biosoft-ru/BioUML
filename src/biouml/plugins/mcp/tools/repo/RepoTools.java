@@ -52,8 +52,7 @@ public final class RepoTools
 					return McpRepositorySupport.describe( McpArgs.str( args, "path" ) );
 				} );
 
-		catalog.register( "biouml_repo_search",
-				"Search element names (case-insensitive substring) under a scope (default: all roots). Synchronous; returns fast on a responsive server but can exceed the client timeout on a large repository — for large or slow repositories use biouml_repo_search_async and poll biouml_repo_search_status.",
+		catalog.registerHidden( "biouml_repo_search.search",
 				"{\"type\":\"object\",\"properties\":{\"query\":{\"type\":\"string\"},\"scope\":{\"type\":\"string\"}},\"required\":[\"query\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "query" );
@@ -65,8 +64,7 @@ public final class RepoTools
 					return McpRepositorySupport.search( McpArgs.str( args, "query" ), McpArgs.str( args, "scope" ) );
 				} );
 
-		catalog.register( "biouml_repo_search_async",
-				"Run a repository search (same as biouml_repo_search) in the background and return a taskId immediately, instead of blocking. On a large/slow repository a synchronous search can exceed the client's request timeout, so: (1) call this to start the search, (2) poll biouml_repo_search_status with the taskId until status is 'done', (3) call biouml_repo_search again with the same query/scope to read the matches — by then the search has warmed the repository caches so it returns quickly. The background run itself does not store its matches.",
+		catalog.registerHidden( "biouml_repo_search_async",
 				"{\"type\":\"object\",\"properties\":{\"query\":{\"type\":\"string\"},\"scope\":{\"type\":\"string\"}},\"required\":[\"query\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "query" );
@@ -78,8 +76,7 @@ public final class RepoTools
 					return McpRepositorySupport.searchAsync( McpArgs.str( args, "query" ), McpArgs.str( args, "scope" ) );
 				} );
 
-		catalog.register( "biouml_repo_search_status",
-				"Report the status (queued/running/done/cancelled/error) of a background repository search queued via biouml_repo_search_async.",
+		catalog.registerHidden( "biouml_repo_search_status",
 				"{\"type\":\"object\",\"properties\":{\"taskId\":{\"type\":\"string\"}},\"required\":[\"taskId\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "taskId" );
@@ -88,8 +85,7 @@ public final class RepoTools
 					return McpRepositorySupport.searchStatus( McpArgs.str( args, "taskId" ) );
 				} );
 
-		catalog.register( "biouml_repo_get_actions",
-				"List the context-menu actions available for an element (key, name, description, headlessSafe).",
+		catalog.registerHidden( "biouml_repo_get_actions",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -102,8 +98,7 @@ public final class RepoTools
 					return McpEnvelope.ok( actions );
 				} );
 
-		catalog.register( "biouml_repo_run_action",
-				"Run a context-menu action (by ActionCommandKey) on an element headlessly. Interactive-only actions return requires_interactive_ui.",
+		catalog.registerHidden( "biouml_repo_run_action",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"action\":{\"type\":\"string\"}},\"required\":[\"path\",\"action\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -118,8 +113,7 @@ public final class RepoTools
 					return McpActionInvoker.perform( (DataElement) r.getData(), McpArgs.str( args, "action" ) );
 				} );
 
-		catalog.register( "biouml_repo_create_folder",
-				"Create a new folder inside a folder-collection parent.",
+		catalog.registerHidden( "biouml_repo_create_folder",
 				"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"parentPath\",\"name\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "parentPath" );
@@ -144,8 +138,7 @@ public final class RepoTools
 					return McpRepositorySupport.remove( McpArgs.str( args, "path" ), McpArgs.bool( args, "dryRun", false ) );
 				} );
 
-		catalog.register( "biouml_repo_copy_element",
-				"Copy a single element (file, table, diagram, or any cloneable data element) to a new location — the headless equivalent of the web UI's 'Save a copy'. destPath is the full path of the new copy (its parent must exist and be writable); the last path segment is the new name. The source is left untouched.",
+		catalog.registerHidden( "biouml_repo_copy_element",
 				"{\"type\":\"object\",\"properties\":{\"srcPath\":{\"type\":\"string\"},\"destPath\":{\"type\":\"string\"}},\"required\":[\"srcPath\",\"destPath\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "srcPath" );
@@ -157,8 +150,7 @@ public final class RepoTools
 					return McpRepositorySupport.copyElement( McpArgs.str( args, "srcPath" ), McpArgs.str( args, "destPath" ) );
 				} );
 
-		catalog.register( "biouml_repo_copy_folder",
-				"ASYNC — Copy a folder (its whole subtree) to a new location. This returns IMMEDIATELY with a jobID; the copy continues in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_repo_job_status with the jobID (with a short delay between calls) until its 'completed' field is true, (3) the copy is then done. Delegates to the platform's folder provider.",
+		catalog.registerHidden( "biouml_repo_copy_folder",
 				"{\"type\":\"object\",\"properties\":{\"fromPath\":{\"type\":\"string\"},\"toPath\":{\"type\":\"string\"}},\"required\":[\"fromPath\",\"toPath\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "fromPath" );
@@ -171,7 +163,7 @@ public final class RepoTools
 				} );
 
 			catalog.register( "biouml_repo_job_status",
-					"ASYNC poll — Report the progress of a background job started by an async start-tool (e.g. biouml_repo_copy_folder, biouml_repo_run_script, biouml_repo_import). Call it REPEATEDLY (with a short delay between calls) until the returned 'completed' field is true; the work is not done until then. The 'message' field is the job's accumulated log up to this moment — it grows as the job runs, so read it on each poll to watch progress and to diagnose failures. Delegates to the platform's jobcontrol provider. jobID is the id returned by the start tool. Returns {jobID, status, progress, message, completed}.",
+					"ASYNC poll — Report the progress of a background job started by an async start-tool (biouml_repo_copy op folder, biouml_repo_script op run, biouml_repo_import). Call it REPEATEDLY (with a short delay between calls) until the returned 'completed' field is true; the work is not done until then. The 'message' field is the job's accumulated log up to this moment — it grows as the job runs, so read it on each poll to watch progress and to diagnose failures. Delegates to the platform's jobcontrol provider. jobID is the id returned by the start tool. Returns {jobID, status, progress, message, completed}.",
 					"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "jobID" );
@@ -190,8 +182,7 @@ public final class RepoTools
 						return McpRepositorySupport.reinitialize( McpArgs.str( args, "path" ) );
 					} );
 
-			catalog.register( "biouml_repo_export_formats",
-					"List the export formats available for a repository element (in accept-priority order). Use this to discover what biouml_repo_export can produce for the element before calling it. The list follows the exporter rules of the perspective in effect (biouml_perspective_list / biouml_perspective_select).",
+			catalog.registerHidden( "biouml_repo_export_formats",
 					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -200,8 +191,7 @@ public final class RepoTools
 						return McpRepositorySupport.exportFormats( McpArgs.str( args, "path" ) );
 					} );
 
-			catalog.register( "biouml_repo_export",
-					"Export a repository element to a file on the server's local filesystem — the headless equivalent of the web UI's 'Export' menu item. format is one of biouml_repo_export_formats (omit to use the highest-priority format); targetDir is a server-local directory (omit for a new temporary one) — the output file is the element name + the format suffix. Returns {file, format, bytes, sha256, downloadId}; fetch the file's bytes with biouml_repo_download (downloadId).",
+			catalog.registerHidden( "biouml_repo_export.export",
 					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"format\":{\"type\":\"string\"},\"targetDir\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -216,8 +206,7 @@ public final class RepoTools
 						return McpRepositorySupport.export( McpArgs.str( args, "path" ), McpArgs.str( args, "format" ), McpArgs.str( args, "targetDir" ) );
 					} );
 
-			catalog.register( "biouml_repo_download",
-					"Download a file written by biouml_repo_export (e.g. a report exported to PDF), in base64 chunks: length bytes (default 262144, max 1048576) from offset (default 0). Returns {name, offset, bytes, totalBytes, sha256, base64, done, nextOffset}; call again with offset=nextOffset until done, join the decoded chunks and check them against sha256. downloadId is the id biouml_repo_export returned; it lasts 24 h and only the user who exported can use it. All chunks come from that one export (exporting again can give different bytes, e.g. a PDF's creation time).",
+			catalog.registerHidden( "biouml_repo_download",
 					"{\"type\":\"object\",\"properties\":{\"downloadId\":{\"type\":\"string\"},\"offset\":{\"type\":\"integer\"},\"length\":{\"type\":\"integer\"}},\"required\":[\"downloadId\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "downloadId" );
@@ -232,8 +221,7 @@ public final class RepoTools
 								args.get( "length" ) == null ? null : Integer.valueOf( McpArgs.intVal( args, "length", 0 ) ) );
 					} );
 
-			catalog.register( "biouml_repo_document_content",
-					"Read the text content of a document element (script, notebook, text file, ...). Delegates to the platform's document provider.",
+			catalog.registerHidden( "biouml_repo_document_content",
 					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -242,8 +230,7 @@ public final class RepoTools
 						return McpRepositorySupport.documentContent( McpArgs.str( args, "path" ) );
 					} );
 
-			catalog.register( "biouml_repo_save_document_content",
-					"Write the text content of a document element (script, notebook, text file, ...). Delegates to the platform's document provider. path is the element to update; content is the new text.",
+			catalog.registerHidden( "biouml_repo_save_document_content",
 					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"content\":{\"type\":\"string\"}},\"required\":[\"path\",\"content\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -255,8 +242,7 @@ public final class RepoTools
 						return McpRepositorySupport.saveDocumentContent( McpArgs.str( args, "path" ), McpArgs.str( args, "content" ) );
 					} );
 
-			catalog.register( "biouml_repo_run_script",
-					"ASYNC — Run a script (JS, R, Java, ...). This returns IMMEDIATELY with a jobID; the script runs in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_repo_job_status (with a short delay) until 'completed' is true, (3) then call biouml_repo_script_result to fetch the output. Delegates to the platform's script provider. script is the source text; type is the script type (one of biouml_repo_script_types).",
+			catalog.registerHidden( "biouml_repo_run_script",
 					"{\"type\":\"object\",\"properties\":{\"script\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"}},\"required\":[\"script\",\"type\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "script" );
@@ -268,8 +254,7 @@ public final class RepoTools
 						return McpRepositorySupport.runScript( McpArgs.str( args, "script" ), McpArgs.str( args, "type" ) );
 					} );
 
-			catalog.register( "biouml_repo_script_result",
-					"ASYNC result — Fetch the output of a script job started by biouml_repo_run_script. Call it only AFTER biouml_repo_job_status reports 'completed' is true. Delegates to the platform's script provider. jobID is the id returned by biouml_repo_run_script. Returns the job's printed buffer, tables, images, and HTML.",
+			catalog.registerHidden( "biouml_repo_script_result",
 					"{\"type\":\"object\",\"properties\":{\"jobID\":{\"type\":\"string\"}},\"required\":[\"jobID\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "jobID" );
@@ -278,8 +263,7 @@ public final class RepoTools
 						return McpRepositorySupport.scriptResult( McpArgs.str( args, "jobID" ) );
 					} );
 
-			catalog.register( "biouml_repo_detect_omics_type",
-					"Detect the omics type (Transcriptomics, Genomics, ...) of a data element. Delegates to the platform's omicsType provider.",
+			catalog.registerHidden( "biouml_repo_detect_omics_type",
 					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -288,8 +272,7 @@ public final class RepoTools
 						return McpRepositorySupport.detectOmicsType( McpArgs.str( args, "path" ) );
 					} );
 
-			catalog.register( "biouml_repo_set_omics_type",
-					"Set the omics type of a data element (e.g. Transcriptomics, Genomics). Delegates to the platform's omicsType provider.",
+			catalog.registerHidden( "biouml_repo_set_omics_type",
 					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"omicsType\":{\"type\":\"string\"}},\"required\":[\"path\",\"omicsType\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -316,8 +299,7 @@ public final class RepoTools
 					"{}",
 					( ex, args ) -> McpRepositorySupport.preferences() );
 
-			catalog.register( "biouml_repo_import_formats",
-					"List the import formats available for a target collection (in accept-priority order). Use this to discover what biouml_repo_import can read into the collection before calling it. The first entry is always 'autodetect'. The list (and autodetection in biouml_repo_import) follows the importer rules of the perspective in effect (biouml_perspective_list / biouml_perspective_select).",
+			catalog.registerHidden( "biouml_repo_import_formats",
 					"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"}},\"required\":[\"parentPath\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "parentPath" );
@@ -326,8 +308,7 @@ public final class RepoTools
 						return McpRepositorySupport.importFormats( McpArgs.str( args, "parentPath" ) );
 					} );
 
-			catalog.register( "biouml_repo_import",
-					"ASYNC — Import a file from the server's local filesystem into a target collection. This returns IMMEDIATELY with a jobID; the import continues in the background and is NOT done when this call returns. To finish: (1) call this to get the jobID, (2) repeatedly call biouml_repo_job_status (with a short delay) until 'completed' is true — the final status message is the path of the imported element. Delegates to the platform's import provider. parentPath is the target collection; file is a server-local file path; format is one of biouml_repo_import_formats (omit to autodetect — an ambiguous autodetect is a clean error listing the candidates); name is optional (defaults to the file name without extension).",
+			catalog.registerHidden( "biouml_repo_import.import",
 					"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"},\"file\":{\"type\":\"string\"},\"format\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"parentPath\",\"file\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "parentPath" );
@@ -345,13 +326,11 @@ public final class RepoTools
 						return McpRepositorySupport.importElement( McpArgs.str( args, "parentPath" ), McpArgs.str( args, "file" ), McpArgs.str( args, "format" ), McpArgs.str( args, "name" ) );
 					} );
 
-			catalog.register( "biouml_repo_script_types",
-					"List the script types that can be created in a collection (JS, R, Java, ...) — the headless equivalent of the 'New JS script' / 'New R script' / 'New Java code' menu items. Returns one row per type with its 'type' id (what biouml_repo_new_script takes), title, and element class. Only types whose product is available on this server are listed.",
+			catalog.registerHidden( "biouml_repo_script_types",
 					"{}",
 					( ex, args ) -> McpRepositorySupport.scriptTypes() );
 
-			catalog.register( "biouml_repo_new_script",
-					"Create a new script element (JS, R, Java, ...) in a target collection — the headless equivalent of the web UI's 'New JS script' / 'New R script' / 'New Java code' menu items. parentPath is the target collection; type is one of biouml_repo_script_types; name is the new element's name; content is the initial script text (omit for a blank script). Returns {created, type}.",
+			catalog.registerHidden( "biouml_repo_new_script",
 					"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"content\":{\"type\":\"string\"}},\"required\":[\"parentPath\",\"type\",\"name\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "parentPath" );
@@ -370,7 +349,7 @@ public final class RepoTools
 					} );
 
 			catalog.register( "biouml_repo_new_element",
-					"Create a new element in a collection — the headless equivalent of the web UI's 'New X' menu items. kind is one of: 'table', 'test', 'workflow', 'research', 'notebook' (Jupyter), or a script type from biouml_repo_script_types (e.g. 'js', 'R', 'Java', 'Nextflow', 'WDL', 'math'). parentPath is the target collection; name is the new element's name; content is optional initial content (used for scripts/notebooks, ignored otherwise). Returns {created, kind}.",
+					"Create a new element in a collection — the headless equivalent of the web UI's 'New X' menu items. kind is one of: 'folder', 'table', 'test', 'workflow', 'research', 'notebook' (Jupyter), or a script type from biouml_repo_script op types (e.g. 'js', 'R', 'Java', 'Nextflow', 'WDL', 'math'). parentPath is the target collection; name is the new element's name; content is optional initial content (used for scripts/notebooks, ignored otherwise). Returns {created, kind}.",
 					"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"},\"kind\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"content\":{\"type\":\"string\"}},\"required\":[\"parentPath\",\"kind\",\"name\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "parentPath" );
@@ -385,11 +364,12 @@ public final class RepoTools
 						McpEnvelope vc = McpArgs.optionalString( args, "content" );
 						if ( vc != null )
 							return vc;
+						if ( "folder".equalsIgnoreCase( McpArgs.str( args, "kind" ) ) )
+							return McpRepositorySupport.createFolder( McpArgs.str( args, "parentPath" ), McpArgs.str( args, "name" ) );
 						return McpRepositorySupport.newElement( McpArgs.str( args, "parentPath" ), McpArgs.str( args, "kind" ), McpArgs.str( args, "name" ), McpArgs.str( args, "content" ) );
 					} );
 
-			catalog.register( "biouml_repo_filesystem_types",
-					"List the element types available for a file inside a file-system collection — the headless equivalent of the web UI's 'Change element type' menu item. path is the element. Returns {path, count, types}.",
+			catalog.registerHidden( "biouml_repo_filesystem_types",
 					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -398,8 +378,7 @@ public final class RepoTools
 						return McpRepositorySupport.filesystemElementTypes( McpArgs.str( args, "path" ) );
 					} );
 
-			catalog.register( "biouml_repo_set_filesystem_type",
-					"Change the element type of a file inside a file-system collection — the headless equivalent of the web UI's 'Change element type' menu item (FileSystemCollection.setElementType). path is the element; type is the target type (one of biouml_repo_filesystem_types). Returns {changed, type}.",
+			catalog.registerHidden( "biouml_repo_set_filesystem_type",
 					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"}},\"required\":[\"path\",\"type\"]}",
 					( ex, args ) -> {
 						McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -426,5 +405,71 @@ public final class RepoTools
 					"Fetch the current session's server log tail — the headless equivalent of the web UI's 'Logs' view pane. Returns the in-memory java.util.logging capture for this session (a bounded, SEVERE-by-default buffer of everything the JVM logged under it — cross-job server output such as unhandled exceptions, NOT a single job's log). Diagnostic only: returns an error if the experimental logging feature was not enabled at server boot. Delegates to the platform's log provider.",
 					"{}",
 					( ex, args ) -> McpRepositorySupport.getLog() );
+
+		catalog.registerOps( "biouml_repo_search",
+				"Search element names (case-insensitive substring) under scope (default: all roots). op search (default): return the matches; on a large repository it can exceed the client's timeout — then use op start, which runs the same search in the background and returns a taskId at once, poll op status (taskId: queued/running/done/cancelled/error) until 'done', and call op search again with the same query and scope: the warmed caches make it quick.",
+				"{\"type\":\"object\",\"properties\":{\"query\":{\"type\":\"string\"},\"scope\":{\"type\":\"string\"},\"taskId\":{\"type\":\"string\"}}}",
+				"search",
+				McpToolCatalog.op( "search", "biouml_repo_search.search" ),
+				McpToolCatalog.op( "start", "biouml_repo_search_async" ),
+				McpToolCatalog.op( "status", "biouml_repo_search_status" ) );
+
+		catalog.registerOps( "biouml_repo_action",
+				"The context-menu actions of the element path. op list: the actions available (key, name, description, headlessSafe). op run: run action (a key from op list) headlessly; interactive-only actions return requires_interactive_ui.",
+				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"action\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
+				null,
+				McpToolCatalog.op( "list", "biouml_repo_get_actions" ),
+				McpToolCatalog.op( "run", "biouml_repo_run_action" ) );
+
+		catalog.registerOps( "biouml_repo_copy",
+				"Copy srcPath to destPath, the full path of the copy (its parent must exist and be writable; the last segment is the new name); the source is left untouched. op element: one element (file, table, diagram, any cloneable element) — the web UI's 'Save a copy'; done when the call returns. op folder: a folder with its whole subtree; ASYNC — returns a jobID at once, the copy is done when biouml_repo_job_status reports 'completed' true.",
+				"{\"type\":\"object\",\"properties\":{\"srcPath\":{\"type\":\"string\"},\"destPath\":{\"type\":\"string\"}},\"required\":[\"srcPath\",\"destPath\"]}",
+				null,
+				McpToolCatalog.op( "element", "biouml_repo_copy_element" ),
+				McpToolCatalog.op( "folder", "biouml_repo_copy_folder", "srcPath>fromPath", "destPath>toPath" ) );
+
+		catalog.registerOps( "biouml_repo_export",
+				"Export a repository element to a file on the server — the web UI's 'Export'. op formats: the formats available for path, in priority order (they follow the perspective in effect, see biouml_perspective_select). op export (default): write path in format (one of op formats; default the first) into targetDir (a server-local directory; default a new temporary one), named after the element with the format's suffix; returns {file, format, bytes, sha256, downloadId}. op download: the exported file downloadId in base64 chunks of length bytes (default 262144, max 1048576) from offset (default 0); returns {name, offset, bytes, totalBytes, sha256, base64, done, nextOffset} — call again with offset=nextOffset until done, join the decoded chunks and check sha256. A downloadId lasts 24 h and works only for the user who exported.",
+				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"format\":{\"type\":\"string\"},\"targetDir\":{\"type\":\"string\"},\"downloadId\":{\"type\":\"string\"},\"offset\":{\"type\":\"integer\"},\"length\":{\"type\":\"integer\"}}}",
+				"export",
+				McpToolCatalog.op( "formats", "biouml_repo_export_formats" ),
+				McpToolCatalog.op( "export", "biouml_repo_export.export" ),
+				McpToolCatalog.op( "download", "biouml_repo_download" ) );
+
+		catalog.registerOps( "biouml_repo_import",
+				"Import a file from the server's filesystem into the collection parentPath. op formats: the formats available for parentPath, in priority order, the first being 'autodetect' (they follow the perspective in effect, see biouml_perspective_select). op import (default): ASYNC — returns a jobID at once; the import is done when biouml_repo_job_status reports 'completed' true, and its final message is the path of the imported element. file is a server-local path; format is one of op formats (omit to autodetect; an ambiguous autodetect is an error listing the candidates); name defaults to the file name without extension.",
+				"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"},\"file\":{\"type\":\"string\"},\"format\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"parentPath\"]}",
+				"import",
+				McpToolCatalog.op( "formats", "biouml_repo_import_formats" ),
+				McpToolCatalog.op( "import", "biouml_repo_import.import" ) );
+
+		catalog.registerOps( "biouml_repo_document",
+				"The text of the document element path (script, notebook, text file, ...). op read: return it. op write: replace it with content.",
+				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"content\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
+				null,
+				McpToolCatalog.op( "read", "biouml_repo_document_content" ),
+				McpToolCatalog.op( "write", "biouml_repo_save_document_content" ) );
+
+		catalog.registerOps( "biouml_repo_script",
+				"Run scripts (JS, R, Java, ...). op types: the script types available on this server (type id, title, element class). op run: ASYNC — run the source text script of type (an id from op types); returns a jobID at once; when biouml_repo_job_status reports 'completed' true, op result (jobID) returns the output: the printed buffer, tables, images and HTML. A script element is created with biouml_repo_new_element.",
+				"{\"type\":\"object\",\"properties\":{\"script\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"},\"jobID\":{\"type\":\"string\"}}}",
+				null,
+				McpToolCatalog.op( "types", "biouml_repo_script_types" ),
+				McpToolCatalog.op( "run", "biouml_repo_run_script" ),
+				McpToolCatalog.op( "result", "biouml_repo_script_result" ) );
+
+		catalog.registerOps( "biouml_repo_omics_type",
+				"The omics type (Transcriptomics, Genomics, ...) of the data element path. op detect: detect it. op set: set it to omicsType.",
+				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"omicsType\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
+				null,
+				McpToolCatalog.op( "detect", "biouml_repo_detect_omics_type" ),
+				McpToolCatalog.op( "set", "biouml_repo_set_omics_type" ) );
+
+		catalog.registerOps( "biouml_repo_filesystem_type",
+				"The element type of the file path in a file-system collection — the web UI's 'Change element type'. op types: the types available ({path, count, types}). op set: change it to type, one of op types; returns {changed, type}.",
+				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
+				null,
+				McpToolCatalog.op( "types", "biouml_repo_filesystem_types" ),
+				McpToolCatalog.op( "set", "biouml_repo_set_filesystem_type" ) );
 	}
 }

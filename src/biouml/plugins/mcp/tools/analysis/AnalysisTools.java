@@ -32,7 +32,7 @@ public final class AnalysisTools
 						args.get( "params" ) instanceof Map ? (Map<String, Object>) args.get( "params" ) : null, str( args, "filter" ), strings( args, "properties" ) ) );
 
 		catalog.register( "biouml_analysis_run",
-				"ASYNC — Run an analysis. By default (sync=false, the default) this returns IMMEDIATELY with {taskId, status}; the analysis runs in the background and is NOT done when this call returns. To finish: (1) call this to get the taskId, (2) repeatedly call biouml_task_status (with a short delay) until its status is 'done'/'error', (3) then read the results. Set sync=true to instead run inline and wait for the result in one call (only for quick analyses). params is a map of bean-property values: nested keys use '/' separators (or pass a JSON object), array items are addressed by index ('conditions/0/condition') or passed as a JSON list ('conditions': [{'condition': '...'}]); path-typed properties take repository path strings. Choice parameters list their accepted values in biouml_analysis_describe (allowedValues).",
+				"ASYNC — Run an analysis. By default (sync=false, the default) this returns IMMEDIATELY with {taskId, status}; the analysis runs in the background and is NOT done when this call returns. To finish: (1) call this to get the taskId, (2) repeatedly call biouml_task with op status (with a short delay) until its status is 'done'/'error', (3) then read the results. Set sync=true to instead run inline and wait for the result in one call (only for quick analyses). params is a map of bean-property values: nested keys use '/' separators (or pass a JSON object), array items are addressed by index ('conditions/0/condition') or passed as a JSON list ('conditions': [{'condition': '...'}]); path-typed properties take repository path strings. Choice parameters list their accepted values in biouml_analysis_describe (allowedValues).",
 				"{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"params\":{\"type\":\"object\"},\"originPath\":{\"type\":\"string\"},\"sync\":{\"type\":\"boolean\"}},\"required\":[\"name\"]}",
 				( ex, args ) -> {
 					Map<String, Object> params = args.get( "params" ) instanceof Map ? (Map<String, Object>) args.get( "params" ) : new java.util.LinkedHashMap<String, Object>();
@@ -40,18 +40,15 @@ public final class AnalysisTools
 					return McpAnalysisSupport.runAnalysis( str( args, "name" ), params, str( args, "originPath" ), sync );
 				} );
 
-		catalog.register( "biouml_task_status",
-				"ASYNC poll — Report a background task's status (queued/running/paused/done/error/cancelled), progress (0-100), and result paths. Call it REPEATEDLY (with a short delay between calls) until the status reaches a terminal state ('done' or 'error'); the task is not finished until then. This is the poll for biouml_analysis_run (async mode). taskId is the id returned by the start action. status is the numeric job status and state its name. Also returns the task log's warnings/errors grouped by message, ignoring numbers (problems: the latest 20 distinct messages, each with its count; problemCount: all problem lines; problemKinds: all distinct messages), e.g. skipped workflow steps, and the log's last lines (logTail; a run of lines that differ only in numbers, such as progress lines, is shown once with [×N]).",
+		catalog.registerHidden( "biouml_task_status",
 				"{\"type\":\"object\",\"properties\":{\"taskId\":{\"type\":\"string\"}},\"required\":[\"taskId\"]}",
 				( ex, args ) -> McpAnalysisSupport.taskStatus( str( args, "taskId" ) ) );
 
-		catalog.register( "biouml_task_cancel",
-				"Cancel a queued or running task.",
+		catalog.registerHidden( "biouml_task_cancel",
 				"{\"type\":\"object\",\"properties\":{\"taskId\":{\"type\":\"string\"}},\"required\":[\"taskId\"]}",
 				( ex, args ) -> McpAnalysisSupport.cancelTask( str( args, "taskId" ) ) );
 
-		catalog.register( "biouml_task_list",
-				"List active and recent tasks (id, type, status).",
+		catalog.registerHidden( "biouml_task_list",
 				"{}",
 				( ex, args ) -> McpAnalysisSupport.listTasks() );
 
@@ -67,6 +64,14 @@ public final class AnalysisTools
 				"Read an analysis output: for a table, column names/types, rows (from offset, default 0; at most limit, default 50, max 500; truncated tells whether more follow) and their row ids (rowIds, aligned with rows — the table's key, e.g. a gene or drug id); columns (optional) names the columns to return, in that order — wide tables such as drug lists with synonyms are much smaller with only the columns needed; for a track (e.g. an imported VCF), its sites the same way: rowIds are the site ids, columns chromosome, from, to, strand, type and the site properties (a VCF's RefAllele, AltAllele, genotype fields such as Format_GT_<sample>, ...); for a folder, its children; for a simulation result (e.g. the output of 'Simulation analysis'), the time series ({vars, times, values}, plus Q1/Q2/Q3 for stochastic results).",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"offset\":{\"type\":\"integer\",\"description\":\"first table row to return (default 0)\"},\"limit\":{\"type\":\"integer\",\"description\":\"rows to return (default 50, max 500)\"},\"columns\":{\"type\":\"array\",\"items\":{\"type\":\"string\"},\"description\":\"table columns to return (default all)\"}},\"required\":[\"path\"]}",
 				( ex, args ) -> McpAnalysisSupport.getAnalysisResult( str( args, "path" ), integer( args, "offset" ), integer( args, "limit" ), strings( args, "columns" ) ) );
+
+		catalog.registerOps( "biouml_task",
+				"Background tasks, e.g. of biouml_analysis_run. op list: active and recent tasks (id, type, status). op status: ASYNC poll — the status of task taskId (queued/running/paused/done/error/cancelled; status is the numeric job status, state its name), progress (0-100) and result paths; call it repeatedly, with a short delay, until the status is 'done' or 'error'. It also returns the log's warnings and errors grouped by message ignoring numbers (problems: the latest 20 distinct ones with their counts; problemCount: all problem lines; problemKinds: all distinct messages), e.g. skipped workflow steps, and the log's last lines (logTail; lines that differ only in numbers, such as progress lines, are shown once with [×N]). op cancel: cancel a queued or running task.",
+				"{\"type\":\"object\",\"properties\":{\"taskId\":{\"type\":\"string\"}}}",
+				null,
+				McpToolCatalog.op( "list", "biouml_task_list" ),
+				McpToolCatalog.op( "status", "biouml_task_status" ),
+				McpToolCatalog.op( "cancel", "biouml_task_cancel" ) );
 	}
 
 	/** A list-of-strings argument; a single string may also list them comma-separated. */
