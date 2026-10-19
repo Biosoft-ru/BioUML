@@ -4,7 +4,7 @@ Genome Enhancer turns patient omics data (genomics: VCF, SNP tables; transcripto
 
 Learn from an example first: intro.exampleProjects are demo projects with finished runs. Their Data folder holds the input data, the annotation diagram Description and the result folders (Report, BriefReport, Output, Workflow).
 
-1. Select project: biouml_project_list, or biouml_project_create (latin letters, digits, spaces and _).
+1. Select project: biouml_project op list, or op create (latin letters, digits, spaces and _).
 
 2. Upload my data into <project>/Data.
    - From a URL (ftp://, http(s)://, a Google Drive share link): biouml_analysis_run 'Upload from FTP' with fileURL, resultPath <project>/Data/<name> and importerFormat (biouml_analysis_describe lists the formats, e.g. 'VCF format (*.vcf)').
@@ -15,9 +15,9 @@ Learn from an example first: intro.exampleProjects are demo projects with finish
    - biouml_analysis_get_result on a track lists its sites as rows (chromosome, from, to, strand, type and the site properties, e.g. a VCF's genotype Format_GT_<sample>): limit rows (default 50, max 500) from offset, only the columns named in columns.
 
 4. Describe my data: the annotation diagram <project>/Data/Description puts the data into the categories (conditions) to analyze.
-   - The wizard creates it with an 'Experiment' and a 'Control' category. With MCP tools copy the Description of an example project (biouml_repo_copy_element) and edit it.
+   - The wizard creates it with an 'Experiment' and a 'Control' category. With MCP tools copy the Description of an example project (biouml_repo_copy op element) and edit it.
    - biouml_diagram_describe shows the data box ('Drag and drop all files you want to analyze into this box') and the category compartments with their titles.
-   - Remove the example's data nodes (biouml_diagram_remove_element), add your data to the data box (biouml_diagram_add_data_element), then copy its node into each category it belongs to (biouml_diagram_copy_node). Rename a category with biouml_diagram_rename_element to say what it holds (e.g. 'Experiment: <condition of the patient>'); remove the categories you do not use.
+   - Remove the example's data nodes (biouml_diagram_edit op remove), add your data to the data box (biouml_diagram_add_data_element), then copy its node into each category it belongs to (biouml_diagram_copy_node). Rename a category with biouml_diagram_edit op rename to say what it holds (e.g. 'Experiment: <condition of the patient>'); remove the categories you do not use.
 
 5. Start analysis: biouml_analysis_run 'Generate workflow from annotation diagram' with
    - annotationDiagram: <project>/Data/Description;
@@ -25,10 +25,10 @@ Learn from an example first: intro.exampleProjects are demo projects with finish
    - diseases: MeSH disease names (biouml_analysis_describe with filter, a part of the name, finds them among thousands: it lists only the parameters with matching values); tissue (optional); speciesStr;
    - maxStep: the last pipeline step ('Drug Targets' for the full analysis);
    - outPath: a new folder, e.g. <project>/Data/Results.
-   Check first with runWorkflow false: within seconds it builds the workflow (outPath/Workflow) without running it. A real run takes hours; poll biouml_task_status.
+   Check first with runWorkflow false: within seconds it builds the workflow (outPath/Workflow) without running it. A real run takes hours; poll biouml_task op status.
 
 6. See report: in outPath, Report (the full story), BriefReport (the brief tale), MTBReport (with addMTBReport, for cancer genomics data) and Output (result tables and the pharmaceutical compounds report PCReport.html).
    - Read a table with biouml_analysis_get_result page by page: limit rows (default 50, max 500) from offset, while truncated is true; columns names the columns to return (drug tables are wide).
-   - Export a report with biouml_repo_export, format 'PDF (*.pdf)' or 'Zipped HTML file': it returns a downloadId and the file's sha256. Fetch the file with biouml_repo_download (downloadId, then offset nextOffset until done, length up to 1048576 bytes per chunk), join the decoded base64 chunks and check them against sha256.
+   - Export a report with biouml_repo_export, format 'PDF (*.pdf)' or 'Zipped HTML file': it returns a downloadId and the file's sha256. Fetch the file with biouml_repo_export op download (downloadId, then offset nextOffset until done, length up to 1048576 bytes per chunk), join the decoded base64 chunks and check them against sha256.
 
 The drugs in the reports are computational predictions for a physician to consider, not treatment advice.
