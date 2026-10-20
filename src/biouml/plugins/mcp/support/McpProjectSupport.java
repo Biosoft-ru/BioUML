@@ -19,6 +19,7 @@ import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.access.security.Permission;
 import ru.biosoft.access.security.SecurityAdminUtils;
 import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.access.security.UserPermissions;
 import ru.biosoft.server.servlets.support.SupportServlet;
 
 /**
@@ -118,9 +119,25 @@ public final class McpProjectSupport
 		return McpEnvelope.ok( out );
 	}
 
+	/** Access the project group gets on its project, as granted by the web UI: everything but admin. */
+	private static final int PROJECT_GROUP_PERMISSION = Permission.INFO | Permission.READ | Permission.WRITE | Permission.DELETE;
+
+	/** A readable message for a security-provider failure while creating the project group. */
+	public static String groupErrorMessage( String providerMessage )
+	{
+		if ( providerMessage == null || providerMessage.isEmpty() )
+			return "cannot create the project group";
+		if ( providerMessage.contains( "Maximal number of groups" ) )
+			return "cannot create project: the user's project limit is reached (" + providerMessage + ")";
+		if ( providerMessage.contains( "While creating group " ) && providerMessage.contains( "already exists." ) )
+			return "cannot create project: the name is already taken, choose another";
+		return "cannot create the project group: " + providerMessage;
+	}
+
 	/**
 	 * Create a new project (a SQL-backed research collection) for the current user. Mirrors
-	 * {@code SupportServlet.createProject}.
+	 * {@code SupportServlet.createProjectWithPermissions}: creates the project group, grants it access, then
+	 * creates the collection.
 	 */
 	public static McpEnvelope create( String name )
 	{
@@ -140,10 +157,35 @@ public final class McpProjectSupport
 		}
 		if ( parent.contains( name ) )
 			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "project '" + name + "' already exists" );
+		// As SupportServlet.createProjectWithPermissions (the web UI path): the user may write a new project only
+		// through a project group, so create the group and grant it access before creating the collection.
+		String user = SecurityManager.getSessionUser();
+		DataElementPath projectPath = parent.getCompletePath().getChildPath( name );
+		StringWriter sw = new StringWriter();
+		try
+		{
+			if ( !SecurityAdminUtils.createUserGroup( user, name, false, sw )
+					|| !SecurityAdminUtils.addGroupPermission( user, name, projectPath, PROJECT_GROUP_PERMISSION, sw ) )
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL, groupErrorMessage( sw.toString() ) );
+		}
+		catch ( Exception e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "cannot create project group: " + e.getMessage() );
+		}
+		// The servlet logs in again here; an MCP session has no fresh credentials, so reload its permissions
+		// in place. If that is impossible, record the access just granted.
+		if ( !SecurityManager.reloadCurrentUserPermissions() )
+		{
+			UserPermissions ps = SecurityManager.getCurrentUserPermission();
+			if ( ps != null )
+				ps.getDbToPermission().put( projectPath.toString(), new Permission( PROJECT_GROUP_PERMISSION, user,
+						SecurityManager.getSession(), System.currentTimeMillis() + UserPermissions.TIMEOUT ) );
+		}
+		SecurityManager.invalidatePermissions( projectPath.toString() );
 		List<String> errors = new ArrayList<String>();
 		try
 		{
-			DataCollection created = SupportServlet.createNewProject( name, null, false, errors );
+			DataCollection created = SupportServlet.createNewProject( name, user, true, errors );
 			if ( created == null )
 				return McpEnvelope.error( McpConstants.CODE_INTERNAL,
 						"cannot create project" + ( errors.size() > 0 ? ": " + errors.get( 0 ) : "" ) );

@@ -150,4 +150,22 @@ public class UserPermissions
     {
         return groups.getOrDefault( projectName, false );
     }
+
+    /**
+     * Replace products, limits, groups and cached permissions with those of a fresh authorization of the same user.
+     * Updates this object in place, so every session sharing it (e.g. an MCP OAuth session copied from a web login)
+     * sees the change.
+     */
+    public void refreshFrom(UserPermissions fresh)
+    {
+        products = fresh.products;
+        limits = fresh.limits;
+        groups = fresh.groups;
+        synchronized( dbToPermission )
+        {
+            dbToPermission.clear();
+            dbToPermission.putAll( fresh.dbToPermission );
+        }
+        updateExpirationTime();
+    }
 }
