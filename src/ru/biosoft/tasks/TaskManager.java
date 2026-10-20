@@ -285,7 +285,7 @@ public class TaskManager implements JobControlListener
         result.setLogInfo( ti.getLogInfo() );
         result.setUser( ti.getUser() );
         result.setAttributes( ti.getAttributes() );
-        result.addAsAppender( new JULLoggerAdapter( method.getLogger() ) );
+        result.addAsAppender( new JULLoggerAdapter( taskLogger( method ) ) );
 
         return result;
     }
@@ -346,12 +346,31 @@ public class TaskManager implements JobControlListener
         return null;
     }
 
+    /**
+     * The logger a task of this analysis captures its log from. An analysis logs to one shared logger unless its
+     * caller gave it one, and a task listens to its analysis's logger, so tasks on the shared one would collect the
+     * lines of every concurrent analysis of any user; give such an analysis a logger of its own (a child of the
+     * shared one, so its records still reach the server log the same way).
+     */
+    private static Logger taskLogger(AnalysisMethod analysis)
+    {
+        Logger logger = analysis.getLogger();
+        if( logger == null || SHARED_ANALYSIS_LOGGER.equals( logger.getName() ) )
+        {
+            logger = Logger.getLogger( SHARED_ANALYSIS_LOGGER + ".task." + java.util.UUID.randomUUID() );
+            analysis.setLogger( logger );
+        }
+        return logger;
+    }
+
+    private static final String SHARED_ANALYSIS_LOGGER = ru.biosoft.analysiscore.AnalysisMethodSupport.class.getName();
+
     public TaskInfo addAnalysisTask(AnalysisMethod analysis, JobControl jobControl, boolean autorun, String type)
     {
         DynamicPropertySet dpsParameters = new DynamicPropertySetSupport();
         AnalysisDPSUtils.writeParametersToNodeAttributes(analysis.getName(), analysis.getParameters(), dpsParameters);
         return addTask( type, DataElementPath.create( AnalysisMethodRegistry.getMethodInfo( analysis.getName() ) ), jobControl,
-                new JULLoggerAdapter( analysis.getLogger() ), JournalRegistry.getCurrentJournal(), dpsParameters, autorun,
+                new JULLoggerAdapter( taskLogger( analysis ) ), JournalRegistry.getCurrentJournal(), dpsParameters, autorun,
                 new AnalysisTask( analysis ) );
     }
 
