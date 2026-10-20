@@ -7,6 +7,8 @@ public class VariableRenamer
 
     public String rename(String expression, String oldName, String newName) throws ParseException
     {
+        if (expression == null)
+            return null;
         AstExpression astExpression = new ExpressionParser().parseExpression( expression );
         rename( astExpression, oldName, newName );
         return new ExpressionFormatter().format( astExpression );
@@ -48,6 +50,7 @@ public class VariableRenamer
         int index = ParserUtil.findIndex( parent, node );
         AstSymbol newChild = new AstSymbol( WDLParserTreeConstants.JJTSYMBOL );
         newChild.setName( newName );
+        newChild.jjtSetFirstToken( new Token( WDLParserTreeConstants.JJTSYMBOL, newName ) );
         parent.children[index] = newChild;
     }
     
