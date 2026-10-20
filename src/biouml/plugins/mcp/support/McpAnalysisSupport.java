@@ -526,6 +526,7 @@ public final class McpAnalysisSupport
 		try
 		{
 			TaskManager tm = TaskManager.getInstance();
+			method.setLogger( taskLogger() );
 			TaskInfo info = tm.addAnalysisTask( method, true );
 			Map<String, Object> result = new LinkedHashMap<String, Object>();
 			result.put( "taskId", info.getName() );
@@ -702,6 +703,23 @@ public final class McpAnalysisSupport
 	// ---------------------------------------------------------------- status / cancel / list tasks
 
 	/**
+	 * A logger of its own for a queued analysis. By default every analysis logs to one shared logger, and a task
+	 * captures its log by listening to its method's logger, so concurrent tasks (of any user) would read each
+	 * other's lines. The web UI gives each run its job's logger the same way; the records still reach the server log.
+	 */
+	private static java.util.logging.Logger taskLogger()
+	{
+		return java.util.logging.Logger.getLogger( "biouml.plugins.mcp.task." + java.util.UUID.randomUUID() );
+	}
+
+	/** Whether the task belongs to the session user (the {@code tasks} provider's rule). */
+	static boolean ownsTask( TaskInfo info )
+	{
+		String user = ru.biosoft.access.security.SecurityManager.getSessionUser();
+		return info != null && info.getUser() != null && user != null && info.getUser().equalsIgnoreCase( user );
+	}
+
+	/**
 	 * Report a task's status. Delegates to the platform's {@code tasks} provider ({@code status}
 	 * action), which returns {@code {status: <int>, percent: 0-100, values: [textStatus]}}. The
 	 * response is re-shaped to {@code {taskId, status, progress, textStatus}}.
@@ -717,8 +735,17 @@ public final class McpAnalysisSupport
 		if ( provider == null )
 			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no provider registered for prefix: tasks" );
 		Map<String, Object> resp;
+		String log;
 		try
 		{
+			// another user's task: the provider answers with nothing, and its log must not be read either
+			TaskInfo owned = McpProviderSupport.withUserSession( McpConstants.TASK_USER, () -> {
+				TaskInfo info = TaskManager.getInstance().getTask( taskId );
+				return ownsTask( info ) ? info : null;
+			} );
+			if ( owned == null )
+				return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no task named: " + taskId );
+			log = owned.getLogInfo();
 			resp = McpProviderSupport.withUserSession( McpConstants.TASK_USER,
 					() -> McpProviderSupport.responseMap( (WebJSONProviderSupport) provider, "tasks", "status", params ) );
 		}
@@ -743,7 +770,7 @@ public final class McpAnalysisSupport
 		m.put( "progress", completed ? Integer.valueOf( 100 ) : percent instanceof Number ? Integer.valueOf( ( (Number) percent ).intValue() ) : null );
 		Object values = resp.get( JSONResponse.ATTR_VALUES );
 		m.put( "textStatus", values instanceof java.util.List && ! ( (java.util.List<?>) values ).isEmpty() ? ( (java.util.List<?>) values ).get( 0 ) : null );
-		putLog( m, taskId );
+		m.putAll( summarizeLog( log ) );
 		return McpEnvelope.ok( m );
 	}
 
@@ -759,28 +786,10 @@ public final class McpAnalysisSupport
 	private static final int LOG_PREFIX_MERGE_CHARS = 40;
 	private static final java.util.regex.Pattern DIGITS = java.util.regex.Pattern.compile( "\\d+" );
 
-	/**
-	 * Add the task log's warnings/errors ({@code problems}: distinct messages, latest last, each with its count;
-	 * {@code problemCount}: all problem lines; {@code problemKinds}: all distinct messages) and its last lines
-	 * ({@code logTail}, a run of lines differing only in numbers shown once with its count),
-	 * so a caller can follow a long run (and see e.g. skipped workflow steps) without reading the log by script.
-	 */
-	private static void putLog( Map<String, Object> m, String taskId )
-	{
-		String log;
-		try
-		{
-			TaskInfo info = TaskManager.getInstance().getTask( taskId );
-			log = info == null ? null : info.getLogInfo();
-		}
-		catch ( Exception e )
-		{
-			return;
-		}
-		m.putAll( summarizeLog( log ) );
-	}
-
-	/** {@code problems}, {@code problemCount}, {@code problemKinds} and {@code logTail} of a task log (see {@link #putLog}). */
+	/** {@code problems}, {@code problemCount}, {@code problemKinds} and {@code logTail} of a task log: its warnings/errors ({@code problems}:
+	 * distinct messages, latest last, each with its count; {@code problemCount}: all problem lines; {@code problemKinds}: all
+	 * distinct messages) and its last lines ({@code logTail}, a run of lines differing only in numbers shown once with its
+	 * count), so a caller can follow a long run (and see e.g. skipped workflow steps) without reading the log by script. */
 	public static Map<String, Object> summarizeLog( String log )
 	{
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
@@ -940,9 +949,22 @@ public final class McpAnalysisSupport
 	}
 
 	/**
-	 * List active and recent tasks (a summary of the TaskManager's task collection).
+	 * List the session user's active and recent tasks (a summary of the TaskManager's task collection). Without a
+	 * tasks database that collection holds every user's tasks, so it is filtered by owner here.
 	 */
 	public static McpEnvelope listTasks()
+	{
+		try
+		{
+			return McpProviderSupport.withUserSession( McpConstants.TASK_USER, McpAnalysisSupport::listOwnTasks );
+		}
+		catch ( RuntimeException e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not list tasks: " + e.getMessage() );
+		}
+	}
+
+	private static McpEnvelope listOwnTasks()
 	{
 		TaskManager tm = TaskManager.getInstance();
 		DataCollection<?> dc = tm.getTasksInfo();
@@ -951,10 +973,11 @@ public final class McpAnalysisSupport
 		{
 			for ( Object o : dc )
 			{
-				// Elements are TaskInfo wrappers; best-effort map them.
-				if ( o instanceof TaskInfo )
+				// the collection holds TaskInfo wrappers
+				TaskInfo info = o instanceof ru.biosoft.tasks.TaskInfoWrapper ? ( (ru.biosoft.tasks.TaskInfoWrapper) o ).getTask()
+						: o instanceof TaskInfo ? (TaskInfo) o : null;
+				if ( ownsTask( info ) )
 				{
-					TaskInfo info = (TaskInfo) o;
 					Map<String, Object> m = new LinkedHashMap<String, Object>();
 					m.put( "taskId", info.getName() );
 					m.put( "type", info.getType() );
@@ -1012,6 +1035,7 @@ public final class McpAnalysisSupport
 		}
 		try
 		{
+			support.setLogger( taskLogger() );
 			TaskInfo info = TaskManager.getInstance().addAnalysisTask( support, true );
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "taskId", info.getName() );
