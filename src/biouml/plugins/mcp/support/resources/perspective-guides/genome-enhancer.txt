@@ -31,4 +31,16 @@ Learn from an example first: intro.exampleProjects are demo projects with finish
    - Read a table with biouml_analysis_get_result page by page: limit rows (default 50, max 500) from offset, while truncated is true; columns names the columns to return (drug tables are wide).
    - Export a report with biouml_repo_export, format 'PDF (*.pdf)' or 'Zipped HTML file': it returns a downloadId and the file's sha256. Fetch the file with biouml_repo_export op download (downloadId, then offset nextOffset until done, length up to 1048576 bytes per chunk), join the decoded base64 chunks and check them against sha256.
 
+7. Rerun with a different list of diseases: do not repeat the whole workflow. Everything before the master regulator search (gene selection, the search for transcription factor binding sites, and their combinations found with CMA) does not depend on the disease selection and stays the same. Start from the master regulator search step with the modified disease list, reusing the existing results of the earlier steps, and run on from there to drug targets and treatments. The run's Workflow diagram (outPath/Workflow, biouml_diagram_describe) shows the steps and their inputs.
+
+8. After the run has finished, offer the user three follow-ups:
+   a. Rerun under a different list of diseases, starting from the master regulator search step as described in step 7.
+   b. Filter master regulators by molecule type. Ask whether the user would like to keep only a particular type of master regulator, e.g. only receptors. If yes, offer to rerun the workflow from the step of identified master regulators, with the filtered list, to find prospective drug targets and treatments for the selected types of master regulators only. As in step 7, the earlier steps are not repeated.
+   c. Show particular master regulators on the intracellular regulation diagram. This diagram links the master regulators, intermediate signaling molecules, the transcription factor combinations and the initial genes characterizing the studied process.
+      - Redraw it with biouml_analysis_run 'Calculate CMA regulation' (Genome Enhancer group; https://platform.genexplain.com/bioumlweb/#de=analyses/Methods/Genome%20Enhancer/Calculate%20CMA%20regulation) using the results of this run. Use biouml_analysis_describe for its parameters.
+      - Optionally show expression values on the diagram with 'Add expression values' (Molecular networks group; https://platform.genexplain.com/bioumlweb/#de=analyses/Methods/Molecular%20networks/Add%20expression%20values).
+      - Ask the user whether they like the default appearance of the constructed diagram. If they ask for additional master regulators to be shown, add the respective molecules with these tools and redraw.
+
+Known pitfall: biouml_diagram_add_data_element can reject a track that was copied with biouml_repo_copy op element, or an intermediate output track (e.g. a lifted-over hg38 track), while accepting the original imported track. If the drop fails, add the originally imported track (an hg19 one is lifted over by the workflow itself).
+
 The drugs in the reports are computational predictions for a physician to consider, not treatment advice.
