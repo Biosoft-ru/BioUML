@@ -342,7 +342,32 @@ public class SecurityManager
         return new Permission(0, username, sessionId, currentTime + timeLimit);
     }
 
-    public static Permission commonLoginViaOtherSession( 
+    /**
+     * Re-authorize the current session's user with the stored credentials and refresh its permissions in place.
+     * Use after granting the user new permissions (e.g. a new project group) when the client cannot log in again.
+     * @return true if the permissions were reloaded
+     */
+    public static boolean reloadCurrentUserPermissions()
+    {
+        UserPermissions current = getCurrentUserPermission();
+        if( current == null || current.getUser() == null || current.getUser().isEmpty() || current.getPassword() == null )
+            return false;
+        try
+        {
+            UserPermissions fresh = securityProvider.authorize( current.getUser(), current.getPassword(), null, null );
+            if( fresh == null )
+                return false;
+            current.refreshFrom( fresh );
+            return true;
+        }
+        catch( Exception e )
+        {
+            log.log( Level.WARNING, "Cannot reload permissions for " + current.getUser(), e );
+            return false;
+        }
+    }
+
+    public static Permission commonLoginViaOtherSession(
          String otherSessionId, String remoteAddress, boolean bRemoveOther ) throws SecurityException
     {
         long currentTime = System.currentTimeMillis();

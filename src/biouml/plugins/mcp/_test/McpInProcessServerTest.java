@@ -119,6 +119,26 @@ public class McpInProcessServerTest extends TestCase
 		assertFalse( "bad leading char rejected", biouml.plugins.mcp.support.McpProjectSupport.isProjectNameValid( "-bad" ) );
 	}
 
+	/**
+	 * Project creation grants access through a new project group; the session's permissions are then reloaded
+	 * in place so the write check passes without a new login, and group errors read as project errors.
+	 */
+	public void testProjectGroupPermissionRefresh() throws Exception
+	{
+		ru.biosoft.access.security.UserPermissions shared = new ru.biosoft.access.security.UserPermissions( "u", "p" );
+		shared.getDbToPermission().put( "data/Collaboration/Old", new ru.biosoft.access.security.Permission( 15, "u", "s", Long.MAX_VALUE ) );
+		ru.biosoft.access.security.UserPermissions fresh = new ru.biosoft.access.security.UserPermissions( "u", "p" );
+		fresh.getDbToPermission().put( "data/Collaboration/New", new ru.biosoft.access.security.Permission( 15, "u", "", Long.MAX_VALUE ) );
+		shared.refreshFrom( fresh );
+		assertTrue( "new project permission visible", shared.getDbToPermission().containsKey( "data/Collaboration/New" ) );
+		assertFalse( "stale cache dropped", shared.getDbToPermission().containsKey( "data/Collaboration/Old" ) );
+
+		assertTrue( biouml.plugins.mcp.support.McpProjectSupport
+				.groupErrorMessage( "While creating group X: Group X already exists." ).contains( "already taken" ) );
+		assertTrue( biouml.plugins.mcp.support.McpProjectSupport
+				.groupErrorMessage( "Maximal number of groups (5) is reached for user a@b.c" ).contains( "project limit" ) );
+	}
+
 	@SuppressWarnings( "unchecked" )
 	public void testUnknownToolIsMethodNotFound() throws Exception
 	{
