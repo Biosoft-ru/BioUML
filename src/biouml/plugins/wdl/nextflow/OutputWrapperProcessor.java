@@ -74,6 +74,11 @@ public class OutputWrapperProcessor
     {
         for( Compartment call : WorkflowUtil.getAllCalls( diagram ) )
         {
+            Compartment callee = WorkflowUtil.findCallee( call, allDiagrams );
+
+            if( callee == null || callee instanceof Diagram )
+                continue;
+
             // Snapshot: we add outputs to the call while processing.
             List<Node> originalOutputs = new ArrayList<>( WorkflowUtil.getOutputs( call ) );
 
