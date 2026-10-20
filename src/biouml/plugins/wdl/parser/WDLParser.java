@@ -7,9 +7,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 public class WDLParser/*@bgen(jjtree)*/implements WDLParserTreeConstants, WDLParserConstants {/*@bgen(jjtree)*/
   protected JJTWDLParserState jjtree = new JJTWDLParserState();protected Logger log = Logger.getLogger(WDLParser.class.getName());
-        private String version;
-        private boolean workflowExist = false;
-        private boolean inExecEngineValue = false;
+        protected String version;
+        protected boolean workflowExist = false;
+        protected boolean inExecEngineValue = false;
 
         private boolean isNextExecEngineAttribute()
         {
