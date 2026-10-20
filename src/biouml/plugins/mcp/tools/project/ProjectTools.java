@@ -82,7 +82,7 @@ public final class ProjectTools
 				} );
 
 		catalog.registerOps( "biouml_project",
-				"The current user's projects. op list: the projects with their permissions (admin/canWrite/canDelete), disk quota and the properties the web UI reads (e.g. demo: \"true\" for a demo project, an example with finished results). op create: create the project name (a SQL-backed research collection; latin letters, numbers, spaces and a few symbols). op delete: delete the project name with its data (needs delete permission). op size: the disk usage in bytes of the project's data folder.",
+				"The current user's projects. op list: the projects with their permissions (admin/canWrite/canDelete), disk quota and the properties the web UI reads (e.g. demo: \"true\" for a demo project, an example with finished results). op create: create the project name (a SQL-backed research collection; latin letters, numbers, spaces and a few symbols). op delete: delete the project name with its data (needs delete permission). op size: the disk usage in bytes of the project's data folder. The user may work in the BioUML web UI in a separate session at the same time, so projects can be created, renamed, shared or deleted outside this conversation and an earlier list may be out of date: when a project is not found, re-read the list with op list (it reloads the session's permissions) before concluding it does not exist.",
 				"{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\",\"description\":\"Project name\"}}}",
 				null,
 				McpToolCatalog.op( "list", "biouml_project_list" ),
