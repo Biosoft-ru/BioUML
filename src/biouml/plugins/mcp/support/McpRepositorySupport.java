@@ -54,7 +54,7 @@ public final class McpRepositorySupport
 					"path does not start with a registered repository root: " + rootName );
 		DataElement de = CollectionFactory.getDataElement( path );
 		if ( de == null )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no element at path: " + path );
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no element at path: " + path + McpProjectSupport.staleHint( path ) );
 		return McpEnvelope.ok( de );
 	}
 

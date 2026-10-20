@@ -106,9 +106,9 @@ public final class McpDiagramSupport
 			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "path must be a non-empty string" );
 		DataElement de = McpProviderSupport.resolveElement( path );
 		if ( de == null )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no diagram at path: " + path );
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no diagram at path: " + path + McpProjectSupport.staleHint( path ) );
 		if ( !( de instanceof Diagram ) )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no diagram at path: " + path );
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no diagram at path: " + path + McpProjectSupport.staleHint( path ) );
 		return McpEnvelope.ok( de );
 	}
 
@@ -128,10 +128,10 @@ public final class McpDiagramSupport
 		}
 		catch ( Exception e )
 		{
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no collection at path: " + path );
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no collection at path: " + path + McpProjectSupport.staleHint( path ) );
 		}
 		if ( parent == null )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no collection at path: " + path );
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no collection at path: " + path + McpProjectSupport.staleHint( path ) );
 		return McpEnvelope.ok( parent );
 	}
 

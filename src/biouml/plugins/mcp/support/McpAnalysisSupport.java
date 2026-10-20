@@ -983,7 +983,7 @@ public final class McpAnalysisSupport
 	{
 		DataElement de = CollectionFactory.getDataElement( resultPath );
 		if ( de == null )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no element at path: " + resultPath );
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no element at path: " + resultPath + McpProjectSupport.staleHint( resultPath ) );
 		AnalysisMethod method;
 		try
 		{
@@ -1056,7 +1056,7 @@ public final class McpAnalysisSupport
 	{
 		DataElement de = McpProviderSupport.resolveElement( path );
 		if ( de == null )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no element at path: " + path );
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no element at path: " + path + McpProjectSupport.staleHint( path ) );
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
 		m.put( "path", path );
 		if ( de instanceof TableDataCollection )

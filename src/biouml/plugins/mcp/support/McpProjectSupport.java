@@ -56,11 +56,32 @@ public final class McpProjectSupport
 	}
 
 	/**
+	 * Appended to a not-found error for a path inside the user projects folder: the user may change projects in a
+	 * web UI session at the same time, and an MCP session sees projects created or shared there only after
+	 * {@link #projects()} reloads its permissions.
+	 */
+	public static String staleHint( String path )
+	{
+		try
+		{
+			if ( path == null || !DataElementPath.create( path ).isDescendantOf( CollectionFactoryUtils.getUserProjectsPath() ) )
+				return "";
+		}
+		catch ( Exception e )
+		{
+			return "";
+		}
+		return " (projects may have been created, renamed or deleted in a parallel web UI session; re-read the project list with biouml_project op list, then browse it with biouml_repo_list)";
+	}
+
+	/**
 	 * List the current user's projects with their permissions and quota — the same data the web edition's
-	 * {@code getProjectsData} returns.
+	 * {@code getProjectsData} returns. Reloads the session's permissions first, so projects created, shared or
+	 * deleted in a parallel web UI session show up.
 	 */
 	public static McpEnvelope projects()
 	{
+		SecurityManager.reloadCurrentUserPermissions();
 		DataCollection parent;
 		try
 		{
@@ -217,7 +238,7 @@ public final class McpProjectSupport
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "cannot resolve the user projects path: " + e.getMessage() );
 		}
 		if ( !parent.contains( name ) )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "project '" + name + "' does not exist" );
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "project '" + name + "' does not exist" + staleHint( parent.getCompletePath().getChildPath( name ).toString() ) );
 		try
 		{
 			String error = SupportServlet.deleteProject( name, parent );
@@ -241,7 +262,7 @@ public final class McpProjectSupport
 			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "project name is required" );
 		DataCollection parent = userProjectsParent();
 		if ( !parent.contains( name ) )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "project '" + name + "' does not exist" );
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "project '" + name + "' does not exist" + staleHint( parent.getCompletePath().getChildPath( name ).toString() ) );
 		try
 		{
 			Object projectEl = parent.get( name );

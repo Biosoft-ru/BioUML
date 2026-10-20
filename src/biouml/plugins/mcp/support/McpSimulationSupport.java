@@ -50,7 +50,7 @@ public final class McpSimulationSupport
 		DataElement de = McpProviderSupport.resolveElement( path );
 		if ( de == null )
 			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND,
-					"no diagram at path: " + path + " — check that the path starts with a repository root (e.g. 'data/...') and that spaces are literal, not URL-encoded (%20)" );
+					"no diagram at path: " + path + " — check that the path starts with a repository root (e.g. 'data/...') and that spaces are literal, not URL-encoded (%20)" + McpProjectSupport.staleHint( path ) );
 		if ( !( de instanceof Diagram ) )
 			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no diagram at path: " + path );
 		Diagram diagram = (Diagram) de;

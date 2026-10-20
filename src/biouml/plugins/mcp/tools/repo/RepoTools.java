@@ -33,7 +33,7 @@ public final class RepoTools
 				( ex, args ) -> McpRepositorySupport.collections() );
 
 		catalog.register( "biouml_repo_list",
-				"List the children of a repository collection.",
+				"List the children of a repository collection. Project contents may change in a parallel web UI session; if an element under a project is missing, re-list it (and the projects with biouml_project op list) instead of relying on an earlier listing.",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "path" );
@@ -43,7 +43,7 @@ public final class RepoTools
 				} );
 
 		catalog.register( "biouml_repo_describe",
-				"Describe a repository element (name, class, child count, children).",
+				"Describe a repository element (name, class, child count, children). Project contents may change in a parallel web UI session; if an element under a project is missing, re-list it (and the projects with biouml_project op list) instead of relying on an earlier listing.",
 				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
 				( ex, args ) -> {
 					McpEnvelope v = McpArgs.requiredString( args, "path" );
