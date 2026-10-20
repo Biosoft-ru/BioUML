@@ -434,10 +434,23 @@ public class NextFlowPreprocessor
         return input;
     }
 
+    private static final Pattern SIMPLE_LITERAL_GLOB = Pattern.compile(
+            "^\\s*glob\\s*\\(\\s*(\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*')\\s*\\)\\s*$",
+            Pattern.DOTALL );
+
+    private static boolean isSimpleLiteralGlob(String expression)
+    {
+        return expression != null && SIMPLE_LITERAL_GLOB.matcher(expression).matches();
+    }
+
     public static String removeGlobs(String input)
     {
-        String regex = "glob\\((['\"])(.*?)\\1\\)";
-        return input.replaceAll( regex, "\"$2\"" );
+        if (input == null)
+            return null;
+        Matcher matcher = SIMPLE_LITERAL_GLOB.matcher(input);
+        // Only a whole, literal glob can be lowered into a Nextflow path pattern.
+        // Replacing inner glob() calls breaks e.g. glob(read_lines(glob(...)[0])).
+        return matcher.matches() ? matcher.group(1) : input;
     }
 
     public static String processPair(String pair)
@@ -908,7 +921,7 @@ public class NextFlowPreprocessor
         }
     }
     
-    private void wrapProcesses2(Diagram diagram) throws Exception
+    private void wrapProcesses(Diagram diagram) throws Exception
     {
         new OutputWrapperProcessor(allDiagrams).process(diagram);
     }
@@ -928,7 +941,7 @@ public class NextFlowPreprocessor
         }
     }
 
-    private void wrapProcesses(Diagram diagram) throws Exception
+    private void wrapProcesses2(Diagram diagram) throws Exception
     {
         for( Compartment c : WorkflowUtil.getAllCalls( diagram ) )
         {
@@ -1163,6 +1176,11 @@ public class NextFlowPreprocessor
             {
                 String expression = WorkflowUtil.getExpression( output );
                 if (expression == null)
+                    continue;
+                // GlobProcessor rewrites simple glob patterns into file patterns.
+                // Never run it on a compound expression: nested glob() calls
+                // must survive until the post-task OutputWrapperProcessor wrapper.
+                if (expression.contains("glob_wdl(") || (expression.contains("glob(") && !isSimpleLiteralGlob(expression)))
                     continue;
                 expression = new GlobProcessor().process( expression );
                 WorkflowUtil.setExpression( output, expression );
