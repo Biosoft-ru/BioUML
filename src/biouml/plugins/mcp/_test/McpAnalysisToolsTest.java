@@ -12,6 +12,7 @@ import biouml.plugins.mcp.McpConstants;
 import biouml.plugins.mcp.server.McpToolCatalog;
 import biouml.plugins.mcp.support.McpAnalysisSupport;
 import biouml.plugins.mcp.support.McpEnvelope;
+import biouml.plugins.mcp.support.McpProviderSupport;
 import biouml.plugins.mcp.tools.analysis.AnalysisTools;
 
 import ru.biosoft.access.LocalRepository;
@@ -540,6 +541,39 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		McpEnvelope rep = McpAnalysisSupport.repeatAnalysis( resultPath, true );
 		assertTrue( "repeat should be ok, got " + rep.getCode() + " " + rep.getError(), rep.isOk() );
 		assertNotNull( "repeat returns a result", rep.getData() );
+	}
+
+	/**
+	 * A task is its owner's: another user gets not_found from status (and no log) and does not see it in the list,
+	 * the owner sees it; each queued task captures its log from a logger of its own, not the shared default one.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testTasksAreIsolatedPerUser() throws Exception
+	{
+		McpEnvelope env = McpAnalysisSupport.runAnalysisAs( McpConstants.TASK_USER, McpTestAnalysis.NAME, params( 1 ), null, false );
+		assertTrue( env.isOk() );
+		String taskId = (String) ( (Map<String, Object>) env.getData() ).get( "taskId" );
+
+		McpEnvelope foreign = McpProviderSupport.withUserSession( "someone-else", () -> McpAnalysisSupport.taskStatus( taskId ) );
+		assertFalse( "another user's task is not readable", foreign.isOk() );
+		assertEquals( McpConstants.CODE_NOT_FOUND, foreign.getCode() );
+		McpEnvelope foreignList = McpProviderSupport.withUserSession( "someone-else", McpAnalysisSupport::listTasks );
+		assertFalse( "another user's task is not listed", listed( foreignList, taskId ) );
+		assertTrue( "the owner lists the task", listed( McpAnalysisSupport.listTasks(), taskId ) );
+
+		java.util.logging.Logger shared = java.util.logging.Logger.getLogger( ru.biosoft.analysiscore.AnalysisMethodSupport.class.getName() );
+		ru.biosoft.tasks.TaskInfo info = ru.biosoft.tasks.TaskManager.getInstance().getTask( taskId );
+		shared.info( "line from another analysis" );
+		assertFalse( "a task log does not capture the shared analysis logger",
+				String.valueOf( info.getLogInfo() ).contains( "line from another analysis" ) );
+	}
+
+	@SuppressWarnings( "unchecked" )
+	private static boolean listed( McpEnvelope list, String taskId )
+	{
+		assertTrue( "list tasks ok", list.isOk() );
+		List<Map<String, Object>> tasks = (List<Map<String, Object>>) ( (Map<String, Object>) list.getData() ).get( "tasks" );
+		return tasks.stream().anyMatch( t -> taskId.equals( t.get( "taskId" ) ) );
 	}
 
 	@SuppressWarnings( "unchecked" )

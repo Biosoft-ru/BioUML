@@ -115,7 +115,9 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 	{
 		// Queue the search as a background task: must return a taskId immediately (no long block).
 		long t0 = System.currentTimeMillis();
-		McpEnvelope async = McpRepositorySupport.searchAsync( "projects", "mcpdata" );
+		// as a logged-in user, as the servlet runs every request: a search task is visible to its owner only
+		McpEnvelope async = biouml.plugins.mcp.support.McpProviderSupport.withUserSession( biouml.plugins.mcp.McpConstants.TASK_USER,
+				() -> McpRepositorySupport.searchAsync( "projects", "mcpdata" ) );
 		data( async );
 		assertTrue( "searchAsync returns fast (no synchronous walk), took " + (System.currentTimeMillis() - t0) + "ms",
 				System.currentTimeMillis() - t0 < 5000 );
@@ -130,7 +132,8 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 		String status = null;
 		for ( int i = 0; i < 100; i++ )
 		{
-			McpEnvelope st = McpRepositorySupport.searchStatus( id );
+			McpEnvelope st = biouml.plugins.mcp.support.McpProviderSupport.withUserSession( biouml.plugins.mcp.McpConstants.TASK_USER,
+					() -> McpRepositorySupport.searchStatus( id ) );
 			data( st );
 			status = String.valueOf( ( (Map<String, Object>) st.getData() ).get( "status" ) );
 			if ( "done".equals( status ) )

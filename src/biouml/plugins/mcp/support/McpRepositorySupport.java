@@ -231,7 +231,7 @@ public final class McpRepositorySupport
 		if ( taskId == null || taskId.isEmpty() )
 			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "taskId must be a non-empty string" );
 		ru.biosoft.tasks.TaskInfo info = ru.biosoft.tasks.TaskManager.getInstance().getTask( taskId );
-		if ( info == null )
+		if ( info == null || !McpAnalysisSupport.ownsTask( info ) )
 			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no task named: " + taskId );
 		int status = info.getJobControl() == null ? -1 : info.getJobControl().getStatus();
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
