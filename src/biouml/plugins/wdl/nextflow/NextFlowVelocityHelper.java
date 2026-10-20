@@ -696,7 +696,7 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
 
     public String[] getMandatoryFunctions()
     {
-        return new String[] {"toChannel", "get", "getDefault", "combineAll", "mergeAll","saveOutputs", "noNull", "fileOrNull", "orNull", "pair", "range",
+        return new String[] {"optFile", "toChannel", "get", "getDefault", "combineAll", "mergeAll","saveOutputs", "noNull", "fileOrNull", "orNull", "pair", "range",
                 "stringify_wdl", "toArray", "sep_wdl", "collectScatterValues", "addValue", "addValues", "addScatter", "collectScatter", "createScatter", "calcInScatter", "condition", "addConditionalValue", "addConditionalValues", "contextValue"};
     }
     
