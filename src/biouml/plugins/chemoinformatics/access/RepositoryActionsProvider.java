@@ -26,6 +26,9 @@ public class RepositoryActionsProvider implements ActionsProvider, RepositoryLis
     public RepositoryActionsProvider()
     {
         actionManager = Application.getActionManager();
+        // no action manager on a server: the action opens a desktop document, so there is nothing to provide
+        if( actionManager == null )
+            return;
         Action action = new OpenStructuresAction();
         actionManager.addAction(OpenStructuresAction.KEY, action);
         new ActionInitializer(MessageBundle.class).initAction(action, OpenStructuresAction.KEY);
@@ -34,6 +37,8 @@ public class RepositoryActionsProvider implements ActionsProvider, RepositoryLis
     @Override
     public Action[] getActions(Object obj)
     {
+        if( actionManager == null )
+            return null;
         initListeners();
         if( ( obj instanceof DataCollection ) && Structure.class.isAssignableFrom( ( (DataCollection)obj ).getDataElementType()) )
         {
