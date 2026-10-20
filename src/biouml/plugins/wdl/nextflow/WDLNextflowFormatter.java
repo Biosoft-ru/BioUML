@@ -5,6 +5,7 @@ import java.util.Map;
 import biouml.plugins.wdl.parser.AstArray;
 import biouml.plugins.wdl.parser.AstConstructor;
 import biouml.plugins.wdl.parser.AstContainerElement;
+import biouml.plugins.wdl.parser.AstElse;
 import biouml.plugins.wdl.parser.AstExpression;
 import biouml.plugins.wdl.parser.AstFunction;
 import biouml.plugins.wdl.parser.AstKeyValue;
@@ -16,6 +17,7 @@ import biouml.plugins.wdl.parser.AstSubSymbol;
 import biouml.plugins.wdl.parser.AstSymbol;
 import biouml.plugins.wdl.parser.AstTernary;
 import biouml.plugins.wdl.parser.AstText;
+import biouml.plugins.wdl.parser.AstThen;
 import biouml.plugins.wdl.parser.ExpressionFormatter;
 import biouml.plugins.wdl.parser.Node;
 import biouml.plugins.wdl.parser.SimpleNode;
@@ -71,6 +73,14 @@ public class WDLNextflowFormatter extends ExpressionFormatter
                 processNode( child );
             }
         }
+        else if (node instanceof AstThen)
+        {
+            
+        }
+        else if (node instanceof AstElse)
+        {
+            result.append( ":" );
+        }
         else if (node instanceof SimpleNode)
         {
             result.append( node.toString() );
@@ -83,9 +93,9 @@ public class WDLNextflowFormatter extends ExpressionFormatter
 
     private void processTernary(AstTernary ternary)
     {
-        result.append( "if (" );
+        result.append( "(" );
         result.append( ternary.getChildren()[0] );
-        result.append( ")" );
+        result.append( ")?" );
         for( int i = 1; i < ternary.getChildren().length; i++ )
         {
             result.append( " " );
