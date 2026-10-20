@@ -526,7 +526,6 @@ public final class McpAnalysisSupport
 		try
 		{
 			TaskManager tm = TaskManager.getInstance();
-			method.setLogger( taskLogger() );
 			TaskInfo info = tm.addAnalysisTask( method, true );
 			Map<String, Object> result = new LinkedHashMap<String, Object>();
 			result.put( "taskId", info.getName() );
@@ -701,16 +700,6 @@ public final class McpAnalysisSupport
 	}
 
 	// ---------------------------------------------------------------- status / cancel / list tasks
-
-	/**
-	 * A logger of its own for a queued analysis. By default every analysis logs to one shared logger, and a task
-	 * captures its log by listening to its method's logger, so concurrent tasks (of any user) would read each
-	 * other's lines. The web UI gives each run its job's logger the same way; the records still reach the server log.
-	 */
-	private static java.util.logging.Logger taskLogger()
-	{
-		return java.util.logging.Logger.getLogger( "biouml.plugins.mcp.task." + java.util.UUID.randomUUID() );
-	}
 
 	/** Whether the task belongs to the session user (the {@code tasks} provider's rule). */
 	static boolean ownsTask( TaskInfo info )
@@ -1035,7 +1024,6 @@ public final class McpAnalysisSupport
 		}
 		try
 		{
-			support.setLogger( taskLogger() );
 			TaskInfo info = TaskManager.getInstance().addAnalysisTask( support, true );
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "taskId", info.getName() );
