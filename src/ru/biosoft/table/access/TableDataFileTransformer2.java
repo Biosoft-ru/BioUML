@@ -37,6 +37,7 @@ public class TableDataFileTransformer2 extends AbstractFileTransformer<StandardT
     public static final String ID_TAG = "ID";
     public static final String DESCRIPTION_TAG = "DESCRIPTION";
     public static final String COLUMNS_TAG = "COLUMNS";
+    public static final String ID_PRESENT_PROPERTY = "isIDColumnPresent";
 
     @Override
     public Class<? extends StandardTableDataCollection> getOutputType()
@@ -47,20 +48,17 @@ public class TableDataFileTransformer2 extends AbstractFileTransformer<StandardT
     @Override
     public void save(File output, StandardTableDataCollection tdc) throws Exception
     {
-        //        // TODO Auto-generated method stub
-        //        
-        //    }
-        //    
-        //    @Override
-        //    public FileDataElement transformOutput(StandardTableDataCollection tdc) throws Exception
-        //    {
-        //FileDataElement fde = new FileDataElement(tdc.getName(), getPrimaryCollection().cast( FileBasedCollection.class ));
+        boolean isIdColumnPresent = Boolean.valueOf( tdc.getInfo().getProperty( ID_PRESENT_PROPERTY ) );
         try (Writer fw = new OutputStreamWriter( new FileOutputStream( output ), StandardCharsets.UTF_8 ))
         {
+            if( isIdColumnPresent )
+                fw.write( "ID\t" );
             fw.write( tdc.columns().map( TableColumn::getName ).joining( "\t" ) );
             fw.write( "\n" );
             for( RowDataElement row : tdc )
             {
+                if( isIdColumnPresent )
+                    fw.write( row.getName() + "\t" );
                 fw.write( StreamEx.of( row.getValues() ).prepend( row.getName() ).joining( "\t" ) );
                 fw.write( "\n" );
             }
@@ -69,27 +67,18 @@ public class TableDataFileTransformer2 extends AbstractFileTransformer<StandardT
         {
             log.log(Level.SEVERE, "Can not transform Entry to FileDataElement", t);
         }
-
-        //        return fde;
     }
 
-    //    @Override
-    //    public StandardTableDataCollection load(File input, String name, DataCollection<StandardTableDataCollection> origin) throws Exception
-    //    {
-    //        // TODO Auto-generated method stub
-    //        return null;
-    //    }
-
     @Override
-    //    public StandardTableDataCollection transformInput(FileDataElement fileElement) throws Exception
-    //    {
     public StandardTableDataCollection load(File input, String name, DataCollection<StandardTableDataCollection> origin) throws Exception
     {
         StandardTableDataCollection table = new StandardTableDataCollection( getTransformedCollection(), name );
+        int idColumnIndex = -1;
         try (BufferedReader br = ApplicationUtils.utfReader( input ))
         {
             String line;
-            boolean columnCreated = parseInfoFile( input, table );
+            idColumnIndex = parseInfoFile( input, table );
+            boolean columnCreated = idColumnIndex > -2;
             int uniqueID = 0;
             DataType[] columnTypes = null;
             while( ( line = br.readLine() ) != null )
@@ -105,12 +94,12 @@ public class TableDataFileTransformer2 extends AbstractFileTransformer<StandardT
                     {
                         columnTypes = new DataType[table.getColumnModel().getColumnCount()];
                     }
-                    parseValuesLine(line, table, uniqueID, columnTypes);
+                    parseValuesLine( line, table, uniqueID, idColumnIndex, columnTypes );
                     uniqueID++;
                 }
                 else
                 {
-                    parseColumns(line, table);
+                    idColumnIndex = parseColumns( line, table );
                     columnCreated = true;
                 }
             }
@@ -120,38 +109,56 @@ public class TableDataFileTransformer2 extends AbstractFileTransformer<StandardT
         {
             log.log(Level.SEVERE, "Can not transform FileDataElement to TableDataCollection", t);
         }
+        if( idColumnIndex > -1 )
+        {
+            table.getInfo().getProperties().setProperty( ID_PRESENT_PROPERTY, "true" );
+        }
         return table;
     }
 
-    protected void parseColumns(String line, TableDataCollection table) throws Exception
+    protected int parseColumns(String line, TableDataCollection table) throws Exception
     {
         StringTokenizer tokenizer = new StringTokenizer(line, "\t");
+        int i = 0;
+        int idColumnIndex = -1;
         while( tokenizer.hasMoreTokens() )
         {
             String columnName = tokenizer.nextToken().trim();
-            table.getColumnModel().addColumn(columnName, String.class);
+            //Do not add first ID column as regular column of the table. It will be automatically added to table. 
+            //Values parsing in parseValuesLine will take first row value as ID if number of values is less than number of columns.
+            //If column with ID is not the first, rename it since ID is reserved name. 
+            if( columnName.equals( "ID" ) )
+            {
+                idColumnIndex = i;
+            }
+            else
+                table.getColumnModel().addColumn( columnName, String.class );
+            i++;
         }
+        return idColumnIndex;
     }
 
-    protected void parseValuesLine(String line, TableDataCollection table, int uniqueIndex, DataType[] columnTypes)
+    protected void parseValuesLine(String line, TableDataCollection table, int uniqueIndex, int idColumnIndex, DataType[] columnTypes)
     {
         String key = null;
         StringTokenizer tokenizer = new StringTokenizer(line, "\t");
-        int tokenCount = tokenizer.countTokens();
+        //int tokenCount = tokenizer.countTokens();
         int delta = 0;
-        if( tokenCount == table.getColumnModel().getColumnCount() )
+        if( idColumnIndex < 0 )
         {
             key = String.valueOf(uniqueIndex);
         }
-        else
-        {
-            key = tokenizer.nextToken();
-            delta = 1;
-        }
         Object[] values = new Object[table.getColumnModel().getColumnCount()];
-        int i = delta;
+        int i = 0;
         while( tokenizer.hasMoreTokens() )
         {
+            if( idColumnIndex > -1 && i == idColumnIndex )
+            {
+                key = tokenizer.nextToken().trim();
+                delta = 1;
+                i++;
+                continue;
+            }
             String columnStrValue = tokenizer.nextToken().trim();
             if( !columnStrValue.equals("NA") )
             {
@@ -199,6 +206,7 @@ public class TableDataFileTransformer2 extends AbstractFileTransformer<StandardT
                     columnValue = columnStrValue;
                 }
                 values[i - delta] = columnValue;
+                i++;
             }
         }
         TableDataCollectionUtils.addRow(table, key, values);
@@ -225,9 +233,15 @@ public class TableDataFileTransformer2 extends AbstractFileTransformer<StandardT
         return DataType.Text;
     }
 
-    protected boolean parseInfoFile(File file, TableDataCollection table) throws Exception
+    /**
+     *  Return -2 if no file found
+     *  Return -1 if file found, parsed, but ID line was not present
+     *  Return 0 if ID line is present in file. Then it's considered that ID is first column. 
+     */
+    protected int parseInfoFile(File file, TableDataCollection table) throws Exception
     {
         boolean columnCreated = false;
+        int idColIndex = -1;
         File infoFile = new File( file.getAbsolutePath() + ".info" );
         if( infoFile.exists() )
         {
@@ -236,6 +250,7 @@ public class TableDataFileTransformer2 extends AbstractFileTransformer<StandardT
                 br.read(new char[1]); //read first symbol in UTF-8 file
                 String line = null;
                 String currentTag = null;
+
                 StringBuffer currentValue = new StringBuffer();
                 while( ( line = br.readLine() ) != null )
                 {
@@ -256,6 +271,10 @@ public class TableDataFileTransformer2 extends AbstractFileTransformer<StandardT
                         if( COLUMNS_TAG.equals(possibleTag) )
                         {
                             columnCreated = true;
+                        }
+                        if( ID_TAG.equals( possibleTag ) )
+                        {
+                            idColIndex = 0;
                         }
                         if( currentTag != null )
                         {
@@ -283,7 +302,7 @@ public class TableDataFileTransformer2 extends AbstractFileTransformer<StandardT
                 }
             }
         }
-        return columnCreated;
+        return columnCreated ? idColIndex : -2;
     }
 
     protected void parseTagValue(String tag, StringBuffer value, TableDataCollection table) throws Exception

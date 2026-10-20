@@ -7,6 +7,7 @@ import javax.annotation.Nonnull;
 import javax.swing.Action;
 
 import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.DataElementImporterRegistry;
@@ -23,6 +24,7 @@ import biouml.workbench.module.RemoveModuleAction;
 import biouml.workbench.module.xml.EditModuleAction;
 import biouml.workbench.module.xml.NewCompositeModuleAction;
 import biouml.workbench.module.xml.XmlModule;
+import biouml.workbench.project.RemoveProjectAction;
 
 import com.developmentontheedge.application.Application;
 import com.developmentontheedge.application.action.ActionManager;
@@ -63,6 +65,12 @@ public class RepositoryActionsProvider implements ActionsProvider
         {
             actions.add(actionManager.getAction(NewModuleAction.KEY));
             actions.add(actionManager.getAction(NewCompositeModuleAction.KEY));
+        }
+        else if( de.getOrigin().getCompletePath().equals( CollectionFactoryUtils.getUserProjectsPath() ) )
+        {
+            Action removeProjectAction = actionManager.getAction( RemoveProjectAction.KEY );
+            removeProjectAction.putValue( RemoveProjectAction.PROJECT, de );
+            actions.add( removeProjectAction );
         }
         else if( de instanceof Module ) // Module actions
         {

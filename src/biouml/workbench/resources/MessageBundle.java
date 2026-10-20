@@ -32,6 +32,7 @@ import biouml.workbench.module.NewModuleAction;
 import biouml.workbench.module.RemoveModuleAction;
 import biouml.workbench.module.xml.EditModuleAction;
 import biouml.workbench.module.xml.NewCompositeModuleAction;
+import biouml.workbench.project.RemoveProjectAction;
 import ru.biosoft.access.security.LoginAction;
 import ru.biosoft.access.security.LogoutAction;
 import ru.biosoft.access.security.RegisterAction;
@@ -425,6 +426,13 @@ public class MessageBundle extends ListResourceBundle
             {EditModuleAction.KEY + Action.SHORT_DESCRIPTION, "Edit database"},
             {EditModuleAction.KEY + Action.LONG_DESCRIPTION, "Edit database properties"},
             {EditModuleAction.KEY + Action.ACTION_COMMAND_KEY, "cmd-database-edit"},
+            
+            
+            // Remove project action
+            {RemoveProjectAction.KEY + Action.SMALL_ICON, "removeModule.gif"},
+            {RemoveProjectAction.KEY + Action.NAME, "Remove project"},
+            {RemoveProjectAction.KEY + Action.SHORT_DESCRIPTION, "Remove project"},
+            {RemoveProjectAction.KEY + Action.LONG_DESCRIPTION, "Remove project"},
 
             ////////////////////////////////////////////////////////////////////////
             // Clipboard
