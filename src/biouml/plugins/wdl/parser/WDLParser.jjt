@@ -95,7 +95,12 @@ TOKEN : /* STATE SWITCHERS */
 }
 < BASH_STRING > TOKEN:
 {
-< START : < BRACE_L > > {braceLevel+=1;}
+// Quoted strings are opaque: braces inside them do not affect braceLevel.
+< BASH_QUOTED :
+    "\"" ( "\\" ~[] | ~["\"", "\\", "\n", "\r"] )* "\""
+  | "'" ( "\\" ~[] | ~["'", "\\", "\n", "\r"] )* "'"
+>
+| < START : < BRACE_L > > {braceLevel+=1;}
 | < COMMAND_END:  < BRACE_R > > 
 {
 	braceLevel-=1;
@@ -110,7 +115,7 @@ TOKEN : /* STATE SWITCHERS */
     isHeredoc = false;
     braceLevel = 0;
 } : DEFAULT
-| < ANY : (~["{", "}", ">"])+ | ">" | ">>" >
+| < ANY : (~["{", "}", ">", "\"", "'"])+ | ">" | ">>" | "\"" | "'" >
 }
  TOKEN : /* RESERVED WORDS */
 {
@@ -477,7 +482,7 @@ void command() #Command:
     (
         (
             ((< COMMAND_HEREDOC_START > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
-            (((< ANY > | < START > | < COMMAND_END > {jjtThis.setElement(token.image);}) #RegularFormulaElement)* #BashString)
+            (((< ANY > | < BASH_QUOTED > | < START > | < COMMAND_END > {jjtThis.setElement(token.image);}) #RegularFormulaElement)* #BashString)
             ((< COMMAND_HEREDOC_END > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
         )
         |
@@ -492,7 +497,7 @@ void bashString():
 {}
 {
 	placeholder() 
-	| ((< ANY > {jjtThis.setElement(token.image);}) #RegularFormulaElement)
+	| (((< ANY > | < BASH_QUOTED >) {jjtThis.setElement(token.image);}) #RegularFormulaElement)
 
 }
 void placeholder():

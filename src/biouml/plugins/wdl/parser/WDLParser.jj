@@ -99,7 +99,12 @@ TOKEN : /* STATE SWITCHERS */
 }
 < BASH_STRING > TOKEN:
 {
-< START : < BRACE_L > > {braceLevel+=1;}
+// Quoted strings are opaque: braces inside them do not affect braceLevel.
+< BASH_QUOTED :
+    "\"" ( "\\" ~[] | ~["\"", "\\", "\n", "\r"] )* "\""
+  | "'" ( "\\" ~[] | ~["'", "\\", "\n", "\r"] )* "'"
+>
+| < START : < BRACE_L > > {braceLevel+=1;}
 | < COMMAND_END:  < BRACE_R > > 
 {
 	braceLevel-=1;
@@ -114,7 +119,7 @@ TOKEN : /* STATE SWITCHERS */
     isHeredoc = false;
     braceLevel = 0;
 } : DEFAULT
-| < ANY : (~["{", "}", ">"])+ | ">" | ">>" >
+| < ANY : (~["{", "}", ">", "\"", "'"])+ | ">" | ">>" | "\"" | "'" >
 }
  TOKEN : /* RESERVED WORDS */
 {
@@ -1361,12 +1366,12 @@ void command()         :
                 jjtn002.jjtSetFirstToken(getToken(1));
               }
               try {
-/*@egen*/(< ANY > | < START > | < COMMAND_END >/*@bgen(jjtree)*/
-                                                     {
-                                                       jjtree.closeNodeScope(jjtn002, true);
-                                                       jjtc002 = false;
-                                                       jjtn002.jjtSetLastToken(getToken(0));
-                                                     }
+/*@egen*/(< ANY > | < BASH_QUOTED > | < START > | < COMMAND_END >/*@bgen(jjtree)*/
+                                                                       {
+                                                                         jjtree.closeNodeScope(jjtn002, true);
+                                                                         jjtc002 = false;
+                                                                         jjtn002.jjtSetLastToken(getToken(0));
+                                                                       }
 /*@egen*/ {jjtn002.setElement(token.image);})/*@bgen(jjtree)*/
               } finally {
                 if (jjtc002) {
@@ -1517,12 +1522,12 @@ void bashString():
              jjtn001.jjtSetFirstToken(getToken(1));
            }
            try {
-/*@egen*/(< ANY >/*@bgen(jjtree)*/
-                    {
-                      jjtree.closeNodeScope(jjtn001, true);
-                      jjtc001 = false;
-                      jjtn001.jjtSetLastToken(getToken(0));
-                    }
+/*@egen*/((< ANY > | < BASH_QUOTED >)/*@bgen(jjtree)*/
+                                        {
+                                          jjtree.closeNodeScope(jjtn001, true);
+                                          jjtc001 = false;
+                                          jjtn001.jjtSetLastToken(getToken(0));
+                                        }
 /*@egen*/ {jjtn001.setElement(token.image);})/*@bgen(jjtree)*/
            } finally {
              if (jjtc001) {
