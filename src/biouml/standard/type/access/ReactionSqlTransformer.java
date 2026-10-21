@@ -45,8 +45,9 @@ public class ReactionSqlTransformer extends ReferrerSqlTransformer<Reaction>
         Reaction reaction = new Reaction(owner, resultSet.getString(1));
 
         // Reaction specific fields
-        reaction.setFast        ( resultSet.getBoolean(6) );
-        reaction.setReversible  ( resultSet.getBoolean(7) );
+        // the columns are enum('yes','no'), which Connector/J 8 refuses to read with getBoolean
+        reaction.setFast        ( yesNoToBoolean(resultSet.getString(6)) );
+        reaction.setReversible  ( yesNoToBoolean(resultSet.getString(7)) );
 
         KineticLaw kineticLaw = new KineticLaw(reaction);
         reaction.setKineticLaw(kineticLaw);
@@ -105,8 +106,8 @@ public class ReactionSqlTransformer extends ReferrerSqlTransformer<Reaction>
     protected String[] getSpecificValues(Reaction reaction)
     {
         if( reaction.getKineticLaw() == null )
-            return new String[] { "" + reaction.isFast(),
-                                  "" + reaction.isReversible()};
+            return new String[] { booleanToYesNo(reaction.isFast()),
+                                  booleanToYesNo(reaction.isReversible())};
         KineticLaw law = reaction.getKineticLaw();
         return new String[] { "" + booleanToYesNo(reaction.isFast()),
                               "" + booleanToYesNo(reaction.isReversible()),
@@ -124,6 +125,14 @@ public class ReactionSqlTransformer extends ReferrerSqlTransformer<Reaction>
             return "yes";
         }
         return "no";
+    }
+
+    private static boolean yesNoToBoolean(String value)
+    {
+        if( value == null )
+            return false;
+        value = value.trim();
+        return value.equalsIgnoreCase("yes") || value.equalsIgnoreCase("y") || value.equalsIgnoreCase("true") || value.equals("1");
     }
 
     ///////////////////////////////////////////////////////////////////////////
