@@ -214,7 +214,7 @@ public final class McpDiagramEditSupport
 	 *
 	 * @return null on success, otherwise the error envelope to return
 	 */
-	private static McpEnvelope runEdit( String diagramPath, Diagram diagram, JobControl jc, boolean save, String what )
+	static McpEnvelope runEdit( String diagramPath, Diagram diagram, JobControl jc, boolean save, String what )
 	{
 		String[] error = new String[ 1 ];
 		jc.addListener( new JobControlListenerAdapter()
@@ -259,7 +259,7 @@ public final class McpDiagramEditSupport
 	 * Drop an edited diagram from the caches, the server session's working copy included: the next access
 	 * re-reads the saved version.
 	 */
-	private static void discard( String diagramPath, Diagram diagram )
+	static void discard( String diagramPath, Diagram diagram )
 	{
 		List<DataElementPath> paths = new ArrayList<DataElementPath>();
 		if ( diagram.getOrigin() != null )

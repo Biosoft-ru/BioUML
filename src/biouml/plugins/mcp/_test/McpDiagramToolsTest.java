@@ -373,6 +373,45 @@ public class McpDiagramToolsTest extends AbstractBioUMLTest
 		assertTrue( "diagram_node_types registered", names.contains( "biouml_diagram_node_types" ) );
 	}
 
+	/** An unknown diagram type is refused instead of silently making a math diagram. */
+	public void testCreateUnknownTypeRefused()
+	{
+		McpEnvelope env = McpDiagramSupport.create( "mcpg/diagrams", "dx", "NoSuchDiagramType" );
+		assertFalse( "unknown type refused", env.isOk() );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, env.getCode() );
+		assertTrue( "error names the type, got " + env.getError(), env.getError().contains( "NoSuchDiagramType" ) );
+		McpEnvelope math = McpDiagramSupport.create( "mcpg/diagrams", "dm", "MATH" );
+		assertTrue( "type is case-insensitive, got " + math.getError(), math.isOk() );
+	}
+
+	/** biouml_diagram_action lists the diagram's actions and refuses an action it does not know. */
+	public void testDiagramActionTool() throws Exception
+	{
+		McpToolCatalog catalog = new McpToolCatalog();
+		DiagramTools.registerAll( catalog );
+		biouml.plugins.mcp.tools.diagram.DiagramEditTools.registerAll( catalog );
+		assertTrue( "ops resolve: " + catalog.unresolvedOps(), catalog.unresolvedOps().isEmpty() );
+		McpToolCatalog.Tool tool = catalog.find( "biouml_diagram_action" );
+		assertNotNull( "biouml_diagram_action registered", tool );
+
+		Map<String, Object> args = new java.util.HashMap<String, Object>();
+		args.put( "op", "list" );
+		args.put( "diagramPath", diagramPath );
+		McpEnvelope listed = tool.handler.handle( null, args );
+		assertTrue( "list ok, got " + listed.getError(), listed.isOk() );
+		assertTrue( "actions listed", ( (Map<String, Object>) listed.getData() ).get( "actions" ) instanceof List );
+
+		args.put( "op", "run" );
+		args.put( "action", "No such action" );
+		McpEnvelope run = tool.handler.handle( null, args );
+		assertFalse( "unknown action refused", run.isOk() );
+		assertEquals( McpConstants.CODE_NOT_FOUND, run.getCode() );
+
+		args.put( "diagramPath", "mcpg/diagrams/missing" );
+		McpEnvelope missing = tool.handler.handle( null, args );
+		assertEquals( McpConstants.CODE_NOT_FOUND, missing.getCode() );
+	}
+
 	public void testEnvelopeShape()
 	{
 		McpEnvelope env = McpDiagramSupport.create( "mcpg/doesnotexist", "x", "math" );

@@ -2,6 +2,7 @@ package biouml.plugins.mcp.tools.diagram;
 
 import biouml.plugins.mcp.server.McpToolCatalog;
 import biouml.plugins.mcp.support.McpArgs;
+import biouml.plugins.mcp.support.McpDiagramActionSupport;
 import biouml.plugins.mcp.support.McpDiagramEditSupport;
 import biouml.plugins.mcp.support.McpEnvelope;
 
@@ -193,5 +194,37 @@ public final class DiagramEditTools
 				null,
 				McpToolCatalog.op( "clone", "biouml_diagram_clone_node" ),
 				McpToolCatalog.op( "merge", "biouml_diagram_merge_clone", "node>clone" ) );
+
+		catalog.registerHidden( "biouml_diagram_list_actions",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"}},\"required\":[\"diagramPath\"]}",
+				( ex, args ) -> {
+					McpEnvelope v = McpArgs.requiredString( args, "diagramPath" );
+					if ( v != null )
+						return v;
+					return McpDiagramActionSupport.list( McpArgs.str( args, "diagramPath" ) );
+				} );
+
+		catalog.registerHidden( "biouml_diagram_run_action",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"action\":{\"type\":\"string\"},\"elements\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"properties\":{\"type\":\"object\"}},\"required\":[\"diagramPath\",\"action\"]}",
+				( ex, args ) -> {
+					McpEnvelope v = McpArgs.requiredString( args, "diagramPath" );
+					if ( v != null )
+						return v;
+					McpEnvelope va = McpArgs.requiredString( args, "action" );
+					if ( va != null )
+						return va;
+					McpEnvelope ve = McpArgs.stringArray( args, "elements" );
+					if ( ve != null )
+						return ve;
+					return McpDiagramActionSupport.run( McpArgs.str( args, "diagramPath" ), McpArgs.str( args, "action" ),
+							McpArgs.strArray( args, "elements" ), McpArgs.stringMap( args, "properties" ) );
+				} );
+
+		catalog.registerOps( "biouml_diagram_action",
+				"The diagram's own toolbar actions — the buttons the web UI shows for an open diagram, which plugins add for their diagram types, e.g. on a Genome Enhancer annotation diagram 'Experiment control template' (an Experiment and a Control category), 'One category', 'Multiple category template' (numRow x numCol categories), 'Logical category template'. op list: the actions of the diagram diagramPath that the current perspective allows, each with its name, description, the selection it needs and its properties with their defaults (what its dialog asks for). op run: run the action named action on diagramPath as the web UI does; elements are the selected elements (names or paths such as 'Experiment', when the action needs a selection); properties is an object {name: value} of the action's properties (the others keep their defaults). The diagram is saved; returns {action, added[{id, path, name, kind, x, y, nodeType}], removed[ids]}. If the action fails, the diagram is re-read from its last saved version.",
+				"{\"type\":\"object\",\"properties\":{\"diagramPath\":{\"type\":\"string\"},\"action\":{\"type\":\"string\"},\"elements\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"properties\":{\"type\":\"object\"}},\"required\":[\"diagramPath\"]}",
+				null,
+				McpToolCatalog.op( "list", "biouml_diagram_list_actions" ),
+				McpToolCatalog.op( "run", "biouml_diagram_run_action" ) );
 	}
 }
