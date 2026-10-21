@@ -33,7 +33,7 @@ public class TestUtil
 {
     public static final String TEST_OK = "Ok";
     public static final String TEST_FAILED_OK = "Ok (Failed)";
-    
+
     public static Diagram generateDiagram(String name, String wdl) throws Exception
     {
         WDLImporter importer = new WDLImporter();
@@ -91,7 +91,7 @@ public class TestUtil
         return generateDiagram( name, loadWDL( name ) );
 
     }
-    
+
     public static Diagram loadDiagramCWL(String name) throws Exception
     {
         URL url = TestWDL.class.getResource( "../test_examples/cwl/" + name + ".cwl" );
@@ -150,37 +150,21 @@ public class TestUtil
             return error.isEmpty() && checked;
         }
 
+        @Override
         public void run()
         {
-            BufferedReader input = new BufferedReader( new InputStreamReader( process.getInputStream() ) );
-            try
+            try (BufferedReader input = new BufferedReader( new InputStreamReader( process.getInputStream() ) ))
             {
                 checked = resultChecker.check( input );
                 error = StreamEx.of( resultChecker.getErrors() ).joining( "\n" );
+
+                // Важно: check() должен дочитывать поток до EOF.
             }
             catch( IOException e )
             {
+                error = e.toString();
                 e.printStackTrace();
             }
-            //                
-            //for some reason cwl-runner outputs everything into error stream
-            BufferedReader err = new BufferedReader( new InputStreamReader( process.getErrorStream() ) );
-            String line = null;
-
-            try
-            {
-                StringWriter sw = new StringWriter();
-                err.transferTo( sw );
-                error = error + sw.getBuffer().toString();
-
-                while( ( line = err.readLine() ) != null )
-                    System.out.println( line );
-            }
-            catch( IOException e )
-            {
-                e.printStackTrace();
-            }
-
         }
     }
 
@@ -214,16 +198,21 @@ public class TestUtil
 
     private static class WDLValidationResultChecker extends ResultChecker
     {
+        @Override
         public boolean check(BufferedReader input) throws IOException
         {
-            String line = null;
+            boolean success = false;
+            String line;
+
             while( ( line = input.readLine() ) != null )
             {
                 System.out.println( line );
+
                 if( line.startsWith( "Success" ) )
-                    return true;
+                    success = true;
             }
-            return false;
+
+            return success;
         }
     }
 
@@ -271,16 +260,116 @@ public class TestUtil
     }
 
 
+    public static String execute2(String c) throws Exception
+    {
+        //        String[] command = new String[] {"java", "-jar", womtoolPath, "validate", wdlPath};
+        //        String c = "wsl /home/damag/.local/bin/miniwdl check /mnt/c/Users/Damag/wdl/dockstore/new3/downloads/GEMSTONE_Isolates_Illumina_PE_v1.0.4_6877a9/workflows/gemstone/wf_gemstone_isolates.wdl --suppress CommandShellCheck";
+        Process process = Runtime.getRuntime().exec( c );
+        CommandRunner r = new CommandRunner( process, new MiniWDLValidationResultChecker() );
+        System.out.println( "VALIDATING: " + c );
+
+        Thread thread = new Thread( r );
+        thread.start();
+
+        int exitCode = process.waitFor();
+        thread.join();
+
+        if( exitCode == 0 && r.isSuccess() )
+            return TEST_OK;
+
+        return r.getError();
+    }
+
+    public static String execute(String c) throws Exception
+    {
+        Process process = Runtime.getRuntime().exec( c );
+
+        CommandRunner r = new CommandRunner( process, new MiniWDLValidationResultChecker() );
+
+        System.out.println( "VALIDATING: " + c );
+
+        StringBuilder stderr = new StringBuilder();
+
+        Thread stdoutThread = new Thread( r );
+
+        Thread stderrThread = new Thread( () -> {
+            try (BufferedReader reader = new BufferedReader( new InputStreamReader( process.getErrorStream() ) ))
+            {
+                String line;
+                while( ( line = reader.readLine() ) != null )
+                {
+                    System.err.println( line );
+
+                    synchronized( stderr )
+                    {
+                        stderr.append( line ).append( "\n" );
+                    }
+                }
+            }
+            catch( IOException e )
+            {
+                synchronized( stderr )
+                {
+                    stderr.append( e.toString() );
+                }
+            }
+        } );
+
+        stdoutThread.start();
+        stderrThread.start();
+
+        int exitCode = process.waitFor();
+
+        stdoutThread.join();
+        stderrThread.join();
+
+        if( exitCode == 0 && r.isSuccess() )
+            return TEST_OK;
+
+        String error = r.getError();
+
+        if( stderr.length() > 0 )
+            error += "\n" + stderr;
+
+        if( error.trim().isEmpty() )
+            error = "Validation failed with exit code " + exitCode;
+
+        return error;
+    }
+
+    private static class MiniWDLValidationResultChecker extends ResultChecker
+    {
+        @Override
+        public boolean check(BufferedReader input) throws IOException
+        {
+            String line;
+
+            while( ( line = input.readLine() ) != null )
+            {
+                System.out.println( line );
+            }
+
+            return true;
+        }
+    }
+
     public static String validateWDL(String wdlPath, String womtoolPath) throws Exception
     {
         String[] command = new String[] {"java", "-jar", womtoolPath, "validate", wdlPath};
-        Process process = Runtime.getRuntime().exec( command );
+        Process process = new ProcessBuilder( command ).redirectErrorStream( true ).start();
         CommandRunner r = new CommandRunner( process, new WDLValidationResultChecker() );
+
+        System.out.println( "VALIDATING: " + StreamEx.of( command ).joining( " " ) );
+
         Thread thread = new Thread( r );
         thread.start();
-        process.waitFor();
-        if( r.isSuccess() )
+
+        int exitCode = process.waitFor();
+        thread.join();
+
+        if( exitCode == 0 && r.isSuccess() )
             return TEST_OK;
+
         return r.getError();
     }
 }

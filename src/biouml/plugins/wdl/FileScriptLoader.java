@@ -15,52 +15,68 @@ import biouml.plugins.wdl.nextflow.NextFlowImporter;
 
 public class FileScriptLoader extends ScriptLoader
 {
-    public File rootdDir;
+    public String rootDir;
+    private boolean webBased = false;
 
     public FileScriptLoader(String type, File rootDir)
     {
-        super(type);
-        this.rootdDir = rootDir;
+        this( type, rootDir.getAbsolutePath(), false );
+    }
+    
+    public FileScriptLoader(String type, String rootDir, boolean webBased)
+    {
+        super( type );
+        this.rootDir = rootDir;
+        this.webBased = webBased;
     }
 
     @Override
     public ScriptInfo loadScript(String path) throws Exception
     {
-        if (path.contains( "https://" ))
+        if( path.contains( "https://" ) )
         {
-           String script = downloadText(path);
-           return readScript( path, script, rootdDir );
+            String script = downloadText( path );
+            String newRoot = path.substring( 0, path.lastIndexOf( "/" ) );
+            return readScript( path, script, newRoot, true );
         }
-        Path rootPath = rootdDir.toPath();
-        Path resultPath = rootPath.resolve( Path.of( path ) );
-        File resultFile = resultPath.toFile();
-        String script = ApplicationUtils.readAsString( resultFile );
-        String name = resultFile.getName();
-        name = name.substring( 0, name.lastIndexOf( ".wdl" ) );
-        ScriptInfo importedScript = this.readScript( name, script, resultFile.getParentFile() );
-        return importedScript;
+        else if( webBased )
+        {
+            String url = rootDir + "/" + path;
+            String script = downloadText( url );
+            return readScript( path, script, rootDir, true );
+        }
+        else
+        {
+            Path rootPath = Path.of( rootDir );
+            Path resultPath = rootPath.resolve( Path.of( path ) );
+            File resultFile = resultPath.toFile();
+            String script = ApplicationUtils.readAsString( resultFile );
+            String name = resultFile.getName();
+            name = name.substring( 0, name.lastIndexOf( ".wdl" ) );
+            return readScript( name, script, resultFile.getParentFile().getAbsolutePath(), false );
+        }
     }
-    
-    protected ScriptInfo readScript(String name, String script, File newRoot) throws Exception
+
+    protected ScriptInfo readScript(String name, String script, String newRoot, boolean webBased) throws Exception
     {
-        switch (type)
+        switch( type )
         {
             case WDL_TYPE:
             {
                 WDLImporter importer = new WDLImporter();
-                importer.setScriptLoader( new FileScriptLoader( WDL_TYPE, newRoot ) );
+                importer.setScriptLoader( new FileScriptLoader( WDL_TYPE, newRoot, webBased ) );
                 return importer.readScript( name, script );
             }
             case NEXTFLOW_TYPE:
             {
                 NextFlowImporter importer = new NextFlowImporter();
-                importer.setScriptLoader( new FileScriptLoader( NEXTFLOW_TYPE, newRoot )  );
+                importer.setScriptLoader( new FileScriptLoader( NEXTFLOW_TYPE, newRoot, webBased ) );
                 return importer.parseNextflow( name, script );
             }
         }
         return null;
     }
-    
+
     public static String downloadText(String url) throws Exception
     {
         HttpClient client = HttpClient.newBuilder().followRedirects( HttpClient.Redirect.NORMAL ).build();

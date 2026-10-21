@@ -13,139 +13,143 @@ public interface WDLParserConstants {
   /** RegularExpression Id. */
   int EOL = 1;
   /** RegularExpression Id. */
-  int COMMAND = 5;
+  int BLOCK_COMMENT = 5;
   /** RegularExpression Id. */
-  int PARAMETER_META = 6;
+  int COMMAND = 6;
   /** RegularExpression Id. */
-  int META = 7;
+  int PARAMETER_META = 7;
   /** RegularExpression Id. */
-  int RUNTIME = 8;
+  int META = 8;
   /** RegularExpression Id. */
-  int HINTS = 9;
+  int RUNTIME = 9;
   /** RegularExpression Id. */
-  int REQUIREMENTS = 10;
+  int HINTS = 10;
   /** RegularExpression Id. */
-  int COMMAND_HEREDOC_START = 11;
+  int REQUIREMENTS = 11;
   /** RegularExpression Id. */
-  int COMMAND_START = 12;
+  int COMMAND_HEREDOC_START = 12;
   /** RegularExpression Id. */
-  int START = 13;
+  int COMMAND_START = 13;
   /** RegularExpression Id. */
-  int COMMAND_END = 14;
+  int BASH_QUOTED = 14;
   /** RegularExpression Id. */
-  int COMMAND_HEREDOC_END = 15;
+  int START = 15;
   /** RegularExpression Id. */
-  int ANY = 16;
+  int COMMAND_END = 16;
   /** RegularExpression Id. */
-  int TASK = 17;
+  int COMMAND_HEREDOC_END = 17;
   /** RegularExpression Id. */
-  int WORKFLOW = 18;
+  int ANY = 18;
   /** RegularExpression Id. */
-  int VERSION = 19;
+  int TASK = 19;
   /** RegularExpression Id. */
-  int INPUT = 20;
+  int WORKFLOW = 20;
   /** RegularExpression Id. */
-  int OUTPUT = 21;
+  int VERSION = 21;
   /** RegularExpression Id. */
-  int PRIMITIVE_TYPE = 22;
+  int INPUT = 22;
   /** RegularExpression Id. */
-  int ARRAY = 23;
+  int OUTPUT = 23;
   /** RegularExpression Id. */
-  int NONE = 24;
+  int PRIMITIVE_TYPE = 24;
   /** RegularExpression Id. */
-  int OBJECT_TYPE = 25;
+  int ARRAY = 25;
   /** RegularExpression Id. */
-  int PAIR = 26;
+  int NONE = 26;
   /** RegularExpression Id. */
-  int MAP = 27;
+  int OBJECT_TYPE = 27;
   /** RegularExpression Id. */
-  int ALIAS = 28;
+  int PAIR = 28;
   /** RegularExpression Id. */
-  int AS = 29;
+  int MAP = 29;
   /** RegularExpression Id. */
-  int CALL = 30;
+  int ALIAS = 30;
   /** RegularExpression Id. */
-  int ELSE = 31;
+  int AS = 31;
   /** RegularExpression Id. */
-  int TRUE_OR_FALSE = 32;
+  int CALL = 32;
   /** RegularExpression Id. */
-  int IF = 33;
+  int ELSE = 33;
   /** RegularExpression Id. */
-  int IN = 34;
+  int TRUE_OR_FALSE = 34;
   /** RegularExpression Id. */
-  int IMPORT = 35;
+  int IF = 35;
   /** RegularExpression Id. */
-  int OBJECT = 36;
+  int IN = 36;
   /** RegularExpression Id. */
-  int SCATTER = 37;
+  int IMPORT = 37;
   /** RegularExpression Id. */
-  int STRUCT = 38;
+  int OBJECT = 38;
   /** RegularExpression Id. */
-  int THEN = 39;
+  int SCATTER = 39;
   /** RegularExpression Id. */
-  int NULL = 40;
+  int STRUCT = 40;
   /** RegularExpression Id. */
-  int DOT = 41;
+  int THEN = 41;
   /** RegularExpression Id. */
-  int AND = 42;
+  int NULL = 42;
   /** RegularExpression Id. */
-  int OR = 43;
+  int DOT = 43;
   /** RegularExpression Id. */
-  int NOT = 44;
+  int AND = 44;
   /** RegularExpression Id. */
-  int BRAKET_L = 45;
+  int OR = 45;
   /** RegularExpression Id. */
-  int BRAKET_R = 46;
+  int NOT = 46;
   /** RegularExpression Id. */
-  int COLON = 47;
+  int BRAKET_L = 47;
   /** RegularExpression Id. */
-  int EQUAL = 48;
+  int BRAKET_R = 48;
   /** RegularExpression Id. */
-  int PLUS = 49;
+  int COLON = 49;
   /** RegularExpression Id. */
-  int MINUS = 50;
+  int EQUAL = 50;
   /** RegularExpression Id. */
-  int SEMICOLON = 51;
+  int PLUS = 51;
   /** RegularExpression Id. */
-  int COMMA = 52;
+  int MINUS = 52;
   /** RegularExpression Id. */
-  int QUESTION_MARK = 53;
+  int SEMICOLON = 53;
   /** RegularExpression Id. */
-  int TEXT_STRING = 54;
+  int COMMA = 54;
   /** RegularExpression Id. */
-  int OCTAL_ESCAPE = 55;
+  int QUESTION_MARK = 55;
   /** RegularExpression Id. */
-  int HEX_ESCAPE = 56;
+  int TEXT_STRING = 56;
   /** RegularExpression Id. */
-  int UNICODE = 57;
+  int OCTAL_ESCAPE = 57;
   /** RegularExpression Id. */
-  int LETTER = 58;
+  int HEX_ESCAPE = 58;
   /** RegularExpression Id. */
-  int DIGIT = 59;
+  int UNICODE = 59;
   /** RegularExpression Id. */
-  int SYMBOL = 60;
+  int LETTER = 60;
   /** RegularExpression Id. */
-  int INTEGER = 61;
+  int DIGIT = 61;
   /** RegularExpression Id. */
-  int TRIANGULAR_BRACKET_L = 62;
+  int SYMBOL = 62;
   /** RegularExpression Id. */
-  int TRIANGULAR_BRACKET_R = 63;
+  int INTEGER = 63;
   /** RegularExpression Id. */
-  int SQUARE_BRACKET_L = 64;
+  int TRIANGULAR_BRACKET_L = 64;
   /** RegularExpression Id. */
-  int SQUARE_BRACKET_R = 65;
+  int TRIANGULAR_BRACKET_R = 65;
   /** RegularExpression Id. */
-  int OPERATOR = 66;
+  int SQUARE_BRACKET_L = 66;
   /** RegularExpression Id. */
-  int STAR = 67;
+  int SQUARE_BRACKET_R = 67;
   /** RegularExpression Id. */
-  int EXPONENT = 68;
+  int OPERATOR = 68;
   /** RegularExpression Id. */
-  int FLOATING_POINT_LITERAL = 69;
+  int STAR = 69;
   /** RegularExpression Id. */
-  int BRACE_L = 70;
+  int EXPONENT = 70;
   /** RegularExpression Id. */
-  int BRACE_R = 71;
+  int FLOATING_POINT_LITERAL = 71;
+  /** RegularExpression Id. */
+  int BRACE_L = 72;
+  /** RegularExpression Id. */
+  int BRACE_R = 73;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -161,6 +165,7 @@ public interface WDLParserConstants {
     "\" \"",
     "\"\\t\"",
     "<token of kind 4>",
+    "<BLOCK_COMMENT>",
     "\"command\"",
     "\"parameter_meta\"",
     "\"meta\"",
@@ -169,6 +174,7 @@ public interface WDLParserConstants {
     "\"requirements\"",
     "\"<<<\"",
     "<COMMAND_START>",
+    "<BASH_QUOTED>",
     "<START>",
     "<COMMAND_END>",
     "\">>>\"",

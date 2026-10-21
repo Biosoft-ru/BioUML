@@ -108,4 +108,9 @@ public class ExpressionInfo implements Cloneable
         }
         return result;
     }
+    
+    public String toString()
+    {
+        return getType() +" " +getName() + " = " +getExpression();
+    }
 }

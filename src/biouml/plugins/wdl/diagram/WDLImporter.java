@@ -62,7 +62,7 @@ public class WDLImporter implements DataElementImporter
 {
     private WDLImportProperties properties = null;
     protected static final Logger log = Logger.getLogger(WDLImporter.class.getName());
-    
+    String version = "";
     private ScriptLoader scriptLoader;
 
     public void setScriptLoader(ScriptLoader loader)
@@ -100,6 +100,7 @@ public class WDLImporter implements DataElementImporter
             if (scriptLoader == null)
                 scriptLoader = new FileScriptLoader( ScriptLoader.WDL_TYPE, file.getParentFile() );
             
+            version ="";
             String text = ApplicationUtils.readAsString( file );
             ScriptInfo info = readScript( name, text );
             DiagramGenerator generator = new DiagramGenerator();
@@ -200,7 +201,7 @@ public class WDLImporter implements DataElementImporter
         }
     }
 
-    private static WorkflowInfo createWorkflowInfo(AstWorkflow astWorkflow)
+    private WorkflowInfo createWorkflowInfo(AstWorkflow astWorkflow)
     {
         WorkflowInfo result = new WorkflowInfo( astWorkflow.getName() );
         for( biouml.plugins.wdl.parser.Node child : astWorkflow.getChildren() )
@@ -217,7 +218,10 @@ public class WDLImporter implements DataElementImporter
             }
             else if( child instanceof AstDeclaration )
             {
-                result.addObject( createExpressionInfo( (AstDeclaration)child ) );
+                if( version == "" )
+                    result.addInput( createInputInfo( (AstDeclaration)child ) );
+                else
+                    result.addObject( createExpressionInfo( (AstDeclaration)child ) );
             }
             else if( child instanceof AstMeta )
             {
@@ -270,12 +274,15 @@ public class WDLImporter implements DataElementImporter
         return callInfo;
     }
 
-    private static TaskInfo createTaskInfo(AstTask astTask)
+    private TaskInfo createTaskInfo(AstTask astTask)
     {
         TaskInfo taskInfo = new TaskInfo( astTask.getName() );
         for( AstDeclaration astDeclaration : astTask.getBeforeCommand() )
         {
-            taskInfo.addBeforeCommand( createExpressionInfo( astDeclaration ) );
+            if( version == "" )
+                taskInfo.addInput( createExpressionInfo( astDeclaration ) );
+            else
+                taskInfo.addBeforeCommand( createExpressionInfo( astDeclaration ) );
         }
         astTask.getRuntime().entrySet().stream().forEach( e -> taskInfo.setRuntime( e.getKey(), e.getValue() ) );
         taskInfo.setCommand( new CommandInfo( astTask.getCommand() ) );
@@ -349,6 +356,16 @@ public class WDLImporter implements DataElementImporter
     {
         ScriptInfo scriptInfo = new ScriptInfo( name );
         
+        for( int i = 0; i < start.jjtGetNumChildren(); i++ )
+        {
+            biouml.plugins.wdl.parser.Node n = start.jjtGetChild( i );
+            if (n instanceof AstVersion )
+            {
+               String s =  ((AstVersion)n).jjtGetLastToken().toString();
+               scriptInfo.setAttribute( WDLConstants.WDL_VERSION_ATTR, s );
+               version = s;
+            }
+        }
         List<AstWorkflow> workflows = new ArrayList<>();
         for( int i = 0; i < start.jjtGetNumChildren(); i++ )
         {
@@ -397,11 +414,7 @@ public class WDLImporter implements DataElementImporter
                 StructInfo structInfo = createStruct( astStruct );
                 scriptInfo.addStruct( structInfo );
             }
-            else if (n instanceof AstVersion )
-            {
-               String s =  ((AstVersion)n).jjtGetLastToken().toString();
-               scriptInfo.setAttribute( WDLConstants.WDL_VERSION_ATTR, s );
-            }
+          
         }
         return scriptInfo;
     }

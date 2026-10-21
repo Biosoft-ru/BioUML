@@ -192,6 +192,8 @@ public class NextFlowPreprocessor
                 command = processStdErr( command );
 
             command = processSepCommand( command, task );
+            command = processBooleanCommand( command, task );
+            command = processDefaultCommand(command, task );
             command = processWDLFunctions( command, true );
             command = doubleBackslashesOutsidePlaceholders( command );
             command = procesRegexes( command );
@@ -275,15 +277,66 @@ public class NextFlowPreprocessor
     private String processSepCommand(String command, Compartment task)
     {
         Set<String> seps = findSeps( command );
+        Set<String> newNames = new HashSet<>();
         for( String sep : seps )
         {
             String name = getSepName( sep );
             String del = getSepDelimiter( sep );
-            ExpressionInfo dec = new ExpressionInfo( "String", name + "_str", "sep_wdl ( '" + del + "', " + name + ")" );
+            String newName = name + "_joined";
+            int i = 1;
+            while( newNames.contains( newName ) )
+            {
+                newName = name + "_joined_" + i;
+                i++;
+            }
+            ExpressionInfo dec = new ExpressionInfo( "String", newName, "sep_wdl ( '" + del + "', " + name + ")" );
             WorkflowUtil.addBeforeCommand( task, dec );
-            command = command.replace( sep, "~{" + name + "_str}" );
+            command = command.replace( sep, "~{" + newName + "}" );
+            newNames.add( newName );
         }
         return command;
+    }
+    
+    private String processBooleanCommand(String command, Compartment task)
+    {
+        Pattern pattern = Pattern
+                .compile( "~\\{\\s*true\\s*=\\s*(\"[^\"]*\"|'[^']*')" + "\\s+false\\s*=\\s*(\"[^\"]*\"|'[^']*')" + "\\s+([^}]+)\\}" );
+
+        Matcher matcher = pattern.matcher( command );
+        StringBuffer result = new StringBuffer();
+        int index = 1;
+        while( matcher.find() )
+        {
+            String trueValue = matcher.group( 1 );
+            String falseValue = matcher.group( 2 );
+            String condition = matcher.group( 3 ).trim();
+            String newName = "bool_" + index++;
+            String expression = "(" + condition + ") ? " + trueValue + " : " + falseValue;
+            ExpressionInfo dec = new ExpressionInfo( "String", newName, expression );
+            WorkflowUtil.addBeforeCommand( task, dec );
+            matcher.appendReplacement( result, Matcher.quoteReplacement( "~{" + newName + "}" ) );
+        }
+        matcher.appendTail( result );
+        return result.toString();
+    }
+    
+    private String processDefaultCommand(String command, Compartment task)
+    {
+        Pattern pattern = Pattern.compile( "~\\{\\s*default\\s*=\\s*(\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*')" + "\\s+([^}]+)\\}" );
+        Matcher matcher = pattern.matcher( command );
+        StringBuffer result = new StringBuffer();
+        int index = 1;
+        while( matcher.find() )
+        {
+            String defaultValue = matcher.group( 1 );
+            String expression = matcher.group( 2 ).trim();
+            String newName = "default_command_" + index++;
+            ExpressionInfo dec = new ExpressionInfo( "String", newName, "select_first_wdl([" + expression + ", " + defaultValue + "])" );
+            WorkflowUtil.addBeforeCommand( task, dec );
+            matcher.appendReplacement( result, Matcher.quoteReplacement( "~{" + newName + "}" ) );
+        }
+        matcher.appendTail( result );
+        return result.toString();
     }
 
     private Map<String, String> getVariables(Compartment task)
@@ -381,10 +434,23 @@ public class NextFlowPreprocessor
         return input;
     }
 
+    private static final Pattern SIMPLE_LITERAL_GLOB = Pattern.compile(
+            "^\\s*glob\\s*\\(\\s*(\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*')\\s*\\)\\s*$",
+            Pattern.DOTALL );
+
+    private static boolean isSimpleLiteralGlob(String expression)
+    {
+        return expression != null && SIMPLE_LITERAL_GLOB.matcher(expression).matches();
+    }
+
     public static String removeGlobs(String input)
     {
-        String regex = "glob\\((['\"])(.*?)\\1\\)";
-        return input.replaceAll( regex, "\"$2\"" );
+        if (input == null)
+            return null;
+        Matcher matcher = SIMPLE_LITERAL_GLOB.matcher(input);
+        // Only a whole, literal glob can be lowered into a Nextflow path pattern.
+        // Replacing inner glob() calls breaks e.g. glob(read_lines(glob(...)[0])).
+        return matcher.matches() ? matcher.group(1) : input;
     }
 
     public static String processPair(String pair)
@@ -507,9 +573,6 @@ public class NextFlowPreprocessor
         }
         matcher.appendTail( sb );
         result = sb.toString();
-
-        // Handle ~{default="X" var} -> ${var ?: 'X'}
-        result = result.replaceAll( "~\\{\\s*default\\s*=\\s*\"([^\"]*)\"\\s+([^}]+)\\s*\\}", "\\${$2 ?: '$1'}" );
         return new ConversionResult( declarations, result );
     }
 
@@ -573,7 +636,7 @@ public class NextFlowPreprocessor
                     command = command.replace( "${" + variable + "}", "\\${" + variable + "}" );
                 }
             }
-            else if( !candidateVariables.containsKey( variable ) )
+            else if( !candidateVariables.containsKey( variable ) && !variable.contains( "?" ))
             {
                 if( inCommand )
                     command = command.replace( "${" + variable + "}", "\\${" + variable + "}" );
@@ -857,8 +920,28 @@ public class NextFlowPreprocessor
             }
         }
     }
-
+    
     private void wrapProcesses(Diagram diagram) throws Exception
+    {
+        new OutputWrapperProcessor(allDiagrams).process(diagram);
+    }
+    
+    private static void findArguments(biouml.plugins.wdl.parser.Node expression, List<biouml.plugins.wdl.parser.Node> arguments)
+            throws Exception
+    {
+        if( expression instanceof AstText
+                || ( expression instanceof AstRegularFormulaElement && ( (AstRegularFormulaElement)expression ).isVariable )
+                || ( expression instanceof AstFunction && ( ( (AstFunction)expression ).toString().equals( "stdout" )
+                        || ( (AstFunction)expression ).toString().equals( "stderr" ) ) ) )
+            arguments.add( expression );
+        for( int j = 0; j < expression.jjtGetNumChildren(); j++ )
+        {
+            biouml.plugins.wdl.parser.Node child = expression.jjtGetChild( j );
+            findArguments( child, arguments );
+        }
+    }
+
+    private void wrapProcesses2(Diagram diagram) throws Exception
     {
         for( Compartment c : WorkflowUtil.getAllCalls( diagram ) )
         {
@@ -894,20 +977,7 @@ public class NextFlowPreprocessor
         }
     }
 
-    private static void findArguments(biouml.plugins.wdl.parser.Node expression, List<biouml.plugins.wdl.parser.Node> arguments)
-            throws Exception
-    {
-        if( expression instanceof AstText
-                || ( expression instanceof AstRegularFormulaElement && ( (AstRegularFormulaElement)expression ).isVariable )
-                || ( expression instanceof AstFunction && ( ( (AstFunction)expression ).toString().equals( "stdout" )
-                        || ( (AstFunction)expression ).toString().equals( "stderr" ) ) ) )
-            arguments.add( expression );
-        for( int j = 0; j < expression.jjtGetNumChildren(); j++ )
-        {
-            biouml.plugins.wdl.parser.Node child = expression.jjtGetChild( j );
-            findArguments( child, arguments );
-        }
-    }
+
 
     public static void findFunction(biouml.plugins.wdl.parser.Node expression, String name, List<AstFunction> result)
     {
@@ -936,7 +1006,7 @@ public class NextFlowPreprocessor
 
         int i = 1;
         boolean added = false;
-        Map<String, String> argReplacement = new HashMap();
+        Map<String, String> argReplacement = new HashMap<>();
         for( biouml.plugins.wdl.parser.Node argument : arguments )
         {
             String argName = argument.toString();
@@ -1021,6 +1091,7 @@ public class NextFlowPreprocessor
             if( arguments.size() == 1 )
                 fullExpression = inputName + ".map { x1 -> " + expression + " }";
             else
+//                throw new Exception("We do not allow calculation in output with > 1 argument");
                 fullExpression = inputName + ".map { x1 -> " + expression + " }"; //TODO
         }
         ExpressionProperties properties = new ExpressionProperties();
@@ -1105,6 +1176,11 @@ public class NextFlowPreprocessor
             {
                 String expression = WorkflowUtil.getExpression( output );
                 if (expression == null)
+                    continue;
+                // GlobProcessor rewrites simple glob patterns into file patterns.
+                // Never run it on a compound expression: nested glob() calls
+                // must survive until the post-task OutputWrapperProcessor wrapper.
+                if (expression.contains("glob_wdl(") || (expression.contains("glob(") && !isSimpleLiteralGlob(expression)))
                     continue;
                 expression = new GlobProcessor().process( expression );
                 WorkflowUtil.setExpression( output, expression );
@@ -1545,12 +1621,14 @@ public class NextFlowPreprocessor
          * Replace original source reference in target expression.
          */
         ExpressionInfo targetExpression = WorkflowUtil.getExpressionInfo( target );
-
+if (targetExpression != null)
+{
         String newExpression = targetExpression.getExpression().replace( fullName, collectedName );
 
         targetExpression.setExpression( newExpression );
 
         WorkflowUtil.setExpression( target, newExpression );
+}
     }
 
     private static boolean isConditionalCallOutputInsideScatter(Node source)

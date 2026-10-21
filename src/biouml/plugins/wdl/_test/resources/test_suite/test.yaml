@@ -815,3 +815,80 @@
     two_calls_if_cycle.second_results:
       type: Array[Int?]
       value: [null, null, 33, 44, 55]
+- description: |
+    Nested scatter inside conditional in scatter
+  tags: ["scatter", "condition", "nested scatter"]
+  versions: ["1.0"]
+  id: scatter_if_scatter
+  inputs:
+    dir: tests/scatter_if_scatter
+    wdl: scatter_if_scatter.wdl
+  outputs:
+    scatter_if_scatter.results:
+      type: Array[Array[Int]?]
+      value: [null, [12, 22], null]
+- description: |
+    Complex nested Pair and Array with optional values
+  tags: ["pair", "array", "optional", "complex type"]
+  versions: ["1.0"]
+  id: complex_pair_optional_array
+  inputs:
+    dir: tests/complex_pair_optional_array
+    wdl: complex_pair_optional_array.wdl
+  outputs:
+    complex_pair_optional_array_test.key:
+      type: String
+      value: "b"
+    complex_pair_optional_array_test.missing:
+      type: Int?
+      value: null
+    complex_pair_optional_array_test.optional_value:
+      type: Int?
+      value: null
+    complex_pair_optional_array_test.result:
+      type: Pair[Array[Int?],Array[Pair[String,Int?]]]
+      value:
+        left: [1, null, 3]
+        right:
+          - left: "a"
+            right: 10
+          - left: "b"
+            right: null
+          - left: "c"
+            right: 30
+- description: |
+    Nested scatter inside conditional followed by call using collected inner results
+  tags: ["scatter", "condition", "nested scatter", "collect", "consequent call"]
+  versions: ["1.0"]
+  id: scatter_if_scatter_call
+  inputs:
+    dir: tests/scatter_if_scatter_call
+    wdl: scatter_if_scatter_call.wdl
+  outputs:
+    scatter_if_scatter_call.item_results:
+      type: Array[Array[Int]?]
+      value: [null, [21, 22], [31, 32]]
+    scatter_if_scatter_call.sums:
+      type: Array[Int?]
+      value: [null, 43, 63]
+- description: |
+    Test boolean and default command placeholders without inputs
+  tags: ["command", "placeholder", "boolean", "default"]
+  versions: ["1.0"]
+  id: command_placeholders
+  inputs:
+    dir: tests/command_placeholders
+    wdl: command_placeholders.wdl
+  outputs:
+    command_placeholders.boolean_true:
+      type: String
+      value: "YES"
+    command_placeholders.boolean_false:
+      type: String
+      value: "NO"
+    command_placeholders.default_missing:
+      type: String
+      value: "FALLBACK"
+    command_placeholders.default_present:
+      type: String
+      value: "ORIGINAL"

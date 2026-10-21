@@ -338,15 +338,20 @@ def glob_wdl(pattern, workDir)
         return []
 
     def baseDir = workDir.toAbsolutePath().normalize()
-    def matcher = java.nio.file.FileSystems.getDefault().getPathMatcher( "glob:" + pattern.toString() )
+    def matcher = java.nio.file.FileSystems.getDefault().getPathMatcher("glob:" + pattern.toString())
     def result = []
-    def stream = java.nio.file.Files.list(baseDir)
-    stream.each { file ->
 
-        if (matcher.matches(file.getFileName()))
+    def stream = java.nio.file.Files.walk(baseDir)
+
+    stream.each { file ->
+        def relativePath = baseDir.relativize(file)
+
+        if (java.nio.file.Files.isRegularFile(file) && matcher.matches(relativePath))
             result.add(file)
     }
+
     stream.close()
+
     return result.sort { a, b -> a.toString() <=> b.toString() }
 }
 
@@ -1807,4 +1812,22 @@ def condition(context, predicate)
 def contextValue(context, index)
 {
     return context.map { values ->  values.get(index) }
+}
+
+def optFile(value, workDir)
+{
+    if (value == null || value == "NO_VALUE")
+        return "NO_VALUE"
+
+    def path = java.nio.file.Path.of(value.toString())
+
+    if (!path.isAbsolute())
+        path = workDir.resolve(path)
+
+    path = path.toAbsolutePath().normalize()
+
+    if (!java.nio.file.Files.isRegularFile(path))
+        return "NO_VALUE"
+
+    return path
 }
