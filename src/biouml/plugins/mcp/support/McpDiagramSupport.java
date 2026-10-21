@@ -138,7 +138,8 @@ public final class McpDiagramSupport
 	// ---------------------------------------------------------------- create
 
 	/**
-	 * Create a new diagram in the target collection. type is "math" (default) or "pathway".
+	 * Create a new diagram in the target collection. type is "math" (default), "pathway" or a registered diagram
+	 * type by class name (see {@link #diagramType}).
 	 * Returns the diagram's path.
 	 */
 	public static McpEnvelope create( String parentPath, String name, String type )
@@ -149,11 +150,12 @@ public final class McpDiagramSupport
 		if ( !pe.isOk() )
 			return pe;
 		DataCollection<?> parent = (DataCollection<?>) pe.getData();
+		biouml.model.DiagramType dt = diagramType( type );
+		if ( dt == null )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "unknown diagram type '" + type
+					+ "', expected 'math', 'pathway' or the class name of a registered diagram type, one of " + diagramTypeNames() );
 		try
 		{
-			biouml.model.DiagramType dt = "pathway".equalsIgnoreCase( type )
-					? new PathwayDiagramType()
-					: new MathDiagramType();
 			Diagram diagram = dt.createDiagram( parent, name, null );
 			if ( diagram == null )
 				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not create diagram: " + name );
@@ -167,6 +169,41 @@ public final class McpDiagramSupport
 		{
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "create failed: " + e.getClass().getSimpleName() + ": " + e.getMessage() );
 		}
+	}
+
+	/** The diagram types plugins declare ({@code biouml.workbench.diagramType}), e.g. Genome Enhancer's annotation diagram. */
+	private static final ru.biosoft.util.ObjectExtensionRegistry<biouml.model.DiagramType> DIAGRAM_TYPES = new ru.biosoft.util.ObjectExtensionRegistry<>(
+			"biouml.workbench.diagramType", biouml.model.DiagramType.class );
+
+	/**
+	 * The diagram type named by type: "math" (also the default) or "pathway", else a registered diagram type by its
+	 * class name, full or simple (case is ignored); null if there is none.
+	 */
+	static biouml.model.DiagramType diagramType( String type )
+	{
+		if ( type == null || type.isEmpty() || "math".equalsIgnoreCase( type ) )
+			return new MathDiagramType();
+		if ( "pathway".equalsIgnoreCase( type ) )
+			return new PathwayDiagramType();
+		biouml.model.DiagramType registered = DIAGRAM_TYPES.stream()
+				.findFirst( dt -> type.equalsIgnoreCase( dt.getClass().getName() ) || type.equalsIgnoreCase( dt.getClass().getSimpleName() ) )
+				.orElse( null );
+		if ( registered == null )
+			return null;
+		try
+		{
+			// a fresh instance: the registry's one is shared
+			return registered.getClass().getDeclaredConstructor().newInstance();
+		}
+		catch ( Exception e )
+		{
+			return registered;
+		}
+	}
+
+	private static List<String> diagramTypeNames()
+	{
+		return DIAGRAM_TYPES.stream().map( dt -> dt.getClass().getName() ).toList();
 	}
 
 	// ---------------------------------------------------------------- describe
@@ -266,7 +303,7 @@ public final class McpDiagramSupport
 		return McpEnvelope.ok( m );
 	}
 
-	private static Map<String, Object> summary( DiagramElement el )
+	static Map<String, Object> summary( DiagramElement el )
 	{
 		Map<String, Object> em = new LinkedHashMap<String, Object>();
 		em.put( "id", el.getName() );

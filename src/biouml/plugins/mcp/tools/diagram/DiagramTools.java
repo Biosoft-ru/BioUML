@@ -24,7 +24,7 @@ public final class DiagramTools
 	public static void registerAll( McpToolCatalog catalog )
 	{
 		catalog.register( "biouml_diagram_create",
-				"Create a new diagram in a target collection. type is 'math' (default) or 'pathway'. Returns the new diagram's path.",
+				"Create a new, empty diagram in a target collection. type is 'math' (default), 'pathway', or the class name (full or simple) of a diagram type a plugin declares, e.g. 'AnnotationDiagramType' for a Genome Enhancer annotation diagram; an unknown type is refused with the list of registered ones. The diagram type decides what a new diagram already holds; its toolbar actions (biouml_diagram_action) add more, e.g. the categories of an annotation diagram. Returns the new diagram's path and type.",
 				"{\"type\":\"object\",\"properties\":{\"parentPath\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"type\":{\"type\":\"string\"}},\"required\":[\"parentPath\",\"name\"]}",
 				( ex, args ) -> McpDiagramSupport.create( str( args, "parentPath" ), str( args, "name" ), str( args, "type" ) ) );
 
