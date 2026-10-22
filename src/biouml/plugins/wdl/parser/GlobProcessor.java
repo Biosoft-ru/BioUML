@@ -1,7 +1,5 @@
 package biouml.plugins.wdl.parser;
 
-import biouml.plugins.wdl.nextflow.NextFlowPreprocessor;
-
 public class GlobProcessor
 { 
     public String process(String expression) throws ParseException
@@ -37,7 +35,7 @@ public class GlobProcessor
     {
         if( "glob".equals( node.toString() ) )
         {
-            Node arg = NextFlowPreprocessor.hasOneArgument( node );
+            Node arg = ParserUtil.hasOneArgument( node );
             SimpleNode parent = (SimpleNode)node.jjtGetParent();
             ParserUtil.replaceChild( parent, node, arg );
         }
