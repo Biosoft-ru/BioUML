@@ -1,7 +1,6 @@
 package biouml.plugins.wdl.parser;
 
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import one.util.streamex.StreamEx;
@@ -113,7 +112,7 @@ public class ExpressionFormatter
     private void processMap(AstMap astMap)
     {
         result.append( "{ " );
-        Map<String, Object> map = astMap.toMap();
+        Map<String, SimpleNode> map = astMap.toMap();
         result.append( StreamEx.of( map.entrySet() ).map( e -> e.getKey() + ": " + e.getValue() ).joining( ", " ) );
         result.append( " }" );
     }
