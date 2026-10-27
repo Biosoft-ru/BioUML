@@ -147,12 +147,15 @@ public class WDLNextflowFormatter extends ExpressionFormatter
 
     protected void processContainer(AstContainerElement node)
     {
+        int indexes = node.jjtGetNumChildren() - 1;
+        for (int i=0; i<indexes; i++)
+        result.append( "get(" );
         processNode( node.jjtGetChild( 0 ) );
         for( int i = 1; i < node.jjtGetNumChildren(); i++ )
         {
-            result.append( "[" );
+            result.append( "," );
             processNode(  node.jjtGetChild( i ) );
-            result.append( "]" );
+            result.append( ")" );
         }
     }
 
@@ -182,10 +185,10 @@ public class WDLNextflowFormatter extends ExpressionFormatter
 
     private void processMap(AstMap astMap)
     {
-        result.append( "{ " );
-        Map<String, Object> map = astMap.toMap();
-        result.append( StreamEx.of( map.entrySet() ).map( e -> "("+ e.getKey() + ") : " + e.getValue() ).joining( ", " ) );
-        result.append( " }" );
+        result.append( "[ " );
+        Map<String, SimpleNode> map = astMap.toMap();
+        result.append( StreamEx.of( map.entrySet() ).map( e -> "("+ e.getKey() + ") : " + new WDLNextflowFormatter().format( e.getValue()) ).joining( ", " ) );
+        result.append( " ]" );
     }
 
     private void processPair(AstPair astPair)

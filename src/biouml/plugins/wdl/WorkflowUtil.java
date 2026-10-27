@@ -1341,4 +1341,17 @@ public class WorkflowUtil
         }
         return baseType;
     }
+    
+    public static boolean isInCycle(Node node)
+    {
+        Compartment parent = node.getCompartment();
+        while( parent != null && ! ( parent instanceof Diagram ) )
+        {
+            if( WorkflowUtil.isCycle( parent ) )
+                return true;
+            parent = parent.getCompartment();
+        }
+        return false;
+    }
+   
 }

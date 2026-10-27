@@ -180,7 +180,7 @@ public class OutputWrapperProcessor
 
         String fullExpression;
 
-        if( NextFlowPreprocessor.isInCycle( call ) )
+        if( WorkflowUtil.isInCycle( call ) )
         {
             /*
              * ScatterProcessor uses the call outputs already

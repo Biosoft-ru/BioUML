@@ -75,4 +75,12 @@ public class ParserUtil
 
         throw new IllegalArgumentException( "The specified node is not a child of the given parent" );
     }
+    
+    public static biouml.plugins.wdl.parser.Node hasOneArgument(AstFunction func)
+    {
+        biouml.plugins.wdl.parser.Node[] children = func.getChildren();
+        if( children.length == 3 && children[1] instanceof AstExpression && children[1].jjtGetNumChildren() == 1 )
+            return children[1].jjtGetChild( 0 );
+        return null;
+    }
 }

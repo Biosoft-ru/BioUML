@@ -30,7 +30,7 @@ workflow run_private_declaration {
   }
   
   output {
-    String concatenated_output = private_declaration.result
+    String concatenated_output = read_string(private_declaration.result)
   }
 
   meta {

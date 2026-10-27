@@ -23,32 +23,32 @@ public class AstMap extends SimpleNode
         return "";
     }
     
-    public Map<String, Object> toMap()
+    public Map<String, SimpleNode> toMap()
     {
-        Map<String, Object> result = new HashMap<>();
+        Map<String, SimpleNode> result = new HashMap<>();
         for (Node child: this.getChildren())
         {
             if (child instanceof AstKeyValue)
             {
                 String key = ((AstKeyValue)child).getKey();
-                Object value = null;
+                SimpleNode value = null;
                 for (Node gchild: ((AstKeyValue)child).getChildren())
                 {
                     if (gchild instanceof AstMetaFormulaElement)
                     {
-                        value = ((AstMetaFormulaElement)gchild).getValue();
+                        value = ((AstMetaFormulaElement)gchild);//.getValue();
                     }
                     else if (gchild instanceof AstMap)
                     {
-                        value = ((AstMap)gchild).toMap();
+                        value = ((AstMap)gchild);//.toMap();
                     }
                     else if (gchild instanceof AstExpression)
                     {
-                        value = ((AstExpression)gchild).toString();
+                        value = ((AstExpression)gchild);//.toString();
                     }
                 }
-                if (value != null)
-                    result.put( key, value );
+                if (value instanceof SimpleNode)
+                    result.put( key, (SimpleNode)value );
             }
         }
         return result;

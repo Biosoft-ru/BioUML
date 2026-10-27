@@ -36,10 +36,21 @@ public class VariableRenamer
         {
             visit( (AstRegularFormulaElement)node );
         }
+        else if (node instanceof AstText)
+        {
+            visit((AstText)node);
+        }
         for( int i = 0; i < node.jjtGetNumChildren(); i++ )
         {
             visit( node.jjtGetChild( i ) );
         }
+    }
+    
+    private void visit(AstText node)
+    {
+        String text = node.getText();
+        text = text.replace( "${" + oldName + "}", "${" + newName + "}" );
+        node.setText( text );
     }
 
     private void visit(AstSymbol node)
