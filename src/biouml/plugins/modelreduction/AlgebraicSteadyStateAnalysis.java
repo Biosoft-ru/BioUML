@@ -148,8 +148,9 @@ public class AlgebraicSteadyStateAnalysis extends AnalysisMethodSupport<Algebrai
         {
             String varName = entry.getKey();
             Object[] value = {values[entry.getValue()]};
-            TableDataCollectionUtils.addRow(tdc, varName, value);
+            TableDataCollectionUtils.addRow(tdc, varName, value, true);
         }
+        tdc.finalizeAddition();
 
         outputPath.save(tdc);
         return tdc;

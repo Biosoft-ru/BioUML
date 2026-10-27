@@ -3,10 +3,11 @@ package ru.biosoft.analysis;
 
 import java.util.logging.Level;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -24,6 +25,7 @@ import ru.biosoft.access.core.ClassIcon;
 import ru.biosoft.analysis.aggregate.NumericAggregator;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.table.ColumnModel;
+import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.StringSet;
 import ru.biosoft.table.TableColumn;
 import ru.biosoft.table.TableDataCollection;
@@ -38,6 +40,9 @@ import ru.biosoft.util.TextUtil2;
 @ClassIcon ( "resources/join-table-multi.gif" )
 public class MultipleTableJoin extends AnalysisMethodSupport<MultipleTableJoinParameters>
 {
+    /** Result cells one pass over the input tables holds in memory */
+    private static final int MAX_CELLS_PER_PASS = 5_000_000;
+
     /**
      * @param origin
      * @param name
@@ -222,116 +227,136 @@ public class MultipleTableJoin extends AnalysisMethodSupport<MultipleTableJoinPa
             return result;
 
         KeysResult kr = getAllKeysWithSets( inputs );
-        int i = 0;
+        String[] keys = isInnerJoin
+                ? StreamEx.of( kr.keys ).filter( key -> StreamEx.of( kr.namesSets ).allMatch( names -> names.contains( key ) ) )
+                        .toArray( String[]::new )
+                : kr.keys;
         ColumnModel columnModel = result.getColumnModel();
         int numColumns = columnModel.getColumnCount();
+        boolean hasMergeColumns = isMergeColumns && mergeColumns.size() > 0;
 
-        while ( i < kr.keys.length )
+        // Each pass reads every input table once and fills the result rows of that pass in memory:
+        // getting rows by key would send a query per key and table to SQL tables
+        int rowsPerPass = getRowsPerPass( numColumns );
+        int passes = ( keys.length + rowsPerPass - 1 ) / rowsPerPass;
+        for( int pass = 0; pass < passes; pass++ )
         {
-            Object[] rowBuffer = new Object[numColumns];
-            setBufferToNulls(rowBuffer);
-            String key = null;
+            int from = pass * rowsPerPass;
+            int to = Math.min( keys.length, from + rowsPerPass );
+            Map<String, Object[]> rows = new HashMap<>();
+            for( int i = from; i < to; i++ )
+                rows.put( keys[i], new Object[numColumns] );
             int columnShift = 0;
-            for ( int j = 0; j < inputs.size(); j++ )
+            for( int j = 0; j < inputs.size(); j++ )
             {
                 TableDataCollection t = inputs.get( j ).table;
-                if( t.getSize() > 0 )
+                Set<String> tableKeys = kr.namesSets[j];
+                Set<String> toRead = StreamEx.ofKeys( rows ).filter( tableKeys::contains ).toSet();
+                if( !toRead.isEmpty() )
                 {
-                    key = kr.keys[i];
-                    boolean inTable = (kr.namesSets[j] != null && kr.namesSets[j].contains( key ));
-                    if( inTable )
+                    for( RowDataElement row : t )
                     {
-                        Object[] values = TableDataCollectionUtils.getRowValues(t, key);
-                        if( isMergeColumns && mergeColumns.size() > 0 ) //we have merging columns, so will need to copy value by value
-                        {
-                            for( int c = 0; c < t.getColumnModel().getColumnCount(); c++ )
-                            {
-                                TableColumn tc = t.getColumnModel().getColumn(c);
-                                int ci = columnModel.getColumnIndex(tc.getName());
-                                if( mergeColumns.contains(tc.getName()) )
-                                {
-                                    if( rowBuffer[ci] == null )
-                                        rowBuffer[ci] = new ArrayList<>();
-                                    ( (List<Object>)rowBuffer[ci] ).add(values[c]);
-                                }
-                                else
-                                    rowBuffer[ci] = values[c];
-                            }
-                        }
-                        else
-                        {
-                            System.arraycopy(values, 0, rowBuffer, columnShift, values.length);
-                        }
+                        if( row != null && toRead.remove( row.getName() ) )
+                            copyValues( row.getValues(), rows.get( row.getName() ), columnShift, t, columnModel, hasMergeColumns, mergeColumns );
                     }
-                    else if( isInnerJoin )
-                    {
-                        key = null;
-                        break;
-                    }
+                    // rows the table lists but its iterator did not return
+                    for( String key : toRead )
+                        copyValues( TableDataCollectionUtils.getRowValues( t, key ), rows.get( key ), columnShift, t, columnModel,
+                                hasMergeColumns, mergeColumns );
                 }
                 columnShift += inputs.get( j ).columnNames.length;
+                jobControl.setPreparedness( 2 + ( pass * inputs.size() + j + 1 ) * 95 / ( passes * inputs.size() ) );
             }
 
-            if( key != null )
+            for( int i = from; i < to; i++ )
             {
-                //join merged results
-                if( isMergeColumns && mergeColumns.size() > 0 )
-                {
-                    for( String cName : mergeColumns )
-                    {
-                        int ci = columnModel.getColumnIndex(cName);
-                        if( rowBuffer[ci] == null )
-                            continue;
-                        TableColumn column = columnModel.getColumn(cName);
-                        
-                        List<Object> values = (List<Object>)rowBuffer[ci];
-                        if( column.getValueClass() == String.class )
-                        {
-                            rowBuffer[ci] = StreamEx.of( values ).select( String.class ).filter( TextUtil2::nonEmpty ).sorted().distinct()
-                                    .joining( "," );
-                            continue;
-                        }
-                        if( column.getValueClass() == StringSet.class )
-                        {
-                            Set<String> res = new TreeSet<>();
-                            for( Object o : values )
-                            {
-                                if( o instanceof StringSet )
-                                    res.addAll((StringSet)o);
-                            }
-                            rowBuffer[ci] = new StringSet( res );
-                            continue;
-                        }
-                        if( column.getType().isNumeric() )
-                        {
-                            List<Double> colValues = new ArrayList<>();
-                            for( Object o : values )
-                            {
-                                if( ! ( o instanceof Number ) )
-                                    colValues.add(Double.NaN);
-                                else
-                                    colValues.add( ( (Number) ( o ) ).doubleValue());
-                            }
-                            Double[] resD = colValues.toArray(new Double[colValues.size()]);
-                            double res = aggregator.aggregate(ArrayUtils.toPrimitive(resD));
-                            rowBuffer[ci] = column.getType().convertValue(res);
-                            continue;
-                        }
-                    }
-                }
-                TableDataCollectionUtils.addRow(result, key, rowBuffer, true);
+                Object[] rowBuffer = rows.get( keys[i] );
+                if( hasMergeColumns )
+                    mergeValues( rowBuffer, columnModel, mergeColumns, aggregator );
+                TableDataCollectionUtils.addRow( result, keys[i], rowBuffer, true );
             }
-            i++;
-            jobControl.setPreparedness( 2 + i * 95 / kr.keys.length );
         }
         result.finalizeAddition();
         ReferenceTypeRegistry.setCollectionReferenceType( result, ReferenceTypeRegistry.detectReferenceType( kr.keys ) );
         return result;
     }
 
-    private void setBufferToNulls(Object[] rowBuffer)
+    /**
+     * Number of result rows one pass over the input tables fills. The rows of a pass are held in memory until the pass ends.
+     */
+    protected int getRowsPerPass(int numColumns)
     {
-        Arrays.fill( rowBuffer, null );
+        return Math.max( 1, MAX_CELLS_PER_PASS / Math.max( 1, numColumns ) );
+    }
+
+    private static void copyValues(Object[] values, Object[] rowBuffer, int columnShift, TableDataCollection t, ColumnModel columnModel,
+            boolean hasMergeColumns, Set<String> mergeColumns)
+    {
+        if( hasMergeColumns ) //we have merging columns, so will need to copy value by value
+        {
+            for( int c = 0; c < t.getColumnModel().getColumnCount(); c++ )
+            {
+                TableColumn tc = t.getColumnModel().getColumn( c );
+                int ci = columnModel.getColumnIndex( tc.getName() );
+                if( mergeColumns.contains( tc.getName() ) )
+                {
+                    if( rowBuffer[ci] == null )
+                        rowBuffer[ci] = new ArrayList<>();
+                    ( (List<Object>)rowBuffer[ci] ).add( values[c] );
+                }
+                else
+                    rowBuffer[ci] = values[c];
+            }
+        }
+        else
+        {
+            System.arraycopy( values, 0, rowBuffer, columnShift, values.length );
+        }
+    }
+
+    private static void mergeValues(Object[] rowBuffer, ColumnModel columnModel, Set<String> mergeColumns, NumericAggregator aggregator)
+    {
+        for( String cName : mergeColumns )
+        {
+            int ci = columnModel.getColumnIndex( cName );
+            if( rowBuffer[ci] == null )
+                continue;
+            TableColumn column = columnModel.getColumn( cName );
+
+            List<Object> values = (List<Object>)rowBuffer[ci];
+            if( column.getValueClass() == String.class )
+            {
+                rowBuffer[ci] = StreamEx.of( values ).select( String.class ).filter( TextUtil2::nonEmpty ).sorted().distinct()
+                        .joining( "," );
+                continue;
+            }
+            if( column.getValueClass() == StringSet.class )
+            {
+                Set<String> res = new TreeSet<>();
+                for( Object o : values )
+                {
+                    if( o instanceof StringSet )
+                        res.addAll( (StringSet)o );
+                }
+                rowBuffer[ci] = new StringSet( res );
+                continue;
+            }
+            if( column.getType().isNumeric() )
+            {
+                List<Double> colValues = new ArrayList<>();
+                for( Object o : values )
+                {
+                    if( ! ( o instanceof Number ) )
+                        colValues.add( Double.NaN );
+                    else
+                        colValues.add( ( (Number) ( o ) ).doubleValue() );
+                }
+                Double[] resD = colValues.toArray( new Double[colValues.size()] );
+                double res = aggregator.aggregate( ArrayUtils.toPrimitive( resD ) );
+                rowBuffer[ci] = column.getType().convertValue( res );
+                continue;
+            }
+        }
     }
 
     private static class KeysResult

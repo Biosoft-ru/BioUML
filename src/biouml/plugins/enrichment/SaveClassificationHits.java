@@ -156,8 +156,9 @@ public class SaveClassificationHits extends AnalysisMethodSupport<SaveClassifica
                     Object[] values = new Object[0];
                     for( String hit : ( (StringSet)hits ) )
                     {
-                        TableDataCollectionUtils.addRow( result, hit, values );
+                        TableDataCollectionUtils.addRow( result, hit, values, true );
                     }
+                    result.finalizeAddition();
                 }
                 else
                 {

@@ -131,9 +131,10 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
         int j = 0;
         for( String tfClass : distinctTfClasses )
         {
-            TableDataCollectionUtils.addRow(table, tfClass, DoubleStreamEx.of(pvalues[j]).boxed().toArray());
+            TableDataCollectionUtils.addRow(table, tfClass, DoubleStreamEx.of(pvalues[j]).boxed().toArray(), true);
             j++;
         }
+        table.finalizeAddition();
         log.info("Kolmogorov-Smirnov uniformity test for all tfClasses is started");
         double[] pValuesForAllTfClasses = getKolmogorovSmirnovUniformityPvalueForAllTfClassesAndEveryChromosome(chromosomeNameAndCorrectedLength, allBindingRegions, chromosomeNameAndGaps);
         TableDataCollectionUtils.addRow(table, "allTfClasses", DoubleStreamEx.of(pValuesForAllTfClasses).boxed().toArray());
@@ -260,10 +261,11 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
         int j = 0;
         for( String tfClass : distinctTfClasses )
         {
-            TableDataCollectionUtils.addRow(table, tfClass, DoubleStreamEx.of(pvaluesExponentiality[j]).boxed().toArray());
+            TableDataCollectionUtils.addRow(table, tfClass, DoubleStreamEx.of(pvaluesExponentiality[j]).boxed().toArray(), true);
             j++;
             getJobControl().setPreparedness(j * 100 / distinctTfClasses.size());
         }
+        table.finalizeAddition();
         log.info("Kolmogorov-Smirnov Exponentiality test for all tfClasses is started");
         double[] pValuesForAllTfClasses1  = getKolmogorovSmirnovExponentialityPvalueForAllTfClassesAndEveryChromosome(chromosomeNameAndLength, allBindingRegions, chromosomeNameAndGaps);
         TableDataCollectionUtils.addRow( table, "allTfClasses", DoubleStreamEx.of( pValuesForAllTfClasses1 ).boxed().toArray() );
@@ -346,8 +348,9 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
             numberOfOverlappedGenes = entry.getValue();
             int numberOfGenes = GeneTypesAndCounts.get(geneType);
             float percentage = numberOfGenes == 0 ? 0 : (numberOfOverlappedGenes) * ((float)100.0) / (numberOfGenes);
-            TableDataCollectionUtils.addRow(table, String.valueOf(iRow++), new Object[] {geneType, numberOfOverlappedGenes, percentage});
+            TableDataCollectionUtils.addRow(table, String.valueOf(iRow++), new Object[] {geneType, numberOfOverlappedGenes, percentage}, true);
         }
+        table.finalizeAddition();
         return table;
     }
     
@@ -442,8 +445,9 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
         {
             int numberOfCisModules = entry.getValue();
             float percentage = (numberOfCisModules) * ((float)100.0) / (totalNumber);
-            TableDataCollectionUtils.addRow(table, String.valueOf(iRow++), new Object[] {entry.getKey(), numberOfCisModules, percentage});
+            TableDataCollectionUtils.addRow(table, String.valueOf(iRow++), new Object[] {entry.getKey(), numberOfCisModules, percentage}, true);
         }
+        table.finalizeAddition();
         return table;
     }
     
@@ -784,8 +788,9 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
              Float meanTimeWaitingForDeath = x;
              x = (float)meanAndSigmaForTimesWaitingForDeath[1];
              Float sigmaOtTimesWaitingForDeath = x;
-             TableDataCollectionUtils.addRow(table, String.valueOf(iRow++), new Object[] {populationSize, numberOfNextBirth, numberOfNextDeath, meanTimeWaitingForBirth, sigmaOfTimesWaitingForBirth, meanTimeWaitingForDeath, sigmaOtTimesWaitingForDeath});
+             TableDataCollectionUtils.addRow(table, String.valueOf(iRow++), new Object[] {populationSize, numberOfNextBirth, numberOfNextDeath, meanTimeWaitingForBirth, sigmaOfTimesWaitingForBirth, meanTimeWaitingForDeath, sigmaOtTimesWaitingForDeath}, true);
          }
+         table.finalizeAddition();
          return table;
      }
 
@@ -876,8 +881,9 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
              Float value1 = x;
              x = (float)values[1];
              Float value2 = x;
-             TableDataCollectionUtils.addRow(tableBirth, String.valueOf(++iRow), new Object[] {entry.getKey(), value1, value2});
+             TableDataCollectionUtils.addRow(tableBirth, String.valueOf(++iRow), new Object[] {entry.getKey(), value1, value2}, true);
          }
+         tableBirth.finalizeAddition();
          TableDataCollection tableDeath = TableDataCollectionUtils.createTableDataCollection(parameters.getExponentiality_KS_OfTimesWaitingForDeathPath());
          tableDeath.getColumnModel().addColumn("populationSize", Integer.class);
          tableDeath.getColumnModel().addColumn("exponentialityKolmogorovSmirnovStatistic", Double.class);
@@ -891,8 +897,9 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
              Float value1 = x;
              x = (float)values[1];
              Float value2 = x;
-             TableDataCollectionUtils.addRow(tableDeath, String.valueOf(++iRow), new Object[] {entry.getKey(), value1, value2});
+             TableDataCollectionUtils.addRow(tableDeath, String.valueOf(++iRow), new Object[] {entry.getKey(), value1, value2}, true);
          }
+         tableDeath.finalizeAddition();
          return new TableDataCollection[] {tableBirth, tableDeath};
      }
 
@@ -941,8 +948,9 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
              Float value1 = x;
              x = (float)values[1];
              Float value2 = x;
-             TableDataCollectionUtils.addRow(tableBirth, String.valueOf(++iRow), new Object[] {populationSize, value1, value2});
+             TableDataCollectionUtils.addRow(tableBirth, String.valueOf(++iRow), new Object[] {populationSize, value1, value2}, true);
          }
+         tableBirth.finalizeAddition();
          TableDataCollection tableDeath = TableDataCollectionUtils.createTableDataCollection(parameters.getChiSquaredExponentialityOfTimesWaitingForDeathPath());
          tableDeath.getColumnModel().addColumn("populationSize", Integer.class);
          tableDeath.getColumnModel().addColumn("exponentialityChiSquaredStatistic", Double.class);
@@ -956,8 +964,9 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
              Float value1 = x;
              x = (float)values[1];
              Float value2 = x;
-             TableDataCollectionUtils.addRow(tableDeath, String.valueOf(++iRow), new Object[] {entry.getKey(), value1, value2});
+             TableDataCollectionUtils.addRow(tableDeath, String.valueOf(++iRow), new Object[] {entry.getKey(), value1, value2}, true);
          }
+         tableDeath.finalizeAddition();
          return new TableDataCollection[] {tableBirth, tableDeath};
      }
 
@@ -1098,8 +1107,9 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
                  float x = (float)informationTable[iRow][j];
                  row[j] = x;
              }
-             TableDataCollectionUtils.addRow(table, String.valueOf(iRow), row);
+             TableDataCollectionUtils.addRow(table, String.valueOf(iRow), row, true);
          }
+         table.finalizeAddition();
          return table;
      }
 
@@ -1226,8 +1236,9 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
                  x = populationSizeAndTheoreticalProbability.get(populationSize);
                  theoreticalProbability = (float)x;
              }
-             TableDataCollectionUtils.addRow(table, String.valueOf(iRow++), new Object[] {populationSize, theoreticalProbability, observedProbability});
+             TableDataCollectionUtils.addRow(table, String.valueOf(iRow++), new Object[] {populationSize, theoreticalProbability, observedProbability}, true);
          }
+         table.finalizeAddition();
          return table;
      }
 
@@ -1262,10 +1273,11 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
             {
                 int ii = (int)i;
                 Integer frequency = ii;
-                TableDataCollectionUtils.addRow( table, String.valueOf( iRow++ ), new Object[] {length, frequency} );
+                TableDataCollectionUtils.addRow( table, String.valueOf( iRow++ ), new Object[] {length, frequency}, true );
                 return true;
             }
         } );
+        table.finalizeAddition();
         return table;
     }
 
@@ -1320,8 +1332,9 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
              long meanLengthOfCisModule = entry.getValue()[1];
              i = (int)meanLengthOfCisModule;
              Integer length = i;
-             TableDataCollectionUtils.addRow(table, String.valueOf(iRow++), new Object[] {entry.getKey(), frequency, length});
+             TableDataCollectionUtils.addRow(table, String.valueOf(iRow++), new Object[] {entry.getKey(), frequency, length}, true);
          }
+         table.finalizeAddition();
          log.info("number of all CisModules identified = " + numberOfAllCisModules);
          return table;
      }
@@ -1498,8 +1511,9 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
                  float x = (float)doubleRatios[i];
                  ratios[i] = x;
              }
-             TableDataCollectionUtils.addRow(table, entry.getKey(), ratios);
+             TableDataCollectionUtils.addRow(table, entry.getKey(), ratios, true);
          }
+         table.finalizeAddition();
          return table;
      }
 
@@ -1735,9 +1749,10 @@ public class CisRegModule extends AnalysisMethodSupport<CisRegModuleParameters>
                  values[0] = numberOfIdenticalCisModules;
                  values[1] = entry.getKey();
                  values[2] = factors;
-                 TableDataCollectionUtils.addRow(table, String.valueOf(iRow++), values);
+                 TableDataCollectionUtils.addRow(table, String.valueOf(iRow++), values, true);
              }
          }
+         table.finalizeAddition();
          return table;
      }
      

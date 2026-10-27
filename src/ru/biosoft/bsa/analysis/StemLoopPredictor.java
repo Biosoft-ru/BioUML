@@ -146,7 +146,7 @@ public class StemLoopPredictor extends AnalysisMethodSupport<StemLoopPredictor.P
     private void saveStemLoop(StemLoop stemLoop, String chrName, Interval interval, int strand, TableDataCollection table)
     {
         TableDataCollectionUtils.addRow( table, String.valueOf( nextId++ ), new Object[] {chrName, interval.getFrom(), interval.getTo(),
-                strand, stemLoop.getAlignmentScore(), stemLoop.getStemLenght(), stemLoop.getLoopInterval().getLength(), stemLoop.toHTML()} );
+                strand, stemLoop.getAlignmentScore(), stemLoop.getStemLenght(), stemLoop.getLoopInterval().getLength(), stemLoop.toHTML()}, true );
     }
     private static boolean isComplementary(byte x, byte y)
     {

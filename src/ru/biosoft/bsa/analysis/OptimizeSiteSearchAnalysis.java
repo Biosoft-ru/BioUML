@@ -618,8 +618,9 @@ public class OptimizeSiteSearchAnalysis extends AnalysisMethodSupport<OptimizeSi
             catch( Exception e )
             {
             }
-            TableDataCollectionUtils.addRow(resTable, entry.getKey(), values);
+            TableDataCollectionUtils.addRow(resTable, entry.getKey(), values, true);
         }
+        resTable.finalizeAddition();
         TableDataCollectionUtils.setSortOrder(resTable, "Yes-No ratio", false);
         if(inputs[YES] instanceof SqlTrack)
         {

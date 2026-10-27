@@ -81,8 +81,9 @@ public class StoichiometricAnalysis extends AnalysisMethodSupport<Stoichiometric
                     Object[] values = rde.getValues();
 
                     String title = resolver.resolveVariable(rde.getName());
-                    TableDataCollectionUtils.addRow(st, title, values);
+                    TableDataCollectionUtils.addRow(st, title, values, true);
                 }
+                st.finalizeAddition();
 
                 return st;
             }

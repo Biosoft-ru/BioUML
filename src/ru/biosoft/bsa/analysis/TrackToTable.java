@@ -84,7 +84,7 @@ public class TrackToTable extends AnalysisMethodSupport<TrackToTable.TrackToTabl
                         values[col2index.get( propName )] = value;
                     }
                 }
-                TableDataCollectionUtils.addRow( result, site.getName(), values );
+                TableDataCollectionUtils.addRow( result, site.getName(), values, true );
                 return true;
             }
         } );

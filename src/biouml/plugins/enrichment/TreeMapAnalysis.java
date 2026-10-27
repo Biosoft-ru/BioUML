@@ -241,6 +241,7 @@ public class TreeMapAnalysis extends AnalysisMethodSupport<TreeMapAnalysisParame
                 return null;
             }
         }
+        resTable.finalizeAddition();
         resTable.setReferenceType( input.getReferenceType() );
         resTable.setSpecies( input.getSpecies() );
         parentCol.setValue( ReferenceTypeRegistry.REFERENCE_TYPE_PROPERTY, input.getReferenceType() );
@@ -301,10 +302,10 @@ public class TreeMapAnalysis extends AnalysisMethodSupport<TreeMapAnalysisParame
         TableDataCollectionUtils.addRow( resTable, term,
                     new Object[] {gi.getTitle(), gi.getType(), clustNum, parentTerm, gi.getLevel(),
                             100 * gi.getFrequency(),
-                            -Math.log10( pvalue ), hits[0], hits[1]} );
+                            -Math.log10( pvalue ), hits[0], hits[1]}, true );
         else
             TableDataCollectionUtils.addRow( resTable, term,
-                    new Object[] {gi.getTitle(), gi.getType(), parentTerm, 100 * gi.getFrequency(), -Math.log10( pvalue )} );
+                    new Object[] {gi.getTitle(), gi.getType(), parentTerm, 100 * gi.getFrequency(), -Math.log10( pvalue )}, true );
         return "\"" + term + "\"\t" + "\"" + gi.getTitle() + "\"\t" + 100 * gi.getFrequency() + "\t" + -Math.log10( pvalue ) + "\t" + "\""
                 + gip.getTitle() + "\"";
     }

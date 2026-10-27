@@ -177,8 +177,9 @@ public class PolynomialRegressionAnalysis extends MicroarrayAnalysis<PolynomialR
                 rowData[2 * j + 2] = score[j];
             }
             rowData[2 * n + 1] = profileChart;
-            TableDataCollectionUtils.addRow(output, keys[i], rowData);
+            TableDataCollectionUtils.addRow(output, keys[i], rowData, true);
         }
+        output.finalizeAddition();
         log.info("Up regulated found " + upRegulatedFound);
         log.info("Down regulated found " + downRegulatedFound);
         if( parameters.isFdr() )

@@ -54,7 +54,8 @@ public class RandomNumberAnalysis extends AnalysisMethodSupport<RandomNumberAnal
             result.getColumnModel().addColumn(columns[i], discrete[i] ? DataType.Integer : DataType.Float);
 
         for( int i = 0; i < data.length; i++ )
-            TableDataCollectionUtils.addRow(result, String.valueOf(i), ArrayUtils.toObject(data[i]));
+            TableDataCollectionUtils.addRow(result, String.valueOf(i), ArrayUtils.toObject(data[i]), true);
+        result.finalizeAddition();
 
         output.getParentCollection().put(result);
         return result;
