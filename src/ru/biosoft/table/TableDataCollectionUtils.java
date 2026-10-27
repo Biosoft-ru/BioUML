@@ -1,7 +1,10 @@
 package ru.biosoft.table;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.DoubleSummaryStatistics;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +68,16 @@ public abstract class TableDataCollectionUtils
     public static final int RIGHT_JOIN = INNER_JOIN | RIGHT_SUBSTRACTION; // SQL right join
     public static final int OUTER_JOIN = INNER_JOIN | LEFT_SUBSTRACTION | RIGHT_SUBSTRACTION; // SQL full join
     public static final int SYMMETRIC_DIFFERENCE = LEFT_SUBSTRACTION | RIGHT_SUBSTRACTION; // Contains elements which belongs only to one table
+
+    /** Cells (rows times columns) of input rows a join holds in memory at a time */
+    public static final int JOIN_CELLS_PER_PASS = 5_000_000;
+    /** Rows are looked up one by one instead of reading the whole table when fewer than 1/50 of its rows are needed */
+    private static final int ROW_LOOKUP_RATIO = 50;
+
+    // which of the two joined tables has the row of a result key
+    private static final byte IN_FIRST = 1;
+    private static final byte IN_SECOND = 2;
+    private static final byte IN_BOTH = 3;
 
     public static @Nonnull TableDataCollection createTableDataCollection(DataElementPath path)
     {
@@ -138,6 +151,20 @@ public abstract class TableDataCollectionUtils
             String[] t1Columns, String[] t2Columns, String[] t1NewColumns, String[] t2NewColumns, String[] commonColumns,
             String[] commonColumns1, String[] commonColumns2, NumericAggregator aggregator)
     {
+        int columns = t1.getColumnModel().getColumnCount() + t2.getColumnModel().getColumnCount();
+        int rowsPerPass = Math.max(1, JOIN_CELLS_PER_PASS / Math.max(1, columns));
+        return join(joinType, t1, t2, output, t1Columns, t2Columns, t1NewColumns, t2NewColumns, commonColumns, commonColumns1,
+                commonColumns2, aggregator, rowsPerPass);
+    }
+
+    /**
+     * Join two tables, see above
+     * @param rowsPerPass - number of result rows made from one read of the input tables; their input rows are held in memory meanwhile
+     */
+    public static TableDataCollection join(int joinType, TableDataCollection t1, TableDataCollection t2, DataElementPath output,
+            String[] t1Columns, String[] t2Columns, String[] t1NewColumns, String[] t2NewColumns, String[] commonColumns,
+            String[] commonColumns1, String[] commonColumns2, NumericAggregator aggregator, int rowsPerPass)
+    {
         TableDataCollection result = null;
         if( output == null )
         {
@@ -196,110 +223,108 @@ public abstract class TableDataCollectionUtils
             return result;
         }
 
-        // Trivial case: second table is empty. Making right join only from
-        // first table`s data
-        if( isEmpty(t2) && ( joinType & LEFT_JOIN ) == LEFT_JOIN )
-        {
-            return makeTrivialLeftJoin(result, t2Columns.length, getKeys(t1), t1, t1AllColumns);
-        }
-
-        // Trivial case: first table is empty. Making right join only from
-        // second table`s data
-        if( isEmpty(t1) && ( joinType & RIGHT_JOIN ) == RIGHT_JOIN )
-        {
-            return makeTrivialRightJoin(result, t1Columns.length, getKeys(t2), t2, t2AllColumns);
-        }
-
+        // Keys of the result rows in sorted order, each marked with the tables that have it
         String[] t1Keys = getKeys(t1);
         String[] t2Keys = getKeys(t2);
-
+        String[] keys = new String[t1Keys.length + t2Keys.length];
+        byte[] sources = new byte[keys.length];
+        int count = 0;
         int i = 0;
         int j = 0;
-
-        while( i < t1Keys.length && j < t2Keys.length )
+        while( i < t1Keys.length || j < t2Keys.length )
         {
-            Object[] rowBuffer = new Object[t1Columns.length + t2Columns.length + commonColumns.length];
-
-            setBufferToNulls(rowBuffer);
-
-            String left = t1Keys[i];
-            String right = t2Keys[j];
-            String key = null;
-
-            if( left.compareTo(right) < 0 )
+            int cmp = i == t1Keys.length ? 1 : j == t2Keys.length ? -1 : t1Keys[i].compareTo(t2Keys[j]);
+            if( cmp < 0 )
             {
                 if( ( joinType & LEFT_SUBSTRACTION ) == LEFT_SUBSTRACTION )
                 {
-                    key = left;
-                    setLeftJoinData(rowBuffer, key, t1, t1AllColumns);
+                    keys[count] = t1Keys[i];
+                    sources[count++] = IN_FIRST;
                 }
-
                 i++;
             }
-            else if( left.compareTo(right) > 0 )
+            else if( cmp > 0 )
             {
                 if( ( joinType & RIGHT_SUBSTRACTION ) == RIGHT_SUBSTRACTION )
                 {
-                    key = right;
-                    setRightJoinData(rowBuffer, key, t2, t2AllColumns, t1Columns.length);
+                    keys[count] = t2Keys[j];
+                    sources[count++] = IN_SECOND;
                 }
-
                 j++;
             }
             else
-            // (left == right)
             {
                 if( ( joinType & INNER_JOIN ) == INNER_JOIN )
                 {
-                    key = left;
-
-                    if( aggregator == null )
-                        if(commonColumns.length == 0)
-                            setInnerJoinData(rowBuffer, key, t1, t1Columns, t2, t2Columns);
-                        else //this case normally should not happen
-                            setInnerJoinData(rowBuffer, key, t1, t1AllColumns, t2, t2Columns);
-                    else
-                    {
-
-                        setLeftJoinData(rowBuffer, key, t1, t1Columns);
-                        setRightJoinData(rowBuffer, key, t2, t2Columns, t1AllColumns.length);
-                        setMergeJoinData(rowBuffer, key, t1, t2, commonColumns1, commonColumns2, t1Columns.length, aggregator);
-                    }
+                    keys[count] = t1Keys[i];
+                    sources[count++] = IN_BOTH;
                 }
                 i++;
                 j++;
             }
-
-            if( key != null )
-            {
-                addRow(result, key, rowBuffer, true);
-            }
         }
 
-        while( i < t1Keys.length )
+        // Column positions, resolved only for the kinds of rows the result has
+        boolean[] hasRows = new boolean[IN_BOTH + 1];
+        for( int k = 0; k < count; k++ )
+            hasRows[sources[k]] = true;
+        int[] t1AllIndexes = hasRows[IN_FIRST] || hasRows[IN_BOTH] && aggregator == null ? getColumnIndexes(t1, t1AllColumns) : null;
+        int[] t1Indexes = hasRows[IN_BOTH] && aggregator != null ? getColumnIndexes(t1, t1Columns) : null;
+        int[] t2AllIndexes = hasRows[IN_SECOND] ? getColumnIndexes(t2, t2AllColumns) : null;
+        int[] t2Indexes = hasRows[IN_BOTH] ? getColumnIndexes(t2, t2Columns) : null;
+
+        // Rows are read in bulk, a pass at a time: getting each row by key would send a query per row to SQL tables
+        int width = t1Columns.length + t2Columns.length + commonColumns.length;
+        for( int from = 0; from < count; from += rowsPerPass )
         {
-            Object[] rowBuffer = new Object[t1Columns.length + t2Columns.length + commonColumns.length];
-
-            String key = t1Keys[i++];
-
-            if( ( joinType & LEFT_SUBSTRACTION ) == LEFT_SUBSTRACTION )
+            int to = Math.min(count, from + rowsPerPass);
+            Set<String> t1Names = new HashSet<>();
+            Set<String> t2Names = new HashSet<>();
+            for( int k = from; k < to; k++ )
             {
-                setBufferToNulls(rowBuffer);
-                setLeftJoinData(rowBuffer, key, t1, t1AllColumns);
-                addRow(result, key, rowBuffer, true);
+                if( sources[k] != IN_SECOND )
+                    t1Names.add(keys[k]);
+                if( sources[k] != IN_FIRST )
+                    t2Names.add(keys[k]);
             }
-        }
-
-        while( j < t2Keys.length )
-        {
-            Object[] rowBuffer = new Object[t1Columns.length + t2Columns.length + commonColumns.length];
-
-            String key = t2Keys[j++];
-
-            if( ( joinType & RIGHT_SUBSTRACTION ) == RIGHT_SUBSTRACTION )
+            Map<String, Object[]> t1Rows;
+            Map<String, Object[]> t2Rows;
+            if( t1 == t2 ) // a table joined with itself is read once
             {
-                setBufferToNulls(rowBuffer);
-                setRightJoinData(rowBuffer, key, t2, t2AllColumns, t1Columns.length);
+                t1Names.addAll(t2Names);
+                t1Rows = t2Rows = readRowValues(t1, t1Names);
+            }
+            else
+            {
+                t1Rows = readRowValues(t1, t1Names);
+                t2Rows = readRowValues(t2, t2Names);
+            }
+
+            for( int k = from; k < to; k++ )
+            {
+                String key = keys[k];
+                Object[] rowBuffer = new Object[width];
+                if( sources[k] == IN_FIRST )
+                {
+                    copyValues(rowBuffer, 0, t1Rows.get(key), t1AllIndexes);
+                }
+                else if( sources[k] == IN_SECOND )
+                {
+                    copyValues(rowBuffer, t1Columns.length, t2Rows.get(key), t2AllIndexes);
+                }
+                else if( aggregator == null )
+                {
+                    // without an aggregator the common columns take the values of the first table
+                    copyValues(rowBuffer, 0, t1Rows.get(key), t1AllIndexes);
+                    copyValues(rowBuffer, t1AllColumns.length, t2Rows.get(key), t2Indexes);
+                }
+                else
+                {
+                    copyValues(rowBuffer, 0, t1Rows.get(key), t1Indexes);
+                    copyValues(rowBuffer, t1AllColumns.length, t2Rows.get(key), t2Indexes);
+                    setMergeJoinData(rowBuffer, t1Rows.get(key), t2Rows.get(key), t1, t2, commonColumns1, commonColumns2,
+                            t1Columns.length, aggregator);
+                }
                 addRow(result, key, rowBuffer, true);
             }
         }
@@ -308,22 +333,17 @@ public abstract class TableDataCollectionUtils
         return result;
     }
 
-    private static void setMergeJoinData(Object[] rowBuffer, String key, TableDataCollection t1, TableDataCollection t2,
-            String[] commonColumns1, String[] commonColumns2, int length, NumericAggregator aggreagator)
+    private static void copyValues(Object[] rowBuffer, int offset, Object[] values, int[] indexes)
+    {
+        for( int i = 0; i < indexes.length; i++ )
+            rowBuffer[offset + i] = values[indexes[i]];
+    }
+
+    private static void setMergeJoinData(Object[] rowBuffer, Object[] values1, Object[] values2, TableDataCollection t1,
+            TableDataCollection t2, String[] commonColumns1, String[] commonColumns2, int length, NumericAggregator aggreagator)
     {
         ColumnModel cm1 = t1.getColumnModel();
         ColumnModel cm2 = t2.getColumnModel();
-        Object[] values1;
-        Object[] values2;
-        try
-        {
-            values1 = ( t1.get(key) ).getValues();
-            values2 = ( t2.get(key) ).getValues();
-        }
-        catch( Exception e )
-        {
-            return;
-        }
         for(int i=0; i<commonColumns1.length; i++)
         {
             String name1 = commonColumns1[i];
@@ -402,66 +422,6 @@ public abstract class TableDataCollectionUtils
                 .flatMap( rowData -> IntStreamEx.of( indexes ).elements( rowData ) )
                 .select( Number.class ).mapToDouble( Number::doubleValue )
                 .remove( Double::isNaN ).remove( Double::isInfinite ).summaryStatistics();
-    }
-
-    private static TableDataCollection makeTrivialLeftJoin(TableDataCollection result, int t2Length, String[] t1Keys,
-            TableDataCollection t1, String[] t1Columns)
-    {
-        //        Object[] rowBuffer = new Object[t1Columns.length + t2Length];
-        for( String key : t1Keys )
-        {
-            Object[] rowBuffer = new Object[t1Columns.length + t2Length];
-            setBufferToNulls(rowBuffer);
-
-            setLeftJoinData(rowBuffer, key, t1, t1Columns);
-            addRow(result, key, rowBuffer, true);
-        }
-        result.finalizeAddition();
-
-        return result;
-    }
-
-    private static TableDataCollection makeTrivialRightJoin(TableDataCollection result, int t1Length, String[] t2Keys,
-            TableDataCollection t2, String[] t2Columns)
-    {
-        for( String key : t2Keys )
-        {
-            Object[] rowBuffer = new Object[t1Length + t2Columns.length];
-            setBufferToNulls(rowBuffer);
-
-            setRightJoinData(rowBuffer, key, t2, t2Columns, t1Length);
-            addRow(result, key, rowBuffer, true);
-        }
-        result.finalizeAddition();
-
-        return result;
-    }
-
-    private static void setBufferToNulls(Object[] rowBuffer)
-    {
-        Arrays.fill( rowBuffer, null );
-    }
-
-    private static void setLeftJoinData(Object[] rowBuffer, String key, TableDataCollection t1, String[] t1Columns)
-    {
-        Object[] leftRowBuffer = getRowValues(t1, key, t1Columns);
-        System.arraycopy(leftRowBuffer, 0, rowBuffer, 0, t1Columns.length);
-    }
-
-    private static void setRightJoinData(Object[] rowBuffer, String key, TableDataCollection t2, String[] t2Columns, int t1ColumnCount)
-    {
-        Object[] rightRowBuffer = getRowValues(t2, key, t2Columns);
-        System.arraycopy(rightRowBuffer, 0, rowBuffer, t1ColumnCount, t2Columns.length);
-    }
-
-    private static void setInnerJoinData(Object[] rowBuffer, String key, TableDataCollection t1, String[] t1Columns,
-            TableDataCollection t2, String[] t2Columns)
-    {
-        Object[] leftRowBuffer = getRowValues(t1, key, t1Columns);
-        System.arraycopy(leftRowBuffer, 0, rowBuffer, 0, t1Columns.length);
-
-        Object[] rightRowBuffer = getRowValues(t2, key, t2Columns);
-        System.arraycopy(rightRowBuffer, 0, rowBuffer, t1Columns.length, t2Columns.length);
     }
 
     public static void addColumns(TableDataCollection t, TableDataCollection from, String[] columns, String[] newColumns)
@@ -617,6 +577,32 @@ public abstract class TableDataCollectionUtils
         {
             throw new DataElementGetException(t, table.getCompletePath().getChildPath(rowName));
         }
+    }
+
+    /**
+     * Get values of several rows: reads the table in one pass, or looks the rows up one by one when they are a small part of the table.
+     * For SQL tables every lookup is a query.
+     * @param table table
+     * @param names names of the rows, all of which must be in the table
+     * @return row values by row name, as {@link RowDataElement#getValues()} returns them
+     * @throws BiosoftRepositoryException if a row is not found or cannot be obtained for some other reason
+     */
+    public static @Nonnull Map<String, Object[]> readRowValues(TableDataCollection table, Collection<String> names) throws RepositoryException
+    {
+        Map<String, Object[]> result = new HashMap<>();
+        Set<String> toRead = new HashSet<>(names);
+        if( !toRead.isEmpty() && (long)toRead.size() * ROW_LOOKUP_RATIO >= table.getSize() )
+        {
+            for( RowDataElement row : table )
+            {
+                if( row != null && toRead.remove(row.getName()) )
+                    result.put(row.getName(), row.getValues());
+            }
+        }
+        // few rows are needed, or the iterator did not return rows the table lists
+        for( String name : toRead )
+            result.put(name, getRowValues(table, name));
+        return result;
     }
 
     /**
