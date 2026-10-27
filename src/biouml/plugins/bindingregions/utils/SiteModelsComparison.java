@@ -643,7 +643,7 @@ public class SiteModelsComparison
                 Object[] row = StreamEx.of( bestSites )
                         .flatMap( site -> Stream.<Object>of(site.getFrom(), site.getTo(), site.getScore(), site.getSequence().toString()) )
                         .prepend( chromosome, peak.getStartPosition(), peak.getFinishPosition() ).toArray();
-                TableDataCollectionUtils.addRow(table, Integer.toString(++index), row);
+                TableDataCollectionUtils.addRow(table, Integer.toString(++index), row, true);
             }
             jobControl.setPreparedness(from + ++indexJobControl * difference / n);
         }

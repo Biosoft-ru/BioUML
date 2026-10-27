@@ -414,8 +414,9 @@ public abstract class TableDataCollectionUtils
             setBufferToNulls(rowBuffer);
 
             setLeftJoinData(rowBuffer, key, t1, t1Columns);
-            addRow(result, key, rowBuffer);
+            addRow(result, key, rowBuffer, true);
         }
+        result.finalizeAddition();
 
         return result;
     }
@@ -423,14 +424,15 @@ public abstract class TableDataCollectionUtils
     private static TableDataCollection makeTrivialRightJoin(TableDataCollection result, int t1Length, String[] t2Keys,
             TableDataCollection t2, String[] t2Columns)
     {
-        Object[] rowBuffer = new Object[t1Length + t2Columns.length];
         for( String key : t2Keys )
         {
+            Object[] rowBuffer = new Object[t1Length + t2Columns.length];
             setBufferToNulls(rowBuffer);
 
             setRightJoinData(rowBuffer, key, t2, t2Columns, t1Length);
-            addRow(result, key, rowBuffer);
+            addRow(result, key, rowBuffer, true);
         }
+        result.finalizeAddition();
 
         return result;
     }

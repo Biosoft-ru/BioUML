@@ -147,10 +147,11 @@ public abstract class AbstractIdentifiabilityAnalysis<T extends AbstractIdentifi
             DataElementPath imagePath = savePlot( parameters.getPlotType(), resultsFolder, points, selectedName, estimatedPoint, delta );
 
             TableDataCollectionUtils.addRow( resultTDC, selectedName,
-                    new Object[] {selectedName, bestPoint.getX(), paramValueEstimation, bestPoint.getY(), imagePath} );
+                    new Object[] {selectedName, bestPoint.getX(), paramValueEstimation, bestPoint.getY(), imagePath}, true );
 
             return true;
         } );
+        resultTDC.finalizeAddition();
 
         resultsFolder.put( resultTDC );
         if( nParams.size() > 0 )

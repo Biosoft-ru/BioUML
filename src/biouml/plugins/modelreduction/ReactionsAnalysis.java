@@ -181,8 +181,9 @@ public class ReactionsAnalysis extends AnalysisMethodSupport<ReactionsAnalysisPa
             {
                 row[j] = values.get(j)[i];
             }
-            TableDataCollectionUtils.addRow(tdc, reactionNodes.get(i).getName(), row);
+            TableDataCollectionUtils.addRow(tdc, reactionNodes.get(i).getName(), row, true);
         }
+        tdc.finalizeAddition();
     }
 
     private List<String[]> reactionRatios;

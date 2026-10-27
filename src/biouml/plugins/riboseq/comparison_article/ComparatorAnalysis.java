@@ -246,8 +246,9 @@ public class ComparatorAnalysis extends AnalysisMethodSupport<ComparatorParamete
                     comparisonSets.getIntersectionTrackPointNumber(), comparisonSets.getUniqueArticlePointNumber(),
                     comparisonSets.getUniqueTrackPointNumber()};
 
-            TableDataCollectionUtils.addRow( statisticTable, "" + i * DELTA_VALUE, dataValues );
+            TableDataCollectionUtils.addRow( statisticTable, "" + i * DELTA_VALUE, dataValues, true );
         }
+        statisticTable.finalizeAddition();
 
         return statisticTable;
     }
@@ -286,10 +287,11 @@ public class ComparatorAnalysis extends AnalysisMethodSupport<ComparatorParamete
             final char strandChar = pointInfo.strandPlus ? '+' : '-';
             final Object[] dataValues = {pointInfo.point, pointInfo.chrName, strandChar};
 
-            TableDataCollectionUtils.addRow( articlePointTable, String.valueOf( keyIndex ), dataValues );
+            TableDataCollectionUtils.addRow( articlePointTable, String.valueOf( keyIndex ), dataValues, true );
 
             keyIndex++;
         }
+        articlePointTable.finalizeAddition();
 
         return articlePointTable;
     }

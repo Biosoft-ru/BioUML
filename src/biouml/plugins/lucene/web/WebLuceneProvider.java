@@ -336,7 +336,7 @@ public class WebLuceneProvider extends WebJSONProviderSupport
                     }
                     values.add( value );
                 }
-                TableDataCollectionUtils.addRow( target, row.getName(), values.toArray() );
+                TableDataCollectionUtils.addRow( target, row.getName(), values.toArray(), true );
             }
         }
         EntryStream.of(idxToType).forKeyValue( (idx, type) -> columnModel.getColumn( idx ).setType( DataType.fromClass( type ) ) );

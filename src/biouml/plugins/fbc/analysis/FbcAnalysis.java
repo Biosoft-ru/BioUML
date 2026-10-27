@@ -109,9 +109,10 @@ public class FbcAnalysis extends AnalysisMethodSupport<FbcAnalysisParameters>
             else
             {
                 String title = f.apply( rde.getName() );
-                TableDataCollectionUtils.addRow( st, title != null ? title : rde.getName(), rde.getValues() );
+                TableDataCollectionUtils.addRow( st, title != null ? title : rde.getName(), rde.getValues(), true );
             }
         }
+        st.finalizeAddition();
 
         return st;
     }
