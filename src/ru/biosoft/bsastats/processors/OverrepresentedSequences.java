@@ -63,10 +63,11 @@ public class OverrepresentedSequences extends AbstractStatisticsProcessor
                 if(percentage>1) raiseError(); else raiseWarning();
                 String read = entry.getKey().toString();
                 TableDataCollectionUtils.addRow(table, read, new Object[] {entry.getValue(), percentage,
-                        ContaminantsFinder.search(read).toString()});
+                        ContaminantsFinder.search(read).toString()}, true);
                 found = true;
             }
         }
+        table.finalizeAddition();
         if(!found)
         {
             while(columnModel.getColumnCount() > 0)

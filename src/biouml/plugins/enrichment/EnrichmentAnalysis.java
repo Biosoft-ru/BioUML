@@ -309,8 +309,9 @@ public class EnrichmentAnalysis extends FunctionalAnalysisSupport<EnrichmentAnal
                 }
                 values[col++] = new StringSet( hits );
                 values[col++] = new StringSet( hitNames );
-                TableDataCollectionUtils.addRow(resTable, go, values);
+                TableDataCollectionUtils.addRow(resTable, go, values, true);
             }
+            resTable.finalizeAddition();
             TableDataCollectionUtils.setSortOrder(resTable, "NES", false);
             resTable.getInfo().setNodeImageLocation(getClass(), "resources/classify.gif");
             writeMetaData(resTable);

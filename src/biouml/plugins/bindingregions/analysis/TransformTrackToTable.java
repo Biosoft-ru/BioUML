@@ -141,7 +141,7 @@ public class TransformTrackToTable extends AnalysisMethodSupport<TransformTrackT
                 String seq = new LinearSequence(new SequenceRegion(fullChromosome, siteInterval, false, false)).toString();
                 rowElements.add(seq);
             }
-            TableDataCollectionUtils.addRow(table, "site_" + Integer.toString(index++), rowElements.toArray());
+            TableDataCollectionUtils.addRow(table, "site_" + Integer.toString(index++), rowElements.toArray(), true);
         }
         table.finalizeAddition();
         CollectionFactoryUtils.save(table);

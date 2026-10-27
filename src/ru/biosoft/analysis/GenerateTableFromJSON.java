@@ -97,9 +97,10 @@ public class GenerateTableFromJSON extends AnalysisMethodSupport<GenerateTableFr
                         int i = properties.get( name );
                         values[i] = point.get( name );
                     }
-                    TableDataCollectionUtils.addRow( result, rowname, values );
+                    TableDataCollectionUtils.addRow( result, rowname, values, true );
                 }
             }
+            result.finalizeAddition();
 
             return result;
         }

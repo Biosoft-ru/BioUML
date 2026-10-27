@@ -90,8 +90,9 @@ public class MapPool
         tdc.getColumnModel().addColumn( column, DataType.Float );
         for( Entry<String, Double> e : values.entrySet() )
         {
-            TableDataCollectionUtils.addRow( tdc, e.getKey(), new Object[] {e.getValue()} );
+            TableDataCollectionUtils.addRow( tdc, e.getKey(), new Object[] {e.getValue()}, true );
         }
+        tdc.finalizeAddition();
         tdc.getOrigin().put( tdc );
     }
 

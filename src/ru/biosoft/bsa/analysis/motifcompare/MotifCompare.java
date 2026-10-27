@@ -155,8 +155,9 @@ public class MotifCompare extends AnalysisMethodSupport<MotifCompareParameters>
         {
             double area = areaUnderROCCurve(sensitivities[i], fprs[i]);
             Chart chart = getChartForROCCurve(sensitivities[i], fprs[i]);
-            TableDataCollectionUtils.addRow(resTable, models[i].getName(), new Object[] {area, chart});
+            TableDataCollectionUtils.addRow(resTable, models[i].getName(), new Object[] {area, chart}, true);
         }
+        resTable.finalizeAddition();
 
         CollectionFactoryUtils.save(resTable);
         return resTable;

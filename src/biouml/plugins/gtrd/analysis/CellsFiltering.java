@@ -364,8 +364,9 @@ public class CellsFiltering extends AnalysisMethodSupport<CellsFilteringParamete
 				String sp = chex.getSpecie().getLatinName();
 				String exRef = chex.getExternalReferences();
 
-				TableDataCollectionUtils.addRow(table, exNm, new Object[] {cell, tr, ab, tgCl, tg, pk, cont, sp, exRef });
+				TableDataCollectionUtils.addRow(table, exNm, new Object[] {cell, tr, ab, tgCl, tg, pk, cont, sp, exRef }, true);
 			}
+			table.finalizeAddition();
 			table.setReferenceType(ReferenceTypeRegistry.getReferenceType(ExperimentGTRDType.class).toString());
 			tPath.save(table);
 			//table.finalizeAddition();
@@ -397,8 +398,9 @@ public class CellsFiltering extends AnalysisMethodSupport<CellsFilteringParamete
 				String sp = chex.getSpecie().getLatinName();
 				String exRef = chex.getExternalReferences();
 
-				TableDataCollectionUtils.addRow(table, exNm, new Object[] {cell, tr, ab, tgCl, tg, pk, cont, sp, exRef });
+				TableDataCollectionUtils.addRow(table, exNm, new Object[] {cell, tr, ab, tgCl, tg, pk, cont, sp, exRef }, true);
 			}
+			table.finalizeAddition();
 			table.setReferenceType(ReferenceTypeRegistry.getReferenceType(ChIPexoExperimentGTRDType.class).toString());
 			tPath.save(table);
 			//table.finalizeAddition();
@@ -422,8 +424,9 @@ public class CellsFiltering extends AnalysisMethodSupport<CellsFilteringParamete
 				String sp = dex.getSpecie().getLatinName();
 				String exRef = dex.getExternalReferences();
 
-				TableDataCollectionUtils.addRow(table, exNm, new Object[] {cell, tr, pk, sp, exRef });
+				TableDataCollectionUtils.addRow(table, exNm, new Object[] {cell, tr, pk, sp, exRef }, true);
 			}
+			table.finalizeAddition();
 			table.setReferenceType(ReferenceTypeRegistry.getReferenceType(DnaseExperimentGTRDType.class).toString());
 			tPath.save(table);
 			//table.finalizeAddition();
@@ -446,8 +449,9 @@ public class CellsFiltering extends AnalysisMethodSupport<CellsFilteringParamete
 				String sp = aex.getSpecie().getLatinName();
 				String exRef = aex.getExternalReferences();
 
-				TableDataCollectionUtils.addRow(table, exNm, new Object[] {cell, tr, pk, sp, exRef });
+				TableDataCollectionUtils.addRow(table, exNm, new Object[] {cell, tr, pk, sp, exRef }, true);
 			}
+			table.finalizeAddition();
 			table.setReferenceType(ReferenceTypeRegistry.getReferenceType(DnaseExperimentGTRDType.class).toString());
 			tPath.save(table);
 			//table.finalizeAddition();
@@ -470,8 +474,9 @@ public class CellsFiltering extends AnalysisMethodSupport<CellsFilteringParamete
 				String sp = fex.getSpecie().getLatinName();
 				String exRef = fex.getExternalReferences();
 
-				TableDataCollectionUtils.addRow(table, exNm, new Object[] {cell, tr, pk, sp, exRef });
+				TableDataCollectionUtils.addRow(table, exNm, new Object[] {cell, tr, pk, sp, exRef }, true);
 			}
+			table.finalizeAddition();
 			table.setReferenceType(ReferenceTypeRegistry.getReferenceType(DnaseExperimentGTRDType.class).toString());
 			tPath.save(table);
 			//table.finalizeAddition();
@@ -494,8 +499,9 @@ public class CellsFiltering extends AnalysisMethodSupport<CellsFilteringParamete
 				String sp = chex.getSpecie().getLatinName();
 				String exRef = chex.getExternalReferences();
 
-				TableDataCollectionUtils.addRow(table, exNm, new Object[] {cell, tr, pk, sp, exRef });
+				TableDataCollectionUtils.addRow(table, exNm, new Object[] {cell, tr, pk, sp, exRef }, true);
 			}
+			table.finalizeAddition();
 			table.setReferenceType(ReferenceTypeRegistry.getReferenceType(MNaseExperimentGTRDType.class).toString());
 			tPath.save(table);
 			//table.finalizeAddition();
@@ -524,8 +530,9 @@ public class CellsFiltering extends AnalysisMethodSupport<CellsFilteringParamete
 				String sp = chex.getSpecie().getLatinName();
 				String exRef = chex.getExternalReferences();
 
-				TableDataCollectionUtils.addRow(table, exNm, new Object[] {cell, tr, ab, tg, pk, cont, sp, exRef });
+				TableDataCollectionUtils.addRow(table, exNm, new Object[] {cell, tr, ab, tg, pk, cont, sp, exRef }, true);
 			}
+			table.finalizeAddition();
 			table.setReferenceType(ReferenceTypeRegistry.getReferenceType(HistonesExperimentGTRDType.class).toString());
 			tPath.save(table);
 			//table.finalizeAddition();

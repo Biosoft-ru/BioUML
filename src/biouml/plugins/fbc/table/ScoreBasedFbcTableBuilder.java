@@ -140,6 +140,7 @@ public class ScoreBasedFbcTableBuilder extends AnalysisMethodSupport<ScoreBasedF
             d.setNorm( norm );
             d.addAsRow( tdc, isCoeffCorrelation, isScoreSpecified, isMaxSpecified, isObjectiveSpecified );
         }
+        tdc.finalizeAddition();
 
         return tdc;
     }
@@ -285,7 +286,7 @@ public class ScoreBasedFbcTableBuilder extends AnalysisMethodSupport<ScoreBasedF
             reactionData.add( upper );
             reactionData.add( resultCoef );
 
-            TableDataCollectionUtils.addRow( tdc, reactionName, reactionData.toArray() );
+            TableDataCollectionUtils.addRow( tdc, reactionName, reactionData.toArray(), true );
         }
 
         double norm = 1.0;

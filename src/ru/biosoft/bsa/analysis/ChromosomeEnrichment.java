@@ -69,8 +69,9 @@ public class ChromosomeEnrichment extends AnalysisMethodSupport<ChromosomeEnrich
             int total = entry.getValue();
             int target = targetCountByChrom.get( chr );
             double percent = ( target * 100.0 ) / total;
-            TableDataCollectionUtils.addRow( resultTable, chr, new Object[] { target, total, percent } );
+            TableDataCollectionUtils.addRow( resultTable, chr, new Object[] { target, total, percent }, true );
         }
+        resultTable.finalizeAddition();
         parameters.getOutputTable().save( resultTable );
 
         return resultTable;

@@ -140,7 +140,8 @@ public class FbcBuilderDataTableAnalysis extends AnalysisMethodSupport<FbcBuilde
 
         TableDataCollection st = TableDataCollectionUtils.createTableDataCollection(origin, name);
         tdc.columns().forEach(st.getColumnModel()::addColumn);
-        tdc.stream().forEach(rde -> TableDataCollectionUtils.addRow(st, rde.getName(), rde.getValues()));
+        tdc.stream().forEach(rde -> TableDataCollectionUtils.addRow(st, rde.getName(), rde.getValues(), true));
+        st.finalizeAddition();
         return st;
     }
 }

@@ -1192,8 +1192,9 @@ public class CRClusterAnalysis extends MicroarrayAnalysis<CRClusterAnalysisParam
                 row.add(inverted);
 
             row.addAll(Arrays.asList(inputValues));
-            TableDataCollectionUtils.addRow(result, key, row.toArray());
+            TableDataCollectionUtils.addRow(result, key, row.toArray(), true);
         }
+        result.finalizeAddition();
         return result;
     }
 

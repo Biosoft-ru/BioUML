@@ -132,8 +132,9 @@ public class QuasiSteadyStateAnalysis extends AnalysisMethodSupport<QuasiSteadyS
                     if( var.getDiagramElement() != null )
                         title = var.getDiagramElement().getTitle();
 
-                    TableDataCollectionUtils.addRow(tdc, species[i], new Object[] {title, fastIntermediates[i], ranges[i], views[i]});
+                    TableDataCollectionUtils.addRow(tdc, species[i], new Object[] {title, fastIntermediates[i], ranges[i], views[i]}, true);
                 }
+                tdc.finalizeAddition();
             }
         }
         return rangesMap;

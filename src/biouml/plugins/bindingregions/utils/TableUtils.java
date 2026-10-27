@@ -499,7 +499,7 @@ public class TableUtils
         TableDataCollection table = TableDataCollectionUtils.createTableDataCollection(dep);
         table.getColumnModel().addColumn(nameOfColumn, Chart.class);
         for( Entry<String, Chart> entry : namesAndCharts.entrySet() )
-            TableDataCollectionUtils.addRow(table, entry.getKey(), new Object[]{entry.getValue()});
+            TableDataCollectionUtils.addRow(table, entry.getKey(), new Object[]{entry.getValue()}, true);
         table.finalizeAddition();
         CollectionFactoryUtils.save(table);
         return table;

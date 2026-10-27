@@ -33,6 +33,7 @@ public class JoinBatchTest extends TestCase
         suite.addTest(new JoinBatchTest("testJoinIdenticalTables"));
         suite.addTest(new JoinBatchTest("testLeftJoinEmptyRightTrivial"));
         suite.addTest(new JoinBatchTest("testBatchAddRow"));
+        suite.addTest(new JoinBatchTest("testRightJoinEmptyLeftTrivial"));
         return suite;
     }
 
@@ -227,6 +228,27 @@ public class JoinBatchTest extends TestCase
         assertTrue("Should contain k1", names.contains("k1"));
         assertTrue("Should contain k2", names.contains("k2"));
         assertTrue("Should contain k3", names.contains("k3"));
+    }
+
+    /**
+     * RIGHT_JOIN with empty left table: trivial path returns all right rows, each with its own values
+     */
+    public void testRightJoinEmptyLeftTrivial() throws Exception
+    {
+        StandardTableDataCollection t1 = new StandardTableDataCollection(null, "empty");
+        t1.getColumnModel().addColumn("A", String.class);
+        t1.getColumnModel().addColumn("B", Integer.class);
+
+        TableDataCollection t2 = createTable2();
+        TableDataCollection result = TableDataCollectionUtils.join(
+                TableDataCollectionUtils.RIGHT_JOIN, t1, t2, null,
+                new String[] {"A", "B"}, new String[] {"C", "D"});
+
+        assertEquals("RIGHT_JOIN with empty left should have 3 rows (trivial path)", 3, result.getSize());
+        assertEquals("c2", result.get("k2").getValue("C"));
+        assertEquals("c3", result.get("k3").getValue("C"));
+        assertEquals("c4", result.get("k4").getValue("C"));
+        assertEquals(4.0, result.get("k4").getValue("D"));
     }
 
     /**

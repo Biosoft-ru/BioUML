@@ -123,7 +123,8 @@ public class CompareExperiments extends AnalysisMethodSupport<CompareExperiments
         int i = 0;
         for( List<ChIPseqExperiment> list : Arrays.asList( c1List, c2List ) )
             for( ChIPseqExperiment e : list )
-                TableDataCollectionUtils.addRow( result, String.valueOf( i++ ), new Object[] {DataElementPath.create( e ).toString()} );
+                TableDataCollectionUtils.addRow( result, String.valueOf( i++ ), new Object[] {DataElementPath.create( e ).toString()}, true );
+        result.finalizeAddition();
 
         return result;
     }
