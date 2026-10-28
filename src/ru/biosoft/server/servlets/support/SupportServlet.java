@@ -677,39 +677,55 @@ public class SupportServlet extends AbstractJSONServlet
                                 if ( !backupAddr.equals("BackupFolder") )
                                 {
                                     File backupFolder = new File(backupAddr);
-                                    if ( !backupFolder.exists() )
+                                    if ( !backupFolder.exists() && !backupFolder.mkdirs() )
                                     {
-                                        backupFolder.mkdirs();
+                                        log.log( Level.WARNING, "Cannot create backup folder '" + backupAddr + "', skipping backup of project '" + localPath + "'");
                                     }
                                     File src = new File(localPath);
                                     String date = new SimpleDateFormat("yyyy.MM.dd_HH:mm:ss").format(new Date());
                                     File dst = new File(backupFolder, date + "_" + src.getName());
 
-                                    if ( "Linux".equals(System.getProperty("os.name")) )
+                                    if ( dst.exists() )
+                                    {
+                                        log.log( Level.WARNING, "Backup folder '" + dst.getAbsolutePath() + "' already exists, skipping backup of project '" + localPath + "'");
+                                    }
+                                    else if ( "Linux".equals(System.getProperty("os.name")) )
                                     {
                                         log.info("Moving deleted project '" + localPath + "' to backup folder '" + dst.getAbsolutePath() + "'...");
                                         ProcessBuilder processBuilder = new ProcessBuilder();
                                         processBuilder.command("mv", localPath, dst.getAbsolutePath());
                                         Process proc = processBuilder.start();
-                                        proc.waitFor();
+                                        int mvExitCode = proc.waitFor();
+                                        if ( mvExitCode != 0 )
+                                        {
+                                            log.log( Level.WARNING, "'mv' to backup folder '" + dst.getAbsolutePath() + "' failed with exit code " + mvExitCode + ", project '" + localPath + "' was not moved");
+                                        }
                                     }
                                     else
                                     {
+                                        log.info("Copying deleted project '" + localPath + "' to backup folder '" + dst.getAbsolutePath() + "'...");
                                         ApplicationUtils.copyFolder(dst, src);
                                     }
 
                                     File dumpPath = new File(dst, "_dump.sql");
-                                    List<String> cmd = new ArrayList<>();
-                                    cmd.add("mysqldump");
-                                    String user = Application.getGlobalValue("BackupUser", "root");
-                                    String password = Application.getGlobalValue("BackupPassword", "root");
-                                    cmd.add("-u" + user);
-                                    cmd.add("-p" + password);
-                                    cmd.add(dbName);
-                                    Runtime rt = Runtime.getRuntime();
-                                    String[] cmdArray = cmd.toArray(new String[cmd.size()]);
-                                    Process proc = rt.exec(cmdArray);
-                                    ApplicationUtils.copyStream(new FileOutputStream(dumpPath), proc.getInputStream());
+                                    if ( !dst.isDirectory() )
+                                    {
+                                        log.log( Level.WARNING, "Backup folder '" + dst.getAbsolutePath() + "' was not created, cannot dump database '" + dbName + "' to '" + dumpPath + "'");
+                                    }
+                                    else
+                                    {
+                                        List<String> cmd = new ArrayList<>();
+                                        cmd.add("mysqldump");
+                                        String user = Application.getGlobalValue("BackupUser", "root");
+                                        String password = Application.getGlobalValue("BackupPassword", "root");
+                                        cmd.add("-u" + user);
+                                        cmd.add("-p" + password);
+                                        cmd.add(dbName);
+                                        Runtime rt = Runtime.getRuntime();
+                                        String[] cmdArray = cmd.toArray(new String[cmd.size()]);
+                                        Process proc = rt.exec(cmdArray);
+                                        ApplicationUtils.copyStream(new FileOutputStream(dumpPath), proc.getInputStream());
+                                    }
                                 }
                             }
                             catch (Exception e)
@@ -725,6 +741,7 @@ public class SupportServlet extends AbstractJSONServlet
                             ApplicationUtils.removeDir(file);
                         }
 
+                        // remove the project database
                         if ( dbName != null )
                         {
                             Connection rootConnection = GlobalDatabaseManager.getDatabaseConnection();
