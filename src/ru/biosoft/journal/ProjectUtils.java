@@ -177,9 +177,10 @@ public class ProjectUtils
     // Invalidation:
     //  - invalidateAvailableDatabaseVersions() clears ALL users' entries. It is called from
     //    SecurityManager.invalidatePermissions (a permission change affects every user's
-    //    database visibility). It is the primary invalidation path; callers that install or
-    //    remove a database and do not already go through a permission reload should call it
-    //    directly.
+    //    database visibility). This is the invalidation path in use: databases are
+    //    provisioned into the repository at startup (from the data directories) and are
+    //    not installed or removed at runtime, so a permission reload is the only event
+    //    that changes which databases are visible.
     //  - The map is bounded (MAX_CACHED_USERS): when too many distinct users have cached a
     //    value, the whole map is dropped so a long-running, many-user server cannot grow it
     //    unboundedly. Sessions are short-lived, so dropping everyone's entry occasionally is
@@ -230,6 +231,12 @@ public class ProjectUtils
      * databases are visible to every user). The generation bump and the clear are atomic
      * with any concurrent publication (which holds the same lock), so an in-flight
      * computation cannot install a stale entry after the invalidation.
+     *
+     * <p>Semantics: this guarantees that a stale value is never <em>cached</em>. A caller
+     * whose computation finished before the invalidation may still receive the value it
+     * computed (under its own security context); the contract is that a request in flight
+     * completes with the security state it started under. A subsequent call for the same
+     * user always recomputes from the new state, because the stale entry was not installed.
      */
     public static void invalidateAvailableDatabaseVersions()
     {
