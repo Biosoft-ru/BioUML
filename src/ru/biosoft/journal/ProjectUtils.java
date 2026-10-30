@@ -8,6 +8,7 @@ import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.CheckForNull;
@@ -21,6 +22,7 @@ import ru.biosoft.access.core.DataCollectionEvent;
 import ru.biosoft.access.core.DataCollectionListener;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.RepositoryException;
+import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.util.DatabaseVersionComparator;
 import ru.biosoft.util.TextUtil2;
 
@@ -154,28 +156,61 @@ public class ProjectUtils
     /**
      * @return map databaseName -> set of available versions
      */
-    // Cache of getAvailableDatabaseVersions() results. The method scans all databases and
-    // re-resolves every database element on each call (each resolution goes through
-    // SecurityManager.getPermissions). The list of installed databases rarely changes during
-    // a server run, while the method is called from hot paths
-    // (BioHubRegistry.isHubPathAvailable, ProjectUtils.isDatabasePreferred) for every
-    // BioHub on every workflow initialization. The cache is invalidation-based: it is
-    // refreshed whenever the databases collection changes or permissions are reloaded.
+    // Per-user cache of getAvailableDatabaseVersions() results. The method scans all
+    // databases and re-resolves every database element on each call (each resolution goes
+    // through SecurityManager.getPermissions). The list of installed databases rarely changes
+    // during a server run, while the method is called from hot paths
+    // (BioHubRegistry.isHubPathAvailable, ProjectUtils.isDatabasePreferred) for every BioHub
+    // on every workflow initialization.
     //
-    // Two concurrency measures are used:
+    // The value is PER-USER: the databases view is per-session, so a value computed for one
+    // user (e.g. a restricted user who sees a subset) must not be served to another (e.g. an
+    // admin who sees all databases). The cache is a map from user identity to their value +
+    // the per-session databases view it was built from, so users do not evict each other:
+    // each user keeps hitting their own entry as long as they keep working, regardless of
+    // what other users do.
+    //
+    // Concurrency measures:
     //  1. The returned map is deep-immutable, so callers can never mutate the cached value.
-    //  2. A generation counter makes invalidation race-safe: a computation that starts under
-    //     generation N is only installed if the generation is still N when it finishes, so an
-    //     in-flight computation cannot repopulate the cache after a concurrent invalidation.
-    private static volatile Map<String, SortedSet<String>> availableDatabaseVersions;
+    //  2. A generation counter makes global invalidation race-safe: a computation that starts
+    //     under generation N is only installed if the generation is still N when it finishes,
+    //     so an in-flight computation cannot repopulate the cache after a concurrent
+    //     invalidateAvailableDatabaseVersions().
+    //  3. Per-user entries are removed atomically (compute / remove) so a stale entry for
+    //     user A is never observed by user B, and a user's entry is never partially published.
+    //
+    // Invalidation:
+    //  - invalidateAvailableDatabaseVersions() clears ALL users' entries. It is called from
+    //    SecurityManager.invalidatePermissions (a real permission change affects every user)
+    //    and from the databases-collection listener (databases added/removed).
+    //  - The map is bounded (MAX_CACHED_USERS): when too many distinct users have cached a
+    //    value, the whole map is dropped so a long-running, many-user server cannot grow it
+    //    unboundedly. Sessions are short-lived, so dropping everyone's entry occasionally is
+    //    cheap insurance.
+    private static final ConcurrentHashMap<String, VersionsEntry> versionsByUser = new ConcurrentHashMap<>();
     private static final AtomicLong availableVersionsGeneration = new AtomicLong();
     private static volatile DataCollectionListener availableVersionsListener;
-    // The resolved "databases" collection. Resolving it goes through
-    // SecurityManager.getPermissions (a synchronized call), and buildAvailableDatabaseVersions
-    // used to re-resolve it on every rebuild. The collection object itself is stable (only its
-    // contents change), so it is cached here and refreshed when the databases change or
-    // permissions are reloaded — both of which already invalidate the versions cache.
-    private static volatile DataCollection<DataCollection<?>> databasesCollection;
+    // Upper bound on the number of users holding a cached entry. Beyond this the whole map
+    // is dropped (see getAvailableDatabaseVersions). Picked well above any realistic number
+    // of concurrently-active users so steady-state workloads never hit it.
+    private static final int MAX_CACHED_USERS = 128;
+
+    /**
+     * A cached value for one user: the computed versions map and the per-session databases
+     * view it was built from. Both are only valid for the user that resolved them, so they
+     * travel together and are dropped together on invalidation.
+     */
+    private static final class VersionsEntry
+    {
+        final Map<String, SortedSet<String>> versions;
+        final DataCollection<DataCollection<?>> databases;
+
+        VersionsEntry(Map<String, SortedSet<String>> versions, DataCollection<DataCollection<?>> databases)
+        {
+            this.versions = versions;
+            this.databases = databases;
+        }
+    }
 
     private static void initAvailableVersionsListener()
     {
@@ -199,54 +234,87 @@ public class ProjectUtils
                             invalidateAvailableDatabaseVersions();
                         }
                     };
-                    databasesCollection = CollectionFactoryUtils.getDatabases();
-                    databasesCollection.addDataCollectionListener( availableVersionsListener );
+                    // The listener is attached to the current session's databases view (which
+                    // exists because the databases collection has been resolved at least
+                    // once by this point). It fires on add/remove, which invalidates every
+                    // user's entry — a structural change to the databases set is visible to
+                    // all users.
+                    DataCollection<DataCollection<?>> databases = CollectionFactoryUtils.getDatabases();
+                    databases.addDataCollectionListener( availableVersionsListener );
                 }
             }
         }
     }
 
     /**
-     * Invalidate the cache of available database versions. Called from
-     * {@code SecurityManager.invalidatePermissions} (permission changes can affect which
-     * databases are visible) and from the databases-collection listener (databases
-     * added/removed). Bumps the generation counter first so that any in-flight
+     * The identity of the current user for the purposes of the database version cache.
+     * Returns the logged-in user's name, or {@code null} for the SYSTEM/bootstrap session.
+     */
+    private static String currentUserIdentity()
+    {
+        return SecurityManager.getSessionUser();
+    }
+
+    private static String userKey(String user)
+    {
+        return user == null ? "" : user;
+    }
+
+    /**
+     * Invalidate the cache of available database versions for ALL users. Called from
+     * {@code SecurityManager.invalidatePermissions} (a permission change affects which
+     * databases are visible to every user) and from the databases-collection listener
+     * (databases added/removed). Bumps the generation counter first so that any in-flight
      * computation is discarded rather than installed after the invalidation.
      */
     public static void invalidateAvailableDatabaseVersions()
     {
         availableVersionsGeneration.incrementAndGet();
-        availableDatabaseVersions = null;
-        // The databases collection is resolved through security; after a permission reload
-        // (or a databases change) re-resolve it on the next build.
-        databasesCollection = null;
+        versionsByUser.clear();
     }
 
     public static Map<String, SortedSet<String>> getAvailableDatabaseVersions()
     {
-        Map<String, SortedSet<String>> versions = availableDatabaseVersions;
-        if( versions != null )
-            return versions;
+        String user = currentUserIdentity();
+        String key = userKey( user );
+        VersionsEntry entry = versionsByUser.get( key );
+        if( entry != null )
+            return entry.versions;
+
         initAvailableVersionsListener();
+
+        // Bound the map: if too many distinct users have cached a value, drop them all so a
+        // long-running, many-user server cannot grow the map unboundedly. This is a global
+        // drop, so it goes through the same race-safe generation bump as any invalidation.
+        if( versionsByUser.size() >= MAX_CACHED_USERS )
+        {
+            availableVersionsGeneration.incrementAndGet();
+            versionsByUser.clear();
+        }
+
         long generation = availableVersionsGeneration.get();
         Map<String, SortedSet<String>> computed = buildAvailableDatabaseVersions();
-        // Only publish if no invalidation happened while we were computing; otherwise a
-        // concurrent recomputation (started after the invalidation) will install the fresh
+        // Only publish if no global invalidation happened while we were computing; otherwise
+        // a concurrent recomputation (started after the invalidation) will install the fresh
         // value, and we return our now-stale `computed` just for this caller.
         if( generation == availableVersionsGeneration.get() )
-            availableDatabaseVersions = computed;
+            versionsByUser.put( key, new VersionsEntry( computed, getDatabasesView() ) );
         return computed;
+    }
+
+    /**
+     * The per-session "databases" view the current user sees. Resolved through
+     * SecurityManager.getPermissions.
+     */
+    private static DataCollection<DataCollection<?>> getDatabasesView()
+    {
+        return CollectionFactoryUtils.getDatabases();
     }
 
     private static Map<String, SortedSet<String>> buildAvailableDatabaseVersions()
     {
+        DataCollection<DataCollection<?>> databases = CollectionFactoryUtils.getDatabases();
         TreeMap<String, SortedSet<String>> result = new TreeMap<>();
-        DataCollection<DataCollection<?>> databases = databasesCollection;
-        if( databases == null )
-        {
-            databases = CollectionFactoryUtils.getDatabases();
-            databasesCollection = databases;
-        }
         StreamEx.of( databases.stream() )
                 .mapToEntry( ProjectUtils::getDatabaseName, ProjectUtils::getVersion )
                 .nonNullKeys().removeValues( String::isEmpty ).groupingTo( TreeMap::new, () -> {
