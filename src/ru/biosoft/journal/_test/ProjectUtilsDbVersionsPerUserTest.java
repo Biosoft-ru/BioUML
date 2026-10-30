@@ -434,19 +434,20 @@ public class ProjectUtilsDbVersionsPerUserTest extends AbstractBioUMLTest
      * result to be discarded, not installed.
      *
      * <p>This is a genuine two-thread test driving the real production publication
-     * path. Thread A calls {@link ProjectUtils#getAvailableDatabaseVersions()} and is
-     * paused just before the publication critical section (via the
-     * {@code publicationHook} installed in tearDown) — after it has computed its value
-     * and captured the generation, before it acquires the lock and checks the
-     * generation. While A is paused, the test thread (standing in for thread B) calls
-     * {@link ProjectUtils#invalidateAvailableDatabaseVersions()}, which clears the
-     * cache and bumps the generation. A then resumes, enters the critical section, and
+     * path. Thread A authenticates on its own session (the security session is
+     * thread-based, so A must bind its own session to resolve as the restricted
+     * user), calls {@link ProjectUtils#getAvailableDatabaseVersions()}, and pauses
+     * just before the publication critical section (via the {@code publicationHook},
+     * waiting on a latch). While A is paused, the test thread (standing in for thread
+     * B) calls {@link ProjectUtils#invalidateAvailableDatabaseVersions()}, which
+     * clears the cache and bumps the generation. The test then releases A (in a
+     * finally, so a failed assertion never leaves A blocked); A enters the block and
      * its generation check must detect the invalidation and NOT install A's stale
      * value.
      *
-     * <p>The test drives the actual production publication path (not a re-implementation),
-     * so it fails on a publication that ignores the generation and passes when the
-     * generation check guards the put.
+     * <p>The test drives the actual production publication path (not a
+     * re-implementation), so it fails on a publication that ignores the generation
+     * and passes when the generation check guards the put.
      */
     public void testInvalidationAfterComputationDoesNotInstallStaleValue() throws Exception
     {
@@ -455,18 +456,23 @@ public class ProjectUtilsDbVersionsPerUserTest extends AbstractBioUMLTest
         switchToUser( "session-restricted", "restricted" );
 
         final java.util.concurrent.CountDownLatch aPaused = new java.util.concurrent.CountDownLatch( 1 );
-        final java.util.concurrent.atomic.AtomicBoolean paused = new java.util.concurrent.atomic.AtomicBoolean( true );
+        final java.util.concurrent.CountDownLatch allowPublication = new java.util.concurrent.CountDownLatch( 1 );
 
         // Pause thread A just BEFORE the publication block, after its computation. The hook
-        // spins on `paused` (an AtomicBoolean) so the test can release it deterministically;
-        // the hook is cleared before the test method ends (tearDown) so it cannot outlive the
-        // test and leak into a later test.
+        // waits on the `allowPublication` latch (released in the finally below), so the test
+        // can deterministically drive the interleaving: A computes, pauses, the test
+        // invalidates, then releases A so it enters the block and must discard its stale
+        // value. The hook is null in production and is cleared in tearDown.
         installPublicationHook( () ->
         {
             aPaused.countDown();
-            while( paused.get() )
+            try
             {
-                try { Thread.sleep( 5 ); } catch( InterruptedException e ) { Thread.currentThread().interrupt(); return; }
+                allowPublication.await();
+            }
+            catch( InterruptedException e )
+            {
+                Thread.currentThread().interrupt();
             }
         } );
 
@@ -475,41 +481,56 @@ public class ProjectUtilsDbVersionsPerUserTest extends AbstractBioUMLTest
         {
             try
             {
+                // Authenticate on THIS thread: the security session is thread-based, so A
+                // must bind its own session to resolve as the restricted user (not as the
+                // SYSTEM/"" session the test thread would otherwise leave it in).
+                login( "session-restricted-A", USER_RESTRICTED );
                 ProjectUtils.getAvailableDatabaseVersions();
             }
             catch( Exception e )
             {
                 failure.set( e );
             }
+            finally
+            {
+                logout();
+            }
         } );
         a.start();
 
-        // Wait for A to have computed and paused before the publication block, then
-        // invalidate from this thread while A is paused (A does not hold the lock here, so
-        // the invalidation can take it).
-        assertTrue( "thread A did not reach the publication hook in time",
-                aPaused.await( 10, java.util.concurrent.TimeUnit.SECONDS ) );
-        ProjectUtils.invalidateAvailableDatabaseVersions();
-
-        // Release A; it now enters the publication block and must discard its stale value
-        // (the invalidation bumped the generation).
-        paused.set( false );
-        a.join( 10000 );
+        try
+        {
+            // Wait for A to have computed and paused before the publication block, then
+            // invalidate from this thread while A is paused (A does not hold the lock here,
+            // so the invalidation can take it).
+            assertTrue( "thread A did not reach the publication hook in time",
+                    aPaused.await( 10, java.util.concurrent.TimeUnit.SECONDS ) );
+            ProjectUtils.invalidateAvailableDatabaseVersions();
+        }
+        finally
+        {
+            // Always release A (even if the assertion above failed) so a non-daemon thread
+            // is never left blocked in the hook, and always clear the hook.
+            allowPublication.countDown();
+            a.join( 10000 );
+            clearPublicationHook();
+        }
         assertTrue( "thread A did not finish in time", !a.isAlive() );
         assertNull( "thread A threw", failure.get() );
 
         // The stale value must NOT have been installed: the invalidation bumped the
-        // generation, so A's publication is discarded.
-        assertFalse( "stale value was installed after a concurrent invalidation",
-                versionsByUser().containsKey( "limitedUser" ) );
+        // generation, so A's publication is discarded. The whole map must be empty, not
+        // just the restricted user's key (A resolves as `limitedUser` on its own session).
+        assertTrue( "no stale entry must be installed after a concurrent invalidation",
+                versionsByUser().isEmpty() );
 
-        // A fresh call recomputes and installs correctly.
+        // A fresh call (on the test thread's restricted session) recomputes and installs.
         Map<String, SortedSet<String>> fresh = ProjectUtils.getAvailableDatabaseVersions();
         assertTrue( "restricted user sees dbShared", fresh.containsKey( DB_SHARED ) );
         assertFalse( "restricted user must not see dbRestricted",
                 fresh.containsKey( DB_RESTRICTED ) );
         assertTrue( "fresh value installed after the race",
-                versionsByUser().containsKey( "limitedUser" ) );
+                versionsByUser().containsKey( USER_RESTRICTED ) );
 
         logout();
     }
