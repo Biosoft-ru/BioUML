@@ -166,18 +166,20 @@ public class ProjectUtils
     // so users do not evict each other: each user keeps hitting their own entry as long as
     // they keep working, regardless of what other users do.
     //
-    // Concurrency: publication and invalidation are both performed under versionsCacheLock,
-    // so the generation check + put is atomic with the generation bump + clear of a
-    // concurrent invalidateAvailableDatabaseVersions(). A computation that started under
-    // generation N is only installed if the generation is still N, so an in-flight
-    // computation cannot repopulate the cache after a concurrent invalidation. The capacity
-    // check + clear is under the same lock, so the map never exceeds MAX_CACHED_USERS.
-    // The returned map is deep-immutable, so callers can never mutate the cached value.
+    // Concurrency: invalidation, publication, and the capacity bound are all performed under
+    // versionsCacheLock. A computation that started under generation N is only installed if
+    // the generation is still N when publication happens, so an in-flight computation cannot
+    // repopulate the cache after a concurrent invalidateAvailableDatabaseVersions(). The
+    // capacity check is re-run at publication time (under the same lock) so the map never
+    // exceeds MAX_CACHED_USERS, even when several users miss and compute concurrently. The
+    // returned map is deep-immutable, so callers can never mutate the cached value.
     //
     // Invalidation:
     //  - invalidateAvailableDatabaseVersions() clears ALL users' entries. It is called from
-    //    SecurityManager.invalidatePermissions (a real permission change affects every user)
-    //    and from the databases-collection listener (databases added/removed).
+    //    SecurityManager.invalidatePermissions (a permission change affects every user's
+    //    database visibility). It is the primary invalidation path; callers that install or
+    //    remove a database and do not already go through a permission reload should call it
+    //    directly.
     //  - The map is bounded (MAX_CACHED_USERS): when too many distinct users have cached a
     //    value, the whole map is dropped so a long-running, many-user server cannot grow it
     //    unboundedly. Sessions are short-lived, so dropping everyone's entry occasionally is
@@ -190,9 +192,27 @@ public class ProjectUtils
     // of concurrently-active users so steady-state workloads never hit it.
     private static final int MAX_CACHED_USERS = 128;
 
+    // Test hook: if non-null, invoked just BEFORE the publication critical section of
+    // getAvailableDatabaseVersions() — after the expensive computation, before the lock is
+    // acquired and the generation checked. A regression test uses this to pause a thread so
+    // another thread can run an invalidation (which takes the lock) while the paused thread
+    // holds an old generation, then verify the stale value is not installed. Null in
+    // production.
+    static volatile Runnable publicationHook;
+
     /**
      * The identity of the current user for the purposes of the database version cache.
      * Returns the logged-in user's name, or {@code null} for the SYSTEM/bootstrap session.
+     *
+     * <p>The value is keyed by user name because database visibility in this codebase is
+     * resolved by user name: {@code SecurityManager.getPermissions} looks up the user's
+     * {@code UserPermissions} (by session → user) and calls
+     * {@code SecurityProvider.getPermissions(path, userInfo)}, and the provider's
+     * decision is based on {@code userInfo.getUser()}, not on the session id. Two sessions
+     * for the same user name therefore see the same databases, so user name is a safe cache
+     * key. (If a future SecurityProvider were to make visibility session-specific — e.g.
+     * per-session impersonation or repository binding — the key would need to incorporate
+     * the session id as well.)
      */
     private static String currentUserIdentity()
     {
@@ -207,10 +227,9 @@ public class ProjectUtils
     /**
      * Invalidate the cache of available database versions for ALL users. Called from
      * {@code SecurityManager.invalidatePermissions} (a permission change affects which
-     * databases are visible to every user) and from the databases-collection listener
-     * (databases added/removed). The generation bump and the clear are atomic with any
-     * concurrent publication (which holds the same lock), so an in-flight computation
-     * cannot install a stale entry after the invalidation.
+     * databases are visible to every user). The generation bump and the clear are atomic
+     * with any concurrent publication (which holds the same lock), so an in-flight
+     * computation cannot install a stale entry after the invalidation.
      */
     public static void invalidateAvailableDatabaseVersions()
     {
@@ -229,31 +248,46 @@ public class ProjectUtils
         if( versions != null )
             return versions;
 
-        // Bound the map under the cache lock: if too many distinct users have cached a
-        // value, drop them all so a long-running, many-user server cannot grow the map
-        // unboundedly. Doing this under versionsCacheLock (together with the generation
-        // bump) makes the check-and-clear atomic with concurrent publications, so the map
-        // never exceeds MAX_CACHED_USERS and an in-flight computation cannot republish into
-        // a map that was just dropped.
-        synchronized( versionsCacheLock )
-        {
-            if( versionsByUser.size() >= MAX_CACHED_USERS )
-            {
-                availableVersionsGeneration.incrementAndGet();
-                versionsByUser.clear();
-            }
-        }
-
+        // Compute the value OUTSIDE the lock (the expensive database scan) so unrelated
+        // users' requests are not serialized. Capture the generation now; publication below
+        // discards the result if an invalidation happens while we compute.
         long generation = availableVersionsGeneration.get();
         Map<String, SortedSet<String>> computed = buildAvailableDatabaseVersions();
-        // Only publish if no global invalidation happened while we were computing. The check
-        // and the put are performed together under versionsCacheLock (the same lock a
-        // concurrent invalidation holds), so there is no window in which a stale entry is
-        // installed after the invalidation.
+
+        // Publish under versionsCacheLock (the same lock invalidation holds), so the
+        // generation check, the capacity bound, and the put are atomic with respect to any
+        // concurrent invalidation:
+        //  - if the generation changed (an invalidation ran while we computed), the result is
+        //    stale and is discarded — the caller still gets the correct `computed` value, just
+        //    not installed;
+        //  - the capacity is enforced HERE, at publication, so the map never exceeds
+        //    MAX_CACHED_USERS even when several users miss and compute concurrently (a
+        //    pre-check alone would not hold: two threads could both observe size 127 and
+        //    both publish, reaching 129);
+        //  - a capacity clear bumps the generation, so our own (old-generation) result is
+        //    discarded rather than installed into the freshly-cleared map.
+        // Test hook: if non-null, invoked just BEFORE the publication critical section —
+        // after the expensive computation, before the lock is acquired and the generation
+        // checked. A regression test uses this to pause a thread so another thread can run
+        // an invalidation (which takes the lock) while the paused thread holds an old
+        // generation. The paused thread then enters the block and must discard its stale
+        // value. Null in production.
+        if( publicationHook != null )
+            publicationHook.run();
         synchronized( versionsCacheLock )
         {
             if( generation == availableVersionsGeneration.get() )
-                versionsByUser.put( key, computed );
+            {
+                if( !versionsByUser.containsKey( key ) && versionsByUser.size() >= MAX_CACHED_USERS )
+                {
+                    availableVersionsGeneration.incrementAndGet();
+                    versionsByUser.clear();
+                }
+                else
+                {
+                    versionsByUser.put( key, computed );
+                }
+            }
         }
         return computed;
     }
