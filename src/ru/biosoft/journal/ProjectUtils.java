@@ -232,11 +232,14 @@ public class ProjectUtils
      * with any concurrent publication (which holds the same lock), so an in-flight
      * computation cannot install a stale entry after the invalidation.
      *
-     * <p>Semantics: this guarantees that a stale value is never <em>cached</em>. A caller
-     * whose computation finished before the invalidation may still receive the value it
-     * computed (under its own security context); the contract is that a request in flight
-     * completes with the security state it started under. A subsequent call for the same
-     * user always recomputes from the new state, because the stale entry was not installed.
+     * <p>Semantics: this guarantees that a stale value is never <em>cached</em>. A request
+     * already in flight may return the value it computed, even if permissions are
+     * invalidated while it is running. Such a value is not published to the cache. Calls
+     * made after invalidation completes will recompute using the current security state.
+     *
+     * <p>Note: the cache does not enforce snapshot isolation for permissions. The
+     * returned value may reflect the old state, the new state, or a mixture, depending on
+     * when the underlying {@code getDatabases()} resolution observes the permission change.
      */
     public static void invalidateAvailableDatabaseVersions()
     {

@@ -477,6 +477,7 @@ public class ProjectUtilsDbVersionsPerUserTest extends AbstractBioUMLTest
         } );
 
         final java.util.concurrent.atomic.AtomicReference<Exception> failure = new java.util.concurrent.atomic.AtomicReference<>();
+        final String[] workerUser = new String[1];  // capture Thread A's effective user
         Thread a = new Thread( () ->
         {
             try
@@ -485,6 +486,7 @@ public class ProjectUtilsDbVersionsPerUserTest extends AbstractBioUMLTest
                 // must bind its own session to resolve as the restricted user (not as the
                 // SYSTEM/"" session the test thread would otherwise leave it in).
                 login( "session-restricted-A", USER_RESTRICTED );
+                workerUser[0] = SecurityManager.getSessionUser();
                 ProjectUtils.getAvailableDatabaseVersions();
             }
             catch( Exception e )
@@ -517,6 +519,7 @@ public class ProjectUtilsDbVersionsPerUserTest extends AbstractBioUMLTest
         }
         assertTrue( "thread A did not finish in time", !a.isAlive() );
         assertNull( "thread A threw", failure.get() );
+        assertEquals( "thread A resolved as the restricted user", USER_RESTRICTED, workerUser[0] );
 
         // The stale value must NOT have been installed: the invalidation bumped the
         // generation, so A's publication is discarded. The whole map must be empty, not
