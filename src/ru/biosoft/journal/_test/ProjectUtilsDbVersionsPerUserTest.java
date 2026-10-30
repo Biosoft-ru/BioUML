@@ -1,5 +1,7 @@
 package ru.biosoft.journal._test;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
@@ -220,14 +222,44 @@ public class ProjectUtilsDbVersionsPerUserTest extends AbstractBioUMLTest
         ProjectUtils.invalidateAvailableDatabaseVersions();
     }
 
-    /**
-     * In the per-user cache design the per-session "databases" view lives inside the
-     * per-user entry and is dropped together with the value on
-     * {@link ProjectUtils#invalidateAvailableDatabaseVersions()}. There is no separate
-     * collection cache left to clear, so this is a no-op kept for the call sites.
-     */
     private static void clearDatabasesCollectionCache()
     {
+    }
+
+    // --- reflection access to the static cache state (for the concurrency test) ---
+
+    private static void setVersionsByUser(Object map) throws Exception
+    {
+        Field f = ProjectUtils.class.getDeclaredField( "versionsByUser" );
+        f.setAccessible( true );
+        f.set( null, map );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private static Map<String, Object> versionsByUser() throws Exception
+    {
+        Field f = ProjectUtils.class.getDeclaredField( "versionsByUser" );
+        f.setAccessible( true );
+        return (Map<String, Object>) f.get( null );
+    }
+
+    private static long getAvailableVersionsGeneration() throws Exception
+    {
+        Field f = ProjectUtils.class.getDeclaredField( "availableVersionsGeneration" );
+        f.setAccessible( true );
+        return ((java.util.concurrent.atomic.AtomicLong) f.get( null )).get();
+    }
+
+    private static void invokeInvalidateForAllUsers() throws Exception
+    {
+        ProjectUtils.invalidateAvailableDatabaseVersions();
+    }
+
+    private static Object invokeBuildAvailableDatabaseVersions() throws Exception
+    {
+        Method m = ProjectUtils.class.getDeclaredMethod( "buildAvailableDatabaseVersions" );
+        m.setAccessible( true );
+        return m.invoke( null );
     }
 
     // --- session simulation ---------------------------------------------------------
@@ -406,6 +438,57 @@ public class ProjectUtilsDbVersionsPerUserTest extends AbstractBioUMLTest
                 adminView.containsKey( DB_SHARED ) );
         assertTrue( "admin must see dbRestricted after invalidatePermissions, got: "
                 + adminView.keySet(), adminView.containsKey( DB_RESTRICTED ) );
+
+        logout();
+    }
+
+    /**
+     * Concurrency regression: an invalidation that completes AFTER a cache computation
+     * must not allow that computation's (stale) result to be published to the cache.
+     *
+     * <p>This is the race the generation counter is meant to prevent: a computation that
+     * started under generation N must be discarded if the generation changed to N+1 before
+     * publication. The test forces that exact interleaving by capturing the generation
+     * before the computation, invalidating (which bumps the generation), and then asserting
+     * that the stale computed value was NOT installed.
+     *
+     * <p>This test fails on a plain check-then-put implementation and passes when the
+     * publication is guarded by the generation check.
+     */
+    @SuppressWarnings( "unchecked" )
+    public void testInvalidationAfterComputationDoesNotInstallStaleValue() throws Exception
+    {
+        invalidateVersionsCache();
+        clearDatabasesCollectionCache();
+        switchToUser( "session-restricted", "restricted" );
+        String key = "";
+
+        // 1. Prime the cache with the restricted user's view.
+        ProjectUtils.getAvailableDatabaseVersions();
+
+        // 2. Now simulate the race:
+        //    - capture the generation before a fresh computation,
+        //    - compute (this represents buildAvailableDatabaseVersions running on another thread),
+        //    - invalidate (bumps the generation),
+        //    - verify the stale result is NOT installed.
+        long generationBefore = getAvailableVersionsGeneration();
+        Object computed = invokeBuildAvailableDatabaseVersions();
+        invokeInvalidateForAllUsers();
+
+        // The invalidation bumped the generation, so the computed value (produced under
+        // `generationBefore`) must not have been published. The cache is empty.
+        assertTrue( "stale value must not be installed after a concurrent invalidation",
+                versionsByUser().isEmpty() );
+        assertTrue( "generation must have been bumped by the invalidation",
+                getAvailableVersionsGeneration() > generationBefore );
+
+        // 3. A fresh call recomputes and installs (now the admin sees the full view).
+        switchToUser( "session-admin", "admin" );
+        Map<String, SortedSet<String>> fresh = ProjectUtils.getAvailableDatabaseVersions();
+        assertTrue( "admin sees dbShared", fresh.containsKey( DB_SHARED ) );
+        assertTrue( "admin sees dbRestricted", fresh.containsKey( DB_RESTRICTED ) );
+        assertFalse( "restricted user's stale entry is gone",
+                versionsByUser().containsKey( "limitedUser" ) );
 
         logout();
     }
