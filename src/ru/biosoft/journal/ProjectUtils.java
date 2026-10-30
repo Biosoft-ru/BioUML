@@ -15,11 +15,8 @@ import javax.annotation.CheckForNull;
 
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.CollectionFactoryUtils;
-import ru.biosoft.access.DataCollectionListenerSupport;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataCollection;
-import ru.biosoft.access.core.DataCollectionEvent;
-import ru.biosoft.access.core.DataCollectionListener;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.RepositoryException;
 import ru.biosoft.access.security.SecurityManager;
@@ -165,19 +162,17 @@ public class ProjectUtils
     //
     // The value is PER-USER: the databases view is per-session, so a value computed for one
     // user (e.g. a restricted user who sees a subset) must not be served to another (e.g. an
-    // admin who sees all databases). The cache is a map from user identity to their value +
-    // the per-session databases view it was built from, so users do not evict each other:
-    // each user keeps hitting their own entry as long as they keep working, regardless of
-    // what other users do.
+    // admin who sees all databases). The cache is a map from user identity to their value,
+    // so users do not evict each other: each user keeps hitting their own entry as long as
+    // they keep working, regardless of what other users do.
     //
-    // Concurrency measures:
-    //  1. The returned map is deep-immutable, so callers can never mutate the cached value.
-    //  2. A generation counter makes global invalidation race-safe: a computation that starts
-    //     under generation N is only installed if the generation is still N when it finishes,
-    //     so an in-flight computation cannot repopulate the cache after a concurrent
-    //     invalidateAvailableDatabaseVersions().
-    //  3. Per-user entries are removed atomically (compute / remove) so a stale entry for
-    //     user A is never observed by user B, and a user's entry is never partially published.
+    // Concurrency: publication and invalidation are both performed under versionsCacheLock,
+    // so the generation check + put is atomic with the generation bump + clear of a
+    // concurrent invalidateAvailableDatabaseVersions(). A computation that started under
+    // generation N is only installed if the generation is still N, so an in-flight
+    // computation cannot repopulate the cache after a concurrent invalidation. The capacity
+    // check + clear is under the same lock, so the map never exceeds MAX_CACHED_USERS.
+    // The returned map is deep-immutable, so callers can never mutate the cached value.
     //
     // Invalidation:
     //  - invalidateAvailableDatabaseVersions() clears ALL users' entries. It is called from
@@ -187,64 +182,13 @@ public class ProjectUtils
     //    value, the whole map is dropped so a long-running, many-user server cannot grow it
     //    unboundedly. Sessions are short-lived, so dropping everyone's entry occasionally is
     //    cheap insurance.
-    private static final ConcurrentHashMap<String, VersionsEntry> versionsByUser = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Map<String, SortedSet<String>>> versionsByUser = new ConcurrentHashMap<>();
+    private static final Object versionsCacheLock = new Object();
     private static final AtomicLong availableVersionsGeneration = new AtomicLong();
-    private static volatile DataCollectionListener availableVersionsListener;
     // Upper bound on the number of users holding a cached entry. Beyond this the whole map
     // is dropped (see getAvailableDatabaseVersions). Picked well above any realistic number
     // of concurrently-active users so steady-state workloads never hit it.
     private static final int MAX_CACHED_USERS = 128;
-
-    /**
-     * A cached value for one user: the computed versions map and the per-session databases
-     * view it was built from. Both are only valid for the user that resolved them, so they
-     * travel together and are dropped together on invalidation.
-     */
-    private static final class VersionsEntry
-    {
-        final Map<String, SortedSet<String>> versions;
-        final DataCollection<DataCollection<?>> databases;
-
-        VersionsEntry(Map<String, SortedSet<String>> versions, DataCollection<DataCollection<?>> databases)
-        {
-            this.versions = versions;
-            this.databases = databases;
-        }
-    }
-
-    private static void initAvailableVersionsListener()
-    {
-        if( availableVersionsListener == null )
-        {
-            synchronized( ProjectUtils.class )
-            {
-                if( availableVersionsListener == null )
-                {
-                    availableVersionsListener = new DataCollectionListenerSupport()
-                    {
-                        @Override
-                        public void elementAdded(DataCollectionEvent e)
-                        {
-                            invalidateAvailableDatabaseVersions();
-                        }
-
-                        @Override
-                        public void elementWillRemove(DataCollectionEvent e)
-                        {
-                            invalidateAvailableDatabaseVersions();
-                        }
-                    };
-                    // The listener is attached to the current session's databases view (which
-                    // exists because the databases collection has been resolved at least
-                    // once by this point). It fires on add/remove, which invalidates every
-                    // user's entry — a structural change to the databases set is visible to
-                    // all users.
-                    DataCollection<DataCollection<?>> databases = CollectionFactoryUtils.getDatabases();
-                    databases.addDataCollectionListener( availableVersionsListener );
-                }
-            }
-        }
-    }
 
     /**
      * The identity of the current user for the purposes of the database version cache.
@@ -264,51 +208,54 @@ public class ProjectUtils
      * Invalidate the cache of available database versions for ALL users. Called from
      * {@code SecurityManager.invalidatePermissions} (a permission change affects which
      * databases are visible to every user) and from the databases-collection listener
-     * (databases added/removed). Bumps the generation counter first so that any in-flight
-     * computation is discarded rather than installed after the invalidation.
+     * (databases added/removed). The generation bump and the clear are atomic with any
+     * concurrent publication (which holds the same lock), so an in-flight computation
+     * cannot install a stale entry after the invalidation.
      */
     public static void invalidateAvailableDatabaseVersions()
     {
-        availableVersionsGeneration.incrementAndGet();
-        versionsByUser.clear();
+        synchronized( versionsCacheLock )
+        {
+            availableVersionsGeneration.incrementAndGet();
+            versionsByUser.clear();
+        }
     }
 
     public static Map<String, SortedSet<String>> getAvailableDatabaseVersions()
     {
         String user = currentUserIdentity();
         String key = userKey( user );
-        VersionsEntry entry = versionsByUser.get( key );
-        if( entry != null )
-            return entry.versions;
+        Map<String, SortedSet<String>> versions = versionsByUser.get( key );
+        if( versions != null )
+            return versions;
 
-        initAvailableVersionsListener();
-
-        // Bound the map: if too many distinct users have cached a value, drop them all so a
-        // long-running, many-user server cannot grow the map unboundedly. This is a global
-        // drop, so it goes through the same race-safe generation bump as any invalidation.
-        if( versionsByUser.size() >= MAX_CACHED_USERS )
+        // Bound the map under the cache lock: if too many distinct users have cached a
+        // value, drop them all so a long-running, many-user server cannot grow the map
+        // unboundedly. Doing this under versionsCacheLock (together with the generation
+        // bump) makes the check-and-clear atomic with concurrent publications, so the map
+        // never exceeds MAX_CACHED_USERS and an in-flight computation cannot republish into
+        // a map that was just dropped.
+        synchronized( versionsCacheLock )
         {
-            availableVersionsGeneration.incrementAndGet();
-            versionsByUser.clear();
+            if( versionsByUser.size() >= MAX_CACHED_USERS )
+            {
+                availableVersionsGeneration.incrementAndGet();
+                versionsByUser.clear();
+            }
         }
 
         long generation = availableVersionsGeneration.get();
         Map<String, SortedSet<String>> computed = buildAvailableDatabaseVersions();
-        // Only publish if no global invalidation happened while we were computing; otherwise
-        // a concurrent recomputation (started after the invalidation) will install the fresh
-        // value, and we return our now-stale `computed` just for this caller.
-        if( generation == availableVersionsGeneration.get() )
-            versionsByUser.put( key, new VersionsEntry( computed, getDatabasesView() ) );
+        // Only publish if no global invalidation happened while we were computing. The check
+        // and the put are performed together under versionsCacheLock (the same lock a
+        // concurrent invalidation holds), so there is no window in which a stale entry is
+        // installed after the invalidation.
+        synchronized( versionsCacheLock )
+        {
+            if( generation == availableVersionsGeneration.get() )
+                versionsByUser.put( key, computed );
+        }
         return computed;
-    }
-
-    /**
-     * The per-session "databases" view the current user sees. Resolved through
-     * SecurityManager.getPermissions.
-     */
-    private static DataCollection<DataCollection<?>> getDatabasesView()
-    {
-        return CollectionFactoryUtils.getDatabases();
     }
 
     private static Map<String, SortedSet<String>> buildAvailableDatabaseVersions()
