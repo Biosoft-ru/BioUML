@@ -1,7 +1,6 @@
 package ru.biosoft.journal._test;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
@@ -228,13 +227,6 @@ public class ProjectUtilsDbVersionsPerUserTest extends AbstractBioUMLTest
 
     // --- reflection access to the static cache state (for the concurrency test) ---
 
-    private static void setVersionsByUser(Object map) throws Exception
-    {
-        Field f = ProjectUtils.class.getDeclaredField( "versionsByUser" );
-        f.setAccessible( true );
-        f.set( null, map );
-    }
-
     @SuppressWarnings( "unchecked" )
     private static Map<String, Object> versionsByUser() throws Exception
     {
@@ -243,23 +235,16 @@ public class ProjectUtilsDbVersionsPerUserTest extends AbstractBioUMLTest
         return (Map<String, Object>) f.get( null );
     }
 
-    private static long getAvailableVersionsGeneration() throws Exception
+    private static void installPublicationHook(Runnable hook) throws Exception
     {
-        Field f = ProjectUtils.class.getDeclaredField( "availableVersionsGeneration" );
+        Field f = ProjectUtils.class.getDeclaredField( "publicationHook" );
         f.setAccessible( true );
-        return ((java.util.concurrent.atomic.AtomicLong) f.get( null )).get();
+        f.set( null, hook );
     }
 
-    private static void invokeInvalidateForAllUsers() throws Exception
+    private static void clearPublicationHook() throws Exception
     {
-        ProjectUtils.invalidateAvailableDatabaseVersions();
-    }
-
-    private static Object invokeBuildAvailableDatabaseVersions() throws Exception
-    {
-        Method m = ProjectUtils.class.getDeclaredMethod( "buildAvailableDatabaseVersions" );
-        m.setAccessible( true );
-        return m.invoke( null );
+        installPublicationHook( null );
     }
 
     // --- session simulation ---------------------------------------------------------
@@ -333,6 +318,7 @@ public class ProjectUtilsDbVersionsPerUserTest extends AbstractBioUMLTest
         SecurityManager.invalidatePermissions();
         clearDatabasesCollectionCache();
         invalidateVersionsCache();
+        clearPublicationHook();
 
         if( activeDatabases != null )
             CollectionFactory.unregisterRoot( activeDatabases );
@@ -443,51 +429,86 @@ public class ProjectUtilsDbVersionsPerUserTest extends AbstractBioUMLTest
     }
 
     /**
-     * Concurrency regression: an invalidation that completes AFTER a cache computation
-     * must not allow that computation's (stale) result to be published to the cache.
+     * Concurrency regression: an invalidation that completes AFTER a user's cache
+     * computation but BEFORE its publication must cause that computation's (stale)
+     * result to be discarded, not installed.
      *
-     * <p>This is the race the generation counter is meant to prevent: a computation that
-     * started under generation N must be discarded if the generation changed to N+1 before
-     * publication. The test forces that exact interleaving by capturing the generation
-     * before the computation, invalidating (which bumps the generation), and then asserting
-     * that the stale computed value was NOT installed.
+     * <p>This is a genuine two-thread test driving the real production publication
+     * path. Thread A calls {@link ProjectUtils#getAvailableDatabaseVersions()} and is
+     * paused just before the publication critical section (via the
+     * {@code publicationHook} installed in tearDown) — after it has computed its value
+     * and captured the generation, before it acquires the lock and checks the
+     * generation. While A is paused, the test thread (standing in for thread B) calls
+     * {@link ProjectUtils#invalidateAvailableDatabaseVersions()}, which clears the
+     * cache and bumps the generation. A then resumes, enters the critical section, and
+     * its generation check must detect the invalidation and NOT install A's stale
+     * value.
      *
-     * <p>This test fails on a plain check-then-put implementation and passes when the
-     * publication is guarded by the generation check.
+     * <p>The test drives the actual production publication path (not a re-implementation),
+     * so it fails on a publication that ignores the generation and passes when the
+     * generation check guards the put.
      */
-    @SuppressWarnings( "unchecked" )
     public void testInvalidationAfterComputationDoesNotInstallStaleValue() throws Exception
     {
         invalidateVersionsCache();
         clearDatabasesCollectionCache();
         switchToUser( "session-restricted", "restricted" );
-        String key = "";
 
-        // 1. Prime the cache with the restricted user's view.
-        ProjectUtils.getAvailableDatabaseVersions();
+        final java.util.concurrent.CountDownLatch aPaused = new java.util.concurrent.CountDownLatch( 1 );
+        final java.util.concurrent.atomic.AtomicBoolean paused = new java.util.concurrent.atomic.AtomicBoolean( true );
 
-        // 2. Now simulate the race:
-        //    - capture the generation before a fresh computation,
-        //    - compute (this represents buildAvailableDatabaseVersions running on another thread),
-        //    - invalidate (bumps the generation),
-        //    - verify the stale result is NOT installed.
-        long generationBefore = getAvailableVersionsGeneration();
-        Object computed = invokeBuildAvailableDatabaseVersions();
-        invokeInvalidateForAllUsers();
+        // Pause thread A just BEFORE the publication block, after its computation. The hook
+        // spins on `paused` (an AtomicBoolean) so the test can release it deterministically;
+        // the hook is cleared before the test method ends (tearDown) so it cannot outlive the
+        // test and leak into a later test.
+        installPublicationHook( () ->
+        {
+            aPaused.countDown();
+            while( paused.get() )
+            {
+                try { Thread.sleep( 5 ); } catch( InterruptedException e ) { Thread.currentThread().interrupt(); return; }
+            }
+        } );
 
-        // The invalidation bumped the generation, so the computed value (produced under
-        // `generationBefore`) must not have been published. The cache is empty.
-        assertTrue( "stale value must not be installed after a concurrent invalidation",
-                versionsByUser().isEmpty() );
-        assertTrue( "generation must have been bumped by the invalidation",
-                getAvailableVersionsGeneration() > generationBefore );
+        final java.util.concurrent.atomic.AtomicReference<Exception> failure = new java.util.concurrent.atomic.AtomicReference<>();
+        Thread a = new Thread( () ->
+        {
+            try
+            {
+                ProjectUtils.getAvailableDatabaseVersions();
+            }
+            catch( Exception e )
+            {
+                failure.set( e );
+            }
+        } );
+        a.start();
 
-        // 3. A fresh call recomputes and installs (now the admin sees the full view).
-        switchToUser( "session-admin", "admin" );
+        // Wait for A to have computed and paused before the publication block, then
+        // invalidate from this thread while A is paused (A does not hold the lock here, so
+        // the invalidation can take it).
+        assertTrue( "thread A did not reach the publication hook in time",
+                aPaused.await( 10, java.util.concurrent.TimeUnit.SECONDS ) );
+        ProjectUtils.invalidateAvailableDatabaseVersions();
+
+        // Release A; it now enters the publication block and must discard its stale value
+        // (the invalidation bumped the generation).
+        paused.set( false );
+        a.join( 10000 );
+        assertTrue( "thread A did not finish in time", !a.isAlive() );
+        assertNull( "thread A threw", failure.get() );
+
+        // The stale value must NOT have been installed: the invalidation bumped the
+        // generation, so A's publication is discarded.
+        assertFalse( "stale value was installed after a concurrent invalidation",
+                versionsByUser().containsKey( "limitedUser" ) );
+
+        // A fresh call recomputes and installs correctly.
         Map<String, SortedSet<String>> fresh = ProjectUtils.getAvailableDatabaseVersions();
-        assertTrue( "admin sees dbShared", fresh.containsKey( DB_SHARED ) );
-        assertTrue( "admin sees dbRestricted", fresh.containsKey( DB_RESTRICTED ) );
-        assertFalse( "restricted user's stale entry is gone",
+        assertTrue( "restricted user sees dbShared", fresh.containsKey( DB_SHARED ) );
+        assertFalse( "restricted user must not see dbRestricted",
+                fresh.containsKey( DB_RESTRICTED ) );
+        assertTrue( "fresh value installed after the race",
                 versionsByUser().containsKey( "limitedUser" ) );
 
         logout();
