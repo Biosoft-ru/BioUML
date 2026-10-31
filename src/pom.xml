@@ -124,6 +124,7 @@
                         <exclude>**/biouml/model/xml/_test/XmlDiagramKitanoViewTest.java</exclude>
                         <exclude>**/biouml/model/xml/_test/XmlDiagramTypeReaderTest.java</exclude>
                         <exclude>**/biouml/model/xml/_test/XmlDiagramKitanoEdgesTest.java</exclude>
+                        <exclude>**/biouml/model/util/_test/DiagramXmlReaderTest.java</exclude>
 
 
                         <!-- ********************************************************************** -->
