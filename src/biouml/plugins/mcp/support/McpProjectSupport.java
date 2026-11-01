@@ -99,6 +99,8 @@ public final class McpProjectSupport
 			Module module = (Module) obj;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "name", module.getName() );
+			// full path starting from the repository root
+			m.put( "path", module.getCompletePath().toString() );
 			String desc = null;
 			try
 			{
