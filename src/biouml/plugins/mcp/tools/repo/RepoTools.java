@@ -206,21 +206,6 @@ public final class RepoTools
 						return McpRepositorySupport.export( McpArgs.str( args, "path" ), McpArgs.str( args, "format" ), McpArgs.str( args, "targetDir" ) );
 					} );
 
-			catalog.registerHidden( "biouml_repo_download",
-					"{\"type\":\"object\",\"properties\":{\"downloadId\":{\"type\":\"string\"},\"offset\":{\"type\":\"integer\"},\"length\":{\"type\":\"integer\"}},\"required\":[\"downloadId\"]}",
-					( ex, args ) -> {
-						McpEnvelope v = McpArgs.requiredString( args, "downloadId" );
-						if ( v == null )
-							v = McpArgs.intArg( args, "offset", 0 );
-						if ( v == null )
-							v = McpArgs.intArg( args, "length", 0 );
-						if ( v != null )
-							return v;
-						return McpRepositorySupport.download( McpArgs.str( args, "downloadId" ),
-								args.get( "offset" ) == null ? null : Integer.valueOf( McpArgs.intVal( args, "offset", 0 ) ),
-								args.get( "length" ) == null ? null : Integer.valueOf( McpArgs.intVal( args, "length", 0 ) ) );
-					} );
-
 			catalog.registerHidden( "biouml_repo_document_content",
 					"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]}",
 					( ex, args ) -> {
@@ -429,12 +414,11 @@ public final class RepoTools
 				McpToolCatalog.op( "folder", "biouml_repo_copy_folder", "srcPath>fromPath", "destPath>toPath" ) );
 
 		catalog.registerOps( "biouml_repo_export",
-				"Export a repository element to a file on the server — the web UI's 'Export'. op formats: the formats available for path, in priority order (they follow the perspective in effect, see biouml_perspective_select). op export (default): write path in format (one of op formats; default the first) into targetDir (a server-local directory; default a new temporary one), named after the element with the format's suffix; returns {file, format, bytes, sha256, downloadId}. op download: the exported file downloadId in base64 chunks of length bytes (default 262144, max 1048576) from offset (default 0); returns {name, offset, bytes, totalBytes, sha256, base64, done, nextOffset} — call again with offset=nextOffset until done, join the decoded chunks and check sha256. A downloadId lasts 24 h and works only for the user who exported.",
-				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"format\":{\"type\":\"string\"},\"targetDir\":{\"type\":\"string\"},\"downloadId\":{\"type\":\"string\"},\"offset\":{\"type\":\"integer\"},\"length\":{\"type\":\"integer\"}}}",
+				"Export a repository element to a file on the server — the web UI's 'Export'. op formats: the formats available for path, in priority order (they follow the perspective in effect, see biouml_perspective_select). op export (default): write path in format (one of op formats; default the first) into a temporary server directory; named after the element with the format's suffix; returns {file, format, bytes, sha256, downloadId, downloadUrl}. The downloadUrl is a public HTTP link (e.g. /support/export-download/<downloadId>) that can be used to download the file without authentication. Files are stored in a temporary directory and are cleaned up when the JVM shuts down.",
+				"{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"format\":{\"type\":\"string\"},\"targetDir\":{\"type\":\"string\"}}}",
 				"export",
 				McpToolCatalog.op( "formats", "biouml_repo_export_formats" ),
-				McpToolCatalog.op( "export", "biouml_repo_export.export" ),
-				McpToolCatalog.op( "download", "biouml_repo_download" ) );
+				McpToolCatalog.op( "export", "biouml_repo_export.export" ) );
 
 		catalog.registerOps( "biouml_repo_import",
 				"Import a file from the server's filesystem into the collection parentPath. op formats: the formats available for parentPath, in priority order, the first being 'autodetect' (they follow the perspective in effect, see biouml_perspective_select). op import (default): ASYNC — returns a jobID at once; the import is done when biouml_repo_job_status reports 'completed' true, and its final message is the path of the imported element. file is a server-local path; format is one of op formats (omit to autodetect; an ambiguous autodetect is an error listing the candidates); name defaults to the file name without extension.",

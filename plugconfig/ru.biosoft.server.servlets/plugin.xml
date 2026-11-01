@@ -75,11 +75,18 @@
       /> 
     </extension> 
 
-    <extension id="JabberProxyServlet" point="ru.biosoft.server.servlet"> 
-      <servlet 
-        class="ru.biosoft.server.servlets.webservices.JabberProxyServlet" 
+    <extension id="JabberProxyServlet" point="ru.biosoft.server.servlet">
+      <servlet
+        class="ru.biosoft.server.servlets.webservices.JabberProxyServlet"
         prefix="jabber"
-      /> 
+      />
+    </extension>
+
+    <extension id="ExportDownloadServlet" point="ru.biosoft.server.servlet">
+      <servlet
+        class="ru.biosoft.server.servlets.support.ExportDownloadServlet"
+        prefix="support/export-download"
+      />
     </extension>
     
     <extension point="ru.biosoft.server.servlets.exportedDe" id="TableExportedDe">
