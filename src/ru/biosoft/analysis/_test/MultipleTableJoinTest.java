@@ -3,32 +3,28 @@ package ru.biosoft.analysis._test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.annotation.Nonnull;
-
 import ru.biosoft.access.FolderVectorCollection;
 import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.access.core.CollectionFactory;
-import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementPathSet;
 import ru.biosoft.analysis.MultipleTableJoin;
 import ru.biosoft.analysis.MultipleTableJoinParameters;
 import ru.biosoft.analysis.aggregate.Sum;
 import ru.biosoft.table.ColumnModel;
-import ru.biosoft.table.RowDataElement;
-import ru.biosoft.table.StandardTableDataCollection;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.TableDataCollectionUtils;
+import ru.biosoft.table._test.CountingTable;
 
 /**
- * {@link MultipleTableJoin} reads each input table in one pass. Its result is compared with a join that looks up every key
- * in every table, as the analysis did before: for SQL tables that was one query per key and table.
+ * {@link MultipleTableJoin} reads the rows it needs from each input table at once: in one pass, or by key when it needs few rows
+ * of a large table. Its result is compared with a join that looks up every key in every table, as the analysis did before:
+ * for SQL tables that was one query per key and table.
  */
 public class MultipleTableJoinTest extends AbstractBioUMLTest
 {
@@ -110,6 +106,26 @@ public class MultipleTableJoinTest extends AbstractBioUMLTest
         assertReadOncePerPass( Arrays.asList( t1, t2 ), 1 );
     }
 
+    public void testFewRowsOfLargeTableAreLookedUp() throws Exception
+    {
+        CountingTable small = createTable( "t1", new String[] {"A"}, new Class<?>[] {Double.class} );
+        CountingTable large = createTable( "t2", new String[] {"B"}, new Class<?>[] {Double.class} );
+        for( int k = 0; k < 1000; k++ )
+            TableDataCollectionUtils.addRow( large, String.format( "G%04d", k ), new Object[] {(double)k}, true );
+        for( int k = 0; k < 1000; k += 100 )
+            TableDataCollectionUtils.addRow( small, String.format( "G%04d", k ), new Object[] {-(double)k}, true );
+        List<CountingTable> tables = Arrays.asList( small, large );
+        List<Object[]> expected = joinKeyByKey( tables, true );
+
+        TableDataCollection result = join( tables, INNER_JOIN, false, 0 );
+
+        assertSameRows( expected, result );
+        // 10 of 1000 rows: cheaper to look up one by one than to read the whole table
+        assertEquals( "passes over the small table", 1, small.passes );
+        assertEquals( "passes over the large table", 0, large.passes );
+        assertEquals( "lookups in the large table", 10, large.lookups );
+    }
+
     private TableDataCollection join(List<CountingTable> tables, int joinType, boolean mergeColumns, int rowsPerPass) throws Exception
     {
         MultipleTableJoin analysis = rowsPerPass == 0 ? new MultipleTableJoin( null, "join" ) : new MultipleTableJoin( null, "join" )
@@ -130,7 +146,7 @@ public class MultipleTableJoinTest extends AbstractBioUMLTest
         parameters.setMergeColumns( mergeColumns );
         parameters.setAggregator( new Sum() );
         for( CountingTable table : tables )
-            table.passes = table.lookups = 0;
+            table.resetCounts();
         return analysis.justAnalyzeAndPut();
     }
 
@@ -232,54 +248,5 @@ public class MultipleTableJoinTest extends AbstractBioUMLTest
             table.getColumnModel().addColumn( columns[i], types[i] );
         folder.put( table );
         return table;
-    }
-
-    /**
-     * Counts complete passes over the rows and lookups of single rows by key
-     */
-    private static class CountingTable extends StandardTableDataCollection
-    {
-        int passes;
-        int lookups;
-
-        CountingTable(DataCollection<?> parent, String name)
-        {
-            super( parent, name );
-        }
-
-        @Override
-        public RowDataElement get(String name) throws Exception
-        {
-            lookups++;
-            return super.get( name );
-        }
-
-        @Override
-        public @Nonnull Iterator<RowDataElement> iterator()
-        {
-            Iterator<RowDataElement> rows = super.iterator();
-            return new Iterator<RowDataElement>()
-            {
-                private boolean counted;
-
-                @Override
-                public boolean hasNext()
-                {
-                    boolean hasNext = rows.hasNext();
-                    if( !hasNext && !counted )
-                    {
-                        counted = true;
-                        passes++;
-                    }
-                    return hasNext;
-                }
-
-                @Override
-                public RowDataElement next()
-                {
-                    return rows.next();
-                }
-            };
-        }
     }
 }
