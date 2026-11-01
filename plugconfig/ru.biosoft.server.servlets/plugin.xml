@@ -85,7 +85,7 @@
     <extension id="ExportDownloadServlet" point="ru.biosoft.server.servlet">
       <servlet
         class="ru.biosoft.server.servlets.support.ExportDownloadServlet"
-        prefix="support/export-download"
+        prefix="export-download"
       />
     </extension>
     

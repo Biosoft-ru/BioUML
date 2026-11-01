@@ -131,58 +131,82 @@ public class ExportDownloadServlet extends AbstractServlet
     @Override
     public String service(String localAddress, Object session, Map params, OutputStream out, Map<String, String> header)
     {
-        return "application/octet-stream";
+        // Header-based branch: buffer the body into `out` and declare all headers (and the logical
+        // status) in `header` — the caller copies them to the response after this method returns.
+        serve(localAddress, out, header);
+        return header.get("Content-Type");
     }
 
-    
+    /**
+     * Stream a file registered by {@link #registerExport} to the caller, without any authentication.
+     * `respObj` is the HTTP response object (or a header map in the fallback branch) — the headers are
+     * applied through it and the body is written to `out`.
+     */
     public void service(String localAddress, Object session, Map params, OutputStream out, Object respObj)
     {
-        String path = localAddress;
-        if (path.startsWith("/"))
-            path = path.substring(1);
-
-        // URL format: /support/export-download/<downloadId>
-        if (!path.startsWith("export-download/"))
-        {
-            writeError(out, "Invalid path: " + path);
-            return;
-        }
-
-        String downloadId = path.substring("export-download/".length());
-        ExportedFile exported = getExport(downloadId);
-        if (exported == null)
-        {
-            writeError(out, "File not found or expired: " + downloadId);
-            return;
-        }
-
+        java.util.Map<String, String> headers = new java.util.LinkedHashMap<>();
+        serve(localAddress, out, headers);
+        // Apply the headers to the real HTTP response object.
         try
         {
-            // Set response headers
-            Map<String, String> headers = (Map<String, String>) respObj;
-            headers.put("Content-Type", exported.mimeType);
-            headers.put("Content-Length", String.valueOf(exported.file.length()));
-            headers.put("Content-Disposition", "attachment; filename=\"" + exported.originalName + "\"");
-            headers.put("Cache-Control", "no-cache, no-store, must-revalidate");
-
-            // Stream the file
-            Files.copy(exported.file.toPath(), out);
-            out.flush();
+            for ( java.util.Map.Entry<String, String> e : headers.entrySet() )
+            {
+                if ( "Status".equals( e.getKey() ) )
+                {
+                    respObj.getClass().getMethod( "setStatus", int.class ).invoke( respObj, Integer.parseInt( e.getValue() ) );
+                }
+                else
+                {
+                    respObj.getClass().getMethod( "setHeader", String.class, String.class ).invoke( respObj, e.getKey(), e.getValue() );
+                }
+            }
         }
-        catch (IOException e)
+        catch ( Exception ignore )
         {
-            log.log(Level.SEVERE, "Error streaming file: " + exported.file, e);
-            writeError(out, "Error reading file: " + e.getMessage());
+            // respObj may be a wrapper without the expected methods; the body is still written to `out`.
         }
     }
 
-    private static void writeError(OutputStream out, String message)
+    private static void serve( String localAddress, OutputStream out, Map<String, String> headers )
+    {
+        String path = localAddress;
+        while ( path.startsWith( "/" ) )
+            path = path.substring( 1 );
+
+        // URL format: .../export-download/<downloadId>
+        int sep = path.lastIndexOf( '/' );
+        String downloadId = sep == -1 ? path : path.substring( sep + 1 );
+        ExportedFile exported = getExport(downloadId);
+        if ( exported == null )
+        {
+            headers.put( "Content-Type", "text/plain" );
+            headers.put( "Status", "404" );
+            write( out, "Error: no exported file with id " + downloadId + " (exports exist only for the running server; export again with biouml_repo_export)" );
+            return;
+        }
+
+        headers.put( "Content-Type", exported.mimeType );
+        headers.put( "Content-Length", String.valueOf( exported.file.length() ) );
+        headers.put( "Content-Disposition", "attachment; filename=\"" + exported.originalName + "\"" );
+        headers.put( "Cache-Control", "no-cache, no-store, must-revalidate" );
+        try
+        {
+            Files.copy( exported.file.toPath(), out );
+            out.flush();
+        }
+        catch ( Exception e )
+        {
+            log.log( Level.SEVERE, "Error streaming file: " + exported.file, e );
+        }
+    }
+
+    private static void write( OutputStream out, String message )
     {
         try
         {
-            out.write(("Error: " + message).getBytes("UTF-8"));
+            out.write( message.getBytes( "UTF-8" ) );
         }
-        catch (IOException ignore)
+        catch ( IOException ignore )
         {
         }
     }
