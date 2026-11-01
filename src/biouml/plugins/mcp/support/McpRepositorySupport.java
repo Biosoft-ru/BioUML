@@ -825,8 +825,10 @@ public final class McpRepositorySupport
 			}
 			// Register with the servlet for public download (no auth required)
 			String downloadId = ExportDownloadServlet.registerExport( file, file.getName(), guessMimeType( suffix ) );
-			// Build a public download URL (relative to server root)
-			String downloadUrl = "/support/export-download/" + downloadId;
+			// Build a public download URL: a relative path the client can join to the public host it
+			// already knows (the MCP client connected to the same server, so the deployment context path
+			// /bioumlweb or /biouml is the caller's concern — we provide the app-relative part only).
+			String downloadUrl = "/export-download/" + downloadId;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
 			m.put( "file", file.getAbsolutePath() );
 			m.put( "format", info.getFormat() );

@@ -348,7 +348,7 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 		String downloadUrl = (String) exported.get( "downloadUrl" );
 		assertNotNull( id );
 		assertNotNull( downloadUrl );
-		assertTrue( "downloadUrl starts with /support/export-download/", downloadUrl.startsWith( "/support/export-download/" ) );
+		assertTrue( "downloadUrl starts with /export-download/", downloadUrl.startsWith( "/export-download/" ) );
 		// Verify the file can be read from the download servlet by simulating a direct request
 		// In a real deployment this would be an HTTP GET to the downloadUrl
 		// Here we verify the servlet registry has the file
