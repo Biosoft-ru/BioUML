@@ -25,7 +25,6 @@ import ru.biosoft.access.core.ClassIcon;
 import ru.biosoft.analysis.aggregate.NumericAggregator;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.table.ColumnModel;
-import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.StringSet;
 import ru.biosoft.table.TableColumn;
 import ru.biosoft.table.TableDataCollection;
@@ -40,9 +39,6 @@ import ru.biosoft.util.TextUtil2;
 @ClassIcon ( "resources/join-table-multi.gif" )
 public class MultipleTableJoin extends AnalysisMethodSupport<MultipleTableJoinParameters>
 {
-    /** Result cells one pass over the input tables holds in memory */
-    private static final int MAX_CELLS_PER_PASS = 5_000_000;
-
     /**
      * @param origin
      * @param name
@@ -235,8 +231,8 @@ public class MultipleTableJoin extends AnalysisMethodSupport<MultipleTableJoinPa
         int numColumns = columnModel.getColumnCount();
         boolean hasMergeColumns = isMergeColumns && mergeColumns.size() > 0;
 
-        // Each pass reads every input table once and fills the result rows of that pass in memory:
-        // getting rows by key would send a query per key and table to SQL tables
+        // Each pass reads the rows it needs from every input table at once and fills the result rows of that pass in memory:
+        // getting each row by key would send a query per key and table to SQL tables
         int rowsPerPass = getRowsPerPass( numColumns );
         int passes = ( keys.length + rowsPerPass - 1 ) / rowsPerPass;
         for( int pass = 0; pass < passes; pass++ )
@@ -252,18 +248,8 @@ public class MultipleTableJoin extends AnalysisMethodSupport<MultipleTableJoinPa
                 TableDataCollection t = inputs.get( j ).table;
                 Set<String> tableKeys = kr.namesSets[j];
                 Set<String> toRead = StreamEx.ofKeys( rows ).filter( tableKeys::contains ).toSet();
-                if( !toRead.isEmpty() )
-                {
-                    for( RowDataElement row : t )
-                    {
-                        if( row != null && toRead.remove( row.getName() ) )
-                            copyValues( row.getValues(), rows.get( row.getName() ), columnShift, t, columnModel, hasMergeColumns, mergeColumns );
-                    }
-                    // rows the table lists but its iterator did not return
-                    for( String key : toRead )
-                        copyValues( TableDataCollectionUtils.getRowValues( t, key ), rows.get( key ), columnShift, t, columnModel,
-                                hasMergeColumns, mergeColumns );
-                }
+                for( Map.Entry<String, Object[]> row : TableDataCollectionUtils.readRowValues( t, toRead ).entrySet() )
+                    copyValues( row.getValue(), rows.get( row.getKey() ), columnShift, t, columnModel, hasMergeColumns, mergeColumns );
                 columnShift += inputs.get( j ).columnNames.length;
                 jobControl.setPreparedness( 2 + ( pass * inputs.size() + j + 1 ) * 95 / ( passes * inputs.size() ) );
             }
@@ -286,7 +272,7 @@ public class MultipleTableJoin extends AnalysisMethodSupport<MultipleTableJoinPa
      */
     protected int getRowsPerPass(int numColumns)
     {
-        return Math.max( 1, MAX_CELLS_PER_PASS / Math.max( 1, numColumns ) );
+        return Math.max( 1, TableDataCollectionUtils.JOIN_CELLS_PER_PASS / Math.max( 1, numColumns ) );
     }
 
     private static void copyValues(Object[] values, Object[] rowBuffer, int columnShift, TableDataCollection t, ColumnModel columnModel,
