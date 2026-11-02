@@ -315,8 +315,10 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 		if ( env.isOk() )
 		{
 			Map<String, Object> m = (Map<String, Object>) env.getData();
-			assertNotNull( "export must report a file path", m.get( "file" ) );
 			assertNotNull( "export must report a format", m.get( "format" ) );
+			assertNotNull( "export must report a downloadId", m.get( "downloadId" ) );
+			assertNotNull( "export must report a downloadUrl", m.get( "downloadUrl" ) );
+			assertFalse( "file field must not be present (leaks internal path)", m.containsKey( "file" ) );
 		}
 		else
 		{
@@ -342,20 +344,21 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 		projects.put( new ru.biosoft.access.file.FileDataElement( "download-me.bin", projects, f ) );
 
 		Map<String, Object> exported = (Map<String, Object>) data( McpRepositorySupport.export( "mcpdata/projects/download-me.bin", null, null ) ).getData();
-		File file = new File( (String) exported.get( "file" ) );
-		assertFalse( "omitted targetDir: a temporary directory, not the current one", file.getParentFile().getCanonicalFile().equals( new File( "." ).getCanonicalFile() ) );
 		String id = (String) exported.get( "downloadId" );
 		String downloadUrl = (String) exported.get( "downloadUrl" );
 		assertNotNull( id );
 		assertNotNull( downloadUrl );
-		assertTrue( "downloadUrl starts with /export-download/", downloadUrl.startsWith( "/export-download/" ) );
+		// In a test JVM no public origin is set, so the URL is relative.
+		assertTrue( "downloadUrl starts with /export-download/ (no origin in test)", downloadUrl.startsWith( "/export-download/" ) );
+		// The file field must NOT be present (it leaks internal server path).
+		assertFalse( "file field must not be present", exported.containsKey( "file" ) );
+
 		// Verify the file can be read from the download servlet by simulating a direct request
 		// In a real deployment this would be an HTTP GET to the downloadUrl
 		// Here we verify the servlet registry has the file
 		ru.biosoft.server.servlets.support.ExportDownloadServlet.ExportedFile servletFile =
 				ru.biosoft.server.servlets.support.ExportDownloadServlet.getExport( id );
 		assertNotNull( "file registered in servlet", servletFile );
-		assertEquals( "file size matches", file.length(), servletFile.file.length() );
 		assertEquals( "sha256 matches", exported.get( "sha256" ),
 				ru.biosoft.server.servlets.support.ExportDownloadServlet.getExport( id ).sha256 );
 	}

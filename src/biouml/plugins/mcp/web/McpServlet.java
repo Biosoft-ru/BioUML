@@ -332,9 +332,10 @@ public class McpServlet
 	}
 
 	/**
-	 * The request's public-host hints, used only to derive the OAuth issuer for a 401's
-	 * {@code WWW-Authenticate} challenge. Passed down per call — never stored on the servlet, which is
-	 * a single instance shared by all concurrent requests.
+	 * The request's public-host hints, used to derive the OAuth issuer for a 401's
+	 * {@code WWW-Authenticate} challenge AND the public origin for tool responses (e.g. export
+	 * download URLs). Passed down per call — never stored on the servlet, which is a single
+	 * instance shared by all concurrent requests.
 	 */
 	private static final class IssuerHints
 	{
@@ -347,6 +348,29 @@ public class McpServlet
 			this.host = host;
 			this.forwardedHost = forwardedHost;
 			this.forwardedProto = forwardedProto;
+		}
+
+		/**
+		 * Derive the public origin (e.g. {@code https://strange.genexplain.com/biouml}) or
+		 * {@code null} when no host is available. Mirrors the issuer-derivation logic in
+		 * {@link McpOAuthConfig#issuer(String, String, String)} (X-Forwarded-Host wins over Host;
+		 * X-Forwarded-Proto wins over the default https).
+		 */
+		String publicOrigin()
+		{
+			String publicHost = biouml.plugins.mcp.oauth.McpOAuthConfig.firstCommaValue( forwardedHost );
+			if ( publicHost == null || publicHost.isEmpty() )
+				publicHost = biouml.plugins.mcp.oauth.McpOAuthConfig.firstCommaValue( host );
+			if ( publicHost == null || publicHost.isEmpty() )
+				return null;
+			String scheme = "https";
+			if ( forwardedProto != null && !forwardedProto.trim().isEmpty() )
+			{
+				String proto = biouml.plugins.mcp.oauth.McpOAuthConfig.firstCommaValue( forwardedProto ).trim().toLowerCase();
+				if ( proto.equals( "http" ) || proto.equals( "https" ) )
+					scheme = proto;
+			}
+			return scheme + "://" + publicHost + "/biouml";
 		}
 	}
 
@@ -373,7 +397,7 @@ public class McpServlet
 			{
 				return unauthorized( "bearer token session unavailable", hints );
 			}
-			return dispatch( method, path, body, token.user, start, lite );
+			return dispatch( method, path, body, token.user, start, lite, hints );
 		}
 
 		// Auth path 1: an `Authorization: Basic <b64>` header carries a BioStore token. It wins over any session.
@@ -382,7 +406,7 @@ public class McpServlet
 			String user = authenticateByToken( authorization, remoteAddress );
 			if ( user == null )
 				return unauthorized( "invalid or missing Authorization credential", hints );
-			return dispatch( method, path, body, user, start, lite );
+			return dispatch( method, path, body, user, start, lite, hints );
 		}
 
 		// Auth path 2: an existing session (the JSESSIONID the /login flow created, or an explicit
@@ -416,19 +440,38 @@ public class McpServlet
 		if ( user == null )
 			return unauthorized( "unauthenticated", hints );
 
-		return dispatch( method, path, body, user, start, lite );
+		return dispatch( method, path, body, user, start, lite, hints );
 	}
 
 	/**
 	 * Parse the JSON-RPC body, dispatch it through the protocol, and log the request. Shared by both
 	 * auth paths (token and session). Assumes {@code user} is already authenticated and non-null.
 	 */
-	private HandleResult dispatch( String method, String path, String body, String user, long start, boolean lite )
+	private HandleResult dispatch( String method, String path, String body, String user, long start, boolean lite,
+			IssuerHints hints )
 	{
 		if ( dispatcher == null )
 			initForTest();
 		McpJsonRpcDispatcher dispatcher = lite ? liteDispatcher : this.dispatcher;
 
+		// Expose the public origin to tool handlers (e.g. export download URLs) for the duration
+		// of the dispatch.
+		String origin = hints != null ? hints.publicOrigin() : null;
+		if ( origin != null )
+			biouml.plugins.mcp.support.McpRequestContext.setPublicOrigin( origin );
+		try
+		{
+			return doDispatch( method, path, body, user, start, dispatcher );
+		}
+		finally
+		{
+			biouml.plugins.mcp.support.McpRequestContext.clear();
+		}
+	}
+
+	private HandleResult doDispatch( String method, String path, String body, String user, long start,
+			McpJsonRpcDispatcher dispatcher )
+	{
 		Map<String, Object> request;
 		try
 		{

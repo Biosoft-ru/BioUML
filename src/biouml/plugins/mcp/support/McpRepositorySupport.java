@@ -783,8 +783,10 @@ public final class McpRepositorySupport
 	 * @param targetDir  server-local directory for the output file (null/empty = a new temporary
 	 *                   directory, removed with the file when its download id expires); the file name
 	 *                   is the element name + the format's suffix
-	 * @return an envelope whose data is {@code {file, format, bytes, sha256, downloadId}} on success;
-	 *         {@link #download} reads the file by its download id.
+	 * @return an envelope whose data is {@code {format, bytes, sha256, downloadId, downloadUrl}} on
+	 *         success. The {@code downloadUrl} is an absolute public URL (e.g.
+	 *         {@code https://<host>/biouml/export-download/<id>}) when the request context carries a
+	 *         public origin, or a relative path ({@code /export-download/<id>}) otherwise.
 	 */
 	public static McpEnvelope export( String path, String format, String targetDir )
 	{
@@ -825,12 +827,11 @@ public final class McpRepositorySupport
 			}
 			// Register with the servlet for public download (no auth required)
 			String downloadId = ExportDownloadServlet.registerExport( file, file.getName(), guessMimeType( suffix ) );
-			// Build a public download URL: a relative path the client can join to the public host it
-			// already knows (the MCP client connected to the same server, so the deployment context path
-			// /bioumlweb or /biouml is the caller's concern — we provide the app-relative part only).
-			String downloadUrl = "/export-download/" + downloadId;
+			// Build the download URL: absolute when the request context has a public origin,
+			// relative otherwise (in-process calls, tests).
+			String origin = McpRequestContext.getPublicOrigin();
+			String downloadUrl = ( origin != null ) ? origin + "/export-download/" + downloadId : "/export-download/" + downloadId;
 			Map<String, Object> m = new LinkedHashMap<String, Object>();
-			m.put( "file", file.getAbsolutePath() );
 			m.put( "format", info.getFormat() );
 			m.put( "bytes", Long.valueOf( file.length() ) );
 			m.put( "sha256", sha256( file ) );
