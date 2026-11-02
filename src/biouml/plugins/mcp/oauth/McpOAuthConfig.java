@@ -188,7 +188,7 @@ public final class McpOAuthConfig
 	}
 
 	/** The first comma-separated value of a forwarded header (proxies chain multiple). */
-	private static String firstCommaValue( String value )
+	public static String firstCommaValue( String value )
 	{
 		if ( value == null )
 			return null;
