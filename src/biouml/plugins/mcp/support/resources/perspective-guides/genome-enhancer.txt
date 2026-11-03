@@ -31,7 +31,7 @@ Build every input of a run yourself, as the wizard does: do not copy elements of
    - diseases: MeSH disease names (biouml_analysis_describe with filter, a part of the name, finds them among thousands: it lists only the parameters with matching values); tissue (optional); speciesStr;
    - maxStep: the last pipeline step ('Drug Targets' for the full analysis);
    - outPath: a new folder, e.g. <project>/Data/Results.
-   Check first with runWorkflow false: within seconds it builds the workflow (outPath/Workflow) without running it. A real run takes hours; poll biouml_task op status.
+   Check first with runWorkflow false: within seconds it builds the workflow (outPath/Workflow) without running it. A real run takes about 2.5 hours; poll biouml_task op status with increasing delays (15s, 30s, 1min, 2min, 5min, 10min, then every 30min).
 
 6. See report: in outPath, Report (the full story), BriefReport (the brief tale), MTBReport (with addMTBReport, for cancer genomics data) and Output (result tables and the pharmaceutical compounds report PCReport.html).
    - Read a table with biouml_analysis_get_result page by page: limit rows (default 50, max 500) from offset, while truncated is true; columns names the columns to return (drug tables are wide).
