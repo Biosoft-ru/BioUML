@@ -195,15 +195,11 @@ public final class McpProjectSupport
 		{
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "cannot create project group: " + e.getMessage() );
 		}
-		// The servlet logs in again here; an MCP session has no fresh credentials, so reload its permissions
-		// in place. If that is impossible, record the access just granted.
-		if ( !SecurityManager.reloadCurrentUserPermissions() )
-		{
-			UserPermissions ps = SecurityManager.getCurrentUserPermission();
-			if ( ps != null )
-				ps.getDbToPermission().put( projectPath.toString(), new Permission( PROJECT_GROUP_PERMISSION, user,
-						SecurityManager.getSession(), System.currentTimeMillis() + UserPermissions.TIMEOUT ) );
-		}
+		// Grant the new project's permission to all sessions of this user so a web UI session sees
+		// the project after a refresh without a re-login.
+		Permission projectPermission = new Permission( PROJECT_GROUP_PERMISSION, user, SecurityManager.getSession(),
+				System.currentTimeMillis() + UserPermissions.TIMEOUT );
+		SecurityManager.addUserPermission( user, projectPath.toString(), projectPermission );
 		SecurityManager.invalidatePermissions( projectPath.toString() );
 		List<String> errors = new ArrayList<String>();
 		try
