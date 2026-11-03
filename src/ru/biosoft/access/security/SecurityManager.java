@@ -367,6 +367,27 @@ public class SecurityManager
         }
     }
 
+    /**
+     * Add a permission to all sessions of the given user. Use after granting a user new permissions
+     * when the change must be visible to the user's other sessions (e.g. a web UI session) without
+     * them logging in again.
+     * @param user the user name
+     * @param path the path to grant permission for
+     * @param permission the permission to grant
+     */
+    public static void addUserPermission(String user, String path, Permission permission)
+    {
+        if( user == null || user.isEmpty() || path == null || permission == null )
+            return;
+        for( UserPermissions ps : sessionToPermission.values() )
+        {
+            if( user.equalsIgnoreCase( ps.getUser() ) )
+            {
+                ps.getDbToPermission().put( path, permission );
+            }
+        }
+    }
+
     public static Permission commonLoginViaOtherSession(
          String otherSessionId, String remoteAddress, boolean bRemoveOther ) throws SecurityException
     {
