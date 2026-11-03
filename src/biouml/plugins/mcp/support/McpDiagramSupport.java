@@ -171,7 +171,7 @@ public final class McpDiagramSupport
 		}
 	}
 
-	/** The diagram types plugins declare ({@code biouml.workbench.diagramType}), e.g. Genome Enhancer's annotation diagram. */
+	/** The diagram types plugins declare ({@code biouml.workbench.diagramType}). */
 	private static final ru.biosoft.util.ObjectExtensionRegistry<biouml.model.DiagramType> DIAGRAM_TYPES = new ru.biosoft.util.ObjectExtensionRegistry<>(
 			"biouml.workbench.diagramType", biouml.model.DiagramType.class );
 

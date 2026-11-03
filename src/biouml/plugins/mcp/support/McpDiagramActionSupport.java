@@ -30,8 +30,7 @@ import ru.biosoft.util.TextUtil2;
 
 /**
  * The diagram's dynamic actions ({@code ru.biosoft.access.dynamicAction}) — the buttons the web UI shows in the
- * toolbar of an open diagram, e.g. the Genome Enhancer annotation diagram's "Experiment control template" or
- * "One category". Plugins add them for their own diagram types, so these tools give an agent every such
+ * toolbar of an open diagram. Plugins add them for their own diagram types, so these tools give an agent every such
  * operation without a tool of its own: {@link #list} what applies to a diagram (in the current perspective)
  * with the properties each one asks for, {@link #run} one headlessly with the selection and the property
  * values a user would give in its dialog. The diagram is saved after a run, like after the other diagram edits.
