@@ -366,9 +366,11 @@ public class ApplicationUtils
 
             long size = sourceFileChannel.size();
             long chunk = 10*1024*1024;
-            for(long pos = 0; pos < size; pos+=chunk)
+            long pos = 0;
+            while ( pos < size )
             {
-                sourceFileChannel.transferTo(pos, Math.min(chunk, size-pos), destinationFileChannel);
+                long transferred = sourceFileChannel.transferTo( pos, Math.min( chunk, size - pos ), destinationFileChannel );
+                pos += transferred;
                 if(jc != null)
                 {
                     jc.setPreparedness((int) ( pos*100/size ));
