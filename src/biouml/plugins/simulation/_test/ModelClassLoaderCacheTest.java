@@ -61,6 +61,7 @@ public class ModelClassLoaderCacheTest extends TestCase
         suite.addTest( new ModelClassLoaderCacheTest( "testRemovedNestedClassAbsentFromNewSnapshot" ) );
         suite.addTest( new ModelClassLoaderCacheTest( "testCompileTruePopulatesRootForCompileFalse" ) );
         suite.addTest( new ModelClassLoaderCacheTest( "testBatchPublishPopulatesRootAndResolvesDependency" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testRecompileRemovesStaleNestedClassFromRoot" ) );
         return suite;
     }
 
@@ -357,6 +358,59 @@ public class ModelClassLoaderCacheTest extends TestCase
     }
 
     /**
+     * Regression test for stale nested classes surviving in the <em>legacy root</em>: recompiling a
+     * model after removing a nested helper would otherwise leave the obsolete
+     * {@code Model$Helper.class} in the shared output directory (javac does not delete it, and the
+     * root copy only overwrites). Because {@code copyClassesToRoot} now removes the model's obsolete
+     * nested classes before copying the current set, and {@code loadFromExistingRoot} (the
+     * {@code compile == false} path) stages only the current root content, the obsolete helper must not
+     * appear in a snapshot produced by the non-compiling load path.
+     */
+    public void testRecompileRemovesStaleNestedClassFromRoot() throws Exception
+    {
+        File dir = Files.createTempDirectory( "mclstaleroot" ).toFile();
+        deleteRecursively( tempDir );
+        tempDir = dir;
+
+        File src = new File( dir, "StaleRoot.java" );
+
+        // 1. Revision A: a model with a nested Helper, published via the real compile==true sequence.
+        writeAndCompile( src,
+                "public class StaleRoot { int value() { return new Helper().value(); } class Helper { int value() { return 1; } } }",
+                dir );
+        File stagingA = Files.createTempDirectory( dir.toPath(), "stage-StaleRoot-A-" ).toFile();
+        compile( src, stagingA );
+        Method publish = SimulationEngine.class.getDeclaredMethod( "publishRevision", File.class, File.class, String.class );
+        publish.setAccessible( true );
+        publish.invoke( null, dir, stagingA, "StaleRoot" );
+
+        // The nested helper must be present in the legacy root after the first compilation.
+        assertTrue( "The nested helper must be in the legacy root after the first compilation",
+                new File( dir, "StaleRoot$Helper.class" ).exists() );
+
+        // 2. Revision B: recompile with the nested Helper removed, again via the real sequence.
+        writeAndCompile( src, "public class StaleRoot { int value() { return 2; } }", dir );
+        File stagingB = Files.createTempDirectory( dir.toPath(), "stage-StaleRoot-B-" ).toFile();
+        compile( src, stagingB );
+        publish.invoke( null, dir, stagingB, "StaleRoot" );
+
+        // 3. The obsolete nested helper must have been removed from the legacy root by the recompile.
+        assertFalse( "Recompiling must remove the obsolete nested helper from the legacy root",
+                new File( dir, "StaleRoot$Helper.class" ).exists() );
+        assertTrue( "The regenerated model class must be present in the legacy root",
+                new File( dir, "StaleRoot.class" ).exists() );
+
+        // 4. The compile==false load path must produce a snapshot WITHOUT the obsolete helper.
+        Method load = SimulationEngine.class.getDeclaredMethod( "loadFromExistingRoot", File.class, String.class );
+        load.setAccessible( true );
+        File snapshot = (File)load.invoke( null, dir, "StaleRoot" );
+        assertTrue( "The load snapshot must contain the model class",
+                new File( snapshot, "StaleRoot.class" ).exists() );
+        assertFalse( "The load snapshot must NOT contain the obsolete nested helper",
+                new File( snapshot, "StaleRoot$Helper.class" ).exists() );
+    }
+
+    /**
      * Regression test for stale nested classes: {@code javac} does not delete a nested
      * {@code Model$Helper.class} that disappears when the enclosing class is recompiled in the same
      * output directory. The engine avoids the problem by compiling each revision's source into a
@@ -450,7 +504,24 @@ public class ModelClassLoaderCacheTest extends TestCase
         assertEquals( "The cross-class dependency must resolve (RefModel.value() + 1)",
                 42, ( (Number)dep.getMethod( "value" ).invoke( dep.newInstance() ) ).intValue() );
 
-        // 7. The batch staging directory must be gone (consumed by the move; no leak).
+        // 7. The legacy compile==false path must also work for the batch's classes: loading a batch
+        //    member via loadFromExistingRoot (which stages the root) must produce a snapshot containing
+        //    that member's own classes, proving the root staging preserves the batch output. (Note: the
+        //    compile==false path stages a single top-level model's own classes, so a cross TOP-LEVEL-class
+        //    reference like DepModel->RefModel is not resolved by this per-class path — that is an
+        //    inherent property of the legacy path, not a regression. The cross-class dependency is
+        //    verified through the batch snapshot in step 6.)
+        Method load = SimulationEngine.class.getDeclaredMethod( "loadFromExistingRoot", File.class, String.class );
+        load.setAccessible( true );
+        File rootSnapshot = (File)load.invoke( null, dir, "RefModel" );
+        assertTrue( "The legacy root-staged snapshot must contain the staged class",
+                new File( rootSnapshot, "RefModel.class" ).exists() );
+        URLClassLoader cl2 = loaderFor( rootSnapshot, "RefModel", getClass().getClassLoader() );
+        Class<?> ref2 = cl2.loadClass( "RefModel" );
+        assertEquals( "The legacy root-staged snapshot must load the batch class correctly",
+                41, ( (Number)ref2.getMethod( "value" ).invoke( ref2.newInstance() ) ).intValue() );
+
+        // 8. The batch staging directory must be gone (consumed by the move; no leak).
         assertFalse( "The batch staging directory must not remain after a successful publish",
                 staging.exists() );
     }
