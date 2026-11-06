@@ -59,6 +59,7 @@ public class ModelClassLoaderCacheTest extends TestCase
         suite.addTest( new ModelClassLoaderCacheTest( "testRegeneratedModelLoadsNewDefinition" ) );
         suite.addTest( new ModelClassLoaderCacheTest( "testLazyNestedClassLoadedAfterRegeneration" ) );
         suite.addTest( new ModelClassLoaderCacheTest( "testRemovedNestedClassAbsentFromNewSnapshot" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testCompileTruePopulatesRootForCompileFalse" ) );
         return suite;
     }
 
@@ -297,6 +298,44 @@ public class ModelClassLoaderCacheTest extends TestCase
     }
 
     /**
+     * Regression test for the {@code compile == false} contract: after a model is compiled and its
+     * classes are published, the non-compiling load path must still be able to locate the compiled
+     * classes in the root of the shared output directory (where {@code copyClassesToRoot} places them).
+     * Without that, a model compiled with {@code compile == true} could not later be loaded with
+     * {@code compile == false}.
+     */
+    public void testCompileTruePopulatesRootForCompileFalse() throws Exception
+    {
+        File dir = Files.createTempDirectory( "mclroot" ).toFile();
+        deleteRecursively( tempDir );
+        tempDir = dir;
+
+        // Simulate the compile == true path: stage, publish, and copy the class into the root.
+        File src = new File( dir, "RootModel.java" );
+        File staging = Files.createTempDirectory( dir.toPath(), "stage-RootModel-" ).toFile();
+        writeAndCompile( src, "public class RootModel { public int value() { return 9; } }", staging );
+
+        // copyClassesToRoot is package-private; invoke it via reflection to exercise the real path.
+        Method copy = SimulationEngine.class.getDeclaredMethod( "copyClassesToRoot", File.class, File.class, String.class );
+        copy.setAccessible( true );
+        copy.invoke( null, staging, dir, "RootModel" );
+        deleteRecursively( staging );
+
+        assertTrue( "The compiled class must be present in the root of the shared output directory",
+                new File( dir, "RootModel.class" ).exists() );
+
+        // Now the compile == false path: stageExistingClasses must find the class in the root and
+        // produce a loadable snapshot.
+        Method stage = SimulationEngine.class.getDeclaredMethod( "stageExistingClasses", File.class, String.class, File.class );
+        stage.setAccessible( true );
+        File loadStaging = Files.createTempDirectory( dir.toPath(), "stage-load-" ).toFile();
+        stage.invoke( null, dir, "RootModel", loadStaging );
+        assertTrue( "The non-compiling path must locate the class via the shared output directory",
+                new File( loadStaging, "RootModel.class" ).exists() );
+        deleteRecursively( loadStaging );
+    }
+
+    /**
      * Regression test for stale nested classes: {@code javac} does not delete a nested
      * {@code Model$Helper.class} that disappears when the enclosing class is recompiled in the same
      * output directory. The engine avoids the problem by compiling each revision's source into a
@@ -316,13 +355,14 @@ public class ModelClassLoaderCacheTest extends TestCase
         writeAndCompile( src,
                 "public class SrcA { int value() { return new Helper().value(); } class Helper { int value() { return 1; } } }",
                 dir );
-        assertNotNull( new File( dir, "SrcA$Helper.class" ) );
+        assertTrue( "Revision A must produce the nested class in the shared dir",
+                new File( dir, "SrcA$Helper.class" ).exists() );
 
         // 2. Regenerate: recompile the same source file in place with the nested Helper removed.
         //    javac leaves the now-obsolete SrcA$Helper.class behind in the shared dir.
         writeAndCompile( src, "public class SrcA { int value() { return 2; } }", dir );
-        assertNotNull( "javac leaves the obsolete nested class in the shared output dir (expected)",
-                new File( dir, "SrcA$Helper.class" ) );
+        assertTrue( "javac leaves the obsolete nested class in the shared output dir (expected)",
+                new File( dir, "SrcA$Helper.class" ).exists() );
 
         // 3. The engine now stages the current source into a fresh staging dir and publishes it. The
         //    stale SrcA$Helper.class in the shared dir must NOT be part of the new snapshot.
