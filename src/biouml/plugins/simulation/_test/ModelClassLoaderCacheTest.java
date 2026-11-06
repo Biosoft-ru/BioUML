@@ -19,17 +19,21 @@ import junit.framework.TestSuite;
  * Verifies the shared {@link URLClassLoader} cache used by {@link SimulationEngine#compileModel} to
  * fix the per-run class loader leak.
  *
- * <p>Two kinds of checks are made:
+ * <p>The cache is keyed by an <b>immutable per-revision compilation directory</b>, so each model
+ * revision (including any nested classes its generated code instantiates lazily) is isolated from
+ * later regenerations. The checks cover:
  * <ul>
- *   <li>the <b>caching contract</b> — an unchanged model revision reuses one loader, a regenerated
- *       revision (new source fingerprint) gets a fresh loader, distinct classes never share a loader;
- *   <li><b>actual class loading</b> — a small class is really compiled and loaded through the cache,
- *       and after regeneration the fresh loader exposes the <em>new</em> definition (different class
- *       identity, new behaviour) rather than a stale one. This is the reason the cache exists.
+ *   <li>the caching contract — an unchanged revision reuses one loader, a regenerated revision gets a
+ *       fresh loader, distinct classes and distinct parents never share a loader;
+ *   <li>actual class loading — a small model is really compiled and loaded, and after regeneration a
+ *       fresh loader exposes the new definition;
+ *   <li>the large-model case — a model with a <em>lazily loaded nested class</em> keeps seeing its
+ *       original nested class after the revision is regenerated (the mutable-directory hazard the
+ *       per-revision directory is designed to prevent).
  * </ul>
  *
- * <p>The cache method is package-private in {@code biouml.plugins.simulation}, so it is reached via
- * reflection.
+ * <p>The cache helpers are package-private in {@code biouml.plugins.simulation}, so they are reached
+ * via reflection.
  */
 public class ModelClassLoaderCacheTest extends TestCase
 {
@@ -48,7 +52,7 @@ public class ModelClassLoaderCacheTest extends TestCase
         suite.addTest( new ModelClassLoaderCacheTest( "testDifferentClassesUseDifferentLoaders" ) );
         suite.addTest( new ModelClassLoaderCacheTest( "testDifferentParentsUseDifferentLoaders" ) );
         suite.addTest( new ModelClassLoaderCacheTest( "testRegeneratedModelLoadsNewDefinition" ) );
-        suite.addTest( new ModelClassLoaderCacheTest( "testSingleClassModelHasNoLazyDependency" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testLazyNestedClassIsolatedAcrossRegeneration" ) );
         return suite;
     }
 
@@ -59,26 +63,19 @@ public class ModelClassLoaderCacheTest extends TestCase
         tempDir = Files.createTempDirectory( "mclcache" ).toFile();
     }
 
-    protected void tearDown()
+    protected void tearDown() throws Exception
     {
-        // Best-effort cleanup of the temp tree and the shared static cache (which otherwise retains
-        // loaders and keys pointing at files we are about to delete).
+        // Clean up the temp tree and the shared static cache; a failure here is a real test
+        // misconfiguration and should surface, not be swallowed.
         deleteRecursively( tempDir );
         clearCache();
     }
 
-    private static void clearCache()
+    private static void clearCache() throws Exception
     {
-        try
-        {
-            Method m = SimulationEngine.class.getDeclaredMethod( "clearModelClassLoaderCache" );
-            m.setAccessible( true );
-            m.invoke( null );
-        }
-        catch( Exception e )
-        {
-            // Best-effort only; do not fail the test over cache cleanup.
-        }
+        Method m = SimulationEngine.class.getDeclaredMethod( "clearModelClassLoaderCache" );
+        m.setAccessible( true );
+        m.invoke( null );
     }
 
     private static void deleteRecursively(File f)
@@ -92,18 +89,17 @@ public class ModelClassLoaderCacheTest extends TestCase
         f.delete();
     }
 
-    // --- helpers to reach the package-private cache method -------------------------------
+    // --- helpers to reach the package-private cache methods -------------------------------
 
-    private static Method loaderMethod() throws Exception
+    private static URLClassLoader revisionLoader(File outputDir, String className, File sourceFile, ClassLoader parent) throws Exception
     {
-        Method m = SimulationEngine.class.getDeclaredMethod( "modelClassLoader", File.class, File.class, ClassLoader.class );
+        Method prep = SimulationEngine.class.getDeclaredMethod( "modelRevisionDir", File.class, String.class, File.class );
+        prep.setAccessible( true );
+        File revisionDir = (File)prep.invoke( null, outputDir, className, sourceFile );
+
+        Method m = SimulationEngine.class.getDeclaredMethod( "modelClassLoader", File.class, String.class, ClassLoader.class );
         m.setAccessible( true );
-        return m;
-    }
-
-    private static URLClassLoader loader(File classFile, File sourceFile, ClassLoader parent) throws Exception
-    {
-        return (URLClassLoader)loaderMethod().invoke( null, classFile, sourceFile, parent );
+        return (URLClassLoader)m.invoke( null, revisionDir, className, parent );
     }
 
     private static File touch(File f, long lastModified) throws Exception
@@ -136,48 +132,54 @@ public class ModelClassLoaderCacheTest extends TestCase
         assertTrue( "Compilation of " + source + " must succeed", ok );
     }
 
+    /** Returns the int returned by the no-arg {@code value()} method of a freshly created instance. */
+    private static int value(Class<?> c) throws Exception
+    {
+        return ( (Number)c.getMethod( "value" ).invoke( c.newInstance() ) ).intValue();
+    }
+
     // --- tests ---------------------------------------------------------------------------
 
     public void testSameRevisionReusesLoader() throws Exception
     {
-        File cls = touch( new File( tempDir, "Pz_a.class" ), 1000L );
         File src = touch( new File( tempDir, "Pz_a.java" ), 1000L );
+        File cls = touch( new File( tempDir, "Pz_a.class" ), 1000L );
 
-        URLClassLoader first = loader( cls, src, getClass().getClassLoader() );
-        URLClassLoader second = loader( cls, src, getClass().getClassLoader() );
+        URLClassLoader first = revisionLoader( tempDir, "Pz_a", src, getClass().getClassLoader() );
+        URLClassLoader second = revisionLoader( tempDir, "Pz_a", src, getClass().getClassLoader() );
 
         assertNotNull( first );
-        assertSame( "An unchanged model revision must reuse the same cached loader", first, second );
+        assertSame( "An unchanged revision must reuse the same cached loader", first, second );
     }
 
     public void testChangedRevisionCreatesNewLoader() throws Exception
     {
-        File cls = touch( new File( tempDir, "Pz_b.class" ), 2000L );
         File src = touch( new File( tempDir, "Pz_b.java" ), 2000L );
+        File cls = touch( new File( tempDir, "Pz_b.class" ), 2000L );
 
-        URLClassLoader first = loader( cls, src, getClass().getClassLoader() );
+        URLClassLoader first = revisionLoader( tempDir, "Pz_b", src, getClass().getClassLoader() );
 
-        // Regenerate the model: rewrite the source and give it a new fingerprint.
+        // Regenerate the model: rewrite the source (new size) and bump its last-modified time.
         try( FileWriter w = new FileWriter( src ) )
         {
-            w.write( "// regenerated\n" );
+            w.write( "// regenerated source body\n" );
         }
         touch( src, 3000L );
 
-        URLClassLoader second = loader( cls, src, getClass().getClassLoader() );
+        URLClassLoader second = revisionLoader( tempDir, "Pz_b", src, getClass().getClassLoader() );
         assertNotNull( second );
-        assertNotSame( "A regenerated model (new source fingerprint) must get a fresh loader", first, second );
+        assertNotSame( "A regenerated revision must get a fresh loader", first, second );
     }
 
     public void testDifferentClassesUseDifferentLoaders() throws Exception
     {
-        File clsA = touch( new File( tempDir, "Pz_c.class" ), 4000L );
         File srcA = touch( new File( tempDir, "Pz_c.java" ), 4000L );
-        File clsB = touch( new File( tempDir, "Pz_d.class" ), 4000L );
+        File clsA = touch( new File( tempDir, "Pz_c.class" ), 4000L );
         File srcB = touch( new File( tempDir, "Pz_d.java" ), 4000L );
+        File clsB = touch( new File( tempDir, "Pz_d.class" ), 4000L );
 
-        URLClassLoader a = loader( clsA, srcA, getClass().getClassLoader() );
-        URLClassLoader b = loader( clsB, srcB, getClass().getClassLoader() );
+        URLClassLoader a = revisionLoader( tempDir, "Pz_c", srcA, getClass().getClassLoader() );
+        URLClassLoader b = revisionLoader( tempDir, "Pz_d", srcB, getClass().getClassLoader() );
 
         assertNotNull( a );
         assertNotNull( b );
@@ -186,19 +188,19 @@ public class ModelClassLoaderCacheTest extends TestCase
 
     public void testDifferentParentsUseDifferentLoaders() throws Exception
     {
-        File cls = touch( new File( tempDir, "Pz_e.class" ), 5000L );
         File src = touch( new File( tempDir, "Pz_e.java" ), 5000L );
+        File cls = touch( new File( tempDir, "Pz_e.class" ), 5000L );
 
         // Two distinct parent loaders pointing at the same files must not share a cached loader.
         ClassLoader parentA = ModelClassLoaderCacheTest.class.getClassLoader();
         ClassLoader parentB = new URLClassLoader( new java.net.URL[0], parentA );
 
-        URLClassLoader a = loader( cls, src, parentA );
-        URLClassLoader b = loader( cls, src, parentB );
+        URLClassLoader a = revisionLoader( tempDir, "Pz_e", src, parentA );
+        URLClassLoader b = revisionLoader( tempDir, "Pz_e", src, parentB );
 
         assertNotNull( a );
         assertNotNull( b );
-        assertNotSame( "The same files loaded through different parents must not share a loader", a, b );
+        assertNotSame( "The same revision loaded through different parents must not share a loader", a, b );
     }
 
     /**
@@ -208,94 +210,86 @@ public class ModelClassLoaderCacheTest extends TestCase
      */
     public void testRegeneratedModelLoadsNewDefinition() throws Exception
     {
-        File dir = Files.createTempDirectory( "mclreal" ).toFile();
-        deleteRecursively( tempDir );
-        tempDir = dir;
-
-        File src = new File( dir, "RevProbe.java" );
-        File cls = new File( dir, "RevProbe.class" );
+        File src = new File( tempDir, "RevProbe.java" );
+        File cls = new File( tempDir, "RevProbe.class" );
 
         writeAndCompile( src, "public class RevProbe { public int value() { return 1; } }" );
-        // Align the source mtime with a fresh value so the first and (potential) stale lookups differ
-        // from the regeneration; the real signal is the fingerprint change on rewrite below.
         touch( src, 10_000L );
         touch( cls, 10_000L );
 
-        URLClassLoader loaderA = loader( cls, src, getClass().getClassLoader() );
+        URLClassLoader loaderA = revisionLoader( tempDir, "RevProbe", src, getClass().getClassLoader() );
         Class<?> classA = loaderA.loadClass( "RevProbe" );
-        Object instanceA = classA.newInstance();
-        int valueA = ( (Number)classA.getMethod( "value" ).invoke( instanceA ) ).intValue();
-        assertEquals( 1, valueA );
+        assertEquals( 1, value( classA ) );
 
-        // Regenerate: new body, new source fingerprint.
+        // Regenerate: new body, new revision (source size + mtime change).
         writeAndCompile( src, "public class RevProbe { public int value() { return 2; } }" );
         touch( src, 20_000L );
         touch( cls, 20_000L );
 
-        URLClassLoader loaderB = loader( cls, src, getClass().getClassLoader() );
+        URLClassLoader loaderB = revisionLoader( tempDir, "RevProbe", src, getClass().getClassLoader() );
         Class<?> classB = loaderB.loadClass( "RevProbe" );
-        Object instanceB = classB.newInstance();
 
         assertNotSame( "A regenerated revision must be served by a different loader", loaderA, loaderB );
         assertNotSame( "A regenerated revision must be a different Class object", classA, classB );
-        int valueB = ( (Number)classB.getMethod( "value" ).invoke( instanceB ) ).intValue();
-        assertEquals( "The regenerated class must exhibit the new behaviour", 2, valueB );
-
-        // And the original loader must still see the original definition.
-        int valueAAfter = ( (Number)classA.getMethod( "value" ).invoke( instanceA ) ).intValue();
-        assertEquals( 1, valueAAfter );
+        assertEquals( "The regenerated class must exhibit the new behaviour", 2, value( classB ) );
+        // And the original revision is unchanged.
+        assertEquals( 1, value( classA ) );
     }
 
     /**
-     * Documents and exercises the single-class invariant that makes sharing a directory-backed loader
-     * safe: a generated model is one self-contained class, so its loader never lazily resolves
-     * additional <em>generated</em> classes from the (mutable) output directory after the model has
-     * been loaded.
-     *
-     * <p>The test still demonstrates the underlying limitation of a mutable directory classpath for
-     * completeness: a <em>dependent</em> class that the loader has not yet loaded, if later loaded
-     * after the directory is rewritten, picks up the new definition. The point of the test is to show
-     * that this path is not exercised by the real model lifecycle (a model loads only its own single
-     * class), not that the loader is hermetically sealed from the directory.
+     * The large-model case. Generated large models emit nested helper classes that are instantiated
+     * lazily (e.g. {@code new CalculateReactionRates().run(...)}) and therefore loaded from the
+     * classpath <em>after</em> the main model class. Because each revision is loaded from its own
+     * immutable directory, a model loaded from revision A must keep seeing revision A's nested class
+     * even after revision B overwrites the shared output directory.
      */
-    public void testSingleClassModelHasNoLazyDependency() throws Exception
+    public void testLazyNestedClassIsolatedAcrossRegeneration() throws Exception
     {
-        File dir = Files.createTempDirectory( "mcldep" ).toFile();
+        File dir = Files.createTempDirectory( "mclnested" ).toFile();
         deleteRecursively( tempDir );
         tempDir = dir;
 
-        File mainSrc = new File( dir, "Main.java" );
-        File depSrc = new File( dir, "Dep.java" );
-        File mainCls = new File( dir, "Main.class" );
+        // Outer class with a nested (non-static) helper instantiated inline at call time, mirroring
+        // the large-model pattern (e.g. `new CalculateReactionRates().run(...)`), which is what makes
+        // the nested class load lazily from the classpath.
+        File src = new File( dir, "NestedModel.java" );
+        writeAndCompile( src,
+                "public class NestedModel {" +
+                "  public int value() { return new Helper().value(); }" +
+                "  class Helper { int value() { return 1; } }" +
+                "}" );
+        touch( src, 10_000L );
+        // NestedModel.class and NestedModel$Helper.class now exist in dir.
+        touch( new File( dir, "NestedModel.class" ), 10_000L );
 
-        // First revision: Main (the model) and Dep (a would-be dependency).
-        writeAndCompile( mainSrc, "public class Main { public int value() { return 1; } }" );
-        writeAndCompile( depSrc, "public class Dep { public int value() { return 1; } }" );
-        touch( mainSrc, 10_000L );
-        touch( mainCls, 10_000L );
+        URLClassLoader loaderA = revisionLoader( dir, "NestedModel", src, getClass().getClassLoader() );
+        Class<?> mainA = loaderA.loadClass( "NestedModel" );
+        Object instA = mainA.newInstance();
+        // value() lazily loads and instantiates the nested Helper through loaderA.
+        assertEquals( 1, ( (Number)mainA.getMethod( "value" ).invoke( instA ) ).intValue() );
+        // The nested class that loaderA resolved.
+        Class<?> helperA = loaderA.loadClass( "NestedModel$Helper" );
+        assertNotNull( helperA );
 
-        URLClassLoader loaderA = loader( mainCls, mainSrc, getClass().getClassLoader() );
+        // Regenerate: the nested helper now returns 2. Overwrite both class files in the shared dir.
+        writeAndCompile( src,
+                "public class NestedModel {" +
+                "  public int value() { return new Helper().value(); }" +
+                "  class Helper { int value() { return 2; } }" +
+                "}" );
+        touch( src, 20_000L );
+        touch( new File( dir, "NestedModel.class" ), 20_000L );
 
-        // In production the model loads ONLY its own single class here; it does not load Dep.
-        Class<?> mainA = loaderA.loadClass( "Main" );
-        int mainValue = ( (Number)mainA.getMethod( "value" ).invoke( mainA.newInstance() ) ).intValue();
-        assertEquals( 1, mainValue );
+        // A fresh revision must see the new behaviour...
+        URLClassLoader loaderB = revisionLoader( dir, "NestedModel", src, getClass().getClassLoader() );
+        Class<?> mainB = loaderB.loadClass( "NestedModel" );
+        assertNotSame( "A regenerated revision must be a different Class object", mainA, mainB );
+        assertEquals( 2, ( (Number)mainB.getMethod( "value" ).invoke( mainB.newInstance() ) ).intValue() );
 
-        // Regenerate the whole revision: both sources now report 2.
-        writeAndCompile( mainSrc, "public class Main { public int value() { return 2; } }" );
-        writeAndCompile( depSrc, "public class Dep { public int value() { return 2; } }" );
-        touch( mainSrc, 20_000L );
-        touch( mainCls, 20_000L );
-
-        // The already-loaded Main is isolated by class identity and keeps its original behaviour.
-        int mainValueAfter = ( (Number)mainA.getMethod( "value" ).invoke( mainA.newInstance() ) ).intValue();
-        assertEquals( "A loaded model class must not observe a later regeneration", 1, mainValueAfter );
-
-        // Demonstrating the mutable-directory limitation: a class not yet loaded through loaderA,
-        // if loaded now, reads the NEW on-disk definition. This is exactly the case that does NOT
-        // occur for real models (they load only their own single class, already loaded above).
-        Class<?> depSeenLate = loaderA.loadClass( "Dep" );
-        int depValue = ( (Number)depSeenLate.getMethod( "value" ).invoke( depSeenLate.newInstance() ) ).intValue();
-        assertEquals( "A lazily loaded dependent class reads the current directory contents", 2, depValue );
+        // ...while the original revision's lazily loaded nested class must STILL report the old value.
+        // This is the property the per-revision immutable directory guarantees and a shared mutable
+        // directory would not.
+        assertEquals( "A loaded revision must not observe a later regeneration of its nested classes",
+                1, ( (Number)mainA.getMethod( "value" ).invoke( instA ) ).intValue() );
     }
 }

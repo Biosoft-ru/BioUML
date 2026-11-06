@@ -6,9 +6,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -96,11 +100,13 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
      * the cap is the mechanism that keeps this bounded. If a suitable lifecycle hook is added later,
      * clearing the entries for the disposed parent here is the intended extension point.
      *
-     * <p><b>Single-class invariant.</b> Each generated model is a single self-contained class
-     * ({@code ... extends JavaBaseModel}) compiled from one {@code .java} file into the output
-     * directory; {@link #compileModel} loads exactly that one class per run. The loader therefore
-     * never needs to resolve additional generated classes from the (mutable) output directory after a
-     * model has been loaded, which is why sharing a directory-backed loader across revisions is safe.
+     * <p><b>Revision isolation.</b> Each model revision is loaded from its own <b>immutable
+     * per-revision directory</b> ({@link #modelRevisionDir}), and the shared loader's classpath is
+     * exactly that directory. This matters because generated <em>large</em> models emit nested helper
+     * classes (e.g. {@code CalculateReactionRates}) that are instantiated — and therefore loaded —
+     * lazily from the classpath at simulation time. Rooting each loader at an immutable directory
+     * guarantees that a loaded revision can only ever see its own classes, never a later
+     * regeneration's, even though the underlying models are compiled into one shared output directory.
      */
     private static final Map<ModelClassLoaderKey, URLClassLoader> MODEL_CLASSLOADER_CACHE =
             Collections.synchronizedMap(new LinkedHashMap<ModelClassLoaderKey, URLClassLoader>(16, 0.75f, true));
@@ -108,34 +114,34 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
     private static final int MODEL_CLASSLOADER_CACHE_LIMIT = 128;
 
     /**
-     * Identity of a model revision whose compiled class should be loaded through a single shared
+     * Identity of a model revision whose compiled classes should be loaded through a single shared
      * {@link URLClassLoader}. Two revisions share a loader only when all of these match, including
      * the parent class loader (compared by reference) — a loader created under one parent must never
      * be handed to a caller expecting a different parent.
      *
-     * <p>The revision is a <b>best-effort metadata fingerprint</b> of the generated source (size +
-     * last-modified time), compared as two independent fields. It is not a perfect revision
-     * identifier — two different contents can share a size and timestamp — but it is the signal that
-     * changes when a model is regenerated while remaining stable across re-runs of an unchanged model.
+     * <p>{@code revisionDir} is an <b>immutable, per-revision compilation directory</b>: its path
+     * encodes the model revision, and it is never rewritten. The loader's classpath is exactly this
+     * directory, so a loaded model (including any nested classes it instantiates lazily) can only
+     * ever see the classes of the revision it was created from — never a later regeneration. This is
+     * what makes sharing a directory-backed loader across revisions safe even for large models, whose
+     * generated code emits nested helper classes loaded lazily from the classpath.
      */
     static final class ModelClassLoaderKey
     {
-        private final String directory;
+        private final String revisionDir;
         private final String className;
         private final ClassLoader parent;
-        private final long fileSize;
-        private final long lastModified;
         private final int hash;
 
-        private ModelClassLoaderKey( String directory, String className, ClassLoader parent, long fileSize, long lastModified )
+        private ModelClassLoaderKey( String revisionDir, String className, ClassLoader parent )
         {
-            this.directory = directory;
+            this.revisionDir = revisionDir;
             this.className = className;
             this.parent = parent;
-            this.fileSize = fileSize;
-            this.lastModified = lastModified;
-            this.hash = 31 * ( 31 * ( 31 * ( 31 * directory.hashCode() + className.hashCode() )
-                    + System.identityHashCode( parent ) ) + Long.hashCode( fileSize ) ^ Long.hashCode( lastModified ) );
+            int result = revisionDir.hashCode();
+            result = 31 * result + className.hashCode();
+            result = 31 * result + System.identityHashCode( parent );
+            this.hash = result;
         }
 
         @Override
@@ -148,10 +154,8 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
             ModelClassLoaderKey that = (ModelClassLoaderKey)o;
             // Parent must be compared by reference: ClassLoader identity is what matters for
             // delegation, and two distinct loader instances are never interchangeable.
-            return fileSize == that.fileSize
-                    && lastModified == that.lastModified
-                    && parent == that.parent
-                    && directory.equals( that.directory )
+            return parent == that.parent
+                    && revisionDir.equals( that.revisionDir )
                     && className.equals( that.className );
         }
 
@@ -163,28 +167,18 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
     }
 
     /**
-     * Returns a shared {@link URLClassLoader} for loading a compiled model class from {@code classFile}.
+     * Returns a shared {@link URLClassLoader} rooted at {@code revisionDir}, the immutable per-revision
+     * directory that holds the compiled classes for this model revision.
      *
-     * @param classFile the compiled {@code .class} file the loader must be able to see
-     * @param sourceFile the generated {@code .java} source for the model, if any; a fingerprint of it
-     *        (size + last-modified) keys the cache because it changes only when the model is
-     *        regenerated (an unchanged model recompiled each run keeps a stable fingerprint, so the
-     *        loader is reused). May be {@code null} when there is no source (e.g. precompiled models),
-     *        in which case the class file's own fingerprint is used.
+     * @param revisionDir the per-revision directory the loader must use as its (only) classpath entry
+     * @param className the compiled model class to load through it (part of the cache key)
      * @param parent the parent class loader; part of the cache key
-     * @return a cached (or newly created) class loader for the directory containing {@code classFile}
+     * @return a cached (or newly created) class loader for {@code revisionDir}
      */
-    static URLClassLoader modelClassLoader(File classFile, File sourceFile, ClassLoader parent) throws Exception
+    static URLClassLoader modelClassLoader(File revisionDir, String className, ClassLoader parent) throws MalformedURLException
     {
-        File canonical = classFile.getCanonicalFile();
-        File dir = canonical.getParentFile();
-        // Key the cache on the source revision when available (it is rewritten only when the model
-        // actually changes); fall back to the class file's metadata when there is no source.
-        File revisionFile = ( sourceFile != null && sourceFile.exists() ) ? sourceFile : canonical;
-
-        ModelClassLoaderKey key = new ModelClassLoaderKey(
-                dir.getPath(), classFile.getName(), parent,
-                revisionFile.length(), revisionFile.lastModified() );
+        String dirPath = revisionDir.getPath();
+        ModelClassLoaderKey key = new ModelClassLoaderKey( dirPath, className, parent );
 
         URLClassLoader cached = MODEL_CLASSLOADER_CACHE.get( key );
         if( cached != null )
@@ -196,8 +190,7 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
             if( cached != null )
                 return cached;
 
-            URL[] url = new URL[] {dir.toURI().toURL()};
-            URLClassLoader created = new URLClassLoader( url, parent );
+            URLClassLoader created = new URLClassLoader( new URL[] {revisionDir.toURI().toURL()}, parent );
             MODEL_CLASSLOADER_CACHE.put( key, created );
 
             // Bound the *cache* (not the number of live loaders — see the class-level note): evict the
@@ -211,6 +204,51 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
             }
             return created;
         }
+    }
+
+    /**
+     * Returns the immutable per-revision directory for a compiled model, populating it with the model's
+     * compiled classes if not already present.
+     *
+     * <p>The directory is derived from the output directory, the class name, and a stable fingerprint
+     * of the generated source, so it is reused across re-runs of an unchanged model and given a fresh
+     * name when the model is regenerated. Compiled classes (the model class plus any nested
+     * {@code Model$*.class} files) are copied from the shared {@code outputDir} into it, so the loader
+     * that is rooted at this directory can only ever see this revision's classes.
+     *
+     * @param outputDir the shared directory the model was compiled into
+     * @param className the model class name (without extension)
+     * @param sourceFile the generated {@code .java} source, if any; its (size, last-modified) is the
+     *        stable revision fingerprint. May be {@code null} (precompiled models), in which case the
+     *        compiled class file's metadata is used.
+     * @return the per-revision directory, guaranteed to contain the model's compiled classes
+     */
+    static File modelRevisionDir(File outputDir, String className, File sourceFile) throws IOException
+    {
+        File revisionSource = ( sourceFile != null && sourceFile.exists() ) ? sourceFile : new File( outputDir, className + ".class" );
+        String fingerprint = Integer.toHexString( Objects.hash( className, revisionSource.length(), revisionSource.lastModified() ) );
+        File revisionDir = new File( outputDir, "rev-" + fingerprint );
+        if( !revisionDir.exists() && !revisionDir.mkdirs() )
+            throw new IOException( "Can not create model revision directory " + revisionDir );
+
+        // Copy the model class and any nested Model$*.class files so this revision is self-contained
+        // and isolated from later rewrites of the shared output directory. Copy only when the target
+        // is missing or stale, so repeated runs of an unchanged revision do no I/O.
+        String[] classFiles = outputDir.list( ( d, name ) ->
+                name.equals( className + ".class" ) || name.startsWith( className + "$" ) && name.endsWith( ".class" ) );
+        if( classFiles != null )
+        {
+            for( String name : classFiles )
+            {
+                File src = new File( outputDir, name );
+                File dst = new File( revisionDir, name );
+                if( !dst.exists() || dst.lastModified() < src.lastModified() )
+                {
+                    Files.copy( src.toPath(), dst.toPath(), StandardCopyOption.REPLACE_EXISTING );
+                }
+            }
+        }
+        return revisionDir;
     }
 
     /**
@@ -498,14 +536,13 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
             }
 
             File outDir = new File( outputDir );
-            // Use a shared, reusable class loader (keyed by directory + class revision) instead of
-            // creating a fresh URLClassLoader per run. A per-run loader leaked because the returned
-            // model instance pinned its defining loader in the heap. See modelClassLoader().
-            // The key is based on the generated source file, whose lastModified changes only when the
-            // model is actually regenerated (not on every recompile of an unchanged model).
-            File classFile = new File( outDir, className + ".class" );
-            File sourceFile = new File( outDir, className + ".java" );
-            URLClassLoader cl = modelClassLoader( classFile, sourceFile, getClass().getClassLoader() );
+            // Load through a shared class loader rooted at an immutable per-revision directory instead
+            // of creating a fresh URLClassLoader per run. A per-run loader leaked because the returned
+            // model instance pinned its defining loader in the heap. The per-revision directory isolates
+            // each model revision (including lazily loaded nested classes) from later regenerations.
+            // See modelClassLoader() / modelRevisionDir().
+            File revisionDir = modelRevisionDir( outDir, className, new File( outDir, className + ".java" ) );
+            URLClassLoader cl = modelClassLoader( revisionDir, className, getClass().getClassLoader() );
             try
             {
                 result[i] = cl.loadClass( className ).newInstance();
@@ -537,8 +574,9 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
         {
             String fileName = files[i].getName();
             String className = fileName.substring( 0, fileName.lastIndexOf( "." ) );
-            // Shared, reusable class loader keyed by directory + class revision (see modelClassLoader()).
-            URLClassLoader cl = modelClassLoader( new File( outDir, className + ".class" ), new File( outDir, className + ".java" ), getClass().getClassLoader() );
+            // Shared loader rooted at an immutable per-revision directory (see modelClassLoader()).
+            File revisionDir = modelRevisionDir( outDir, className, new File( outDir, className + ".java" ) );
+            URLClassLoader cl = modelClassLoader( revisionDir, className, getClass().getClassLoader() );
             try
             {
                 result[i] = cl.loadClass( className ).newInstance();
