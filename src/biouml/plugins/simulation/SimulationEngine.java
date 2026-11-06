@@ -945,14 +945,42 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
      * directory, preserving the legacy contract that a compiled model's classes are present in the
      * output directory root (so a later {@code compile == false} load can find them).
      */
+    /**
+     * Replaces the legacy root's class files for {@code className} with exactly the current
+     * compilation's set (the class plus its nested {@code className$*.class} files) from
+     * {@code stagingDir}.
+     *
+     * <p>{@code javac} does not delete a nested {@code .class} file that disappears when the model is
+     * recompiled, so a prior revision's obsolete {@code className$*.class} files would otherwise
+     * linger in the shared root. {@code loadFromExistingRoot} (the {@code compile == false} path)
+     * stages <em>every</em> {@code className$*.class} it finds in the root, so an obsolete helper left
+     * behind would be carried into a new snapshot. To keep the root a faithful, complete, current
+     * representation of the model, this first removes <b>all</b> {@code className$*.class} files from
+     * the root, then copies the current set. The removal is scoped to this model's nested classes
+     * only, so files belonging to other models are untouched.
+     *
+     * <p><b>This must be called while holding {@link #revisionDirLock} for the output directory</b>
+     * (see {@link #publishRevision}), so the remove-then-copy sequence is atomic with respect to any
+     * concurrent compilation of the same output directory.
+     */
     private static void copyClassesToRoot(File stagingDir, File outputRoot, String className) throws IOException
     {
+        // Remove any obsolete nested classes of this model from the root before writing the current
+        // set, so a nested class that disappeared on regeneration cannot survive in the legacy root.
+        String prefix = className + "$";
+        String[] rootFiles = outputRoot.list( ( d, name ) -> name.startsWith( prefix ) && name.endsWith( ".class" ) );
+        if( rootFiles != null )
+        {
+            for( String name : rootFiles )
+                new File( outputRoot, name ).delete();
+        }
+
         String[] all = stagingDir.list( ( d, name ) -> name.endsWith( ".class" ) );
         if( all != null )
         {
             for( String name : all )
             {
-                if( name.equals( className + ".class" ) || ( name.startsWith( className + "$" ) && name.endsWith( ".class" ) ) )
+                if( name.equals( className + ".class" ) || ( name.startsWith( prefix ) && name.endsWith( ".class" ) ) )
                     Files.copy( new File( stagingDir, name ).toPath(), new File( outputRoot, name ).toPath(),
                             StandardCopyOption.REPLACE_EXISTING );
             }
