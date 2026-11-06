@@ -71,42 +71,96 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
      * accumulated hundreds of thousands of class loaders and their loaded classes until the heap was
      * exhausted ({@code java.lang.OutOfMemoryError}).
      *
-     * <p>Loaders are now shared. A loader is reused as long as the directory it points at and the
-     * on-disk class file are unchanged (keyed by path + last-modified). When the class file is
-     * regenerated a new loader is created so the freshly compiled class is read rather than a stale
-     * cached definition. Because a loader is only created when its key changes, the number of live
-     * loaders is bounded by the number of *distinct* (directory, class revision) pairs in use, not by
-     * the number of simulation runs.
+     * <p>Loaders are now shared. A loader is reused as long as the model revision it was created for
+     * is unchanged; the revision is described by the (canonical) directory, class name, the
+     * parent class loader, and a fingerprint of the model source. When the model is regenerated a
+     * new loader is created so the freshly compiled class is read rather than a stale cached
+     * definition.
+     *
+     * <p><b>Bounding guarantee.</b> The *cache* itself is bounded to {@link #MODEL_CLASSLOADER_CACHE_LIMIT}
+     * entries. The number of *live* class loaders is <b>not</b> bounded by the cache: a class loader
+     * stays alive while any loaded model instance is still reachable (a live instance pins its
+     * defining class and, through it, its loader). This patch fixes the original defect — one loader
+     * created per simulation run — by reusing a single loader across all runs of an unchanged model.
+     * It does not, and cannot, reclaim loaders of model instances that are still referenced.
      */
-    private static final Map<String, URLClassLoader> MODEL_CLASSLOADER_CACHE =
-            Collections.synchronizedMap(new LinkedHashMap<String, URLClassLoader>(16, 0.75f, true));
+    private static final Map<ModelClassLoaderKey, URLClassLoader> MODEL_CLASSLOADER_CACHE =
+            Collections.synchronizedMap(new LinkedHashMap<ModelClassLoaderKey, URLClassLoader>(16, 0.75f, true));
 
     private static final int MODEL_CLASSLOADER_CACHE_LIMIT = 128;
+
+    /**
+     * Identity of a model revision whose compiled class should be loaded through a single shared
+     * {@link URLClassLoader}. Two revisions share a loader only when all of these match, including
+     * the parent class loader (compared by reference) — a loader created under one parent must never
+     * be handed to a caller expecting a different parent.
+     */
+    static final class ModelClassLoaderKey
+    {
+        private final String directory;
+        private final String className;
+        private final ClassLoader parent;
+        private final long revision;
+        private final int hash;
+
+        private ModelClassLoaderKey( String directory, String className, ClassLoader parent, long revision )
+        {
+            this.directory = directory;
+            this.className = className;
+            this.parent = parent;
+            this.revision = revision;
+            this.hash = 31 * ( 31 * ( 31 * ( 31 * directory.hashCode() + className.hashCode() )
+                    + System.identityHashCode( parent ) ) + Long.hashCode( revision ) );
+        }
+
+        @Override
+        public boolean equals( Object o )
+        {
+            if( this == o )
+                return true;
+            if( !( o instanceof ModelClassLoaderKey ) )
+                return false;
+            ModelClassLoaderKey that = (ModelClassLoaderKey)o;
+            // Parent must be compared by reference: ClassLoader identity is what matters for
+            // delegation, and two distinct loader instances are never interchangeable.
+            return revision == that.revision
+                    && parent == that.parent
+                    && directory.equals( that.directory )
+                    && className.equals( that.className );
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return hash;
+        }
+    }
 
     /**
      * Returns a shared {@link URLClassLoader} for loading a compiled model class from {@code classFile}.
      *
      * @param classFile the compiled {@code .class} file the loader must be able to see
-     * @param sourceFile the generated {@code .java} source for the model, if any; its last-modified time
-     *        is used to key the cache because it changes only when the model is regenerated (an
-     *        unchanged model recompiled each run has a stable source mtime, so the loader is reused).
-     *        May be {@code null} when there is no source (e.g. precompiled models).
-     * @param parent the parent class loader
+     * @param sourceFile the generated {@code .java} source for the model, if any; a fingerprint of it
+     *        (size + last-modified) keys the cache because it changes only when the model is
+     *        regenerated (an unchanged model recompiled each run keeps a stable fingerprint, so the
+     *        loader is reused). May be {@code null} when there is no source (e.g. precompiled models),
+     *        in which case the class file's own fingerprint is used.
+     * @param parent the parent class loader; part of the cache key
      * @return a cached (or newly created) class loader for the directory containing {@code classFile}
      */
-    static URLClassLoader modelClassLoader(File classFile, File sourceFile, ClassLoader parent)
+    static URLClassLoader modelClassLoader(File classFile, File sourceFile, ClassLoader parent) throws Exception
     {
-        File dir = classFile.getAbsoluteFile().getParentFile();
-        // Key the cache on the source revision when available: the source is rewritten only when the
-        // model actually changes, so an unchanged model recompiled on every run reuses one loader.
-        // When no source exists, fall back to the class file's last-modified time.
-        File revisionFile = ( sourceFile != null && sourceFile.exists() ) ? sourceFile : classFile;
-        long lastModified = revisionFile.lastModified();
-        // The key binds the loader to a specific directory revision. If the model is regenerated
-        // (new lastModified) a new loader is built so the JVM reads the updated class definition.
-        String key = dir + "|" + classFile.getName() + "|" + lastModified;
+        File canonical = classFile.getCanonicalFile();
+        File dir = canonical.getParentFile();
+        // Key the cache on the source revision when available (it is rewritten only when the model
+        // actually changes); fall back to the class file's fingerprint when there is no source.
+        File revisionFile = ( sourceFile != null && sourceFile.exists() ) ? sourceFile : canonical;
+        long revision = revisionFingerprint( revisionFile );
 
-        URLClassLoader cached = MODEL_CLASSLOADER_CACHE.get(key);
+        ModelClassLoaderKey key = new ModelClassLoaderKey(
+                dir.getPath(), classFile.getName(), parent, revision );
+
+        URLClassLoader cached = MODEL_CLASSLOADER_CACHE.get( key );
         if( cached != null )
             return cached;
 
@@ -116,28 +170,35 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
             if( cached != null )
                 return cached;
 
-            try
-            {
-                URL[] url = new URL[] {dir.toURI().toURL()};
-                URLClassLoader created = new URLClassLoader( url, parent );
-                MODEL_CLASSLOADER_CACHE.put( key, created );
+            URL[] url = new URL[] {dir.toURI().toURL()};
+            URLClassLoader created = new URLClassLoader( url, parent );
+            MODEL_CLASSLOADER_CACHE.put( key, created );
 
-                // Bound the cache so a burst of distinct model revisions cannot grow it without limit.
-                // Evicting a loader only makes it eligible for GC once no loaded model instance
-                // references it anymore; that is fine because the model that used it is either still
-                // held by its engine (keeping the loader live via the Class) or is gone.
-                while( MODEL_CLASSLOADER_CACHE.size() > MODEL_CLASSLOADER_CACHE_LIMIT )
-                {
-                    Map.Entry<String, URLClassLoader> oldest = MODEL_CLASSLOADER_CACHE.entrySet().iterator().next();
-                    MODEL_CLASSLOADER_CACHE.remove( oldest.getKey() );
-                }
-                return created;
-            }
-            catch( Exception e )
+            // Bound the *cache* (not the number of live loaders — see the class-level note): evict the
+            // least-recently-used entry once the cap is exceeded. An evicted loader becomes
+            // collectible only once no loaded model instance still references it.
+            while( MODEL_CLASSLOADER_CACHE.size() > MODEL_CLASSLOADER_CACHE_LIMIT )
             {
-                throw new RuntimeException( "Can not create class loader for directory " + dir, e );
+                Map.Entry<ModelClassLoaderKey, URLClassLoader> oldest =
+                        MODEL_CLASSLOADER_CACHE.entrySet().iterator().next();
+                MODEL_CLASSLOADER_CACHE.remove( oldest.getKey() );
             }
+            return created;
         }
+    }
+
+    /**
+     * Best-effort revision fingerprint of a file: its size combined with its last-modified time.
+     * Including the size narrows the collision window of a timestamp alone (e.g. a regeneration that
+     * lands in the same timestamp tick but changes the file length is still detected). Not a full
+     * content hash — that would add I/O to the hot path — but stronger than {@code lastModified}
+     * on its own.
+     */
+    private static long revisionFingerprint(File f)
+    {
+        long size = f.length();
+        long mtime = f.lastModified();
+        return ( size << 32 ) ^ mtime;
     }
     
     /**Directory where generated files will be stored*/
