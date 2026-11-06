@@ -12,6 +12,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -55,10 +56,89 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
 {
     public static int DETERMINISTIC_TYPE = 0;
     public static int STOCHASTIC_TYPE = 1;
-    
+
     public static String VAR_PATH_DELIMITER = "/";
-    
+
     protected SimulationEngineLogger log = new SimulationEngineLogger();
+
+    /**
+     * Process-wide cache of {@link URLClassLoader}s used to load compiled mathematical models.
+     *
+     * <p>Historically every {@link #compileModel} call constructed a fresh
+     * {@code URLClassLoader} and discarded it. The returned model instance, however, is retained
+     * by long-lived engines/tasks (e.g. {@link #model}), and a live instance keeps its {@code Class}
+     * (and therefore its defining class loader) reachable. With one loader per simulation run this
+     * accumulated hundreds of thousands of class loaders and their loaded classes until the heap was
+     * exhausted ({@code java.lang.OutOfMemoryError}).
+     *
+     * <p>Loaders are now shared. A loader is reused as long as the directory it points at and the
+     * on-disk class file are unchanged (keyed by path + last-modified). When the class file is
+     * regenerated a new loader is created so the freshly compiled class is read rather than a stale
+     * cached definition. Because a loader is only created when its key changes, the number of live
+     * loaders is bounded by the number of *distinct* (directory, class revision) pairs in use, not by
+     * the number of simulation runs.
+     */
+    private static final Map<String, URLClassLoader> MODEL_CLASSLOADER_CACHE =
+            Collections.synchronizedMap(new LinkedHashMap<String, URLClassLoader>(16, 0.75f, true));
+
+    private static final int MODEL_CLASSLOADER_CACHE_LIMIT = 128;
+
+    /**
+     * Returns a shared {@link URLClassLoader} for loading a compiled model class from {@code classFile}.
+     *
+     * @param classFile the compiled {@code .class} file the loader must be able to see
+     * @param sourceFile the generated {@code .java} source for the model, if any; its last-modified time
+     *        is used to key the cache because it changes only when the model is regenerated (an
+     *        unchanged model recompiled each run has a stable source mtime, so the loader is reused).
+     *        May be {@code null} when there is no source (e.g. precompiled models).
+     * @param parent the parent class loader
+     * @return a cached (or newly created) class loader for the directory containing {@code classFile}
+     */
+    static URLClassLoader modelClassLoader(File classFile, File sourceFile, ClassLoader parent)
+    {
+        File dir = classFile.getAbsoluteFile().getParentFile();
+        // Key the cache on the source revision when available: the source is rewritten only when the
+        // model actually changes, so an unchanged model recompiled on every run reuses one loader.
+        // When no source exists, fall back to the class file's last-modified time.
+        File revisionFile = ( sourceFile != null && sourceFile.exists() ) ? sourceFile : classFile;
+        long lastModified = revisionFile.lastModified();
+        // The key binds the loader to a specific directory revision. If the model is regenerated
+        // (new lastModified) a new loader is built so the JVM reads the updated class definition.
+        String key = dir + "|" + classFile.getName() + "|" + lastModified;
+
+        URLClassLoader cached = MODEL_CLASSLOADER_CACHE.get(key);
+        if( cached != null )
+            return cached;
+
+        synchronized( MODEL_CLASSLOADER_CACHE )
+        {
+            cached = MODEL_CLASSLOADER_CACHE.get( key );
+            if( cached != null )
+                return cached;
+
+            try
+            {
+                URL[] url = new URL[] {dir.toURI().toURL()};
+                URLClassLoader created = new URLClassLoader( url, parent );
+                MODEL_CLASSLOADER_CACHE.put( key, created );
+
+                // Bound the cache so a burst of distinct model revisions cannot grow it without limit.
+                // Evicting a loader only makes it eligible for GC once no loaded model instance
+                // references it anymore; that is fine because the model that used it is either still
+                // held by its engine (keeping the loader live via the Class) or is gone.
+                while( MODEL_CLASSLOADER_CACHE.size() > MODEL_CLASSLOADER_CACHE_LIMIT )
+                {
+                    Map.Entry<String, URLClassLoader> oldest = MODEL_CLASSLOADER_CACHE.entrySet().iterator().next();
+                    MODEL_CLASSLOADER_CACHE.remove( oldest.getKey() );
+                }
+                return created;
+            }
+            catch( Exception e )
+            {
+                throw new RuntimeException( "Can not create class loader for directory " + dir, e );
+            }
+        }
+    }
     
     /**Directory where generated files will be stored*/
     private String srcDir = ".";
@@ -320,8 +400,15 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
             }
 
             File outDir = new File( outputDir );
-            URL[] url = new URL[] {outDir.toURI().toURL()};
-            try(URLClassLoader cl = new URLClassLoader( url, getClass().getClassLoader() ))
+            // Use a shared, reusable class loader (keyed by directory + class revision) instead of
+            // creating a fresh URLClassLoader per run. A per-run loader leaked because the returned
+            // model instance pinned its defining loader in the heap. See modelClassLoader().
+            // The key is based on the generated source file, whose lastModified changes only when the
+            // model is actually regenerated (not on every recompile of an unchanged model).
+            File classFile = new File( outDir, className + ".class" );
+            File sourceFile = new File( outDir, className + ".java" );
+            URLClassLoader cl = modelClassLoader( classFile, sourceFile, getClass().getClassLoader() );
+            try
             {
                 result[i] = cl.loadClass( className ).newInstance();
             }
@@ -347,12 +434,14 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
         if( !comp.execute() )
             throw new BiosoftParseException( new Exception( comp.getMessages() ), files[0].getName() );
 
-        URL[] url = new URL[] {new File( outDirName ).toURI().toURL()};
+        File outDir = new File( outDirName );
         for( int i = 0; i < files.length; i++ )
         {
             String fileName = files[i].getName();
             String className = fileName.substring( 0, fileName.lastIndexOf( "." ) );
-            try (URLClassLoader cl = new URLClassLoader( url, getClass().getClassLoader() ))
+            // Shared, reusable class loader keyed by directory + class revision (see modelClassLoader()).
+            URLClassLoader cl = modelClassLoader( new File( outDir, className + ".class" ), new File( outDir, className + ".java" ), getClass().getClassLoader() );
+            try
             {
                 result[i] = cl.loadClass( className ).newInstance();
             }
