@@ -86,6 +86,21 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
      * defining class and, through it, its loader). This patch fixes the original defect — one loader
      * created per simulation run — by reusing a single loader across all runs of an unchanged model.
      * It does not, and cannot, reclaim loaders of model instances that are still referenced.
+     *
+     * <p><b>Plugin / class-loader lifecycle.</b> The cache is process-wide and its keys (and the cached
+     * loaders) hold strong references to the parent class loader. Therefore a parent loader is not
+     * collectible while a cache entry that references it remains. In BioUML the parent is the OSGi
+     * bundle class loader of the simulation plugin, so the LRU cap bounds — but does not eliminate —
+     * the retention of a plugin's class loader after the plugin is no longer in use. There is currently
+     * no OSGi {@code BundleActivator} disposal hook for this plugin to hook explicit invalidation into;
+     * the cap is the mechanism that keeps this bounded. If a suitable lifecycle hook is added later,
+     * clearing the entries for the disposed parent here is the intended extension point.
+     *
+     * <p><b>Single-class invariant.</b> Each generated model is a single self-contained class
+     * ({@code ... extends JavaBaseModel}) compiled from one {@code .java} file into the output
+     * directory; {@link #compileModel} loads exactly that one class per run. The loader therefore
+     * never needs to resolve additional generated classes from the (mutable) output directory after a
+     * model has been loaded, which is why sharing a directory-backed loader across revisions is safe.
      */
     private static final Map<ModelClassLoaderKey, URLClassLoader> MODEL_CLASSLOADER_CACHE =
             Collections.synchronizedMap(new LinkedHashMap<ModelClassLoaderKey, URLClassLoader>(16, 0.75f, true));
@@ -97,23 +112,30 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
      * {@link URLClassLoader}. Two revisions share a loader only when all of these match, including
      * the parent class loader (compared by reference) — a loader created under one parent must never
      * be handed to a caller expecting a different parent.
+     *
+     * <p>The revision is a <b>best-effort metadata fingerprint</b> of the generated source (size +
+     * last-modified time), compared as two independent fields. It is not a perfect revision
+     * identifier — two different contents can share a size and timestamp — but it is the signal that
+     * changes when a model is regenerated while remaining stable across re-runs of an unchanged model.
      */
     static final class ModelClassLoaderKey
     {
         private final String directory;
         private final String className;
         private final ClassLoader parent;
-        private final long revision;
+        private final long fileSize;
+        private final long lastModified;
         private final int hash;
 
-        private ModelClassLoaderKey( String directory, String className, ClassLoader parent, long revision )
+        private ModelClassLoaderKey( String directory, String className, ClassLoader parent, long fileSize, long lastModified )
         {
             this.directory = directory;
             this.className = className;
             this.parent = parent;
-            this.revision = revision;
+            this.fileSize = fileSize;
+            this.lastModified = lastModified;
             this.hash = 31 * ( 31 * ( 31 * ( 31 * directory.hashCode() + className.hashCode() )
-                    + System.identityHashCode( parent ) ) + Long.hashCode( revision ) );
+                    + System.identityHashCode( parent ) ) + Long.hashCode( fileSize ) ^ Long.hashCode( lastModified ) );
         }
 
         @Override
@@ -126,7 +148,8 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
             ModelClassLoaderKey that = (ModelClassLoaderKey)o;
             // Parent must be compared by reference: ClassLoader identity is what matters for
             // delegation, and two distinct loader instances are never interchangeable.
-            return revision == that.revision
+            return fileSize == that.fileSize
+                    && lastModified == that.lastModified
                     && parent == that.parent
                     && directory.equals( that.directory )
                     && className.equals( that.className );
@@ -156,12 +179,12 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
         File canonical = classFile.getCanonicalFile();
         File dir = canonical.getParentFile();
         // Key the cache on the source revision when available (it is rewritten only when the model
-        // actually changes); fall back to the class file's fingerprint when there is no source.
+        // actually changes); fall back to the class file's metadata when there is no source.
         File revisionFile = ( sourceFile != null && sourceFile.exists() ) ? sourceFile : canonical;
-        long revision = revisionFingerprint( revisionFile );
 
         ModelClassLoaderKey key = new ModelClassLoaderKey(
-                dir.getPath(), classFile.getName(), parent, revision );
+                dir.getPath(), classFile.getName(), parent,
+                revisionFile.length(), revisionFile.lastModified() );
 
         URLClassLoader cached = MODEL_CLASSLOADER_CACHE.get( key );
         if( cached != null )
@@ -191,19 +214,15 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
     }
 
     /**
-     * Best-effort revision fingerprint of a file: its size combined with its last-modified time.
-     * Including the size narrows the collision window of a timestamp alone (e.g. a regeneration that
-     * lands in the same timestamp tick but changes the file length is still detected). Not a full
-     * content hash — that would add I/O to the hot path — but stronger than {@code lastModified}
-     * on its own.
+     * Clears the model class loader cache. Package-private: intended for tests (and, if a suitable
+     * OSGi disposal hook is added, for explicit invalidation on plugin unload). Not part of the
+     * public API.
      */
-    private static long revisionFingerprint(File f)
+    static void clearModelClassLoaderCache()
     {
-        long size = f.length();
-        long mtime = f.lastModified();
-        return ( size << 32 ) ^ mtime;
+        MODEL_CLASSLOADER_CACHE.clear();
     }
-    
+
     /**Directory where generated files will be stored*/
     private String srcDir = ".";
     
