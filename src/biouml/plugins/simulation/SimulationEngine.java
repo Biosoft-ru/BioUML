@@ -349,6 +349,90 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
     }
 
     /**
+     * Loads an already-compiled model by copying its classes out of the root of the shared output
+     * directory (under the per-output-directory lock, so the read is consistent with any concurrent
+     * root population) and publishing them as an immutable per-revision snapshot. Used when a model is
+     * not recompiled ({@code compile == false}).
+     *
+     * @param outputDir the shared output directory whose root holds the previously compiled classes
+     * @param className the model class name (without extension)
+     * @return the published immutable per-revision snapshot directory
+     */
+    static File loadFromExistingRoot(File outputDir, String className) throws IOException
+    {
+        Object lock = revisionDirLock( outputDir );
+        synchronized( lock )
+        {
+            File stagingDir = Files.createTempDirectory( outputDir.toPath(), "stage-" + className + "-" ).toFile();
+            try
+            {
+                stageExistingClasses( outputDir, className, stagingDir );
+                return modelRevisionDir( outputDir, stagingDir );
+            }
+            catch( IOException e )
+            {
+                deleteRecursively( stagingDir );
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * Publishes the compiled classes for a single model (from a staging directory holding exactly that
+     * model's classes) under the per-output-directory lock, and copies the published snapshot into the
+     * root of the shared output directory.
+     *
+     * <p>The lock serializes the root-directory population for this output directory against any
+     * concurrent compilation, so two concurrent compilations of the same model cannot interleave their
+     * root-level copies into a mixed set of revisions. The root is a legacy, mutable location (read by
+     * later {@code compile == false} loads), so it must be updated as a complete, consistent set for a
+     * model.
+     *
+     * @param outputDir the shared output directory (snapshots + legacy root classes live here)
+     * @param stagingDir a staging directory holding exactly the compiled classes for one model
+     * @param className the model class name (without extension), used to select the root copies
+     * @return the published immutable per-revision snapshot directory
+     */
+    static File publishRevision(File outputDir, File stagingDir, String className) throws IOException
+    {
+        return publishRevision( outputDir, stagingDir, new String[] {className} );
+    }
+
+    /**
+     * Publishes the compiled classes in {@code stagingDir} (which may hold several models from one
+     * batch compilation) as a single immutable per-revision snapshot, and copies the requested models'
+     * classes into the root of the shared output directory — all under the per-output-directory lock.
+     *
+     * <p>The lock serializes the root-directory population for this output directory against any
+     * concurrent compilation, so two concurrent compilations cannot interleave their root-level copies
+     * into a mixed set of revisions. The root is a legacy, mutable location (read by later
+     * {@code compile == false} loads), so it must be updated as a complete, consistent set.
+     *
+     * @param outputDir the shared output directory (snapshots + legacy root classes live here)
+     * @param stagingDir a staging directory holding the compiled classes to publish (one or more models)
+     * @param classNames the model class names (without extension) whose classes are copied to the root;
+     *        {@code null} copies every class in the snapshot
+     * @return the published immutable per-revision snapshot directory
+     */
+    static File publishRevision(File outputDir, File stagingDir, String[] classNames) throws IOException
+    {
+        Object lock = revisionDirLock( outputDir );
+        synchronized( lock )
+        {
+            File revisionDir = modelRevisionDir( outputDir, stagingDir );
+            // Populate the legacy root from the published snapshot (which always exists). Copying the
+            // requested models' complete class sets while holding the lock keeps a concurrent
+            // compilation from interleaving a different revision's files into the root.
+            if( classNames == null )
+                copyAllClassesToRoot( revisionDir, outputDir );
+            else
+                for( String className : classNames )
+                    copyClassesToRoot( revisionDir, outputDir, className );
+            return revisionDir;
+        }
+    }
+
+    /**
      * Once per output directory per JVM, removes {@code rev-*} snapshots left over from a previous run.
      *
      * <p>The JVM is restarted on every server start and the process-wide loader cache is empty at that
@@ -737,16 +821,12 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
                     if( !comp.execute() )
                         throw new BiosoftParseException( new Exception(comp.getMessages()), files[i].getName() );
 
-                    // Preserve the legacy contract: the compiled classes also land in the root of the
-                    // shared output directory, so a subsequent compileModel(..., false, outputDir) call
-                    // (which does not recompile) can still locate them there.
-                    copyClassesToRoot( stagingDir, outDir, className );
-
-                    // Load through a shared class loader rooted at an immutable per-revision snapshot,
-                    // published atomically from the staging directory (see modelClassLoader() /
-                    // modelRevisionDir()). A per-run loader leaked because the returned model instance
-                    // pinned its defining loader in the heap.
-                    File revisionDir = modelRevisionDir( outDir, stagingDir );
+                    // Publish the compiled classes as an immutable per-revision snapshot and populate
+                    // the legacy root, both under the per-directory lock. Load through a shared class
+                    // loader rooted at that snapshot (see modelClassLoader() / modelRevisionDir()). A
+                    // per-run loader leaked because the returned model instance pinned its defining
+                    // loader in the heap.
+                    File revisionDir = publishRevision( outDir, stagingDir, className );
                     URLClassLoader cl = modelClassLoader( revisionDir, className, getClass().getClassLoader() );
                     try
                     {
@@ -768,27 +848,18 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
             }
 
             // compile == false: no compilation happened, so the class must already be present in the
-            // shared output directory. Stage it for a consistent, immutable snapshot.
+            // root of the shared output directory. Load it (root read + snapshot publish under the
+            // per-directory lock, see loadFromExistingRoot).
             File outDir = new File( outputDir );
-            File stagingDir = Files.createTempDirectory( outDir.toPath(), "stage-" + className + "-" ).toFile();
+            File revisionDir = loadFromExistingRoot( outDir, className );
+            URLClassLoader cl = modelClassLoader( revisionDir, className, getClass().getClassLoader() );
             try
             {
-                stageExistingClasses( outDir, className, stagingDir );
-                File revisionDir = modelRevisionDir( outDir, stagingDir );
-                URLClassLoader cl = modelClassLoader( revisionDir, className, getClass().getClassLoader() );
-                try
-                {
-                    result[i] = cl.loadClass( className ).newInstance();
-                }
-                catch( Throwable t )
-                {
-                    throw new Exception( "Can not load model, name=" + className + ", error=" + t );
-                }
+                result[i] = cl.loadClass( className ).newInstance();
             }
-            catch( Exception e )
+            catch( Throwable t )
             {
-                deleteRecursively( stagingDir );
-                throw e;
+                throw new Exception( "Can not load model, name=" + className + ", error=" + t );
             }
         }
         return result;
@@ -810,6 +881,10 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
         // supplied classes may reference one another (a per-class subset would drop such a dependency
         // and break with NoClassDefFoundError at resolution time).
         File outDir = new File( outDirName );
+        String[] classNames = new String[ files.length ];
+        for( int i = 0; i < files.length; i++ )
+            classNames[i] = files[i].getName().substring( 0, files[i].getName().lastIndexOf( "." ) );
+
         File stagingDir = Files.createTempDirectory( outDir.toPath(), "stage-batch-" ).toFile();
         try
         {
@@ -817,17 +892,13 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
             if( !comp.execute() )
                 throw new BiosoftParseException( new Exception( comp.getMessages() ), files[0].getName() );
 
-            // Publish the complete compilation output as one immutable, shared snapshot.
-            File revisionDir = modelRevisionDir( outDir, stagingDir );
-
-            // Preserve the legacy contract: the compiled classes also land in the root of the shared
-            // output directory, so a subsequent non-compiling load can still locate them there.
-            copyAllClassesToRoot( stagingDir, outDir );
+            // Publish the complete compilation output as one immutable, shared snapshot and populate
+            // the legacy root with the requested models' classes, both under the per-directory lock.
+            File revisionDir = publishRevision( outDir, stagingDir, classNames );
 
             for( int i = 0; i < files.length; i++ )
             {
-                String fileName = files[i].getName();
-                String className = fileName.substring( 0, fileName.lastIndexOf( "." ) );
+                String className = classNames[i];
                 URLClassLoader cl = modelClassLoader( revisionDir, className, getClass().getClassLoader() );
                 try
                 {
