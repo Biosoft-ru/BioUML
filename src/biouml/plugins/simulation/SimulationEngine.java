@@ -922,12 +922,6 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
     }
 
     /**
-     * Copies the class files belonging to {@code className} (the class plus any nested
-     * {@code className$*.class} files) from the staging directory into the root of the shared output
-     * directory, preserving the legacy contract that a compiled model's classes are present in the
-     * output directory root (so a later {@code compile == false} load can find them).
-     */
-    /**
      * Replaces the legacy root's class files for {@code className} with exactly the current
      * compilation's set (the class plus its nested {@code className$*.class} files) from
      * {@code stagingDir}.
@@ -944,28 +938,33 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
      * <p><b>This must be called while holding {@link #revisionDirLock} for the output directory</b>
      * (see {@link #publishRevision}), so the remove-then-copy sequence is atomic with respect to any
      * concurrent compilation of the same output directory.
+     *
+     * <p>Deletion failures are not swallowed: {@link Files#deleteIfExists} propagates its
+     * {@link IOException}, and a {@code null} directory listing is treated as an error, so the method
+     * never reports a successful (exact-set) update while an obsolete class still remains in the root.
      */
     private static void copyClassesToRoot(File stagingDir, File outputRoot, String className) throws IOException
     {
         // Remove any obsolete nested classes of this model from the root before writing the current
         // set, so a nested class that disappeared on regeneration cannot survive in the legacy root.
+        // A failed delete (permissions, I/O) propagates rather than being silently ignored, and a
+        // null listing (directory not readable / not a directory) is an error, not a no-op: leaving
+        // the root in an unknown state would contradict the exact-set guarantee.
         String prefix = className + "$";
         String[] rootFiles = outputRoot.list( ( d, name ) -> name.startsWith( prefix ) && name.endsWith( ".class" ) );
-        if( rootFiles != null )
-        {
-            for( String name : rootFiles )
-                new File( outputRoot, name ).delete();
-        }
+        if( rootFiles == null )
+            throw new IOException( "Can not list nested class files in output directory " + outputRoot );
+        for( String name : rootFiles )
+            Files.deleteIfExists( new File( outputRoot, name ).toPath() );
 
         String[] all = stagingDir.list( ( d, name ) -> name.endsWith( ".class" ) );
-        if( all != null )
+        if( all == null )
+            throw new IOException( "Can not list class files in staging directory " + stagingDir );
+        for( String name : all )
         {
-            for( String name : all )
-            {
-                if( name.equals( className + ".class" ) || ( name.startsWith( prefix ) && name.endsWith( ".class" ) ) )
-                    Files.copy( new File( stagingDir, name ).toPath(), new File( outputRoot, name ).toPath(),
-                            StandardCopyOption.REPLACE_EXISTING );
-            }
+            if( name.equals( className + ".class" ) || ( name.startsWith( prefix ) && name.endsWith( ".class" ) ) )
+                Files.copy( new File( stagingDir, name ).toPath(), new File( outputRoot, name ).toPath(),
+                        StandardCopyOption.REPLACE_EXISTING );
         }
     }
 
