@@ -60,6 +60,7 @@ public class ModelClassLoaderCacheTest extends TestCase
         suite.addTest( new ModelClassLoaderCacheTest( "testLazyNestedClassLoadedAfterRegeneration" ) );
         suite.addTest( new ModelClassLoaderCacheTest( "testRemovedNestedClassAbsentFromNewSnapshot" ) );
         suite.addTest( new ModelClassLoaderCacheTest( "testCompileTruePopulatesRootForCompileFalse" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testBatchPublishPopulatesRootAndResolvesDependency" ) );
         return suite;
     }
 
@@ -163,6 +164,26 @@ public class ModelClassLoaderCacheTest extends TestCase
             java.util.List<javax.tools.JavaFileObject> units = java.util.Collections.singletonList( unit );
             ok = compiler.getTask( null, fm, null,
                     java.util.Arrays.asList( "-d", outDir.getAbsolutePath() ), null, units ).call();
+        }
+        assertTrue( "Compilation of " + source + " into " + outDir + " must succeed", ok );
+    }
+
+    /** Compiles {@code source} into {@code outDir} with {@code classpath} on the compile classpath. */
+    private static void compileWithClasspath(File source, File outDir, File classpath) throws Exception
+    {
+        if( !outDir.exists() && !outDir.mkdirs() )
+            throw new IllegalStateException( "Can not create output dir " + outDir );
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        assertNotNull( "System Java compiler must be available", compiler );
+        boolean ok;
+        try( StandardJavaFileManager fm = compiler.getStandardFileManager( null, null, null ) )
+        {
+            javax.tools.JavaFileObject unit =
+                    fm.getJavaFileObjectsFromStrings( java.util.Collections.singletonList( source.getPath() ) ).iterator().next();
+            java.util.List<javax.tools.JavaFileObject> units = java.util.Collections.singletonList( unit );
+            ok = compiler.getTask( null, fm, null,
+                    java.util.Arrays.asList( "-d", outDir.getAbsolutePath(), "-classpath", classpath.getAbsolutePath() ),
+                    null, units ).call();
         }
         assertTrue( "Compilation of " + source + " into " + outDir + " must succeed", ok );
     }
@@ -371,5 +392,66 @@ public class ModelClassLoaderCacheTest extends TestCase
                 new File( revisionB, "SrcA.class" ).exists() );
         assertFalse( "The obsolete nested class must be absent from the regenerated snapshot",
                 new File( revisionB, "SrcA$Helper.class" ).exists() );
+    }
+
+    /**
+     * Regression test for the batch compilation path: two top-level classes are compiled in one batch
+     * (one referencing the other). The batch publication sequence ({@code publishRevision}) must publish
+     * the complete output as a single shared snapshot AND populate the root of the shared output
+     * directory with both classes — even though the staging directory has been moved away by the
+     * publication. It must not drop the cross-class dependency (no NoClassDefFoundError at resolution).
+     */
+    public void testBatchPublishPopulatesRootAndResolvesDependency() throws Exception
+    {
+        File dir = Files.createTempDirectory( "mclbatch" ).toFile();
+        deleteRecursively( tempDir );
+        tempDir = dir;
+
+        // 1. Write two sources: DepModel uses RefModel.
+        File srcA = new File( dir, "DepModel.java" );
+        File srcB = new File( dir, "RefModel.java" );
+        try( FileWriter w = new FileWriter( srcB ) )
+        {
+            w.write( "public class RefModel { public int value() { return 41; } }" );
+        }
+        try( FileWriter w = new FileWriter( srcA ) )
+        {
+            w.write( "public class DepModel { public int value() { return new RefModel().value() + 1; } }" );
+        }
+
+        // 2. Compile both into one fresh staging directory (as the batch overload does). RefModel is
+        //    compiled first so DepModel (which references it) can resolve it from the staging dir.
+        File staging = Files.createTempDirectory( dir.toPath(), "stage-batch-" ).toFile();
+        compile( srcB, staging );
+        compileWithClasspath( srcA, staging, staging );
+
+        // 3. Publish the batch via the real publication + root-copy sequence (publishRevision).
+        Method publish = SimulationEngine.class.getDeclaredMethod( "publishRevision", File.class, File.class, String[].class );
+        publish.setAccessible( true );
+        File revisionDir = (File)publish.invoke( null, dir, staging, new String[] { "DepModel", "RefModel" } );
+
+        // 4. The complete batch output must have been published as one snapshot.
+        assertTrue( "The dependent class must be present in the snapshot",
+                new File( revisionDir, "DepModel.class" ).exists() );
+        assertTrue( "The referenced class must be present in the snapshot",
+                new File( revisionDir, "RefModel.class" ).exists() );
+
+        // 5. The regression: the root of the shared output dir must also contain both classes, even
+        //    though the staging directory was moved away by the publication.
+        assertTrue( "The dependent class must be copied to the root of the shared output directory",
+                new File( dir, "DepModel.class" ).exists() );
+        assertTrue( "The referenced class must be copied to the root of the shared output directory",
+                new File( dir, "RefModel.class" ).exists() );
+
+        // 6. Loading DepModel through a loader rooted at the snapshot must resolve its dependency on
+        //    RefModel (which lives in the same snapshot), proving the cross-class reference survives.
+        URLClassLoader cl = loaderFor( revisionDir, "DepModel", getClass().getClassLoader() );
+        Class<?> dep = cl.loadClass( "DepModel" );
+        assertEquals( "The cross-class dependency must resolve (RefModel.value() + 1)",
+                42, ( (Number)dep.getMethod( "value" ).invoke( dep.newInstance() ) ).intValue() );
+
+        // 7. The batch staging directory must be gone (consumed by the move; no leak).
+        assertFalse( "The batch staging directory must not remain after a successful publish",
+                staging.exists() );
     }
 }
