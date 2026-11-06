@@ -11,8 +11,12 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -207,48 +211,117 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
     }
 
     /**
-     * Returns the immutable per-revision directory for a compiled model, populating it with the model's
-     * compiled classes if not already present.
+     * Returns the immutable per-revision directory for a compiled model, creating a complete snapshot
+     * of the model's compiled classes if one does not already exist.
      *
-     * <p>The directory is derived from the output directory, the class name, and a stable fingerprint
-     * of the generated source, so it is reused across re-runs of an unchanged model and given a fresh
-     * name when the model is regenerated. Compiled classes (the model class plus any nested
-     * {@code Model$*.class} files) are copied from the shared {@code outputDir} into it, so the loader
-     * that is rooted at this directory can only ever see this revision's classes.
+     * <p>The directory name is a SHA-256 over the <b>content</b> of the model's compiled class files
+     * (the model class plus any nested {@code Model$*.class} files). Because it is content-based, an
+     * unchanged model (byte-identical recompile) maps to the same directory and is reused, while any
+     * content change maps to a new one. It does not depend on filesystem timestamps.
+     *
+     * <p>The snapshot is built in a private temporary directory and then published with an atomic
+     * move, so a published directory is never modified afterwards and a concurrent reader can only
+     * ever observe a complete directory. Building the snapshot from scratch (rather than updating an
+     * existing one) also means a nested class that disappears on regeneration is simply absent.
      *
      * @param outputDir the shared directory the model was compiled into
      * @param className the model class name (without extension)
-     * @param sourceFile the generated {@code .java} source, if any; its (size, last-modified) is the
-     *        stable revision fingerprint. May be {@code null} (precompiled models), in which case the
-     *        compiled class file's metadata is used.
-     * @return the per-revision directory, guaranteed to contain the model's compiled classes
+     * @return the per-revision directory, guaranteed to contain a complete, immutable set of classes
+     * @throws IOException if the class files cannot be read or the snapshot cannot be published
      */
-    static File modelRevisionDir(File outputDir, String className, File sourceFile) throws IOException
+    static File modelRevisionDir(File outputDir, String className) throws IOException
     {
-        File revisionSource = ( sourceFile != null && sourceFile.exists() ) ? sourceFile : new File( outputDir, className + ".class" );
-        String fingerprint = Integer.toHexString( Objects.hash( className, revisionSource.length(), revisionSource.lastModified() ) );
-        File revisionDir = new File( outputDir, "rev-" + fingerprint );
-        if( !revisionDir.exists() && !revisionDir.mkdirs() )
-            throw new IOException( "Can not create model revision directory " + revisionDir );
-
-        // Copy the model class and any nested Model$*.class files so this revision is self-contained
-        // and isolated from later rewrites of the shared output directory. Copy only when the target
-        // is missing or stale, so repeated runs of an unchanged revision do no I/O.
+        // The classes that make up this revision: the model class plus any nested classes.
         String[] classFiles = outputDir.list( ( d, name ) ->
-                name.equals( className + ".class" ) || name.startsWith( className + "$" ) && name.endsWith( ".class" ) );
-        if( classFiles != null )
+                name.equals( className + ".class" ) || ( name.startsWith( className + "$" ) && name.endsWith( ".class" ) ) );
+        if( classFiles == null || classFiles.length == 0 )
+            throw new IOException( "No compiled class found for model " + className + " in " + outputDir );
+        Arrays.sort( classFiles );
+
+        String fingerprint = contentHash( outputDir, classFiles );
+        File revisionDir = new File( outputDir, "rev-" + fingerprint );
+
+        // Fast path: a complete, already-published snapshot.
+        if( allPresent( revisionDir, classFiles ) )
+            return revisionDir;
+
+        // Otherwise build a fresh snapshot in a private temp dir and publish it atomically.
+        File tempDir = new File( outputDir, "rev-" + fingerprint + ".tmp-" + System.nanoTime() + "-" + Thread.currentThread().getId() );
+        try
         {
+            if( !tempDir.mkdirs() )
+                throw new IOException( "Can not create snapshot directory " + tempDir );
             for( String name : classFiles )
+                Files.copy( new File( outputDir, name ).toPath(), new File( tempDir, name ).toPath(), StandardCopyOption.REPLACE_EXISTING );
+            try
             {
-                File src = new File( outputDir, name );
-                File dst = new File( revisionDir, name );
-                if( !dst.exists() || dst.lastModified() < src.lastModified() )
-                {
-                    Files.copy( src.toPath(), dst.toPath(), StandardCopyOption.REPLACE_EXISTING );
-                }
+                Files.move( tempDir.toPath(), revisionDir.toPath(), StandardCopyOption.ATOMIC_MOVE );
+            }
+            catch( FileAlreadyExistsException e )
+            {
+                // A concurrent thread published the same revision first; use it and discard ours.
+                deleteRecursively( tempDir );
+                if( !allPresent( revisionDir, classFiles ) )
+                    throw new IOException( "Revision directory is incomplete after concurrent publish: " + revisionDir );
             }
         }
+        catch( IOException e )
+        {
+            deleteRecursively( tempDir );
+            throw e;
+        }
         return revisionDir;
+    }
+
+    /** True if every expected class file is present in {@code dir}. */
+    private static boolean allPresent(File dir, String[] classFiles)
+    {
+        for( String name : classFiles )
+            if( !new File( dir, name ).isFile() )
+                return false;
+        return true;
+    }
+
+    /**
+     * SHA-256 over the name and content of each class file, in sorted order, so identical class
+     * content yields an identical revision id regardless of filesystem metadata.
+     */
+    private static String contentHash(File dir, String[] classFiles) throws IOException
+    {
+        try
+        {
+            MessageDigest digest = MessageDigest.getInstance( "SHA-256" );
+            for( String name : classFiles )
+            {
+                // Hash the file name, a delimiter, and the file content, so the concatenation of
+                // distinct (name, content) pairs is unambiguous.
+                digest.update( name.getBytes( StandardCharsets.UTF_8 ) );
+                digest.update( (byte)0 );
+                digest.update( Files.readAllBytes( new File( dir, name ).toPath() ) );
+                digest.update( (byte)0 );
+            }
+            byte[] hash = digest.digest();
+            StringBuilder sb = new StringBuilder( hash.length * 2 );
+            for( byte b : hash )
+                sb.append( Character.forDigit( ( b >> 4 ) & 0xF, 16 ) ).append( Character.forDigit( b & 0xF, 16 ) );
+            return sb.toString();
+        }
+        catch( NoSuchAlgorithmException e )
+        {
+            throw new IOException( "SHA-256 is not available", e );
+        }
+    }
+
+    /** Best-effort recursive delete, used to discard a failed temporary snapshot. */
+    private static void deleteRecursively(File f)
+    {
+        if( f == null || !f.exists() )
+            return;
+        File[] children = f.listFiles();
+        if( children != null )
+            for( File c : children )
+                deleteRecursively( c );
+        f.delete();
     }
 
     /**
@@ -541,7 +614,7 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
             // model instance pinned its defining loader in the heap. The per-revision directory isolates
             // each model revision (including lazily loaded nested classes) from later regenerations.
             // See modelClassLoader() / modelRevisionDir().
-            File revisionDir = modelRevisionDir( outDir, className, new File( outDir, className + ".java" ) );
+            File revisionDir = modelRevisionDir( outDir, className );
             URLClassLoader cl = modelClassLoader( revisionDir, className, getClass().getClassLoader() );
             try
             {
@@ -575,7 +648,7 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
             String fileName = files[i].getName();
             String className = fileName.substring( 0, fileName.lastIndexOf( "." ) );
             // Shared loader rooted at an immutable per-revision directory (see modelClassLoader()).
-            File revisionDir = modelRevisionDir( outDir, className, new File( outDir, className + ".java" ) );
+            File revisionDir = modelRevisionDir( outDir, className );
             URLClassLoader cl = modelClassLoader( revisionDir, className, getClass().getClassLoader() );
             try
             {
