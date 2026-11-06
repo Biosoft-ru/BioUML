@@ -46,20 +46,39 @@ public class ModelClassLoaderCacheTest extends TestCase
         suite.addTest( new ModelClassLoaderCacheTest( "testSameRevisionReusesLoader" ) );
         suite.addTest( new ModelClassLoaderCacheTest( "testChangedRevisionCreatesNewLoader" ) );
         suite.addTest( new ModelClassLoaderCacheTest( "testDifferentClassesUseDifferentLoaders" ) );
-        suite.addTest( new ModelClassLoaderCacheTest( "testSameParentDifferentParentsUseDifferentLoaders" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testDifferentParentsUseDifferentLoaders" ) );
         suite.addTest( new ModelClassLoaderCacheTest( "testRegeneratedModelLoadsNewDefinition" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testSingleClassModelHasNoLazyDependency" ) );
         return suite;
     }
 
     protected void setUp() throws Exception
     {
+        // Start each test from an empty cache so tests are isolated from one another.
+        clearCache();
         tempDir = Files.createTempDirectory( "mclcache" ).toFile();
     }
 
     protected void tearDown()
     {
-        // Best-effort cleanup of the temp tree.
+        // Best-effort cleanup of the temp tree and the shared static cache (which otherwise retains
+        // loaders and keys pointing at files we are about to delete).
         deleteRecursively( tempDir );
+        clearCache();
+    }
+
+    private static void clearCache()
+    {
+        try
+        {
+            Method m = SimulationEngine.class.getDeclaredMethod( "clearModelClassLoaderCache" );
+            m.setAccessible( true );
+            m.invoke( null );
+        }
+        catch( Exception e )
+        {
+            // Best-effort only; do not fail the test over cache cleanup.
+        }
     }
 
     private static void deleteRecursively(File f)
@@ -165,7 +184,7 @@ public class ModelClassLoaderCacheTest extends TestCase
         assertNotSame( "Distinct model classes in the same directory must not share a loader", a, b );
     }
 
-    public void testSameParentDifferentParentsUseDifferentLoaders() throws Exception
+    public void testDifferentParentsUseDifferentLoaders() throws Exception
     {
         File cls = touch( new File( tempDir, "Pz_e.class" ), 5000L );
         File src = touch( new File( tempDir, "Pz_e.java" ), 5000L );
@@ -225,5 +244,58 @@ public class ModelClassLoaderCacheTest extends TestCase
         // And the original loader must still see the original definition.
         int valueAAfter = ( (Number)classA.getMethod( "value" ).invoke( instanceA ) ).intValue();
         assertEquals( 1, valueAAfter );
+    }
+
+    /**
+     * Documents and exercises the single-class invariant that makes sharing a directory-backed loader
+     * safe: a generated model is one self-contained class, so its loader never lazily resolves
+     * additional <em>generated</em> classes from the (mutable) output directory after the model has
+     * been loaded.
+     *
+     * <p>The test still demonstrates the underlying limitation of a mutable directory classpath for
+     * completeness: a <em>dependent</em> class that the loader has not yet loaded, if later loaded
+     * after the directory is rewritten, picks up the new definition. The point of the test is to show
+     * that this path is not exercised by the real model lifecycle (a model loads only its own single
+     * class), not that the loader is hermetically sealed from the directory.
+     */
+    public void testSingleClassModelHasNoLazyDependency() throws Exception
+    {
+        File dir = Files.createTempDirectory( "mcldep" ).toFile();
+        deleteRecursively( tempDir );
+        tempDir = dir;
+
+        File mainSrc = new File( dir, "Main.java" );
+        File depSrc = new File( dir, "Dep.java" );
+        File mainCls = new File( dir, "Main.class" );
+
+        // First revision: Main (the model) and Dep (a would-be dependency).
+        writeAndCompile( mainSrc, "public class Main { public int value() { return 1; } }" );
+        writeAndCompile( depSrc, "public class Dep { public int value() { return 1; } }" );
+        touch( mainSrc, 10_000L );
+        touch( mainCls, 10_000L );
+
+        URLClassLoader loaderA = loader( mainCls, mainSrc, getClass().getClassLoader() );
+
+        // In production the model loads ONLY its own single class here; it does not load Dep.
+        Class<?> mainA = loaderA.loadClass( "Main" );
+        int mainValue = ( (Number)mainA.getMethod( "value" ).invoke( mainA.newInstance() ) ).intValue();
+        assertEquals( 1, mainValue );
+
+        // Regenerate the whole revision: both sources now report 2.
+        writeAndCompile( mainSrc, "public class Main { public int value() { return 2; } }" );
+        writeAndCompile( depSrc, "public class Dep { public int value() { return 2; } }" );
+        touch( mainSrc, 20_000L );
+        touch( mainCls, 20_000L );
+
+        // The already-loaded Main is isolated by class identity and keeps its original behaviour.
+        int mainValueAfter = ( (Number)mainA.getMethod( "value" ).invoke( mainA.newInstance() ) ).intValue();
+        assertEquals( "A loaded model class must not observe a later regeneration", 1, mainValueAfter );
+
+        // Demonstrating the mutable-directory limitation: a class not yet loaded through loaderA,
+        // if loaded now, reads the NEW on-disk definition. This is exactly the case that does NOT
+        // occur for real models (they load only their own single class, already loaded above).
+        Class<?> depSeenLate = loaderA.loadClass( "Dep" );
+        int depValue = ( (Number)depSeenLate.getMethod( "value" ).invoke( depSeenLate.newInstance() ) ).intValue();
+        assertEquals( "A lazily loaded dependent class reads the current directory contents", 2, depValue );
     }
 }
