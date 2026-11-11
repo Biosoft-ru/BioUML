@@ -215,7 +215,7 @@ public final class McpProjectSupport
 		}
 		Map<String, Object> data = new LinkedHashMap<String, Object>();
 		data.put( "name", name );
-		data.put( "path", parent.getCompletePath().getName() + "/" + name );
+		data.put( "path", projectPath.toString() );
 		return McpEnvelope.ok( data );
 	}
 
