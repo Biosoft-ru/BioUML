@@ -11,26 +11,33 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import ru.biosoft.exception.ExceptionRegistry;
+import ru.biosoft.access.sql.SqlBatchLookup;
 import ru.biosoft.access.sql.SqlConnectionHolder;
 import ru.biosoft.bsa.Interval;
 
 /**
  * Transcripts from an Ensembl core database.
  * <p>
- * Exons, translations and (for a subset) the transcripts themselves are read in batches of {@link #BATCH_SIZE}
- * transcripts rather than with one query per transcript: profiles of FindRegulatoryRegions showed the per-transcript
- * round trips to MySQL as most of that analysis' time. The SQL and the result are the same as before.
+ * Exons, translations and (for a subset) the transcripts themselves are read in batches of
+ * {@link SqlBatchLookup#BATCH_SIZE} transcripts rather than with one query per transcript: profiles of
+ * FindRegulatoryRegions showed the per-transcript round trips to MySQL as most of that analysis' time.
+ * <p>
+ * Where SQL leaves an order or a choice open, it is fixed here:
+ * <ul>
+ * <li>a subset id with several transcript rows (a stable id that is not unique) gives the row with the lowest
+ * transcript_id - the one the old per-id query got first from the stable_id index;</li>
+ * <li>exons are in exon_transcript.rank order (CDS offsets depend on it), as before;</li>
+ * <li>several translations of one transcript (Ensembl core has at most one) are in translation_id order - the order
+ * the old per-transcript query read them from the transcript_id index.</li>
+ * </ul>
+ * Without a subset, transcripts come in the order of the transcript query, which (as before) has no ORDER BY.
  */
 public class EnsemblTranscriptsProvider extends TranscriptsProvider
 {
-    /** Number of transcripts looked up by one batched query. */
-    static final int BATCH_SIZE = 500;
-
     private static final String TRANSCRIPT_QUERY = "SELECT transcript_id, transcript_stable_id.stable_id, seq_region.name, seq_region_start, seq_region_end, seq_region_strand FROM transcript JOIN transcript_stable_id USING(transcript_id) JOIN seq_region USING(seq_region_id) JOIN coord_system USING(coord_system_id) WHERE coord_system.rank=1";
 
     private SqlConnectionHolder connectionHolder;
@@ -46,11 +53,6 @@ public class EnsemblTranscriptsProvider extends TranscriptsProvider
         final int transcriptId;
         final String name, chr;
         final int start, end, strand;
-
-        TranscriptRow(ResultSet rs) throws SQLException
-        {
-            this( rs, 0 );
-        }
 
         /** @param offset number of columns before the transcript query's ones */
         TranscriptRow(ResultSet rs, int offset) throws SQLException
@@ -73,18 +75,30 @@ public class EnsemblTranscriptsProvider extends TranscriptsProvider
         Connection con = connectionHolder.getConnection();
         try
         {
-            List<TranscriptRow> rows = new ArrayList<>();
+            List<Transcript> result = new ArrayList<>();
             if( subset == null )
-                try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery( transcriptQuery );)
+            {
+                // Each batch is completed as soon as it is read, so only one batch of rows is held besides the result
+                List<TranscriptRow> batch = new ArrayList<>();
+                try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery( transcriptQuery ))
                 {
                     while( rs.next() )
-                        rows.add( new TranscriptRow( rs ) );
+                    {
+                        batch.add( new TranscriptRow( rs, 0 ) );
+                        if( batch.size() == SqlBatchLookup.BATCH_SIZE )
+                        {
+                            loadTranscripts( con, batch, result );
+                            batch.clear();
+                        }
+                    }
                 }
+                loadTranscripts( con, batch, result );
+            }
             else
-                rows = findSubset( con, transcriptQuery );
-            List<Transcript> result = new ArrayList<>( rows.size() );
-            for( int from = 0; from < rows.size(); from += BATCH_SIZE )
-                loadTranscripts( con, rows.subList( from, Math.min( from + BATCH_SIZE, rows.size() ) ), result );
+            {
+                for( List<TranscriptRow> batch : SqlBatchLookup.chunks( findSubset( con, transcriptQuery ) ) )
+                    loadTranscripts( con, batch, result );
+            }
             return result;
         }
         catch( SQLException e )
@@ -95,31 +109,23 @@ public class EnsemblTranscriptsProvider extends TranscriptsProvider
 
     /**
      * The transcript rows of the subset, in its order (an id that occurs twice gives two rows, an unknown id none),
-     * as one query per id returned them.
+     * as one query per id returns them.
      * <p>
-     * The ids are looked up in batches: "stable_id in (?,...)" with FIELD(stable_id, ?,...) telling which id a row
-     * matched. Both compare with the same collation as the per-id "stable_id=?", so each row goes to the id that
-     * query would have returned it for. Ids two of which could match the same row (non-ASCII ids, ids equal
-     * ignoring case or trailing spaces) are looked up one by one as before, as FIELD reports only the first of them.
+     * The ids {@link SqlBatchLookup#batchableIds} accepts are looked up in batches: "stable_id in (?,...)" with
+     * FIELD(stable_id, ?,...) telling which id a row matched. A chunk with a row FIELD cannot attribute is looked up
+     * one by one, like the other ids.
      */
     private List<TranscriptRow> findSubset(Connection con, String transcriptQuery) throws SQLException
     {
-        Map<String, Integer> spellings = new HashMap<>();
-        for( String id : new LinkedHashSet<>( subset ) )
-            spellings.merge( normalize( id ), 1, Integer::sum );
-        List<String> ids = new ArrayList<>();
-        for( String id : new LinkedHashSet<>( subset ) )
-            if( isAscii( id ) && spellings.get( normalize( id ) ) == 1 )
-                ids.add( id );
-
         Map<String, TranscriptRow> byId = new HashMap<>();
-        Set<String> batched = new HashSet<>( ids );
-        for( int from = 0; from < ids.size(); from += BATCH_SIZE )
+        Set<String> batched = new HashSet<>();
+        for( List<String> chunk : SqlBatchLookup.chunks( SqlBatchLookup.batchableIds( subset ) ) )
         {
-            List<String> chunk = ids.subList( from, Math.min( from + BATCH_SIZE, ids.size() ) );
-            String params = placeholders( chunk.size() );
+            String params = SqlBatchLookup.placeholders( chunk.size() );
             String select = "SELECT FIELD(transcript_stable_id.stable_id," + params + ")," + transcriptQuery.substring( "SELECT ".length() )
                     + " and transcript_stable_id.stable_id in (" + params + ")";
+            Map<String, TranscriptRow> chunkRows = new HashMap<>();
+            boolean attributed = true;
             try (PreparedStatement ps = con.prepareStatement( select ))
             {
                 for( int i = 0; i < chunk.size(); i++ )
@@ -129,14 +135,29 @@ public class EnsemblTranscriptsProvider extends TranscriptsProvider
                 }
                 try (ResultSet rs = ps.executeQuery())
                 {
-                    while( rs.next() )
-                        byId.putIfAbsent( chunk.get( rs.getInt( 1 ) - 1 ), new TranscriptRow( rs, 1 ) ); // the per-id query took the first row too
+                    while( attributed && rs.next() )
+                    {
+                        int index = SqlBatchLookup.fieldIndex( rs.getInt( 1 ), chunk.size() );
+                        if( index < 0 )
+                        {
+                            attributed = false;
+                            break;
+                        }
+                        TranscriptRow row = new TranscriptRow( rs, 1 );
+                        chunkRows.merge( chunk.get( index ), row, (a, b) -> a.transcriptId <= b.transcriptId ? a : b );
+                    }
                 }
+            }
+            if( attributed )
+            {
+                byId.putAll( chunkRows );
+                batched.addAll( chunk );
             }
         }
 
         List<TranscriptRow> rows = new ArrayList<>();
-        try (PreparedStatement single = con.prepareStatement( transcriptQuery + " and transcript_stable_id.stable_id=?" ))
+        try (PreparedStatement single = con
+                .prepareStatement( transcriptQuery + " and transcript_stable_id.stable_id=? ORDER BY transcript_id" ))
         {
             for( String id : subset )
             {
@@ -151,18 +172,20 @@ public class EnsemblTranscriptsProvider extends TranscriptsProvider
                 try (ResultSet rs = single.executeQuery())
                 {
                     if( rs.next() )
-                        rows.add( new TranscriptRow( rs ) );
+                        rows.add( new TranscriptRow( rs, 0 ) );
                 }
             }
         }
         return rows;
     }
 
-    /** Exons and translations of the transcripts, two queries for the whole batch. */
+    /** Exons and translations of the transcripts (at most one batch), two queries for the whole batch. */
     private void loadTranscripts(Connection con, List<TranscriptRow> rows, List<Transcript> result) throws SQLException
     {
+        if( rows.isEmpty() )
+            return;
         List<Integer> ids = new ArrayList<>( new LinkedHashSet<>( rows.stream().map( r -> r.transcriptId ).toList() ) );
-        String in = " in (" + placeholders( ids.size() ) + ")";
+        String in = " in (" + SqlBatchLookup.placeholders( ids.size() ) + ")";
 
         Map<Integer, List<int[]>> exons = new HashMap<>(); // transcript -> {exonId, start, end} in rank order
         try (PreparedStatement ps = con.prepareStatement( "SELECT exon_transcript.transcript_id, exon_id, seq_region_start, seq_region_end FROM exon JOIN exon_transcript using(exon_id) WHERE exon_transcript.transcript_id"
@@ -235,33 +258,9 @@ public class EnsemblTranscriptsProvider extends TranscriptsProvider
         return new Transcript( row.name, row.chr, new Interval( row.start - 1, row.end - 1 ), row.strand == 1, exonLocations, cdsLocations );
     }
 
-    private static String placeholders(int count)
-    {
-        StringBuilder sb = new StringBuilder();
-        for( int i = 0; i < count; i++ )
-            sb.append( i == 0 ? "?" : ",?" );
-        return sb.toString();
-    }
-
     private static void setInts(PreparedStatement ps, List<Integer> values) throws SQLException
     {
         for( int i = 0; i < values.size(); i++ )
             ps.setInt( i + 1, values.get( i ) );
-    }
-
-    private static String normalize(String id)
-    {
-        int end = id.length();
-        while( end > 0 && id.charAt( end - 1 ) == ' ' )
-            end--;
-        return id.substring( 0, end ).toLowerCase( Locale.ROOT );
-    }
-
-    private static boolean isAscii(String s)
-    {
-        for( int i = 0; i < s.length(); i++ )
-            if( s.charAt( i ) > 127 )
-                return false;
-        return true;
     }
 }

@@ -7,11 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -21,6 +18,7 @@ import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.biohub.ReferenceType;
 import ru.biosoft.access.biohub.ReferenceTypeRegistry;
 import ru.biosoft.access.exception.BioHubFetchException;
+import ru.biosoft.access.sql.SqlBatchLookup;
 import ru.biosoft.access.sql.SqlUtil;
 import biouml.plugins.ensembl.tabletype.EnsemblGeneTableType;
 import biouml.plugins.ensembl.tabletype.EnsemblProteinTableType;
@@ -117,7 +115,7 @@ public class InternalEnsemblHub extends AbstractEnsemblHub
             for( String input : inputList )
             {
                 List<String> found = converted.get( input );
-                if( found != null && found.isEmpty() )
+                if( found != null && found.isEmpty() && !stripVersion( input ).equals( input ) )
                     retries.add( stripVersion( input ) );
             }
             Map<String, List<String>> retried = batchConvert( conn, query, retries, jobControl );
@@ -125,30 +123,31 @@ public class InternalEnsemblHub extends AbstractEnsemblHub
                 return null;
             ps = conn.prepareStatement(query);
             Map<String, String[]> result = new HashMap<>();
-            List<String> curList = new ArrayList<>();
             for( int i = 0; i < inputList.length; i++ )
             {
                 String input = inputList[i];
-                List<String> found = converted.get( input );
-                if( found == null )
-                    convertId( input, ps, curList );
-                else
-                    curList = found;
-                if( curList.isEmpty() )
+                List<String> curList = converted.get( input );
+                if( curList == null )
                 {
-                    String stripped = stripVersion( input );
-                    found = retried.get( stripped );
-                    if( found == null )
+                    if( isTerminated( jobControl ) )
+                        return null;
+                    curList = new ArrayList<>();
+                    convertId( input, ps, curList );
+                }
+                String stripped = stripVersion( input );
+                if( curList.isEmpty() && !stripped.equals( input ) ) // retrying the same id would find nothing again
+                {
+                    curList = retried.get( stripped );
+                    if( curList == null )
                     {
-                        curList = new ArrayList<>(); // never refill a list held by the batch results
+                        if( isTerminated( jobControl ) )
+                            return null;
+                        curList = new ArrayList<>();
                         convertId( stripped, ps, curList );
                     }
-                    else
-                        curList = found;
                 }
 
                 result.put(input, curList.toArray(new String[curList.size()]));
-                curList = new ArrayList<>();
                 if( jobControl != null )
                 {
                     jobControl.setPreparedness(i * 100 / inputList.length);
@@ -170,9 +169,6 @@ public class InternalEnsemblHub extends AbstractEnsemblHub
         }
     }
 
-    /** Number of ids looked up by one batched query. */
-    static final int BATCH_SIZE = 500;
-
     private static final Pattern KEY_CONDITION = Pattern.compile( "(\\S+)=\\?$" );
 
     private static String stripVersion(String id)
@@ -180,51 +176,50 @@ public class InternalEnsemblHub extends AbstractEnsemblHub
         return id.replaceFirst( "\\.\\d++", "" );
     }
 
+    private static boolean isTerminated(FunctionJobControl jobControl)
+    {
+        return jobControl != null && jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST;
+    }
+
     /**
-     * The query for many ids at once. The "...and key=?" condition of a QUERIES entry becomes "key in (?,...)", and
-     * FIELD(key, ?,...) tells which id a row matched: "select distinct FIELD(key,?,..), value ... and key in (?,..)".
-     * FIELD and IN compare with the same collation as "key=?", so each row is matched to the id the per-id query
-     * would have returned it for.
+     * The query for many ids at once (public for tests). The "...and key=?" condition of a QUERIES entry becomes
+     * "key in (?,...)", and FIELD(key, ?,...) tells which id a row matched:
+     * "select distinct FIELD(key,?,..), value ... and key in (?,..)". DISTINCT now applies to (id, value) pairs, which
+     * is what "select distinct value ... key=?" gives for each id; the same value found for two ids is kept for both.
      */
-    static String batchQuery(String query, int count)
+    public static String batchQuery(String query, int count)
     {
         Matcher m = KEY_CONDITION.matcher( query );
         if( !m.find() || !query.startsWith( "select distinct " ) )
             throw new IllegalArgumentException( "Not a single-key query: " + query );
         String key = m.group( 1 );
-        String params = String.join( ",", Collections.nCopies( count, "?" ) );
+        String params = SqlBatchLookup.placeholders( count );
         return "select distinct FIELD(" + key + "," + params + ")," + query.substring( "select distinct ".length(), m.start() ) + key
                 + " in (" + params + ")";
     }
 
     /**
-     * Converts the ids in batches of {@link #BATCH_SIZE} instead of one query per id: in profiles of
+     * Converts the ids in batches of {@link SqlBatchLookup#BATCH_SIZE} instead of one query per id: in profiles of
      * FindRegulatoryRegions the one-query-per-id round trips to MySQL were a large share of the analysis.
      * <p>
-     * The result is the per-id query's for every id answered: the same rows (FIELD matches each row to its id with
-     * the column's collation) and an empty list for an id without rows. Ids two of which could match the same row
-     * (non-ASCII ids, ids equal ignoring case or trailing spaces) are left out, as FIELD reports only the first of
-     * them; the caller converts those one by one.
+     * Answers only the ids {@link SqlBatchLookup#batchableIds} accepts, and for each of them returns what the per-id
+     * query returns: its rows, or an empty list. A chunk with a row FIELD cannot attribute is dropped entirely. Ids
+     * not answered are left out; the caller converts those one by one.
      *
      * @return the outputs by id for the ids answered here, or null if the job was terminated
      */
     private static Map<String, List<String>> batchConvert(Connection conn, String query, Collection<String> inputs,
             FunctionJobControl jobControl) throws SQLException
     {
-        Map<String, Integer> spellings = new HashMap<>();
-        for( String id : new LinkedHashSet<>( inputs ) )
-            spellings.merge( normalize( id ), 1, Integer::sum );
-        List<String> ids = new ArrayList<>();
-        for( String id : new LinkedHashSet<>( inputs ) )
-            if( isAscii( id ) && spellings.get( normalize( id ) ) == 1 )
-                ids.add( id );
-
         Map<String, List<String>> result = new HashMap<>();
-        for( int from = 0; from < ids.size(); from += BATCH_SIZE )
+        for( List<String> chunk : SqlBatchLookup.chunks( SqlBatchLookup.batchableIds( inputs ) ) )
         {
-            List<String> chunk = ids.subList( from, Math.min( from + BATCH_SIZE, ids.size() ) );
+            if( isTerminated( jobControl ) )
+                return null;
+            Map<String, List<String>> chunkResult = new HashMap<>();
             for( String id : chunk )
-                result.put( id, new ArrayList<>() );
+                chunkResult.put( id, new ArrayList<>() );
+            boolean attributed = true;
             try( PreparedStatement ps = conn.prepareStatement( batchQuery( query, chunk.size() ) ) )
             {
                 for( int i = 0; i < chunk.size(); i++ )
@@ -234,30 +229,20 @@ public class InternalEnsemblHub extends AbstractEnsemblHub
                 }
                 try( ResultSet rs = ps.executeQuery() )
                 {
-                    while( rs.next() )
-                        result.get( chunk.get( rs.getInt( 1 ) - 1 ) ).add( rs.getString( 2 ) );
+                    while( attributed && rs.next() )
+                    {
+                        int index = SqlBatchLookup.fieldIndex( rs.getInt( 1 ), chunk.size() );
+                        if( index < 0 )
+                            attributed = false;
+                        else
+                            chunkResult.get( chunk.get( index ) ).add( rs.getString( 2 ) );
+                    }
                 }
             }
-            if( jobControl != null && jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST )
-                return null;
+            if( attributed )
+                result.putAll( chunkResult );
         }
-        return result;
-    }
-
-    private static String normalize(String id)
-    {
-        int end = id.length();
-        while( end > 0 && id.charAt( end - 1 ) == ' ' )
-            end--;
-        return id.substring( 0, end ).toLowerCase( Locale.ROOT );
-    }
-
-    private static boolean isAscii(String s)
-    {
-        for( int i = 0; i < s.length(); i++ )
-            if( s.charAt( i ) > 127 )
-                return false;
-        return true;
+        return isTerminated( jobControl ) ? null : result;
     }
 
     private void convertId(String id, PreparedStatement ps, List<String> result) throws SQLException
