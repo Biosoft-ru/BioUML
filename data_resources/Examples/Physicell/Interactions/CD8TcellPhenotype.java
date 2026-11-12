@@ -29,7 +29,7 @@ public class CD8TcellPhenotype extends UpdatePhenotype
         double base = pCD.phenotype.motility.migrationBias;
         double max = 0.75;
         double half = pCD.custom_data.get( "migration_bias_halfmax" ); // 0.05 // 0.25 
-        double hill = BasicSignaling.Hill_response_function( PIF, half, 1.5 );
+        double hill = BasicSignaling.hillResponse( PIF, half, 1.5 );
         phenotype.motility.migrationBias = base + ( max - base ) * hill;
     }
 

@@ -50,7 +50,7 @@ public class MacrophagePhenotype extends UpdatePhenotype
         double signal = secretionDeadSens * numDead + secretionBacteriaSens * numBacteria
                 + secretionDebrisSens * debris + secretionQuorumSens * q;
         double half = pCD.custom_data.get( "secretion_halfmax" ); // 0.5; // 0.5; 
-        double hill = BasicSignaling.Hill_response_function( signal, half, 1.5 );
+        double hill = BasicSignaling.hillResponse( signal, half, 1.5 );
         phenotype.secretion.secretionRates[nPIF] = base + ( max - base ) * hill;
 
         // chemotaxis bias increases with debris or quorum factor 
@@ -61,7 +61,7 @@ public class MacrophagePhenotype extends UpdatePhenotype
         max = 0.75;
         signal = biasDebrisSensitivity * debris + biasQuorumSensitivity * q; // + 10 * PIF; 
         half = pCD.custom_data.get( "migration_bias_halfmax" ); // 0.01 // 0.005 //0.1 // 0.05
-        hill = BasicSignaling.Hill_response_function( signal, half, 1.5 );
+        hill = BasicSignaling.hillResponse( signal, half, 1.5 );
         phenotype.motility.migrationBias = base + ( max - base ) * hill;
 
         // migration speed slows down in the presence of debris or quorum factor 
@@ -69,7 +69,7 @@ public class MacrophagePhenotype extends UpdatePhenotype
         max = 0.1 * base;
         signal = biasDebrisSensitivity * debris + biasQuorumSensitivity * q; // + 10 * PIF; 
         half = pCD.custom_data.get( "migration_speed_halfmax" ); // 0.1 // 0.05 
-        hill = BasicSignaling.Hill_response_function( signal, half, 1.5 );
+        hill = BasicSignaling.hillResponse( signal, half, 1.5 );
         phenotype.motility.migrationSpeed = base + ( max - base ) * hill;
     }
 

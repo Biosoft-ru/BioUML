@@ -32,7 +32,7 @@ public class StemPhenotype extends UpdatePhenotype
         int nDebris = m.findDensityIndex( "debris" );
 
         // if dead, release debris
-        if( phenotype.death.dead == true )
+        if( phenotype.death.dead )
         {
             phenotype.secretion.netExportRates[nDebris] = phenotype.volume.total;
             pCell.functions.updatePhenotype = null;
@@ -56,13 +56,12 @@ public class StemPhenotype extends UpdatePhenotype
         }
 
         // contact with a stem cell increases differentiation 
-        //        double max_stem_diff = parameters.doubles( "max_stem_differentiation" ); // 0.0075 
         double stemDiffHalfmax = pCD.custom_data.get( "differentiation_contact_halfmax" ); // 0.1 
         double base = 0; // phenotype.cell_transformations.transformation_rates[diff_type]; 
         double max = maxStemDiff; // 0.0075;
         double signal = numStem;
         double halfMax = stemDiffHalfmax; // 0.1; 
-        double hill = BasicSignaling.Hill_response_function( signal, halfMax, 1.5 );
+        double hill = BasicSignaling.hillResponse( signal, halfMax, 1.5 );
         phenotype.cellTransformations.transformationRates[diffType] = base + ( max - base ) * hill;
 
         // contact with a differentiated cell reduces proliferation 
@@ -72,7 +71,7 @@ public class StemPhenotype extends UpdatePhenotype
         max = 0.0;
         signal = numDifferentiated;
         halfMax = stemCyclingHalfmax; //  0.1; 
-        hill = BasicSignaling.Hill_response_function( signal, halfMax, 1.5 );
+        hill = BasicSignaling.hillResponse( signal, halfMax, 1.5 );
         phenotype.cycle.data.setExitRate( 0, base + ( max - base ) * hill );
 
         // resource reduces necrotic death 
@@ -80,8 +79,7 @@ public class StemPhenotype extends UpdatePhenotype
         int nNecrosis = phenotype.death.findDeathModelIndex( PhysiCellConstants.necrosis_death_model );
         double stemSaturationNecrosis = pCD.custom_data.get( "necrosis_saturation_resource" );
         double stemThresholdNecrosis = pCD.custom_data.get( "necrosis_threshold_resource" );
-        phenotype.death.rates.set( nNecrosis,
-                max * BasicSignaling.decreasing_linear_response_function( r, stemSaturationNecrosis, stemThresholdNecrosis ) );
+        phenotype.death.rates.set( nNecrosis, max * BasicSignaling.decreasingLinearResponse( r, stemSaturationNecrosis, stemThresholdNecrosis ) );
 
         // toxin increases apoptotic death 
         int nApoptosis = phenotype.death.findDeathModelIndex( PhysiCellConstants.apoptosis_death_model );
@@ -90,7 +88,7 @@ public class StemPhenotype extends UpdatePhenotype
         signal = toxin;
         base = pCD.phenotype.death.rates.get( nApoptosis );
         max = base * relativeMaxToxicity; // 100*base_val;
-        hill = BasicSignaling.Hill_response_function( signal, toxicityHalfmax, 1.5 );
+        hill = BasicSignaling.hillResponse( signal, toxicityHalfmax, 1.5 );
         phenotype.death.rates.set( nApoptosis, base + ( max - base ) * hill );
     }
 
