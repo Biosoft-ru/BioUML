@@ -185,8 +185,9 @@ public class PhysicellImporter implements DataElementImporter
 
             for( int j = 4; j < data.length; j++ )
                 vals[j] = data[j];
-            TableDataCollectionUtils.addRow( table, String.valueOf( i ), vals );
+            TableDataCollectionUtils.addRow( table, String.valueOf( i ), vals, true );
         }
+        table.finalizeAddition();
         
         dc.put( table );
         InitialCondition c = result.getRole( MulticellEModel.class ).getInitialCondition();

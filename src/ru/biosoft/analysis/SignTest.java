@@ -142,8 +142,9 @@ public class SignTest extends AnalysisMethodSupport<SignTestParameters>
                 String rowName = lineParts[0];
                 String[] sVals = Arrays.copyOfRange( lineParts, 1, lineParts.length );
                 Object[] values = Stream.of( sVals ).map( Double::valueOf ).toArray();
-                TableDataCollectionUtils.addRow( outTable, rowName, values );
+                TableDataCollectionUtils.addRow( outTable, rowName, values, true );
             }
+            outTable.finalizeAddition();
             TableDataCollectionUtils.setSortOrder( outTable, "adj.P.Val", true );
             CollectionFactoryUtils.save( outTable );
         }

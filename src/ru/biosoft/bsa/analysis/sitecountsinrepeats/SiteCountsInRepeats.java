@@ -219,9 +219,10 @@ public class SiteCountsInRepeats extends AnalysisMethodSupport<SiteCountsInRepea
                 double percentageOfStrongSiteCountsInRepeats = strongSiteCountsAll == 0 ? 0 : 100.0 * strongSiteCountsInRepeats / strongSiteCountsAll;
                 TableDataCollectionUtils.addRow(table, String.valueOf(iRow++), new Object[] {siteType, countInRepeatsEntry.getKey(),
                         weakSiteCountsInRepeats, percentageOfWeakSiteCountsInRepeats, moderateSiteCountsInRepeats,
-                        percentageOfModerateSiteCountsInRepeats, strongSiteCountsInRepeats, percentageOfStrongSiteCountsInRepeats});
+                        percentageOfModerateSiteCountsInRepeats, strongSiteCountsInRepeats, percentageOfStrongSiteCountsInRepeats}, true);
             }
         }
+        table.finalizeAddition();
         table.getOrigin().put(table);
         // Construction of 2-nd table
         TableDataCollection table2 = TableDataCollectionUtils.createTableDataCollection(parameters.getSummaryTablePath());
@@ -262,8 +263,9 @@ public class SiteCountsInRepeats extends AnalysisMethodSupport<SiteCountsInRepea
             double percentageOfWeakSiteCountsInRepeats = weakSiteCountsAll == 0 ? 0 : 100.0 * weakSiteCountsInRepeats / weakSiteCountsAll;
             double percentageOfModerateSiteCountsInRepeats = moderateSiteCountsAll == 0 ? 0 : 100.0 * moderateSiteCountsInRepeats / moderateSiteCountsAll;
             double percentageOfStrongSiteCountsInRepeats = strongSiteCountsAll == 0 ? 0 : 100.0 * strongSiteCountsInRepeats / strongSiteCountsAll;
-            TableDataCollectionUtils.addRow(table2, String.valueOf(iRow++), new Object[]{siteType, weakSiteCountsInRepeats, percentageOfWeakSiteCountsInRepeats, moderateSiteCountsInRepeats, percentageOfModerateSiteCountsInRepeats, strongSiteCountsInRepeats, percentageOfStrongSiteCountsInRepeats});
+            TableDataCollectionUtils.addRow(table2, String.valueOf(iRow++), new Object[]{siteType, weakSiteCountsInRepeats, percentageOfWeakSiteCountsInRepeats, moderateSiteCountsInRepeats, percentageOfModerateSiteCountsInRepeats, strongSiteCountsInRepeats, percentageOfStrongSiteCountsInRepeats}, true);
         }
+        table2.finalizeAddition();
         table2.getOrigin().put(table2);
         return new TableDataCollection[] {table, table2};
     }

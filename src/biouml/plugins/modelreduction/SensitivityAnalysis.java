@@ -161,8 +161,9 @@ public class SensitivityAnalysis extends SteadyStateAnalysis
         for( int i = 0; i < targets.length; ++i )
         {
             Object[] row = generateRow( targets[i], sensitivities[i] );
-            TableDataCollectionUtils.addRow(tdc, generateID( i ), row);
+            TableDataCollectionUtils.addRow(tdc, generateID( i ), row, true);
         }
+        tdc.finalizeAddition();
 
         return tdc;
     }

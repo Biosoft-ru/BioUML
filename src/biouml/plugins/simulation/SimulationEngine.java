@@ -2,20 +2,32 @@ package biouml.plugins.simulation;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
 import one.util.streamex.StreamEx;
@@ -55,11 +67,477 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
 {
     public static int DETERMINISTIC_TYPE = 0;
     public static int STOCHASTIC_TYPE = 1;
-    
+
     public static String VAR_PATH_DELIMITER = "/";
-    
+
     protected SimulationEngineLogger log = new SimulationEngineLogger();
-    
+
+    /**
+     * Process-wide cache of {@link URLClassLoader}s used to load compiled mathematical models.
+     *
+     * <p>Historically every {@link #compileModel} call constructed a fresh
+     * {@code URLClassLoader} and discarded it. The returned model instance, however, is retained
+     * by long-lived engines/tasks (e.g. {@link #model}), and a live instance keeps its {@code Class}
+     * (and therefore its defining class loader) reachable. With one loader per simulation run this
+     * accumulated hundreds of thousands of class loaders and their loaded classes until the heap was
+     * exhausted ({@code java.lang.OutOfMemoryError}).
+     *
+     * <p>Loaders are now shared. A loader is reused as long as the model revision it was created for
+     * is unchanged; the revision is described by the (canonical) directory, class name, the
+     * parent class loader, and a fingerprint of the model source. When the model is regenerated a
+     * new loader is created so the freshly compiled class is read rather than a stale cached
+     * definition.
+     *
+     * <p><b>Bounding guarantee.</b> The *cache* itself is bounded to {@link #MODEL_CLASSLOADER_CACHE_LIMIT}
+     * entries. The number of *live* class loaders is <b>not</b> bounded by the cache: a class loader
+     * stays alive while any loaded model instance is still reachable (a live instance pins its
+     * defining class and, through it, its loader). This patch fixes the original defect — one loader
+     * created per simulation run — by reusing a single loader across all runs of an unchanged model.
+     * It does not, and cannot, reclaim loaders of model instances that are still referenced.
+     *
+     * <p><b>Plugin / class-loader lifecycle.</b> The cache is process-wide and its keys (and the cached
+     * loaders) hold strong references to the parent class loader. Therefore a parent loader is not
+     * collectible while a cache entry that references it remains. In BioUML the parent is the OSGi
+     * bundle class loader of the simulation plugin, so the LRU cap bounds — but does not eliminate —
+     * the retention of a plugin's class loader after the plugin is no longer in use. There is currently
+     * no OSGi {@code BundleActivator} disposal hook for this plugin to hook explicit invalidation into;
+     * the cap is the mechanism that keeps this bounded. If a suitable lifecycle hook is added later,
+     * clearing the entries for the disposed parent here is the intended extension point.
+     *
+     * <p><b>Revision isolation.</b> Each model revision is loaded from its own <b>immutable
+     * per-revision directory</b>, and the shared loader's classpath is exactly that directory. This
+     * matters because generated <em>large</em> models emit nested helper classes (e.g.
+     * {@code CalculateReactionRates}) that are instantiated — and therefore loaded — lazily from the
+     * classpath at simulation time. Rooting each loader at an immutable directory guarantees that a
+     * loaded revision can only ever see its own classes, never a later regeneration's.
+     *
+     * <p><b>Compilation is staged, then published.</b> A model is compiled into a fresh private
+     * staging directory ({@link #compileModel}) rather than the shared output directory, and only
+     * afterwards is the staging directory's content hashed and published, atomically, as the
+     * immutable {@code rev-<hash>} snapshot ({@link #modelRevisionDir}). Compiling into an empty
+     * staging directory means the snapshot is exactly the output of one compilation: a nested class
+     * that no longer exists in the source cannot survive as a stale {@code .class} file, and nothing
+     * is read back from the (possibly concurrently mutating) shared output directory.
+     *
+     * <p><b>Publication is atomic or it fails.</b> A snapshot is moved into place with
+     * {@link java.nio.file.StandardCopyOption#ATOMIC_MOVE}; if the filesystem does not support an
+     * atomic move the publication throws rather than degrading to a non-atomic copy. A non-atomic copy
+     * would let a concurrent reader observe a partially populated snapshot, contradicting the guarantee
+     * that readers only ever see a complete snapshot. Because every snapshot is therefore either absent
+     * or fully published, and a snapshot is never modified after publication, the existence-of-every-
+     * expected-file check used to recognize an already-published snapshot is sufficient: a directory
+     * named {@code rev-<hash>} that contains the expected class files is, by construction, a complete
+     * and immutable snapshot (a partial or corrupted directory can only arise from an atomic move, which
+     * never leaves one behind).
+     */
+    private static final Map<ModelClassLoaderKey, URLClassLoader> MODEL_CLASSLOADER_CACHE =
+            Collections.synchronizedMap(new LinkedHashMap<ModelClassLoaderKey, URLClassLoader>(16, 0.75f, true));
+
+    private static final int MODEL_CLASSLOADER_CACHE_LIMIT = 128;
+
+    /**
+     * Per-output-directory serialization of (cleanup + publication). The key is the <em>canonical</em>
+     * path of the output directory, so two different path strings that refer to the same directory
+     * (via symlinks or {@code ..}) share one lock. The lock is held from the startup cleanup of the
+     * directory's {@code rev-*} snapshots through the atomic publication of a snapshot, so a cleanup
+     * can never race with — and delete — a snapshot that a concurrent thread is in the middle of
+     * publishing.
+     */
+    private static final ConcurrentMap<String, Object> REVISION_DIR_LOCKS = new ConcurrentHashMap<String, Object>();
+
+    /**
+     * Output directories for which stale {@code rev-*} snapshots have already been purged at startup.
+     * Kept as a (small) strong set because it is used only to avoid re-scanning a directory on every
+     * compile; the set grows by at most one entry per distinct output directory used by the process.
+     * The value is the canonical path, so the set is also deduplicated by physical directory.
+     */
+    private static final ConcurrentMap<String, Boolean> CLEANED_REVISION_DIRS = new ConcurrentHashMap<String, Boolean>();
+
+    /** Returns (creating if needed) the per-directory lock for {@code dir}'s canonical path. */
+    private static Object revisionDirLock(File dir)
+    {
+        String key;
+        try
+        {
+            key = dir.getCanonicalPath();
+        }
+        catch( IOException e )
+        {
+            // Fall back to the raw path if canonicalization is not possible (e.g. the directory was
+            // just deleted); it is still unique enough to serialize publication for this directory.
+            key = dir.getPath();
+        }
+        return REVISION_DIR_LOCKS.computeIfAbsent( key, k -> new Object() );
+    }
+
+    /**
+     * Identity of a model revision whose compiled classes should be loaded through a single shared
+     * {@link URLClassLoader}. Two revisions share a loader only when all of these match, including
+     * the parent class loader (compared by reference) — a loader created under one parent must never
+     * be handed to a caller expecting a different parent.
+     *
+     * <p>{@code revisionDir} is an <b>immutable, per-revision compilation directory</b>: its path
+     * encodes the model revision, and it is never rewritten. The loader's classpath is exactly this
+     * directory, so a loaded model (including any nested classes it instantiates lazily) can only
+     * ever see the classes of the revision it was created from — never a later regeneration. This is
+     * what makes sharing a directory-backed loader across revisions safe even for large models, whose
+     * generated code emits nested helper classes loaded lazily from the classpath.
+     */
+    static final class ModelClassLoaderKey
+    {
+        private final String revisionDir;
+        private final String className;
+        private final ClassLoader parent;
+        private final int hash;
+
+        private ModelClassLoaderKey( String revisionDir, String className, ClassLoader parent )
+        {
+            this.revisionDir = revisionDir;
+            this.className = className;
+            this.parent = parent;
+            int result = revisionDir.hashCode();
+            result = 31 * result + className.hashCode();
+            result = 31 * result + System.identityHashCode( parent );
+            this.hash = result;
+        }
+
+        @Override
+        public boolean equals( Object o )
+        {
+            if( this == o )
+                return true;
+            if( !( o instanceof ModelClassLoaderKey ) )
+                return false;
+            ModelClassLoaderKey that = (ModelClassLoaderKey)o;
+            // Parent must be compared by reference: ClassLoader identity is what matters for
+            // delegation, and two distinct loader instances are never interchangeable.
+            return parent == that.parent
+                    && revisionDir.equals( that.revisionDir )
+                    && className.equals( that.className );
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return hash;
+        }
+    }
+
+    /**
+     * Returns a shared {@link URLClassLoader} rooted at {@code revisionDir}, the immutable per-revision
+     * directory that holds the compiled classes for this model revision.
+     *
+     * @param revisionDir the per-revision directory the loader must use as its (only) classpath entry
+     * @param className the compiled model class to load through it (part of the cache key)
+     * @param parent the parent class loader; part of the cache key
+     * @return a cached (or newly created) class loader for {@code revisionDir}
+     */
+    static URLClassLoader modelClassLoader(File revisionDir, String className, ClassLoader parent) throws MalformedURLException
+    {
+        String dirPath = revisionDir.getPath();
+        ModelClassLoaderKey key = new ModelClassLoaderKey( dirPath, className, parent );
+
+        URLClassLoader cached = MODEL_CLASSLOADER_CACHE.get( key );
+        if( cached != null )
+            return cached;
+
+        synchronized( MODEL_CLASSLOADER_CACHE )
+        {
+            cached = MODEL_CLASSLOADER_CACHE.get( key );
+            if( cached != null )
+                return cached;
+
+            URLClassLoader created = new URLClassLoader( new URL[] {revisionDir.toURI().toURL()}, parent );
+            MODEL_CLASSLOADER_CACHE.put( key, created );
+
+            // Bound the *cache* (not the number of live loaders — see the class-level note): evict the
+            // least-recently-used entry once the cap is exceeded. An evicted loader becomes
+            // collectible only once no loaded model instance still references it.
+            while( MODEL_CLASSLOADER_CACHE.size() > MODEL_CLASSLOADER_CACHE_LIMIT )
+            {
+                Map.Entry<ModelClassLoaderKey, URLClassLoader> oldest =
+                        MODEL_CLASSLOADER_CACHE.entrySet().iterator().next();
+                MODEL_CLASSLOADER_CACHE.remove( oldest.getKey() );
+            }
+            return created;
+        }
+    }
+
+    /**
+     * Publishes the model's compiled classes, taken from a freshly created staging directory, as an
+     * immutable per-revision snapshot and returns that snapshot's directory.
+     *
+     * <p>{@code stagingDir} is the output of a <b>single</b> compilation: {@link #compileModel}
+     * compiles into a private, otherwise-empty staging directory, so it contains exactly the class
+     * files that current source produces (the model class plus any nested {@code Model$*.class}
+     * files) and nothing else. There is therefore no read-back from the shared output directory and
+     * no window in which a concurrently regenerated model could contribute a different file. A nested
+     * class that has disappeared from the source is simply absent, because {@code javac} is not asked
+     * to delete stale class files — the staging directory starts empty.
+     *
+     * <p>The snapshot directory is named {@code rev-<sha256>} where the hash is over the <b>content</b>
+     * of the compiled classes (name plus bytes, in sorted order). It is content-based, so an unchanged
+     * model (byte-identical recompile) maps to the same snapshot and is reused, while any content change
+     * maps to a new one; it does not depend on filesystem timestamps.
+     *
+     * <p>If the snapshot already exists (the common case — re-running an unchanged model) its content is
+     * verified to match the staging content and the staging directory is discarded. Otherwise the
+     * staging directory is moved into place atomically, so a published snapshot is never mutated and a
+     * concurrent reader can only ever observe a complete snapshot.
+     *
+     * @param outputDir the shared directory the snapshots are kept in (the model was staged under it)
+     * @param stagingDir the private staging directory holding exactly this compilation's class files
+     * @return the immutable per-revision snapshot directory
+     * @throws IOException if the snapshot cannot be verified or published
+     */
+    static File modelRevisionDir(File outputDir, File stagingDir) throws IOException
+    {
+        // Serialize (cleanup + publication) per output directory so the startup cleanup of this
+        // directory's rev-* snapshots can never race with — and delete — a snapshot that a concurrent
+        // thread is in the middle of publishing. The lock is held for the whole critical section.
+        Object lock = revisionDirLock( outputDir );
+        synchronized( lock )
+        {
+            // Once per directory per JVM, purge stale rev-* snapshots (see cleanStaleRevisionSnapshots).
+            // Done under the lock so no publication for this directory can start until cleanup finishes.
+            cleanStaleRevisionSnapshots( outputDir, lock );
+
+            // The complete set of classes that make up this revision, from the staging directory only.
+            String[] classFiles = stagingDir.list( ( d, name ) -> name.endsWith( ".class" ) );
+            if( classFiles == null || classFiles.length == 0 )
+                throw new IOException( "No compiled class produced for model in staging directory " + stagingDir );
+            Arrays.sort( classFiles );
+
+            String fingerprint = contentHash( stagingDir, classFiles );
+            File revisionDir = new File( outputDir, "rev-" + fingerprint );
+
+            // Fast path: this exact revision is already published and complete.
+            if( allPresent( revisionDir, classFiles ) )
+            {
+                // The snapshot already holds these exact bytes (the name is a content hash), so it is
+                // safe to discard this staging copy.
+                deleteRecursively( stagingDir );
+                return revisionDir;
+            }
+
+            // Otherwise publish this staging directory as the new snapshot with an atomic move, so a
+            // published snapshot is never mutated and a concurrent reader can only ever observe a
+            // complete snapshot. See the class-level note on why a filename-only existence check is
+            // sufficient here.
+            try
+            {
+                Files.move( stagingDir.toPath(), revisionDir.toPath(), StandardCopyOption.ATOMIC_MOVE );
+            }
+            catch( FileAlreadyExistsException e )
+            {
+                // A concurrent thread published the same revision first (possible if cleanup ran for
+                // this directory but a publication had already happened); use it and discard ours.
+                deleteRecursively( stagingDir );
+            }
+
+            // Do not depend on the publish mechanism alone: verify the published snapshot is complete.
+            if( !allPresent( revisionDir, classFiles ) )
+            {
+                deleteRecursively( stagingDir );
+                throw new IOException( "Revision snapshot is incomplete after publication: " + revisionDir );
+            }
+            return revisionDir;
+        }
+    }
+
+    /**
+     * Loads an already-compiled model by copying its classes out of the root of the shared output
+     * directory (under the per-output-directory lock, so the read is consistent with any concurrent
+     * root population) and publishing them as an immutable per-revision snapshot. Used when a model is
+     * not recompiled ({@code compile == false}).
+     *
+     * @param outputDir the shared output directory whose root holds the previously compiled classes
+     * @param className the model class name (without extension)
+     * @return the published immutable per-revision snapshot directory
+     */
+    static File loadFromExistingRoot(File outputDir, String className) throws IOException
+    {
+        Object lock = revisionDirLock( outputDir );
+        synchronized( lock )
+        {
+            File stagingDir = Files.createTempDirectory( outputDir.toPath(), "stage-" + className + "-" ).toFile();
+            try
+            {
+                stageExistingClasses( outputDir, className, stagingDir );
+                return modelRevisionDir( outputDir, stagingDir );
+            }
+            catch( IOException e )
+            {
+                deleteRecursively( stagingDir );
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * Publishes the compiled classes for a single model (from a staging directory holding exactly that
+     * model's classes) under the per-output-directory lock, and copies the published snapshot into the
+     * root of the shared output directory.
+     *
+     * <p>The lock serializes the root-directory population for this output directory against any
+     * concurrent compilation, so two concurrent compilations of the same model cannot interleave their
+     * root-level copies into a mixed set of revisions. The root is a legacy, mutable location (read by
+     * later {@code compile == false} loads), so it must be updated as a complete, consistent set for a
+     * model.
+     *
+     * @param outputDir the shared output directory (snapshots + legacy root classes live here)
+     * @param stagingDir a staging directory holding exactly the compiled classes for one model
+     * @param className the model class name (without extension), used to select the root copies
+     * @return the published immutable per-revision snapshot directory
+     */
+    static File publishRevision(File outputDir, File stagingDir, String className) throws IOException
+    {
+        return publishRevision( outputDir, stagingDir, new String[] {className} );
+    }
+
+    /**
+     * Publishes the compiled classes in {@code stagingDir} (which may hold several models from one
+     * batch compilation) as a single immutable per-revision snapshot, and copies the requested models'
+     * classes into the root of the shared output directory — all under the per-output-directory lock.
+     *
+     * <p>The lock serializes the root-directory population for this output directory against any
+     * concurrent compilation, so two concurrent compilations cannot interleave their root-level copies
+     * into a mixed set of revisions. The root is a legacy, mutable location (read by later
+     * {@code compile == false} loads), so it must be updated as a complete, consistent set.
+     *
+     * @param outputDir the shared output directory (snapshots + legacy root classes live here)
+     * @param stagingDir a staging directory holding the compiled classes to publish (one or more models)
+     * @param classNames the model class names (without extension) whose classes are copied to the root;
+     *        {@code null} copies every class in the snapshot
+     * @return the published immutable per-revision snapshot directory
+     */
+    static File publishRevision(File outputDir, File stagingDir, String[] classNames) throws IOException
+    {
+        Object lock = revisionDirLock( outputDir );
+        synchronized( lock )
+        {
+            File revisionDir = modelRevisionDir( outputDir, stagingDir );
+            // Populate the legacy root from the published snapshot (which always exists). Copying the
+            // requested models' complete class sets while holding the lock keeps a concurrent
+            // compilation from interleaving a different revision's files into the root.
+            if( classNames == null )
+                copyAllClassesToRoot( revisionDir, outputDir );
+            else
+                for( String className : classNames )
+                    copyClassesToRoot( revisionDir, outputDir, className );
+            return revisionDir;
+        }
+    }
+
+    /**
+     * Once per output directory per JVM, removes {@code rev-*} snapshots left over from a previous run.
+     *
+     * <p>The JVM is restarted on every server start and the process-wide loader cache is empty at that
+     * point, so before any model is compiled and any loader can refer to a snapshot, any snapshot in the
+     * shared output directory is stale and can be removed. This keeps the snapshots from accumulating on
+     * disk across restarts. The set of snapshots in use during a run is small (bounded by the number of
+     * distinct revisions) and is recreated on demand.
+     *
+     * <p><b>This must be called while holding {@link #revisionDirLock} for the directory.</b> The marker
+     * is set only after the deletion completes, so a concurrent caller blocked on the lock sees that
+     * cleanup is already done and never deletes a directory that a peer is concurrently publishing.
+     * The canonical path is used as the key so that equivalent path strings (symlinks, {@code ..})
+     * deduplicate to a single cleanup.
+     */
+    private static void cleanStaleRevisionSnapshots(File outputDir, Object lock)
+    {
+        String key;
+        try
+        {
+            key = outputDir.getCanonicalPath();
+        }
+        catch( IOException e )
+        {
+            key = outputDir.getPath();
+        }
+        if( CLEANED_REVISION_DIRS.putIfAbsent( key, Boolean.TRUE ) != null )
+            return;
+        File[] entries = outputDir.listFiles( ( d, name ) -> name.startsWith( "rev-" ) );
+        if( entries == null )
+            return;
+        for( File entry : entries )
+            deleteRecursively( entry );
+    }
+
+    /** True if every expected class file is present in {@code dir}. */
+    private static boolean allPresent(File dir, String[] classFiles)
+    {
+        for( String name : classFiles )
+            if( !new File( dir, name ).isFile() )
+                return false;
+        return true;
+    }
+
+    /**
+     * SHA-256 over the name and content of each class file, in sorted order, so identical class
+     * content yields an identical revision id regardless of filesystem metadata. The file content is
+     * streamed into the digest so large class files do not require a whole-file heap buffer.
+     */
+    private static String contentHash(File dir, String[] classFiles) throws IOException
+    {
+        try
+        {
+            MessageDigest digest = MessageDigest.getInstance( "SHA-256" );
+            for( String name : classFiles )
+            {
+                // Hash the file name, a delimiter, and the file content, so the concatenation of
+                // distinct (name, content) pairs is unambiguous.
+                digest.update( name.getBytes( StandardCharsets.UTF_8 ) );
+                digest.update( (byte)0 );
+                hashFileInto( digest, new File( dir, name ) );
+                digest.update( (byte)0 );
+            }
+            byte[] hash = digest.digest();
+            StringBuilder sb = new StringBuilder( hash.length * 2 );
+            for( byte b : hash )
+                sb.append( Character.forDigit( ( b >> 4 ) & 0xF, 16 ) ).append( Character.forDigit( b & 0xF, 16 ) );
+            return sb.toString();
+        }
+        catch( NoSuchAlgorithmException e )
+        {
+            throw new IOException( "SHA-256 is not available", e );
+        }
+    }
+
+    /** Streams the bytes of {@code file} into {@code digest} in 8 KiB chunks. */
+    private static void hashFileInto(MessageDigest digest, File file) throws IOException
+    {
+        try( InputStream in = new BufferedInputStream( new FileInputStream( file ) ) )
+        {
+            byte[] buf = new byte[ 8192 ];
+            int n;
+            while( ( n = in.read( buf ) ) != -1 )
+                digest.update( buf, 0, n );
+        }
+    }
+
+    /** Best-effort recursive delete, used to discard a failed temporary snapshot. */
+    private static void deleteRecursively(File f)
+    {
+        if( f == null || !f.exists() )
+            return;
+        File[] children = f.listFiles();
+        if( children != null )
+            for( File c : children )
+                deleteRecursively( c );
+        f.delete();
+    }
+
+    /**
+     * Clears the model class loader cache. Package-private: intended for tests (and, if a suitable
+     * OSGi disposal hook is added, for explicit invalidation on plugin unload). Not part of the
+     * public API.
+     */
+    static void clearModelClassLoaderCache()
+    {
+        MODEL_CLASSLOADER_CACHE.clear();
+    }
+
     /**Directory where generated files will be stored*/
     private String srcDir = ".";
     
@@ -313,15 +791,51 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
                 for( PluginEntry f : getClassPathEntries() )
                     classPath.append(File.pathSeparator).append(f.extract().getAbsolutePath());
 
-                RunTimeCompiler comp = new RunTimeCompiler( classPath.toString(), outputDir, new String[] {outputDir + File.separator
-                        + files[i].getName()} );
-                if( !comp.execute() )
-                    throw new BiosoftParseException( new Exception(comp.getMessages()), files[i].getName() );
+                // Compile into a fresh private staging directory (never the shared outputDir) so the
+                // revision is exactly this compilation's output: no leftover nested classes from an
+                // earlier revision, and no read-back from a possibly concurrently mutated outputDir.
+                File outDir = new File( outputDir );
+                File stagingDir = Files.createTempDirectory( outDir.toPath(), "stage-" + className + "-" ).toFile();
+                try
+                {
+                    RunTimeCompiler comp = new RunTimeCompiler( classPath.toString(), outputDir, stagingDir.getAbsolutePath(),
+                            new String[] {outputDir + File.separator + files[i].getName()} );
+                    if( !comp.execute() )
+                        throw new BiosoftParseException( new Exception(comp.getMessages()), files[i].getName() );
+
+                    // Publish the compiled classes as an immutable per-revision snapshot and populate
+                    // the legacy root, both under the per-directory lock. Load through a shared class
+                    // loader rooted at that snapshot (see modelClassLoader() / modelRevisionDir()). A
+                    // per-run loader leaked because the returned model instance pinned its defining
+                    // loader in the heap.
+                    File revisionDir = publishRevision( outDir, stagingDir, className );
+                    URLClassLoader cl = modelClassLoader( revisionDir, className, getClass().getClassLoader() );
+                    try
+                    {
+                        result[i] = cl.loadClass( className ).newInstance();
+                    }
+                    catch( Throwable t )
+                    {
+                        throw new Exception( "Can not load model, name=" + className + ", error=" + t );
+                    }
+                }
+                catch( Exception e )
+                {
+                    // The staging directory is consumed (moved) by a successful publish; discard it if
+                    // anything above failed before that.
+                    deleteRecursively( stagingDir );
+                    throw e;
+                }
+                continue;
             }
 
+            // compile == false: no compilation happened, so the class must already be present in the
+            // root of the shared output directory. Load it (root read + snapshot publish under the
+            // per-directory lock, see loadFromExistingRoot).
             File outDir = new File( outputDir );
-            URL[] url = new URL[] {outDir.toURI().toURL()};
-            try(URLClassLoader cl = new URLClassLoader( url, getClass().getClassLoader() ))
+            File revisionDir = loadFromExistingRoot( outDir, className );
+            URLClassLoader cl = modelClassLoader( revisionDir, className, getClass().getClassLoader() );
+            try
             {
                 result[i] = cl.loadClass( className ).newInstance();
             }
@@ -343,25 +857,130 @@ abstract public class SimulationEngine extends Option implements PropertyChangeL
         for( int i = 0; i < files.length; i++ )
             fileNames[i] = files[i].getAbsolutePath();
 
-        RunTimeCompiler comp = new RunTimeCompiler( classPath, outDirName, fileNames );
-        if( !comp.execute() )
-            throw new BiosoftParseException( new Exception( comp.getMessages() ), files[0].getName() );
-
-        URL[] url = new URL[] {new File( outDirName ).toURI().toURL()};
+        // Compile all supplied sources into a fresh private staging directory so the output is a clean
+        // set of class files (no leftover nested classes from earlier compilations sharing the source
+        // directory). The whole staging output is published as a single shared snapshot, because the
+        // supplied classes may reference one another (a per-class subset would drop such a dependency
+        // and break with NoClassDefFoundError at resolution time).
+        File outDir = new File( outDirName );
+        String[] classNames = new String[ files.length ];
         for( int i = 0; i < files.length; i++ )
+            classNames[i] = files[i].getName().substring( 0, files[i].getName().lastIndexOf( "." ) );
+
+        File stagingDir = Files.createTempDirectory( outDir.toPath(), "stage-batch-" ).toFile();
+        try
         {
-            String fileName = files[i].getName();
-            String className = fileName.substring( 0, fileName.lastIndexOf( "." ) );
-            try (URLClassLoader cl = new URLClassLoader( url, getClass().getClassLoader() ))
+            RunTimeCompiler comp = new RunTimeCompiler( classPath, outDirName, stagingDir.getAbsolutePath(), fileNames );
+            if( !comp.execute() )
+                throw new BiosoftParseException( new Exception( comp.getMessages() ), files[0].getName() );
+
+            // Publish the complete compilation output as one immutable, shared snapshot and populate
+            // the legacy root with the requested models' classes, both under the per-directory lock.
+            File revisionDir = publishRevision( outDir, stagingDir, classNames );
+
+            for( int i = 0; i < files.length; i++ )
             {
-                result[i] = cl.loadClass( className ).newInstance();
-            }
-            catch( Throwable t )
-            {
-                throw new Exception( "Can not load model, name=" + className + ", error=" + t );
+                String className = classNames[i];
+                URLClassLoader cl = modelClassLoader( revisionDir, className, getClass().getClassLoader() );
+                try
+                {
+                    result[i] = cl.loadClass( className ).newInstance();
+                }
+                catch( Throwable t )
+                {
+                    throw new Exception( "Can not load model, name=" + className + ", error=" + t );
+                }
             }
         }
+        finally
+        {
+            // The staging directory is consumed (moved) by a successful publish, or still present on
+            // failure; clean it up either way so a successful batch compilation does not leak it.
+            deleteRecursively( stagingDir );
+        }
         return result;
+    }
+
+    /**
+     * Copies the class files belonging to {@code className} (the class plus any nested
+     * {@code className$*.class} files) from the shared {@code outputDir} into a fresh private staging
+     * directory. Used when a model is not recompiled ({@code compile == false}): the class is taken
+     * from its existing location in the shared directory, staged for a consistent immutable snapshot.
+     */
+    private static void stageExistingClasses(File outputDir, String className, File stagingDir) throws IOException
+    {
+        String[] all = outputDir.list( ( d, name ) -> name.endsWith( ".class" ) );
+        if( all != null )
+        {
+            for( String name : all )
+            {
+                if( name.equals( className + ".class" ) || ( name.startsWith( className + "$" ) && name.endsWith( ".class" ) ) )
+                    Files.copy( new File( outputDir, name ).toPath(), new File( stagingDir, name ).toPath(),
+                            StandardCopyOption.REPLACE_EXISTING );
+            }
+        }
+    }
+
+    /**
+     * Replaces the legacy root's class files for {@code className} with exactly the current
+     * compilation's set (the class plus its nested {@code className$*.class} files) from
+     * {@code stagingDir}.
+     *
+     * <p>{@code javac} does not delete a nested {@code .class} file that disappears when the model is
+     * recompiled, so a prior revision's obsolete {@code className$*.class} files would otherwise
+     * linger in the shared root. {@code loadFromExistingRoot} (the {@code compile == false} path)
+     * stages <em>every</em> {@code className$*.class} it finds in the root, so an obsolete helper left
+     * behind would be carried into a new snapshot. To keep the root a faithful, complete, current
+     * representation of the model, this first removes <b>all</b> {@code className$*.class} files from
+     * the root, then copies the current set. The removal is scoped to this model's nested classes
+     * only, so files belonging to other models are untouched.
+     *
+     * <p><b>This must be called while holding {@link #revisionDirLock} for the output directory</b>
+     * (see {@link #publishRevision}), so the remove-then-copy sequence is atomic with respect to any
+     * concurrent compilation of the same output directory.
+     *
+     * <p>Deletion failures are not swallowed: {@link Files#deleteIfExists} propagates its
+     * {@link IOException}, and a {@code null} directory listing is treated as an error, so the method
+     * never reports a successful (exact-set) update while an obsolete class still remains in the root.
+     */
+    private static void copyClassesToRoot(File stagingDir, File outputRoot, String className) throws IOException
+    {
+        // Remove any obsolete nested classes of this model from the root before writing the current
+        // set, so a nested class that disappeared on regeneration cannot survive in the legacy root.
+        // A failed delete (permissions, I/O) propagates rather than being silently ignored, and a
+        // null listing (directory not readable / not a directory) is an error, not a no-op: leaving
+        // the root in an unknown state would contradict the exact-set guarantee.
+        String prefix = className + "$";
+        String[] rootFiles = outputRoot.list( ( d, name ) -> name.startsWith( prefix ) && name.endsWith( ".class" ) );
+        if( rootFiles == null )
+            throw new IOException( "Can not list nested class files in output directory " + outputRoot );
+        for( String name : rootFiles )
+            Files.deleteIfExists( new File( outputRoot, name ).toPath() );
+
+        String[] all = stagingDir.list( ( d, name ) -> name.endsWith( ".class" ) );
+        if( all == null )
+            throw new IOException( "Can not list class files in staging directory " + stagingDir );
+        for( String name : all )
+        {
+            if( name.equals( className + ".class" ) || ( name.startsWith( prefix ) && name.endsWith( ".class" ) ) )
+                Files.copy( new File( stagingDir, name ).toPath(), new File( outputRoot, name ).toPath(),
+                        StandardCopyOption.REPLACE_EXISTING );
+        }
+    }
+
+    /**
+     * Copies every {@code .class} file from the staging directory into the root of the shared output
+     * directory, preserving the legacy contract for batch compilation.
+     */
+    private static void copyAllClassesToRoot(File stagingDir, File outputRoot) throws IOException
+    {
+        String[] all = stagingDir.list( ( d, name ) -> name.endsWith( ".class" ) );
+        if( all != null )
+        {
+            for( String name : all )
+                Files.copy( new File( stagingDir, name ).toPath(), new File( outputRoot, name ).toPath(),
+                        StandardCopyOption.REPLACE_EXISTING );
+        }
     }
 
     protected List<PluginEntry> getClassPathEntries()

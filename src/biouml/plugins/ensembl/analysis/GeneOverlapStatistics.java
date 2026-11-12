@@ -106,9 +106,11 @@ public class GeneOverlapStatistics extends AnalysisMethodSupport<GeneOverlapStat
         for( GeneElementType t : GeneElementType.values() )
         {
             Statistics s = stats.get( t );
-            TableDataCollectionUtils.addRow( overlappinngSites, t.title, new Object[] {s.overlapCount} );
-            TableDataCollectionUtils.addRow( classifiedSites, t.title, new Object[] {s.belongToCount} );
+            TableDataCollectionUtils.addRow( overlappinngSites, t.title, new Object[] {s.overlapCount}, true );
+            TableDataCollectionUtils.addRow( classifiedSites, t.title, new Object[] {s.belongToCount}, true );
         }
+        overlappinngSites.finalizeAddition();
+        classifiedSites.finalizeAddition();
 
         overlappingSitesPath.save( overlappinngSites );
         classifiedSitesPath.save( classifiedSites );

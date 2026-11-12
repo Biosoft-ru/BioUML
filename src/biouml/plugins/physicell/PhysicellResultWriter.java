@@ -182,6 +182,7 @@ public class PhysicellResultWriter
                 String id = suffix = String.format( format, cell.ID );
                 TableDataCollectionUtils.addRow( result, id, model.getReport( cell ), true );
             }
+            result.finalizeAddition();
             subDC.put( result );
         }
     }
@@ -219,8 +220,9 @@ public class PhysicellResultWriter
             {
                 row[3 + j] = m.density[i][j];
             }
-            TableDataCollectionUtils.addRow( tdc, String.valueOf( i ), row );
+            TableDataCollectionUtils.addRow( tdc, String.valueOf( i ), row, true );
         }
+        tdc.finalizeAddition();
     }
 
     private void saveImages(double curTime) throws Exception

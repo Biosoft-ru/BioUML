@@ -119,8 +119,9 @@ public class VisualizerTextTable
                         toString( cell.getRadius() ), toString( cell.phenotype.geometry.getNuclearRadius() ), encodeColor( colors[0] ),
                         encodeColor( colors[1] ), encodeColor( colors[2] ), encodeColor( colors[3] )};
             }
-            TableDataCollectionUtils.addRow( tdc, String.valueOf( cell.ID ), row );
+            TableDataCollectionUtils.addRow( tdc, String.valueOf( cell.ID ), row, true );
         }
+        tdc.finalizeAddition();
         parent.put( tdc );
     }
 

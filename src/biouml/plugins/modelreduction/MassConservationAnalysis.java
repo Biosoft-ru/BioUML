@@ -106,8 +106,9 @@ public class MassConservationAnalysis extends AnalysisMethodSupport<MassConserva
                 }
 
                 String title = resolveVariable(independentSpecies.get(i));
-                TableDataCollectionUtils.addRow(tdc, title, ArrayUtils.toObject(values));
+                TableDataCollectionUtils.addRow(tdc, title, ArrayUtils.toObject(values), true);
             }
+            tdc.finalizeAddition();
         }
         return tdc;
     }
@@ -131,8 +132,9 @@ public class MassConservationAnalysis extends AnalysisMethodSupport<MassConserva
             for( int i = 0; i < stoichiometry.getSize(); ++i )
             {
                 String species = stoichiometry.getName(i);
-                TableDataCollectionUtils.addRow(tdc, resolveVariable(species), ArrayUtils.toObject(matrix[i]));
+                TableDataCollectionUtils.addRow(tdc, resolveVariable(species), ArrayUtils.toObject(matrix[i]), true);
             }
+            tdc.finalizeAddition();
         }
         return tdc;
     }
@@ -174,9 +176,10 @@ public class MassConservationAnalysis extends AnalysisMethodSupport<MassConserva
                     }
 
                     String title = resolveVariable(species);
-                    TableDataCollectionUtils.addRow(tdc, Integer.toString(++id), new Object[] {title, expression.toString(), amount});
+                    TableDataCollectionUtils.addRow(tdc, Integer.toString(++id), new Object[] {title, expression.toString(), amount}, true);
                 }
             }
+            tdc.finalizeAddition();
         }
         return tdc;
     }

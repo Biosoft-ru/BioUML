@@ -82,7 +82,7 @@ public class BuildASiteOffsetTable extends AnalysisMethodSupport<BuildASiteOffse
             final String valueOfTrust = String.valueOf( trust );
 
             final Object[] rowData = {lengthKey, modeOffset, valueOfTrust, histogramChart};
-            TableDataCollectionUtils.addRow( aSiteOffsetTable, Integer.toString( i++ ), rowData );
+            TableDataCollectionUtils.addRow( aSiteOffsetTable, Integer.toString( i++ ), rowData, true );
         }
 
         aSiteOffsetTable.finalizeAddition();

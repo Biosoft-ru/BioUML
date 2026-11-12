@@ -312,8 +312,9 @@ public class MetabolicControlAnalysis extends SteadyStateAnalysis
             for( int i = 0; i < n; ++i )
             {
                 Object[] row = generateRow( resolve( stoichiometry.getColumnModel().getColumn( i ).getName() ), matrix[i] );
-                TableDataCollectionUtils.addRow( tdc, generateID( i ), row );
+                TableDataCollectionUtils.addRow( tdc, generateID( i ), row, true );
             }
+            tdc.finalizeAddition();
         }
         return tdc;
     }
@@ -335,8 +336,9 @@ public class MetabolicControlAnalysis extends SteadyStateAnalysis
         for( int i = 0; i < stoichiometry.getSize(); ++i )
         {
             Object[] row = generateRow( resolve(stoichiometry.getName(i)), matrix[i] );
-            TableDataCollectionUtils.addRow(tdc, generateID(i), row);
+            TableDataCollectionUtils.addRow(tdc, generateID(i), row, true);
         }
+        tdc.finalizeAddition();
         return tdc;
     }
 
@@ -357,8 +359,9 @@ public class MetabolicControlAnalysis extends SteadyStateAnalysis
         for( int i = 0; i < stoichiometry.getColumnModel().getColumnCount(); ++i )
         {
             Object[] row = generateRow( resolve( stoichiometry.getColumnModel().getColumn( i ).getName() ), matrix[i] );
-            TableDataCollectionUtils.addRow( tdc, generateID( i ), row );
+            TableDataCollectionUtils.addRow( tdc, generateID( i ), row, true );
         }
+        tdc.finalizeAddition();
         return tdc;
     }
 

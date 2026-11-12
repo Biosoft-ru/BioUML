@@ -164,8 +164,9 @@ public class ClusterAnalysis extends MicroarrayAnalysis<ClusterAnalysisParameter
             
             Object[] values = IntStreamEx.of( colIndices ).elements( rowValues ).prepend( clusterAssignments[i] ).toArray();
 
-            TableDataCollectionUtils.addRow(result, key, values);
+            TableDataCollectionUtils.addRow(result, key, values, true);
         }
+        result.finalizeAddition();
         return result;
     }
 }

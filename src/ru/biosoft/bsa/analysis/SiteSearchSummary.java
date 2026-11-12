@@ -156,9 +156,10 @@ public class SiteSearchSummary extends AnalysisMethodSupport<SiteSearchSummaryPa
                 {
                 }
             }
-            TableDataCollectionUtils.addRow(resTable, matrix, values);
+            TableDataCollectionUtils.addRow(resTable, matrix, values, true);
             if(jobControl.isStopped()) return;
         }
+        resTable.finalizeAddition();
     }
 
     public class SiteSearchSummaryJobControl extends AnalysisJobControl

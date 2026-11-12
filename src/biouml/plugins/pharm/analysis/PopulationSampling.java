@@ -66,7 +66,8 @@ public class PopulationSampling extends AnalysisMethodSupport<PopulationSampling
         TableDataCollection resultTable = TableDataCollectionUtils.createTableDataCollection(parameters.getResultPath());
         int i = 0;
         for( Patient patient : result )
-            TableDataCollectionUtils.addRow(resultTable, String.valueOf(i++), patient.getValues());
+            TableDataCollectionUtils.addRow(resultTable, String.valueOf(i++), patient.getValues(), true);
+        resultTable.finalizeAddition();
 
         resultTable.getOrigin().put(resultTable);
         return resultTable;

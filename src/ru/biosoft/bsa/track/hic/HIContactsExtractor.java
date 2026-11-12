@@ -100,7 +100,7 @@ public class HIContactsExtractor extends AnalysisMethodSupport<HIContactsExtract
                         //System.out.println( genomeX + " " + genomeY + " " + counts );
 
                         Object[] values = new Object[] { chromosomes[i].getName(), genomeX, genomeX + binSize, chromosomes[j].getName(), genomeY, genomeY + binSize, counts };
-                        TableDataCollectionUtils.addRow( result, record.getKey( norm ), values );
+                        TableDataCollectionUtils.addRow( result, record.getKey( norm ), values, true );
 
                     }
                 }

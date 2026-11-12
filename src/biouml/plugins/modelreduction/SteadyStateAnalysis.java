@@ -450,9 +450,10 @@ public class SteadyStateAnalysis extends AnalysisMethodSupport<SteadyStateAnalys
                 double initialValue = var.getInitialValue();
                 double steadyValue = e.getValue();
                 double diff = Math.abs(initialValue - steadyState.get(name));
-                TableDataCollectionUtils.addRow(table, e.getKey(), new Object[] {initialValue, steadyValue, diff});
+                TableDataCollectionUtils.addRow(table, e.getKey(), new Object[] {initialValue, steadyValue, diff}, true);
             }
         }
+        table.finalizeAddition();
         return table;
     }
 
