@@ -17,6 +17,7 @@ import ru.biosoft.graphics.font.ColorFont;
 import ru.biosoft.physicell.core.Cell;
 import ru.biosoft.physicell.core.CellDefinition;
 import ru.biosoft.physicell.core.Model;
+import ru.biosoft.physicell.covid.ModelCovid;
 import ru.biosoft.physicell.ui.AgentColorer;
 import ru.biosoft.physicell.ui.AgentVisualizer;
 import ru.biosoft.util.DPSUtils;
@@ -107,7 +108,9 @@ public class PhysicellUtil
                 cells.put( "Dendrite cells", c );
             else
                 cells.put( cd.name, c );
-            hack4CovidModel( cd, model, cells );
+            
+            if( model instanceof ModelCovid )//TODO: refactor
+                hack4CovidModel( cd, model, cells );
         }
 
         FontMetrics fm = gTemp.getFontMetrics( font.getFont() );
