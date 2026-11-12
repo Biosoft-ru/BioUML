@@ -15,6 +15,7 @@ import ru.biosoft.bsa.AnnotatedSequence;
 import ru.biosoft.bsa.Sequence;
 import ru.biosoft.bsa.Site;
 import ru.biosoft.bsa.SiteImpl;
+import ru.biosoft.bsa.SqlTrack;
 import ru.biosoft.bsa.StrandType;
 import ru.biosoft.bsa.Track;
 import ru.biosoft.bsa.TrackRegion;
@@ -180,7 +181,9 @@ public class SiteSearchTrackInfo
             this.track = track;
             try
             {
-                allSitesIterator = this.track.getAllSites().iterator();
+                // A full scan of an SQL track must not cache every site read: see SqlTrack.scanAllSites
+                allSitesIterator = this.track instanceof SqlTrack ? ( (SqlTrack)this.track ).scanAllSites()
+                        : this.track.getAllSites().iterator();
             }
             // getAllSites is not supported by this track: use fallback method
             catch(UnsupportedOperationException e)
