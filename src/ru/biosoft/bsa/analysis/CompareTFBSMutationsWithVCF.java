@@ -416,36 +416,113 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
         InverseMapping alt2ref = new InverseMapping( alternative.getInterval(), ref2alt );
         InverseMapping alt2refRC = new InverseMapping( alternativeRC.getInterval(), ref2altRC );
 
+        // This is the hot path of the analysis (every variation x every model). The loss pass scores every reference
+        // window and the alternative windows they map to; the gain pass scores every alternative window and the
+        // reference windows they map to -- i.e. the same scores again. So each window of the four sequences is scored
+        // once per model into a buffer and both passes read from it. The window -> mapped-windows lists depend only on
+        // the mapping and the model length, so they are computed once per distinct length rather than once per model.
+        // getScore and getMinScore are pure, so the deltas are bit-identical to scoring on demand.
+        double[] refScores = new double[reference.getLength()];
+        double[] refRCScores = new double[referenceRC.getLength()];
+        double[] altScores = new double[alternative.getLength()];
+        double[] altRCScores = new double[alternativeRC.getLength()];
+        int[][][] ref2altWindows = new int[maxModelLength + 1][][];
+        int[][][] ref2altRCWindows = new int[maxModelLength + 1][][];
+        int[][][] alt2refWindows = new int[maxModelLength + 1][][];
+        int[][][] alt2refRCWindows = new int[maxModelLength + 1][][];
+
         for( int i = 0; i < siteModels.length; i++ )
         {
             SiteModel model = siteModels[i];
-            float loss = maxSiteLoss( reference, alternative, ref2alt, model );
-            float lossRC = maxSiteLoss( referenceRC, alternativeRC, ref2altRC, model );
+            int length = model.getLength();
+            double minScore = model.getMinScore();
+            int refCount = scoreWindows( model, reference, refScores );
+            int refRCCount = scoreWindows( model, referenceRC, refRCScores );
+            int altCount = scoreWindows( model, alternative, altScores );
+            int altRCCount = scoreWindows( model, alternativeRC, altRCScores );
+
+            if( ref2altWindows[length] == null )
+            {
+                ref2altWindows[length] = mapWindows( reference, ref2alt, length );
+                ref2altRCWindows[length] = mapWindows( referenceRC, ref2altRC, length );
+                alt2refWindows[length] = mapWindows( alternative, alt2ref, length );
+                alt2refRCWindows[length] = mapWindows( alternativeRC, alt2refRC, length );
+            }
+
+            float loss = maxSiteLoss( refScores, refCount, alternative, altScores, altCount, ref2altWindows[length], model, minScore );
+            float lossRC = maxSiteLoss( refRCScores, refRCCount, alternativeRC, altRCScores, altRCCount, ref2altRCWindows[length], model,
+                    minScore );
             resultLosses[i] = Math.max( loss, lossRC );
 
-            float gain = maxSiteLoss( alternative, reference, alt2ref, model );
-            float gainRC = maxSiteLoss( alternativeRC, referenceRC, alt2refRC, model );
+            float gain = maxSiteLoss( altScores, altCount, reference, refScores, refCount, alt2refWindows[length], model, minScore );
+            float gainRC = maxSiteLoss( altRCScores, altRCCount, referenceRC, refRCScores, refRCCount, alt2refRCWindows[length], model,
+                    minScore );
             resultGains[i] = Math.max( gain, gainRC );
         }
     }
 
-    private float maxSiteLoss(Sequence reference, Sequence alternative, CoordinateMapping mapping, SiteModel siteModel)
+    private static final int[] NO_WINDOWS = new int[0];
+
+    /**
+     * Scores every window of the sequence: scores[k] is the score at position sequence.getStart() + k.
+     * @return the number of windows
+     */
+    private static int scoreWindows(SiteModel siteModel, Sequence sequence, double[] scores)
+    {
+        int start = sequence.getStart();
+        int count = Math.max( 0, sequence.getLength() - siteModel.getLength() + 1 );
+        for( int k = 0; k < count; k++ )
+            scores[k] = siteModel.getScore( sequence, start + k );
+        return count;
+    }
+
+    /**
+     * For every window of the given length on the source sequence, the start positions of the windows it maps to.
+     */
+    private static int[][] mapWindows(Sequence source, CoordinateMapping mapping, int length)
+    {
+        int start = source.getStart();
+        int count = Math.max( 0, source.getLength() - length + 1 );
+        int[][] result = new int[count][];
+        for( int k = 0; k < count; k++ )
+        {
+            Collection<Integer> mapped = mapping.mapInterval( new Interval( start + k, start + k + length - 1 ) );
+            if( mapped.isEmpty() )
+            {
+                result[k] = NO_WINDOWS;
+                continue;
+            }
+            int[] positions = new int[mapped.size()];
+            int j = 0;
+            for( Integer pos : mapped )
+                positions[j++] = pos;
+            result[k] = positions;
+        }
+        return result;
+    }
+
+    private static float maxSiteLoss(double[] refScores, int refCount, Sequence alternative, double[] altScores, int altCount,
+            int[][] windows, SiteModel siteModel, double minScore)
     {
         float res = 0;
-        for( int pos = reference.getStart(); pos < reference.getStart() + reference.getLength() - siteModel.getLength() + 1; pos++ )
+        int altStart = alternative.getStart();
+        for( int k = 0; k < refCount; k++ )
         {
-            double refScore = siteModel.getScore( reference, pos );
-            Collection<Integer> altPositions = mapping.mapInterval( new Interval( pos, pos + siteModel.getLength() - 1 ) );
-            if( altPositions.isEmpty() )
+            double refScore = refScores[k];
+            int[] altPositions = windows[k];
+            if( altPositions.length == 0 )
             {
-                float delta = (float) ( refScore - siteModel.getMinScore() );
+                float delta = (float) ( refScore - minScore );
                 if( delta > res )
                     res = delta;
                 continue;
             }
-            for( Integer altPos : altPositions )
+            for( int altPos : altPositions )
             {
-                double altScore = siteModel.getScore( alternative, altPos );
+                int idx = altPos - altStart;
+                // A mapped window can start outside the alternative's window range (e.g. a deletion at the edge of
+                // the region); score it on demand exactly as before instead of reading the buffer.
+                double altScore = idx >= 0 && idx < altCount ? altScores[idx] : siteModel.getScore( alternative, altPos );
                 float delta = (float) (refScore - altScore);
                 if( delta > res )
                     res = delta;
