@@ -436,11 +436,15 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
         // so the per-letter getLetterAt in the scoring loop is megamorphic and costs an itable dispatch plus position
         // translation per letter -- more than half of the scoring time. Plain array-backed copies (same start, length,
         // alphabet and letters) keep that call site monomorphic. Used only for weight-matrix models with a one-letter
-        // code, which read nothing outside the scored window, so their scores are identical.
-        Sequence referenceFlat = flatten( reference );
-        Sequence referenceRCFlat = flatten( referenceRC );
-        Sequence alternativeFlat = flatten( alternative );
-        Sequence alternativeRCFlat = flatten( alternativeRC );
+        // code, which read nothing outside the scored window, so their scores are identical. The copies are made only
+        // when at least one model can use them (with only a few other models they measurably cost more than they save).
+        boolean anyFlat = false;
+        for( SiteModel model : siteModels )
+            anyFlat |= model instanceof WeightMatrixModel && model.getAlphabet().codeLength() == 1;
+        Sequence referenceFlat = anyFlat ? flatten( reference ) : reference;
+        Sequence referenceRCFlat = anyFlat ? flatten( referenceRC ) : referenceRC;
+        Sequence alternativeFlat = anyFlat ? flatten( alternative ) : alternative;
+        Sequence alternativeRCFlat = anyFlat ? flatten( alternativeRC ) : alternativeRC;
 
         for( int i = 0; i < siteModels.length; i++ )
         {
