@@ -2,6 +2,7 @@ package biouml.plugins.physicell.document;
 
 import javax.swing.Action;
 
+import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.repository.RepositoryListener;
 import ru.biosoft.gui.DocumentManager;
@@ -35,11 +36,31 @@ public class RepositoryActionsProvider implements ActionsProvider, RepositoryLis
             initListeners();
         }
 
-        if( obj instanceof PhysicellSimulationResult )
+        if(isPhysiCellResult ( obj ))
         {
             return new Action[] { actionManager.getAction( OpenPhysicellResultAction.KEY ) };
         }
         return null;
+    }
+    
+    private boolean isPhysiCellResult(Object obj)
+    {
+        try
+        {
+            if( obj instanceof DataCollection )
+            {
+                DataCollection dc = (DataCollection)obj;
+                if( dc.contains( "Cells" ) && dc.get( "Cells" ) instanceof DataCollection && dc.contains( "model.txt" ) )
+                {
+                    return true;
+                }
+            }
+        }
+        catch( Exception ex )
+        {
+
+        }
+        return false;
     }
 
     protected void initListeners()
