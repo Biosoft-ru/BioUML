@@ -29,6 +29,7 @@ import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.bsa.AnnotatedSequence;
 import ru.biosoft.bsa.BasicGenomeSelector;
 import ru.biosoft.bsa.Interval;
+import ru.biosoft.bsa.LinearSequence;
 import ru.biosoft.bsa.Sequence;
 import ru.biosoft.bsa.SequenceRegion;
 import ru.biosoft.bsa.Site;
@@ -431,15 +432,29 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
         int[][][] alt2refWindows = new int[maxModelLength + 1][][];
         int[][][] alt2refRCWindows = new int[maxModelLength + 1][][];
 
+        // The four sequences are three different classes (cached region, reverse-complement region, linear sequence),
+        // so the per-letter getLetterAt in the scoring loop is megamorphic and costs an itable dispatch plus position
+        // translation per letter -- more than half of the scoring time. Plain array-backed copies (same start, length,
+        // alphabet and letters) keep that call site monomorphic. Used only for weight-matrix models with a one-letter
+        // code, which read nothing outside the scored window, so their scores are identical. The copies are made only
+        // when at least one model can use them (with only a few other models they measurably cost more than they save).
+        boolean anyFlat = false;
+        for( SiteModel model : siteModels )
+            anyFlat |= model instanceof WeightMatrixModel && model.getAlphabet().codeLength() == 1;
+        Sequence referenceFlat = anyFlat ? flatten( reference ) : reference;
+        Sequence referenceRCFlat = anyFlat ? flatten( referenceRC ) : referenceRC;
+        Sequence alternativeFlat = anyFlat ? flatten( alternative ) : alternative;
+        Sequence alternativeRCFlat = anyFlat ? flatten( alternativeRC ) : alternativeRC;
+
         for( int i = 0; i < siteModels.length; i++ )
         {
             SiteModel model = siteModels[i];
             int length = model.getLength();
-            double minScore = model.getMinScore();
-            int refCount = scoreWindows( model, reference, refScores );
-            int refRCCount = scoreWindows( model, referenceRC, refRCScores );
-            int altCount = scoreWindows( model, alternative, altScores );
-            int altRCCount = scoreWindows( model, alternativeRC, altRCScores );
+            boolean flat = model instanceof WeightMatrixModel && model.getAlphabet().codeLength() == 1;
+            int refCount = scoreWindows( model, flat ? referenceFlat : reference, refScores );
+            int refRCCount = scoreWindows( model, flat ? referenceRCFlat : referenceRC, refRCScores );
+            int altCount = scoreWindows( model, flat ? alternativeFlat : alternative, altScores );
+            int altRCCount = scoreWindows( model, flat ? alternativeRCFlat : alternativeRC, altRCScores );
 
             if( ref2altWindows[length] == null )
             {
@@ -449,19 +464,29 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
                 alt2refRCWindows[length] = mapWindows( alternativeRC, alt2refRC, length );
             }
 
-            float loss = maxSiteLoss( refScores, refCount, alternative, altScores, altCount, ref2altWindows[length], model, minScore );
-            float lossRC = maxSiteLoss( refRCScores, refRCCount, alternativeRC, altRCScores, altRCCount, ref2altRCWindows[length], model,
-                    minScore );
+            float loss = maxSiteLoss( refScores, refCount, alternative, altScores, altCount, ref2altWindows[length], model );
+            float lossRC = maxSiteLoss( refRCScores, refRCCount, alternativeRC, altRCScores, altRCCount, ref2altRCWindows[length],
+                    model );
             resultLosses[i] = Math.max( loss, lossRC );
 
-            float gain = maxSiteLoss( altScores, altCount, reference, refScores, refCount, alt2refWindows[length], model, minScore );
-            float gainRC = maxSiteLoss( altRCScores, altRCCount, referenceRC, refRCScores, refRCCount, alt2refRCWindows[length], model,
-                    minScore );
+            float gain = maxSiteLoss( altScores, altCount, reference, refScores, refCount, alt2refWindows[length], model );
+            float gainRC = maxSiteLoss( altRCScores, altRCCount, referenceRC, refRCScores, refRCCount, alt2refRCWindows[length],
+                    model );
             resultGains[i] = Math.max( gain, gainRC );
         }
     }
 
     private static final int[] NO_WINDOWS = new int[0];
+
+    /** An array-backed copy of the sequence with the same start, length, alphabet and letters. */
+    private static Sequence flatten(Sequence sequence)
+    {
+        int start = sequence.getStart();
+        byte[] letters = new byte[sequence.getLength()];
+        for( int k = 0; k < letters.length; k++ )
+            letters[k] = sequence.getLetterAt( start + k );
+        return new LinearSequence( sequence.getName(), start, letters, sequence.getAlphabet() );
+    }
 
     /**
      * Scores every window of the sequence: scores[k] is the score at position sequence.getStart() + k.
@@ -502,9 +527,12 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
     }
 
     private static float maxSiteLoss(double[] refScores, int refCount, Sequence alternative, double[] altScores, int altCount,
-            int[][] windows, SiteModel siteModel, double minScore)
+            int[][] windows, SiteModel siteModel)
     {
         float res = 0;
+        // getMinScore loops over the whole weight matrix, and it is needed only for a window with no mapped window
+        // (an indel longer than the model), which most variations never have -- so compute it on first use only.
+        double minScore = Double.NaN;
         int altStart = alternative.getStart();
         for( int k = 0; k < refCount; k++ )
         {
@@ -512,6 +540,8 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
             int[] altPositions = windows[k];
             if( altPositions.length == 0 )
             {
+                if( Double.isNaN( minScore ) )
+                    minScore = siteModel.getMinScore();
                 float delta = (float) ( refScore - minScore );
                 if( delta > res )
                     res = delta;
