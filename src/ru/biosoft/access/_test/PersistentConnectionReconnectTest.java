@@ -340,7 +340,12 @@ public class PersistentConnectionReconnectTest extends TestCase
         }
     }
 
-    /** A generated-keys statement on a replaced connection is prepared again with the same overload */
+    /**
+     * A generated-keys statement on a replaced connection is prepared again with the same overload.
+     * Re-preparation is reached only through the Statement methods taking SQL text (execute(String) and the
+     * like), which PersistentStatement retries; JDBC does not allow them on a PreparedStatement, and the real
+     * prepared execution (execute(), executeQuery(), ...) never retries, see testPreparedExecutionIsNotRetried.
+     */
     public void testGeneratedKeysStatementRebindsWithSameOverload() throws Exception
     {
         PersistentConnection conn = (PersistentConnection)SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
@@ -400,6 +405,98 @@ public class PersistentConnectionReconnectTest extends TestCase
         assertEquals( 1, opened.get( 1 ).executedCount.get() );
     }
 
+    /**
+     * Prepared execution is not retried after a connection failure (the statement's effect on the server is
+     * unknown, and its parameters would have to be replayed): the error reaches the caller, nothing runs twice,
+     * and the next statement from the connection works on the replacement connection.
+     */
+    public void testPreparedExecutionIsNotRetried() throws Exception
+    {
+        PersistentConnection conn = (PersistentConnection)SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+        PreparedStatement ps = conn.prepareStatement( "INSERT INTO t VALUES(?)" );
+        ps.setInt( 1, 42 );
+        conn.reconnect( null ); // e.g. another thread's statement failed and replaced the connection
+        try
+        {
+            ps.executeUpdate();
+            fail( "connection failure expected" );
+        }
+        catch( SQLException e )
+        {
+            assertEquals( "08003", e.getSQLState() );
+        }
+        assertEquals( 2, opened.size() );
+        assertEquals( "not re-run on the new connection", 0, opened.get( 1 ).executedCount.get() );
+        ps.close();
+
+        try (PreparedStatement again = conn.prepareStatement( "INSERT INTO t VALUES(?)" ))
+        {
+            again.setInt( 1, 42 );
+            assertEquals( 1, again.executeUpdate() );
+        }
+        assertEquals( 2, opened.size() );
+        assertEquals( 1, opened.get( 1 ).executedCount.get() );
+    }
+
+    /**
+     * A statement stays registered until its JDBC close() has returned: idle validation running meanwhile (here,
+     * from inside that close) must still see it as open and leave the connection alone.
+     */
+    public void testStatementStaysRegisteredUntilClosed() throws Exception
+    {
+        String sql = "SELECT 1";
+        List<StatementCreator> creators = Arrays.asList( c -> c.createStatement(), c -> c.prepareStatement( sql ),
+                c -> c.prepareStatement( sql, Statement.RETURN_GENERATED_KEYS ), c -> c.prepareCall( sql ) );
+        for( int i = 0; i < creators.size(); i++ )
+        {
+            opened.clear();
+            PersistentConnection conn = (PersistentConnection)SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+            Statement st = creators.get( i ).create( conn );
+            FakeConnection first = opened.get( 0 );
+            String what = first.lastCreateSignature;
+            first.dead = true;
+            List<Throwable> errors = new ArrayList<>();
+            first.onStatementClose = () -> {
+                try
+                {
+                    conn.validateIfIdle( -1, 5 );
+                }
+                catch( Throwable t )
+                {
+                    errors.add( t );
+                }
+            };
+
+            st.close();
+
+            assertEquals( what, "[]", errors.toString() );
+            assertEquals( what + ": validated while its JDBC close() was running", 0, first.validations );
+            first.onStatementClose = null;
+            conn.validateIfIdle( -1, 5 );
+            assertEquals( what + ": validated once closed", 2, opened.size() );
+        }
+    }
+
+    /** The column selection of a generated-columns statement is copied: later changes by the caller do not leak into re-preparation */
+    public void testGeneratedColumnsAreCopied() throws Exception
+    {
+        PersistentConnection conn = (PersistentConnection)SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+        int[] indexes = {1};
+        String[] names = {"id"};
+        PreparedStatement byIndex = conn.prepareStatement( "INSERT INTO a VALUES(1)", indexes );
+        PreparedStatement byName = conn.prepareStatement( "INSERT INTO b VALUES(1)", names );
+        indexes[0] = 2;
+        names[0] = "other";
+        conn.reconnect( null );
+
+        byIndex.execute( "SELECT 1" ); // re-prepares on the new connection (see testGeneratedKeysStatementRebindsWithSameOverload)
+        assertEquals( "[INSERT INTO a VALUES(1), [1]]", opened.get( 1 ).lastCreateArgs );
+        byName.execute( "SELECT 1" );
+        assertEquals( "[INSERT INTO b VALUES(1), [id]]", opened.get( 1 ).lastCreateArgs );
+        byIndex.close();
+        byName.close();
+    }
+
     @FunctionalInterface
     interface IndexedTask
     {
@@ -450,6 +547,10 @@ public class PersistentConnectionReconnectTest extends TestCase
         volatile int validations;
         /** e.g. "prepareStatement[class java.lang.String, int]" */
         volatile String lastCreateSignature;
+        /** e.g. "[INSERT ..., [1]]" */
+        volatile String lastCreateArgs;
+        /** runs inside the JDBC close() of every statement of this connection, before it returns */
+        volatile Runnable onStatementClose;
         int executed;
 
         @Override
@@ -480,6 +581,7 @@ public class PersistentConnectionReconnectTest extends TestCase
                     checkOpen();
                     statementsCreated.incrementAndGet();
                     lastCreateSignature = method.getName() + Arrays.toString( method.getParameterTypes() );
+                    lastCreateArgs = Arrays.deepToString( args );
                     Class<?> type = method.getName().equals( "createStatement" ) ? Statement.class
                             : method.getName().equals( "prepareCall" ) ? CallableStatement.class : PreparedStatement.class;
                     return Proxy.newProxyInstance( getClass().getClassLoader(), new Class<?>[] {type}, (p, m, a) -> statement( m ) );
@@ -498,7 +600,14 @@ public class PersistentConnectionReconnectTest extends TestCase
         {
             switch( m.getName() )
             {
+                case "close":
+                    Runnable hook = onStatementClose;
+                    if( hook != null )
+                        hook.run();
+                    return null;
                 case "execute":
+                case "executeQuery":
+                case "executeUpdate":
                     CyclicBarrier barrier = executeBarrier;
                     if( barrier != null )
                         barrier.await( 10, TimeUnit.SECONDS );
@@ -512,7 +621,7 @@ public class PersistentConnectionReconnectTest extends TestCase
                         throw e;
                     }
                     executed = executedCount.incrementAndGet();
-                    return true;
+                    return m.getReturnType() == boolean.class ? (Object)true : m.getReturnType() == int.class ? (Object)1 : null;
                 case "toString":
                     return "FakeStatement";
                 default:
