@@ -34,9 +34,6 @@ final class TrackedCallableStatement
                             return "TrackedCallableStatement: " + statement;
                         case "getConnection":
                             return conn;
-                        case "close":
-                            conn.releaseStatement( (CallableStatement)proxy );
-                            break;
                         default:
                             break;
                     }
@@ -48,6 +45,13 @@ final class TrackedCallableStatement
                     catch( InvocationTargetException e )
                     {
                         throw e.getCause();
+                    }
+                    finally
+                    {
+                        // unregistered only after the JDBC statement is closed: until then idle validation must
+                        // still see it as open
+                        if( method.getName().equals( "close" ) )
+                            conn.releaseStatement( (CallableStatement)proxy );
                     }
                 } );
         conn.addStatement( tracked );

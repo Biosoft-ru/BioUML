@@ -461,14 +461,16 @@ public class PersistentConnection implements Connection
     public PreparedStatement prepareStatement(String arg0, int[] arg1) throws SQLException
     {
         touch();
-        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, c2 -> c2.prepareStatement(arg0, arg1)) );
+        int[] columns = arg1 == null ? null : arg1.clone(); // re-preparing after a reconnect must not see later changes
+        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, c2 -> c2.prepareStatement(arg0, columns)) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0, String[] arg1) throws SQLException
     {
         touch();
-        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, c2 -> c2.prepareStatement(arg0, arg1)) );
+        String[] columns = arg1 == null ? null : arg1.clone(); // re-preparing after a reconnect must not see later changes
+        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, c2 -> c2.prepareStatement(arg0, columns)) );
     }
 
     @Override

@@ -78,8 +78,15 @@ public class PersistentStatement implements Statement
     public void close() throws SQLException
     {
         conn.touch();
-        this.conn.releaseStatement(this);
-        parent.close();
+        // unregistered only after the JDBC statement is closed: until then idle validation must still see it as open
+        try
+        {
+            parent.close();
+        }
+        finally
+        {
+            this.conn.releaseStatement(this);
+        }
     }
 
     @Override
