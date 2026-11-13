@@ -104,7 +104,8 @@ public class McpGuidesTest extends TestCase
 				assertTrue( file + ": bad entry line: " + line, colon > 0 );
 				String kind = line.substring( 3, colon ).trim();
 				assertTrue( file + ": unknown kind in: " + line,
-						McpGuides.ANALYSIS.equals( kind ) || McpGuides.WORKFLOW.equals( kind ) || McpGuides.TOPIC.equals( kind ) );
+						McpGuides.ANALYSIS.equals( kind ) || McpGuides.WORKFLOW.equals( kind ) || McpGuides.TOPIC.equals( kind )
+								|| McpGuides.PARAMETERS.equals( kind ) );
 				String names = McpGuides.TOPIC.equals( kind ) ? line.substring( colon + 1 ).split( "\\|" )[0] : line.substring( colon + 1 );
 				for ( String name : names.split( "\\|\\|" ) )
 					assertTrue( file + ": described twice: " + kind + " " + name.trim(),
@@ -148,6 +149,86 @@ public class McpGuidesTest extends TestCase
 		McpEnvelope missing = McpAnalysisSupport.guide( "no-such-topic" );
 		assertFalse( missing.isOk() );
 		assertEquals( McpConstants.CODE_NOT_FOUND, missing.getCode() );
+	}
+
+	public void testSaysNothing()
+	{
+		assertTrue( McpGuides.saysNothing( null, "promoterFrom", "Promoter from" ) );
+		assertTrue( McpGuides.saysNothing( " ", "promoterFrom", "Promoter from" ) );
+		assertTrue( "repeats the display name", McpGuides.saysNothing( "Promoter from", "expertSettings/promoterFrom", "Promoter from" ) );
+		assertTrue( "repeats the key", McpGuides.saysNothing( "namesDescription", "group/namesDescription", null ) );
+		assertFalse( McpGuides.saysNothing( "Start of the promoter relative to the TSS", "promoterFrom", "Promoter from" ) );
+	}
+
+	/** Guides describe the parameters the analysis leaves undescribed, and add a hint to the others. */
+	public void testDescribeParameters() throws Exception
+	{
+		File dir = TempFiles.dir( "mcpGuidesParams" );
+		try
+		{
+			File folder = new File( dir, "analysis-guides" );
+			assertTrue( folder.mkdirs() );
+			Files.write( new File( folder, "site.txt" ).toPath(), ( "== analysis: Site analysis\nsummary: Ours.\n"
+					+ "param cutoff: Scores below it are dropped;\n  0.05 is usual.\n"
+					+ "param settings/window: The window.\n"
+					+ "param items/name: An item.\n"
+					+ "param steps/Trim low quality/limit: With spaces.\n"
+					+ "param described: More about it.\n"
+					+ "== parameters: ours\nparam outputFolder: Where results go.\nparam cutoff: Not used: the analysis has its own.\n" )
+							.getBytes( StandardCharsets.UTF_8 ) );
+			System.setProperty( McpPerspectiveSupport.GUIDES_PROPERTY, dir.getPath() );
+			List<Map<String, Object>> properties = new java.util.ArrayList<Map<String, Object>>();
+			properties.add( property( "cutoff", "Cutoff", "Cutoff" ) );
+			properties.add( property( "settings/window", "Window", null ) );
+			properties.add( property( "items/0/name", "Name", "" ) );
+			properties.add( property( "steps/Trim low quality/limit", "Limit", "Limit" ) );
+			properties.add( property( "described", "Described", "The analysis says what it is." ) );
+			properties.add( property( "nested/outputFolder", "Output folder", "Output folder" ) );
+			properties.add( property( "unknown", "Unknown", "Unknown" ) );
+			McpGuides.describeParameters( McpGuides.analysis( "Site analysis" ), properties );
+			assertEquals( "Scores below it are dropped; 0.05 is usual.", properties.get( 0 ).get( "description" ) );
+			assertEquals( "The window.", properties.get( 1 ).get( "description" ) );
+			assertEquals( "an array item, by its key without the index", "An item.", properties.get( 2 ).get( "description" ) );
+			assertEquals( "With spaces.", properties.get( 3 ).get( "description" ) );
+			assertEquals( "a declared description is kept", "The analysis says what it is.", properties.get( 4 ).get( "description" ) );
+			assertEquals( "More about it.", properties.get( 4 ).get( "hint" ) );
+			assertEquals( "by the last part of the key, from the common entries", "Where results go.", properties.get( 5 ).get( "description" ) );
+			assertEquals( "Unknown", properties.get( 6 ).get( "description" ) );
+			assertNull( properties.get( 0 ).get( "hint" ) );
+
+			// without a guide of the analysis only the common entries apply
+			List<Map<String, Object>> other = new java.util.ArrayList<Map<String, Object>>();
+			other.add( property( "cutoff", "Cutoff", "Cutoff" ) );
+			McpGuides.describeParameters( null, other );
+			assertEquals( "Not used: the analysis has its own.", other.get( 0 ).get( "description" ) );
+		}
+		finally
+		{
+			System.clearProperty( McpPerspectiveSupport.GUIDES_PROPERTY );
+			deleteAll( dir );
+		}
+	}
+
+	/** The bundled guides describe parameters too. */
+	public void testBundledParameters()
+	{
+		List<Map<String, Object>> properties = new java.util.ArrayList<Map<String, Object>>();
+		properties.add( property( "topCount", "Top max count", "Top max count" ) );
+		properties.add( property( "outputTable", "Output table", "Output table" ) );
+		McpGuides.describeParameters( McpGuides.analysis( "Select top rows" ), properties );
+		for ( Map<String, Object> property : properties )
+			assertFalse( "described: " + property.get( "name" ),
+					McpGuides.saysNothing( (String) property.get( "description" ), (String) property.get( "name" ), property.get( "displayName" ) ) );
+	}
+
+	private static Map<String, Object> property( String name, String displayName, String description )
+	{
+		Map<String, Object> property = new java.util.LinkedHashMap<String, Object>();
+		property.put( "name", name );
+		property.put( "displayName", displayName );
+		if ( description != null )
+			property.put( "description", description );
+		return property;
 	}
 
 	/** A server's own guide folder adds entries and replaces bundled ones; removing it restores them. */

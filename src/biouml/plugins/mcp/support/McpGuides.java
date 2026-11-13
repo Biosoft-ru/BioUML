@@ -40,6 +40,8 @@ import java.util.logging.Logger;
  * output: what it produces and how to read it
  * next: what usually follows
  * tips: pitfalls
+ * param inputTable: what this parameter means and which values make sense
+ * param expertSettings/cutoff: a nested parameter, by its key
  *
  * == workflow: Common/Explain my genes || Common/Another workflow sharing this entry
  * summary: ...
@@ -47,10 +49,18 @@ import java.util.logging.Logger;
  * == topic: gene-list | I have a list of genes
  * summary: one line, shown in the topic list
  * free text: the body of the topic
+ *
+ * == parameters: common
+ * param outputTable: for a parameter of this name in any analysis whose own description says nothing
  * </pre>
  *
  * <p>A line that does not start with a field name continues the field above it. A workflow is named by its path
  * below the workflows root ({@code folder/name}) or by its name alone.</p>
+ *
+ * <p>A {@code param} line describes a parameter for an agent where the analysis itself does not: many declare
+ * a description that is empty or repeats the parameter's name ("Promoter from"). The parameter is named by its
+ * key as biouml_analysis_describe lists it, or by the last part of the key; the index of an array item is left
+ * out ({@code conditions/condition}). See {@link #describeParameters}.</p>
  */
 public final class McpGuides
 {
@@ -59,6 +69,9 @@ public final class McpGuides
 	public static final String ANALYSIS = "analysis";
 	public static final String WORKFLOW = "workflow";
 	public static final String TOPIC = "topic";
+	/** An entry whose {@code param} lines hold for the parameters of that name of every analysis and workflow. */
+	public static final String PARAMETERS = "parameters";
+	private static final String PARAM = "param ";
 
 	/** The fields of an analysis or workflow guide, in the order they are returned. */
 	public static final List<String> FIELDS = Collections.unmodifiableList( Arrays.asList( "summary", "use", "input", "output", "next", "tips" ) );
@@ -79,6 +92,7 @@ public final class McpGuides
 		/** The title of a topic; null otherwise. */
 		public final String title;
 		private final Map<String, String> fields = new LinkedHashMap<String, String>();
+		private Map<String, String> params = new LinkedHashMap<String, String>();
 		private final StringBuilder body = new StringBuilder();
 
 		Guide( String kind, String name, String title )
@@ -121,6 +135,7 @@ public final class McpGuides
 	{
 		final Map<String, Map<String, Guide>> byKind = new LinkedHashMap<String, Map<String, Guide>>();
 		final List<Guide> topics = new ArrayList<Guide>();
+		final Map<String, String> commonParams = new LinkedHashMap<String, String>();
 		long stamp;
 		String dir;
 
@@ -180,6 +195,62 @@ public final class McpGuides
 	public static Guide topic( String id )
 	{
 		return id == null ? null : guides( TOPIC ).get( key( id ) );
+	}
+
+	/**
+	 * Describe parameters for an agent, in place. A parameter the guide of its analysis or workflow describes gets
+	 * that text: as its {@code description} when the declared one says nothing (it is missing or repeats the
+	 * parameter's name), otherwise beside it as {@code hint}. A parameter that is still undescribed gets the text
+	 * the {@value #PARAMETERS} entries give for its name, if any.
+	 * @param guide the guide of the analysis or workflow, or null
+	 * @param properties the parameters as biouml_analysis_describe lists them: maps with name, displayName, description
+	 */
+	public static void describeParameters( Guide guide, List<Map<String, Object>> properties )
+	{
+		Map<String, String> common = load().commonParams;
+		for ( Map<String, Object> property : properties )
+		{
+			Object name = property.get( "name" );
+			if ( !( name instanceof String ) )
+				continue;
+			String declared = property.get( "description" ) instanceof String ? (String) property.get( "description" ) : null;
+			boolean vague = saysNothing( declared, (String) name, property.get( "displayName" ) );
+			String own = guide == null ? null : lookup( guide.params, (String) name );
+			if ( own != null && !vague )
+				property.put( "hint", own );
+			else if ( own != null )
+				property.put( "description", own );
+			else if ( vague && lookup( common, (String) name ) != null )
+				property.put( "description", lookup( common, (String) name ) );
+		}
+	}
+
+	/** The text for a parameter key: by the key, by the key without array indexes, by its last part. */
+	private static String lookup( Map<String, String> params, String key )
+	{
+		if ( params.isEmpty() )
+			return null;
+		String text = params.get( key );
+		if ( text != null )
+			return text;
+		String plain = key.replaceAll( "/\\d+(?=/|$)", "" );
+		text = params.get( plain );
+		return text != null ? text : params.get( plain.substring( plain.lastIndexOf( '/' ) + 1 ) );
+	}
+
+	/** Whether a declared description tells no more than the name of the parameter does. */
+	public static boolean saysNothing( String description, String key, Object displayName )
+	{
+		String text = letters( description );
+		if ( text.isEmpty() )
+			return true;
+		String name = key.substring( key.lastIndexOf( '/' ) + 1 );
+		return text.equals( letters( name ) ) || text.equals( letters( displayName == null ? null : displayName.toString() ) );
+	}
+
+	private static String letters( String text )
+	{
+		return text == null ? "" : text.toLowerCase( Locale.ENGLISH ).replaceAll( "[^a-z0-9]+", "" );
 	}
 
 	/** Whether all {@code words} (lower-cased) occur in the guide or in {@code more} (lower-cased text about the same thing). */
@@ -312,8 +383,14 @@ public final class McpGuides
 					continue;
 				String kind = line.substring( ENTRY.length(), colon ).trim().toLowerCase( Locale.ENGLISH );
 				String rest = line.substring( colon + 1 ).trim();
-				if ( rest.isEmpty() || !( ANALYSIS.equals( kind ) || WORKFLOW.equals( kind ) || TOPIC.equals( kind ) ) )
+				if ( rest.isEmpty() || !( ANALYSIS.equals( kind ) || WORKFLOW.equals( kind ) || TOPIC.equals( kind ) || PARAMETERS.equals( kind ) ) )
 					continue;
+				if ( PARAMETERS.equals( kind ) )
+				{
+					guide = new Guide( kind, rest, null );
+					guide.params = into.commonParams; // straight into the shared map: a later file replaces a name
+					continue;
+				}
 				if ( TOPIC.equals( kind ) )
 				{
 					int bar = rest.indexOf( '|' );
@@ -337,7 +414,19 @@ public final class McpGuides
 			if ( guide == null )
 				continue;
 			String name = fieldName( line, guide );
-			if ( name != null )
+			String param = name == null ? paramName( line, guide ) : null;
+			if ( param != null )
+			{
+				field = PARAM + param;
+				guide.params.put( param, line.substring( line.indexOf( ':' ) + 1 ).trim() );
+			}
+			else if ( name == null && field != null && field.startsWith( PARAM ) && !TOPIC.equals( guide.kind ) )
+			{
+				String key = field.substring( PARAM.length() );
+				if ( !line.trim().isEmpty() )
+					guide.params.put( key, ( guide.params.get( key ) + " " + line.trim() ).trim() );
+			}
+			else if ( name != null )
 			{
 				field = name;
 				guide.fields.put( field, line.substring( name.length() + 1 ).trim() );
@@ -350,6 +439,16 @@ public final class McpGuides
 			else if ( field != null && !line.trim().isEmpty() )
 				guide.fields.put( field, ( guide.fields.get( field ) + " " + line.trim() ).trim() );
 		}
+	}
+
+	/** The parameter a line describes ("param inputTable: ..."), or null; a topic has none. */
+	private static String paramName( String line, Guide guide )
+	{
+		if ( TOPIC.equals( guide.kind ) || !line.startsWith( PARAM ) )
+			return null;
+		int colon = line.indexOf( ':' );
+		String name = colon < 0 ? "" : line.substring( PARAM.length(), colon ).trim();
+		return name.isEmpty() ? null : name; // a key may have spaces: 'taskProcessorsDPS/Trim low quality/...'
 	}
 
 	/** The field a line starts ("use: ..."), or null; a topic has only a summary, the rest is its body. */

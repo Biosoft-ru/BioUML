@@ -341,6 +341,7 @@ public final class McpAnalysisSupport
 				List<Map<String, Object>> props = new ArrayList<Map<String, Object>>();
 				String lowerFilter = filter == null || filter.isEmpty() ? null : filter.toLowerCase( java.util.Locale.ENGLISH );
 				collectProperties( ComponentFactory.getModel( bean, ComponentFactory.Policy.DEFAULT, true ), "", props, lowerFilter, 0 );
+				McpGuides.describeParameters( McpGuides.analysis( name ), props );
 				if ( only != null && !only.isEmpty() )
 				{
 					props.removeIf( p -> only.stream().noneMatch( n -> p.get( "name" ).equals( n ) || ( (String) p.get( "name" ) ).startsWith( n + "/" ) ) );
