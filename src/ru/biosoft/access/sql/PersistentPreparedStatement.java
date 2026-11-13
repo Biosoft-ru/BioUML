@@ -7,6 +7,7 @@ import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.Connection;
 import java.sql.Date;
 import java.sql.NClob;
 import java.sql.ParameterMetaData;
@@ -29,19 +30,22 @@ public class PersistentPreparedStatement extends PersistentStatement implements 
     @Override
     void reconnect(SQLException ex) throws SQLException
     {
-        reconnectOrRebind(ex);
-        preparedStatement = originalConnection.prepareStatement(query, type, concurrency, holdability);
+        preparedStatement = conn.reconnectIfCurrent(originalConnection, ex, c -> {
+            originalConnection = c;
+            return c.prepareStatement(query, type, concurrency, holdability);
+        });
         parent = preparedStatement;
     }
     
-    PersistentPreparedStatement(PersistentConnection conn, String query, int type, int concurrency, int holdability) throws SQLException
+    /** @param original the wrapped connection to create it on; called under the connection's replacement lock */
+    PersistentPreparedStatement(PersistentConnection conn, Connection original, String query, int type, int concurrency, int holdability) throws SQLException
     {
         this.conn = conn;
         this.type = type;
         this.concurrency = concurrency;
         this.holdability = holdability;
         this.query = query;
-        this.originalConnection = conn.getOriginalConnection();
+        this.originalConnection = original;
         preparedStatement = originalConnection.prepareStatement(query, type, concurrency, holdability);
         parent = preparedStatement;
         this.conn.addStatement(this);
