@@ -1,0 +1,657 @@
+# Guides for the analyses and workflows of the geneXplain platform (TRANSFAC, TRANSPATH, HumanPSD, GTRD,
+# GeneWays, Genome Enhancer), written for agents that help a user who is not a bioinformatician.
+# Format: see McpGuides. This file is specific to geneXplain servers; the generic guides are in biouml.txt.
+
+# ============================================================================ research topics
+
+== topic: gene-list | I have a list of genes: what do they do and what controls them?
+summary: From a gene list (e.g. changed genes, a signature from a paper) to functions and pathways, the transcription factors behind it, master regulators and drug targets.
+Start: the list must be a table whose row ids are genes. Any id type will do (symbols, Ensembl, Entrez, UniProt, probes): the workflows below convert it themselves; single analyses need Ensembl ids ('Convert table'). Ask for the species if the table does not say.
+
+1. What do the genes do? Workflow 'Mapping to ontologies (Gene table)' (Common): GO biological process, cellular component, molecular function, Reactome, HumanCyc and transcription factor classes in one run. With a HumanPSD or TRANSPATH licence the workflows of the same name in the HumanPSD and TRANSPATH folders add diseases and signalling pathways. One classification only: 'Mapping to ontology - select a classification (Gene table)', or the analysis 'Functional classification'. Report the top categories by adjusted p-value with their genes.
+2. Which transcription factors control them? Workflow 'Identify enriched motifs in promoters (TRANSFAC(R))' (or the GTRD one without a TRANSFAC licence): it searches the promoters of the genes for binding motifs enriched against a background of housekeeping genes and returns the motifs and the factors that bind them. See topic promoter-analysis.
+3. What is upstream of all this? Workflow 'Find master regulators in networks (TRANSPATH(R))' (GeneWays variant without a TRANSPATH licence) finds the signalling molecules that reach many of the genes' products. The combined, usually preferred route is 'Upstream analysis (TRANSFAC(R) and TRANSPATH(R))': enriched transcription factors first, then the master regulators above them. See topic master-regulators.
+4. Shown as a picture: the workflows above save a network diagram of the top master regulator; biouml_diagram_image draws it; 'Add expression values' colours it by the user's data.
+One-call overview: workflow 'Explain my genes' (Common) does a compact version of step 3.
+With a ranked list of all measured genes (not a cut-off list) use 'Gene set enrichment analysis (Gene table)' instead of step 1.
+Lists of fewer than about 20 genes give weak statistics in steps 1 and 2; more than about 3000 dilute the signal: say so and offer to tighten or loosen the cutoff.
+
+== topic: expression-table | I have an expression table: which genes differ between my groups?
+summary: Differential expression from a table of normalized values or raw counts, quality checks, and the gene lists to carry on with.
+Look at the table first (biouml_analysis_get_result): which columns are samples, which group each belongs to, whether values are raw counts (integers), log2 values, or linear intensities. Ask the user for the groups if the column names do not tell.
+
+Quality check before statistics: 'PCA' (samples of a group should lie together; an outlier or a batch effect shows here), 'Normalization quality plots' (the value distributions of the samples should look alike), 'Heatmap' of the most variable genes ('Variance filter' first).
+
+Differential expression:
+- Two or more groups, replicates in each: analysis 'Limma' (groups given as lists of sample columns; inputLogarithmBase says what the values are) or workflow 'Compute differentially expressed genes using Limma', which also converts ids and splits up- and down-regulated genes.
+- Design described by a sample annotation table (several factors, batches, paired samples), or raw RNA-seq counts: 'Guided linear model analysis' (inputType 'Raw counts' applies voom) or workflow 'Estimate DEGs with guided linear model analysis'.
+- Raw counts, two groups: also 'Differential expression with DESeq'.
+- No replicates: only 'Fold-Change calculation' is possible; say plainly that there is no statistical test.
+Result columns of Limma-style tables: logFC (log2 fold change; positive = higher in the first group), P.Value, adj.P.Val (use this one), AveExpr.
+
+Then make the gene lists: 'Filter table', commonly adj.P.Val < 0.05 and logFC > 1 (up) or < -1 (down); state the cutoffs and the counts. Draw a 'Volcano plot'. Continue with topic gene-list for the up and down lists separately, and use 'Enrichment analysis' on the whole table ranked by logFC.
+
+== topic: microarray-raw | I have raw microarray files (Affymetrix CEL, Agilent, Illumina)
+summary: Import, normalize and compare raw microarray files.
+Import the files into the project (a ZIP of them with the matching format: 'Affymetrix CEL file (*.cel)', 'Agilent microarray file (*.txt)', 'Illumina microarray file (*.txt)'). Normalize experiment and control together: 'Normalize Affymetrix experiment and control' (RMA is a good default method), 'Normalize Agilent experiment and control', 'Normalize Illumina experiment and control'; they give one normalized table per group with probe ids as rows. Then workflow 'Compute differentially expressed genes (Affymetrix probes)' (or the Agilent / Illumina one): it computes fold changes and up/down statistics, converts probes to Ensembl genes, annotates and returns up-regulated, down-regulated and unchanged gene tables. Continue with topic gene-list. More than two groups: normalize all files in one go ('Affymetrix normalization' etc.) and use topic expression-table.
+
+== topic: rna-seq-raw | I have RNA-seq reads (FASTQ) or alignments (BAM)
+summary: From FASTQ or BAM files to gene counts and differentially expressed genes with the ready-made RNA-seq workflows.
+These workflows run external tools (HISAT2 or Subread for alignment, featureCounts or htseq-count for counting, limma-voom for statistics) and take from tens of minutes to many hours: start, then poll biouml_task with growing intervals.
+- FASTQ, experiment against control, human: 'Full RNAseq analysis with HISAT2, featureCounts and limma (single-end)' or '(paired-end)' — alignment, counts and differential expression in one run. The Subread and htseq-count variants do the same with other tools; there is no reason to prefer them unless the user asks.
+- FASTQ to counts only: 'RNAseq analysis with HISAT2 (single-end)' / '(paired-end)'.
+- BAM files: 'From multiple BAM files to gene counts', or 'Analyze multiple BAM files to detect DEGs' for experiment against control.
+- Reads in SRA format: 'SRA to FASTQ' first.
+- Variants from RNA-seq or genome sequencing: 'Find genome variants and indels from RNA-seq_hg38 (single-end)', 'Find genome variants and indels from full-genome NGS_hg38' (hg19 variants exist too).
+Ask whether reads are single- or paired-end and which genome build is wanted. A count table from elsewhere: go to topic expression-table. Quality of the reads: 'Track statistics'; cleaning: 'Preprocess raw reads'.
+
+== topic: promoter-analysis | Which transcription factors regulate my genes?
+summary: Enriched binding motifs and motif combinations (composite modules) in the promoters of a gene set; choice of background, profile and promoter window.
+Idea: genes that change together often share binding sites of the same transcription factors in their promoters. The analysis counts predicted sites of each known motif in the promoters of the study genes (Yes set) and of background genes (No set) and reports the motifs that are more frequent in the Yes set.
+
+Shortest way: workflow 'Identify enriched motifs in promoters (TRANSFAC(R))' — input the gene table; defaults: promoters from -1000 to +100 around the transcription start, background 'data/Public/Data sets/Data/Housekeeping genes (<species>) 300', the non-redundant vertebrate TRANSFAC profile. It returns the enriched motifs with their statistics, the transcription factors (as Ensembl genes) that bind them, and a profile of the enriched motifs. 'Identify enriched motifs in promoters (GTRD)' does the same with the freely available GTRD motif collection.
+Better background when available: genes measured in the same experiment that did not change (the 'unchanged' table of a differential expression workflow), of similar number or more than the Yes set.
+The analysis behind it: 'Search for enriched TFBSs (genes)'; output columns: adjusted fold enrichment of sites (Adj. site FE) and of sequences with sites, and their FDRs — report motifs with FE clearly above 1 and FDR below 0.05.
+
+Combinations of factors: transcription factors act in groups. 'Identify enriched composite modules in promoters (TRANSFAC(R))' (or GTRD) adds a search (genetic algorithm, slower) for the combination of motifs that best separates the Yes from the No promoters — the composite module — and the factors in it.
+Tissue or cell specific promoters (CAGE-based start sites): 'Identify enriched motifs in tissue specific promoters (TRANSFAC(R))' / 'cell specific'.
+Another species with poor annotation: 'Cross-species identification of enriched motifs in promoters, using orthologue information (TRANSFAC(R))'.
+Regions rather than genes (peaks, enhancers): topic chip-seq. The user's own DNA sequence: 'Analyze any DNA sequence (TRANSFAC(R))' or '(GTRD)'.
+
+Tell the user: these are predictions from sequence; a motif usually stands for a family of related factors; the natural next question — what activates these factors — is topic master-regulators.
+
+== topic: master-regulators | What is the upstream cause? Master regulators and drug targets in signalling networks
+summary: Upstream analysis: from genes to their transcription factors and on to the master regulators in the signalling network; effectors downstream; drug target ideas.
+Idea (upstream analysis): changed genes are the end of a signalling cascade. Step 1 finds the transcription factors that explain the expression change (topic promoter-analysis); step 2 searches the signalling network (TRANSPATH, or the free GeneWays network) upstream of these factors for molecules — receptors, kinases, adaptors — from which the signal can reach many of them within a few reaction steps. Such master regulators are candidate causes of the observed state and candidate intervention points.
+
+- Both steps in one run: workflow 'Upstream analysis (TRANSFAC(R) and TRANSPATH(R))' (input: gene table; background: housekeeping genes by default). 'Enriched upstream analysis (TRANSFAC(R) and TRANSPATH(R))' uses the stricter enrichment-based motif search of 'Identify enriched motifs in promoters' for step 1 and is the better default. Without a TRANSPATH licence: 'Upstream analysis (TRANSFAC(R) and GeneWays)'.
+- Step 2 alone, starting from any gene or protein list (e.g. transcription factors already known, or the changed genes themselves): 'Find master regulators in networks (TRANSPATH(R))' or '(GeneWays)'. Variants: 'TF only' restricts regulators to transcription factors; 'with context genes' favours regulators consistent with a second gene list (e.g. all expressed genes); 'and weighting' uses a numeric column (e.g. fold change) as weights; 'Find 10 master regulators' searches further upstream (up to 10 steps). Several gene lists at once: 'Find master regulators for multiple gene sets'.
+- The other direction — what do my molecules act on (downstream)? 'Find common effectors in networks (TRANSPATH(R))' / '(GeneWays)'.
+- With feedback: 'Upstream analysis with feedback loop' keeps master regulators whose own gene is changed in the data; 'Search for self-regulating transcription factors'.
+The analyses behind the workflows: 'Regulator search' (upstream), 'Effector search' (downstream), then 'Visualize results' (network diagram of a chosen regulator), 'Save hits', 'Save network'.
+
+Reading the result table: one row per candidate regulator; Score (higher is better: reaches more input molecules in fewer steps), FDR and Z-score (specificity against random inputs; keep FDR below 0.05), 'Reached from set' / hits (how many input molecules it reaches) and the radius. Report the top regulators with their gene symbols and what they are (receptor, kinase, ...), and draw the network of the best one (the workflows save it; biouml_diagram_image). Colour it with 'Add expression values'.
+Drug targets and drugs for the regulators found: topic drug-targets.
+Caveats to state: the network is literature knowledge, not specific to the user's tissue; a master regulator is a hypothesis to test, strongest when it is itself changed in the data or known in the disease.
+
+== topic: chip-seq | I have ChIP-seq (or ATAC-seq) peaks: target genes, motifs, co-factors
+summary: From a peak track to target genes and their functions, the motifs in the peaks, and motif combinations; peak calling from alignments.
+Input: a track of peaks (import BED with the right genome build). From aligned reads call peaks first: 'Run MACS 1_4_0 on ChiP-Seq'.
+- Target genes and what they do: workflow 'ChIP-Seq - Identify and classify target genes' (Common; HumanPSD and TRANSPATH variants add diseases and pathways): genes near the peaks ('Track to gene set'), functional classification, and a network cluster of the targets.
+- Which factors bind in the peaks: 'ChIP-Seq - Identify TF binding sites on peaks (TRANSFAC(R))' (known motifs enriched in the peaks against background regions), or 'Identify enriched motifs in tracks (TRANSFAC(R))', which builds a random genomic background itself and adds a MEALR model of motif combinations. The top motif should be the immunoprecipitated factor; the others are candidate co-factors.
+- Combinations: 'ChIP-Seq - Identify composite modules on peaks (TRANSFAC(R))'.
+- A new motif not in the databases: 'ChIPMunk' (one motif) or 'ChIPHorde' (several) on the top peaks shrunk around their summits ('Process track with sites').
+- Several peak sets: 'ChIP-Seq - Identify TF binding sites on peaks for multiple datasets (TRANSFAC(R))'; overlaps with 'Filter one track by another' or 'Intersect tracks'.
+For motif analysis use narrow regions (about 100-300 bp around summits) and, for very large peak sets, the strongest few thousand peaks.
+
+== topic: variants | I have variants (VCF, SNP list): which matter and how?
+summary: Regulatory and coding effects of variants, the genes and pathways affected, variants in binding sites, and the route to personalized drug targets.
+- A list of SNP ids (rs numbers): workflow 'Analyze SNP list (TRANSFAC(R))_hg38' (or _hg19; GTRD variant without a TRANSFAC licence): positions and nearby genes, binding sites created or destroyed by each SNP, protein effect prediction (SIFT). The 'TRANSFAC(R) and TRANSPATH(R)' variant adds pathways of the affected genes. Single steps: 'SNP matching', 'Mutation effect on sites'.
+- A VCF track (hg38): workflow 'Discover regulatory mutations using GTRD and TRANSFAC' — keeps the variants inside experimentally bound regulatory regions (GTRD ChIP-seq) and reports the binding sites they change, with the factors and target genes. Analyses: 'Mutation effect on sites advanced', 'Split VCF by regulation'.
+- Which factors' sites are hit more often than expected: 'Find enriched TF binding sites in variation sites (TRANSFAC(R))'; two variant sets against each other: 'Compare TFBS mutations'.
+- Coding effects: 'Mutation effect'. From variants to a weighted gene list: 'Mutations to genes with weights', then topic gene-list.
+- Master regulators of a network disturbed by a patient's variants: 'Find master regulators in mutated network (TRANSPATH(R))'.
+- A patient's variants to drug targets and a report: the Genome Enhancer perspective (biouml_perspective_select 'Genome Enhancer' returns its step-by-step guide).
+Before anything: check the genome build of the track (biouml_bsa_track_genome) and pick the matching workflow; a genotyping-array VCF needs 'Filter VCF by genotype' first. Binding-site effects are sequence-based predictions.
+
+== topic: drug-targets | Which drug targets and drugs fit my data?
+summary: Genome Enhancer for the full route from omics data to drug targets and drugs; single analyses for druggable targets among a gene list.
+The full, recommended route is Genome Enhancer: from expression, genomics, proteomics, epigenomics or metabolomics data to transcription factors, master regulators, drug targets and candidate drugs with a report. Select the perspective (biouml_perspective_select 'Genome Enhancer') and follow its guide; its core analysis is 'Generate workflow from annotation diagram'.
+Shorter, for a gene list that already holds candidate targets (e.g. master regulators from topic master-regulators, with a score column): 'PSD pharmaceutical compounds analysis' finds known drugs (HumanPSD) acting on them, optionally restricted to chosen diseases; 'Pharmaceutical Compounds analysis' adds compounds predicted by the cheminformatics tool PASS with toxicity and effect filters. Both return a table of compounds and a table of targets with druggability scores.
+Always say that the drugs are computational suggestions for a specialist to consider, not treatment advice.
+
+== topic: mirna | microRNAs: targets, regulators, feed-forward loops
+summary: miRNAs that may target a gene list, target genes of miRNAs, and transcription factors controlling miRNAs.
+- Which miRNAs may regulate my genes: 'Analyze miRNA target enrichment' (miRNAs whose predicted targets are enriched in the gene list), or workflow 'Prediction of miRNA binding sites' (binding sites in the 3' UTRs of the genes).
+- Targets of my miRNAs: 'Get miRNA targets' (TargetScan), then topic gene-list on the targets.
+- Which transcription factors control my miRNAs: 'Identify enriched motifs in tissue specific miRNA promoters (TRANSFAC(R))' / 'cell line specific'.
+- Loops of a transcription factor, a miRNA and a common target gene: 'miRNA feed forward loops'.
+miRNA tables use miRBase ids as row ids.
+
+== topic: explore-samples | Look at my samples: quality, clusters, classifiers
+summary: PCA, heatmaps, t-SNE, clustering of genes and samples, and random forest classifiers on a data table.
+- Do the samples group as expected: 'PCA' (groups given as column lists), 't-SNE' for many samples, 'Heatmap' (hierarchical clustering of rows and columns; at most 5000 rows — reduce with 'Variance filter' first), 'Correlation Analysis' between samples.
+- Value distributions per sample: 'Normalization quality plots'.
+- Groups of genes with similar profiles: 'K-means clustering', 'CRC clustering'; analyse each cluster as a gene list.
+- Predict a class or a value from the data: 'Train random forest' (reports accuracy and the most important variables), then 'Random forest prediction' on new samples.
+Tables for PCA, heatmaps and clustering should be on a log scale ('Transform table').
+
+# ============================================================================ normalization and expression statistics
+
+== analysis: Affymetrix CEL file (*.cel) || Agilent microarray file (*.txt) || Illumina microarray file (*.txt)
+summary: Import formats for raw microarray files (Affymetrix CEL, Agilent, Illumina); the files must be normalized after import.
+use: See topic microarray-raw. Import a ZIP of the files with the matching format.
+
+== analysis: Normalize Affymetrix experiment and control || Normalize Agilent experiment and control || Normalize Illumina experiment and control
+summary: Normalize raw microarray files of an experiment group and a control group together, giving one normalized table per group.
+use: The start of a two-group microarray comparison; the outputs are the inputs of the 'Compute differentially expressed genes (... probes)' workflows.
+input: the raw files of each group (celFiles / agilentFiles / illuminaFiles and controlFiles); for Affymetrix a method (RMA is a good default; arrays of the newer designs are always RMA).
+output: outputPath (experiment) and controlOutputPath (control), tables with probe ids as rows and one column per file.
+tips: Keep outputLogarithmBase at log2. Needs R on the server.
+
+== analysis: Affymetrix normalization || Agilent normalization || Illumina normalization
+summary: Normalize a set of raw microarray files into one table of expression values (probes as rows, files as columns).
+use: All samples of an experiment in one table, e.g. for more than two groups; then topic expression-table.
+
+== analysis: Normalization quality plots
+summary: Box plots and density plots of the value distributions of the sample columns of a table.
+use: Checking that samples are comparable before statistics: after normalization the distributions should look alike.
+
+== analysis: Limma
+summary: Differentially expressed genes between up to five groups of samples with linear models (limma): log fold change, p-value and adjusted p-value per gene.
+use: The standard differential expression test on a table of normalized expression values (microarray or normalized RNA-seq) when each group has replicates.
+input: inputTablePath; inputLogarithmBase (what the values are); for each group a name and its sample columns: firstName/firstColumns, secondName/secondColumns, ...
+output: outputFolderPath with one table per pair of groups: logFC, AveExpr, t, P.Value, adj.P.Val, B.
+next: 'Filter table' on adj.P.Val and logFC for the up and down gene lists; 'Volcano plot'; topic gene-list.
+tips: Column names must start with a letter and contain only letters, digits and _. logFC is first group minus second. For raw counts or a design with batches or pairs use 'Guided linear model analysis'.
+
+== analysis: Guided linear model analysis
+summary: Differential expression with limma for designs described by a sample annotation table: several factors, batches, pairing, raw RNA-seq counts (voom).
+use: RNA-seq count tables, and any experiment with more structure than a few plain groups.
+input: inputTablePath (features x samples); inputType ('Raw counts', 'Transformed counts' or 'Normalized expression'); sampleTablePath, a table with one row per sample, sampleColumn (the column with the sample names as in the data table), mainFactor (the column defining the groups), refLevel (the control level), controlFactors (batch, patient, ...).
+output: outputFolderPath: a table per comparison of main-factor levels (logFC, P.Value, adj.P.Val) and an ANOVA table.
+tips: The sample table usually has to be made first (biouml_repo_new_element kind table): ask the user which sample belongs to which group. Choices of mainFactor appear after sampleTablePath is bound.
+
+== analysis: EBarrays
+summary: Differential expression between up to five groups with the empirical Bayes mixture model of EBarrays: posterior probabilities of expression patterns.
+use: An alternative to limma for few replicates; usually limma is the first choice.
+
+== analysis: Calculate M-values
+summary: Convert methylation beta-values in chosen columns to M-values, which suit statistical tests.
+use: Before differential methylation statistics on beta-value tables.
+
+== analysis: Variance filter
+summary: Keep the rows of a table with the highest (or lowest) variance across chosen columns.
+use: Reducing a table to its most variable genes before 'Heatmap', 'PCA' or clustering.
+
+== analysis: Heatmap
+summary: Heatmap of a numeric table with hierarchical clustering of rows and columns.
+use: Showing expression patterns of a gene set across samples.
+input: inputTablePath (at most 5000 rows), scale (Row is usual for expression), transform, optional sample groups.
+output: outputFolderPath with the image and the ordered row and column ids.
+
+== analysis: PCA
+summary: Principal component analysis of the samples of a table: a scatter plot of the first two components, coordinates and explained variance.
+use: The first quality check of an expression dataset: do replicates group together, are there outliers or batch effects.
+input: inputTablePath; groups as firstName/firstColumns, secondName/secondColumns, ...
+
+== analysis: t-SNE
+summary: t-SNE map of the data points of a table, coloured by a group column.
+use: Visualizing many samples or cells; for a handful of samples PCA is the right tool.
+tips: Perplexity must be smaller than a third of the number of points.
+
+== analysis: Train random forest
+summary: Train a random forest to predict a class or a value from the columns of a table; reports accuracy and variable importance.
+use: Building a classifier (e.g. responders against non-responders) or finding the most informative variables.
+input: columnTablePath (samples as rows, variables as columns), responseColumn, predictorColumns.
+output: outputFolderPath with the model, its error estimates and the importance table.
+
+== analysis: Random forest prediction
+summary: Apply a trained random forest model to new data.
+input: inputTablePath with the same predictor columns as in training; randomForestPath, the model from 'Train random forest'.
+
+== analysis: GlycanR
+summary: Glycan data analysis with the glycanr R package: plots and outlier detection per group.
+
+== analysis: LRPath
+summary: Gene set enrichment by logistic regression (LRPath): categories whose genes tend to have more significant p-values.
+use: An alternative to GSEA when the ranking is a p-value column of a differential expression table.
+input: inputTablePath (Ensembl genes), predictorColumn (e.g. the p-value), bioHub (the classification), significanceColumn and significanceCut.
+
+== analysis: Compare analysis results
+summary: Compare the p-values of two result tables (e.g. two enrichment analyses) and find the entries that differ significantly.
+use: What is enriched in one gene set and not in the other: GO terms or motifs specific to up- against down-regulated genes.
+input: firstTablePath/firstColumn and secondTablePath/secondColumn, the p-value columns of two results of the same kind.
+output: a scatter plot and a table of differences with FDR.
+
+== analysis: Verify Condition for Table
+summary: Workflow helper: pass a table on only if it meets a condition (enough rows, a column present, ...).
+use: Not a research step; used inside workflows.
+
+== analysis: Import from BC Platform || Import from TranSMART
+summary: Load a dataset from a BC|Platform or tranSMART server into a table; needs that server's address and credentials from the user.
+
+# ============================================================================ promoters and tracks
+
+== analysis: Create tissue-specific promoter track
+summary: Make a track of promoters of a gene list using the transcription start sites active in a chosen tissue or cell type (FANTOM5 CAGE data).
+use: Promoter analysis in a specific tissue: genes often use different start sites in different tissues.
+input: inputSetPath (genes), cageDatabase, cellCondition (a tissue or cell from allowedValues; use filter to find it), from and to.
+output: outputPath, a track for 'Site search on track' or the enrichment analyses for tracks.
+
+== analysis: Create transcript region track
+summary: Make a track of a chosen region of transcripts: 3' UTR, 5' UTR, promoter, an exon or an intron.
+use: Sequences for miRNA binding site or regulatory element searches in UTRs.
+
+== analysis: Create random track
+summary: Make a track of random genomic regions matching the number and lengths of the regions of a study track.
+use: The background (No set) for motif enrichment in peaks or other regions when no natural control exists.
+input: inputTrackPath, dbSelector (genome), seqNumber; optionally fixed length or positions relative to transcription starts.
+
+== analysis: Intersect tracks
+summary: Split the intervals of a track into those that overlap a filter track and those that do not, with a coverage threshold.
+use: Peaks shared between two experiments and peaks unique to one; regions inside or outside annotated features.
+
+== analysis: Find regulatory regions
+summary: Make a track of the regulatory regions of a gene list: promoter windows, placed on ChIP-seq peaks near the gene when a peak track is given.
+use: Better regions than fixed promoters for site search when binding or open-chromatin data exist. A Genome Enhancer step.
+
+== analysis: Find regulatory regions with mutations
+summary: Make a track of regulatory regions of a gene list, placed where the mutations of a variant track are densest around each gene.
+use: Promoter analysis centred on a patient's regulatory variants. A Genome Enhancer step.
+
+== analysis: Split VCF by regulation
+summary: Split a VCF track into the variants inside regulatory regions (a regulation track) and the others.
+use: Preparing Yes and No variant sets for 'Compare TFBS mutations'.
+
+== analysis: Mutations to genes with weights
+summary: Assign variants to genes and weight each by where it lies (promoter 1.3, exon 0.7, elsewhere 1.0), giving a gene table with mutation counts and weights.
+use: From a patient's variants to a ranked list of affected genes.
+input: inputTrack (variants), species, from/to (gene flanks), promoterFrom/promoterTo.
+output: outputTable (genes) and outputTrack (variants with weights).
+next: 'Calculate weighted mutation score'; topic gene-list.
+
+== analysis: Calculate weighted mutation score
+summary: Score mutated genes by mutation weight, raised for genes linked to chosen diseases and to signalling pathways.
+input: inputTable, the gene table of 'Mutations to genes with weights'; diseases (use filter to find them).
+
+# ============================================================================ binding sites, motifs, composite modules
+
+== analysis: Search for enriched TFBSs (genes)
+summary: Find the transcription factor binding motifs enriched in the promoters of a gene set compared with background genes, with optimized score cutoffs, fold enrichment and FDR.
+use: The main analysis for "which transcription factors regulate my genes". The workflow 'Identify enriched motifs in promoters' wraps it with id conversion and conversion of motifs to factors: prefer the workflow.
+input: yesSetPath (genes of interest) and noSetPath (background genes), tables of Ensembl genes; profilePath (motif collection, e.g. the TRANSFAC vertebrate non-redundant profile under the TRANSFAC database's Data/profiles, or databases/GTRD/Data/profiles/moderate threshold); species; from/to (promoter window, default -1000..100).
+output: a table per motif: Adj. site FE and Site FDR (enrichment of sites), Adj. seq FE and Seq FDR (enrichment of promoters having a site), the optimized cutoff, and counts.
+next: 'Matrices to molecules' for the factors; 'Create profile from site model table' to keep the enriched motifs; 'Construct composite modules' for combinations; 'Regulator search' on the factors.
+tips: Background choice drives the result: unchanged genes of the same experiment are best, housekeeping genes ('data/Public/Data sets/Data/Housekeeping genes (<species>) 300') a usable default. Read topic promoter-analysis.
+
+== analysis: Search for enriched TFBSs (tracks)
+summary: Find the binding motifs enriched in the sequences of a study track (peaks, regions) compared with a background track.
+use: Motif enrichment for genomic regions rather than gene promoters: ChIP-seq peaks, enhancers, regions around variants.
+input: yesSetPath and noSetPath (tracks on the same genome; a background can be made with 'Create random track'), dbSelector (genome), profilePath.
+output: as for 'Search for enriched TFBSs (genes)'.
+
+== analysis: TRANSFAC(R) Match(TM) for tracks
+summary: Predict binding sites in the sequences of a track with TRANSFAC matrices by the Match algorithm.
+use: The classic TRANSFAC site prediction for regions or the user's sequences; for a study-against-background question use the enrichment analyses.
+input: sequencePath (track or sequences), dbSelector (genome), profilePath (a TRANSFAC profile with its cutoffs: minFP few false positives, minFN few missed sites, minSUM balanced).
+output: a track of predicted sites.
+
+== analysis: MEALR (tracks)
+summary: Find the combination of binding motifs that best discriminates study regions from background regions (sparse logistic regression).
+use: Co-operating factors in peaks or promoters; gives a model with a weight per selected motif and its accuracy.
+input: yesSetPath, noSetPath (tracks), dbSelector, profilePath.
+next: 'MEALR classifier (tracks)' applies the model to new sequences.
+
+== analysis: MEALR classifier (tracks)
+summary: Apply a MEALR motif-combination model to new sequences to predict whether they are bound or regulated like the training regions.
+
+== analysis: TRANSFAC(R) MEALR combinatorial regulation analysis
+summary: Scan or classify sequences with a library of motif-combination models trained on TRANSFAC ChIP-seq data of many cell types and tissues.
+use: Which known combinations of factors, in which cell context, may bind the user's regions. Wrapped by the workflow 'Combinatorial regulation analysis of genomic or custom sequences (TRANSFAC(R))'.
+input: sequencePath, dbSelector, cellSources and tissueSources (to focus on a context), asClassifier or scanning options.
+
+== analysis: Extract TRANSFAC(R) PWMs from combinatorial regulation analysis
+summary: List the TRANSFAC matrices that matter in the models found by the MEALR combinatorial regulation analysis.
+
+== analysis: MSAT
+summary: Test for each motif whether its score in gene promoters is associated with a quantity measured for the genes (e.g. fold change).
+use: Motif analysis without a cutoff: uses all genes and their values rather than a Yes and a No set.
+input: inputTablePath (genes with a numeric column), responseColumn, profilePath, from/to.
+
+== analysis: Create matrix logo
+summary: Draw sequence logos of the matrices of a profile or of a single matrix.
+use: Showing the user what an enriched or discovered motif looks like.
+
+== analysis: Create profile from matrix library
+summary: Make a profile (matrices with score cutoffs) from a matrix library, with cutoffs set by a p-value template.
+use: Making discovered or imported matrices usable in site searches.
+
+== analysis: Extract matrices from profile || Factor-cluster redundancy filter
+summary: TRANSFAC helper analyses: list the matrices of a profile; reduce a matrix result to one representative per factor cluster.
+
+== analysis: Construct composite modules || Construct composite modules on tracks
+summary: Find the combination of binding motifs (composite module) that best separates study promoters or regions from background ones, with a genetic algorithm.
+use: Transcription factors act in combinations; this finds the co-occurring motif set typical of the regulated genes. 'Construct composite modules' takes the result of 'Site search on gene set'; the tracks variant takes site search results on a Yes and a No track. The workflows 'Identify (enriched) composite modules in promoters' and 'ChIP-Seq - Identify composite modules on peaks' wrap them: prefer the workflows.
+input: siteSearchResult (or yesTrackPath and noTrackPath); geneticParameters (iterations, population); scoreParameters.
+output: a folder with the model (the motifs, their cutoffs and weights), its score for every sequence and a histogram showing how well Yes and No separate.
+next: 'Composite module to proteins' for the factors; 'Regulator search' above them; 'Apply CMA model to tracks' to test the model on other regions.
+tips: Slow (a stochastic search, minutes to hours); results vary slightly between runs. A model that separates Yes from No only weakly should be reported as such.
+
+== analysis: Construct composite modules with keynodes || Construct composite modules on tracks with keynodes
+summary: Composite module search that also scores each candidate module by the master regulators above its transcription factors.
+use: Used by Genome Enhancer to pick modules whose factors share upstream signalling.
+
+== analysis: Construct composite modules on track (correlation) || Construct composite modules on track (weighted correlation)
+summary: Composite module search for regions with a numeric value (e.g. expression change) rather than a Yes and No set: finds the motif combination whose score correlates with the value.
+
+== analysis: Continue CMA
+summary: Continue a composite module search from its best model for more iterations.
+
+== analysis: Reduce CMA results
+summary: Simplify a composite module by removing the motifs that contribute little to its score.
+
+== analysis: Apply CMA model to tracks || Recalculate composite module score on new track
+summary: Apply a found composite module to other regions: how well it separates new Yes and No tracks, or its score on each region of a new track.
+use: Validating a module on independent data.
+
+== analysis: Composite module to proteins
+summary: Turn the motifs of a composite module into the transcription factors that bind them.
+input: sitesCollection (the module result), siteModelsCollection (the profile used), species, targetType.
+
+== analysis: Create profile from CMA model
+summary: Make a profile of the motifs of a composite module with the cutoffs the module uses.
+
+# ============================================================================ networks
+
+== analysis: Regulator search
+summary: Find master regulators: molecules of the signalling network upstream of a set of genes or proteins from which many of them can be reached within a few steps.
+use: The network step of upstream analysis (topic master-regulators). The workflows 'Find master regulators in networks' wrap it with id conversion, annotation and a network picture: prefer them.
+input: sourcePath (a table of genes/proteins; with a TRANSPATH network the workflows convert to TRANSPATH proteins first); bioHub, the network (allowedValues, e.g. a 'Transpath' hub or 'GeneWays hub'); species; maxRadius (steps upstream, 3-10); weightColumn (optional weights); calculatingFDR with FDRcutoff and ZScoreCutoff.
+output: outputTable: per candidate regulator Score, FDR, Z-score, the number of input molecules reached and the radius.
+next: 'Visualize results' for the network of the top regulators, 'Save hits' / 'Save network' for their molecules as tables, 'Add expression values' to colour the diagram; drug target analyses.
+tips: Larger maxRadius finds more distant regulators but less specific ones. Keep FDR calculation on and report FDR.
+
+== analysis: Effector search
+summary: Find common effectors: molecules downstream of a set of genes or proteins in the signalling network that many of them act on.
+use: The mirror of 'Regulator search': what do my receptors, ligands or mutated proteins converge on. Wrapped by the workflows 'Find common effectors in networks'.
+input: as for 'Regulator search' (direction is Downstream).
+
+== analysis: Visualize results
+summary: Draw the network that links chosen master regulators (or effectors) of a search result with the input molecules, as a diagram.
+input: knResultPath (the result of 'Regulator search' or 'Effector search'), rankColumn and numTopRanking (how many top molecules), separateResults (one diagram each).
+output: outputPath, a diagram; biouml_diagram_image draws it.
+
+== analysis: Save hits
+summary: Save the input molecules reached by chosen top regulators or effectors as a table.
+
+== analysis: Save network
+summary: Save all molecules of the networks of chosen top regulators or effectors as a table.
+
+== analysis: Add reactants
+summary: Complete a network diagram from a regulator search with all reactants and products of its reactions, as needed for modelling.
+
+== analysis: Cluster by shortest path || Cluster by path
+summary: Connect the molecules of a list into network clusters through the shortest (or all) paths between them within a few steps.
+use: Do my genes' products interact? Shows which of them form connected signalling modules.
+input: sourcePath, bioHub (network), direction, maxRadius, species.
+output: a table of clusters and a diagram of the connected molecules.
+
+== analysis: Find longest connected chains
+summary: Find the longest signalling chains that pass through as many molecules of a list as possible.
+
+== analysis: Find shortest path between two sets
+summary: Find the shortest network paths from the molecules of one set to those of another.
+use: How could a perturbed molecule (drug target, mutated gene) reach the observed changes.
+
+== analysis: Calculate keynodes ranks
+summary: Rank master regulators by combining their network score with their own expression, proteomics and composite-module scores.
+use: Prioritizing master regulators that are themselves changed in the data. A Genome Enhancer step.
+
+== analysis: Select keynodes with top targets
+summary: Select the top master regulators, making sure the best drug targets from the compound analyses are covered.
+
+== analysis: Calculate CMA regulation || Calculate CMA regulation extended || Calculate CMA regulation with extra elements
+summary: Build the intracellular regulation diagram: master regulators, signalling to the transcription factors of the composite module, and the regulated genes, with feed-forward loops.
+use: The summary picture of an upstream analysis; in Genome Enhancer it is redrawn to show chosen master regulators (see the Genome Enhancer guide).
+input: tfTablePath (transcription factors of the module), keynodesPath (regulator search result), rankColumn and topSelected, cmaTablePath, genesPath.
+output: resultDiagramPath and resultTablePath.
+
+== analysis: Calculate genes ranks
+summary: Rank genes by combining master regulator, transcriptomics, proteomics and composite-module scores. A Genome Enhancer step.
+
+# ============================================================================ drug targets and Genome Enhancer
+
+== analysis: Generate workflow from annotation diagram
+summary: Genome Enhancer: build and run the multi-omics pipeline from the user's annotated data to transcription factors, master regulators, drug targets and drugs, with reports.
+use: The full personalized-medicine or disease-mechanism analysis. Follow the guide of the Genome Enhancer perspective (biouml_perspective_select 'Genome Enhancer'): it tells how to prepare the annotation diagram, choose conditions and diseases, run and read the reports.
+tips: A full run takes hours. Check first with runWorkflow false.
+
+== analysis: PSD pharmaceutical compounds analysis
+summary: Find known drugs (HumanPSD) acting on the genes of a list and the best combination of targets among them, optionally for chosen diseases.
+use: Drug candidates for a list of potential targets, e.g. master regulators with their score.
+input: inputTablePath (genes), weightColumn, diseases (use filter to find names), useActivators.
+output: structTablePath (compounds with scores, targets, clinical status) and targTablePath (targets with druggability scores).
+tips: Present drugs as computational suggestions, not advice.
+
+== analysis: PSD pharmaceutical compounds analysis for two datasets
+summary: Like 'PSD pharmaceutical compounds analysis' with separate up- and down-regulated target lists, so inhibitors and activators are matched to the direction.
+
+== analysis: Pharmaceutical Compounds analysis
+summary: Find drugs and biologically active compounds predicted by PASS to act on the genes of a list, with toxicity and effect filters.
+use: A wider, prediction-based search for compounds beyond known drug-target pairs.
+input: genesPath, weightColumn, diseases, thresholds for mechanism, toxicity and effect predictions.
+output: structTablePath (compounds) and targTablePath (targets).
+
+== analysis: COPreDict Report || Process COPreDict input
+summary: Steps of the COPreDict pipeline (gene panel processing and its report); used from the COPreDict perspective, not on their own.
+
+== analysis: Refactor MTB table
+summary: Genome Enhancer helper: assemble the tables of the Molecular Tumor Board report.
+use: Not a research step by itself.
+
+# ============================================================================ miRNA
+
+== analysis: Analyze miRNA target enrichment
+summary: Find the miRNAs whose predicted target genes are enriched in a gene list.
+use: Which miRNAs may explain a set of (typically down-regulated) genes.
+input: inputSetPath (genes), mirdbPath (target database), fdrCutoff.
+output: a table of miRNAs with fold enrichment, p-value, FDR and the hit genes.
+
+== analysis: Get miRNA targets
+summary: The predicted target genes (TargetScan) of the miRNAs of a table, with scores.
+input: inTable (miRBase ids), targetScanDB, scoreThreshold.
+
+== analysis: miRNA feed forward loops
+summary: Find feed-forward loops of a transcription factor, a miRNA and a target gene they both regulate.
+input: miRNAs and/or targetGenes, siteModelCollection (motif profile), targetScanDB.
+
+# ============================================================================ workflows
+
+== workflow: Common/Explain my genes
+summary: A compact overview of a gene list: master regulators in the signalling network upstream of the genes, annotated, with a network diagram.
+use: The user gives a gene list and wants to know what may be behind it in one step. For a fuller answer follow topic gene-list.
+input: a gene table (any common id type) and its species.
+output: a folder with the master regulator table and a diagram of the top regulator's network.
+
+== workflow: Common/Mapping to ontologies (Gene table) || HumanPSD/Mapping to ontologies (HumanPSD(TM)) || TRANSPATH/Mapping to ontologies (TRANSPATH(R))
+summary: Functional classification of a gene list against several classifications at once: GO (process, component, function), Reactome, HumanCyc, TF classes; the HumanPSD variant adds diseases, the TRANSPATH variant signalling pathways.
+use: "What do my genes do?" — the first analysis of any gene list.
+input: a gene table (ids are converted to Ensembl) and its species.
+output: a folder with one table per classification: categories with hits, expected hits, p-value, adjusted p-value and the genes.
+tips: Report per classification the top categories by adjusted p-value. The HumanPSD and TRANSPATH variants need those databases on the server.
+
+== workflow: Common/Mapping to ontology - select a classification (Gene table) || Common/Mapping to ontology - select a classification (Multiple Gene tables)
+summary: Functional classification of a gene list (or of every gene table in a folder) against one chosen classification.
+
+== workflow: Common/Mapping to ontologies for multiple gene sets || HumanPSD/Mapping to ontologies for multiple gene sets (HumanPSD(TM)) || TRANSPATH/Mapping to ontologies for multiple gene sets (TRANSPATH(R))
+summary: Functional classification against several classifications for every gene table in a folder.
+use: Several gene lists (e.g. clusters, or up and down lists of several comparisons) in one run.
+input: a folder of gene tables.
+
+== workflow: Common/Mapping to GO ontologies and comparison for two gene sets || Common/Mapping to ontology - select a classification (2 Gene tables) || HumanPSD/Mapping to ontologies and comparison for two gene sets (HumanPSD(TM)) || TRANSPATH/Mapping to ontologies and comparison for two gene sets (TRANSPATH(R))
+summary: Functional classification of two gene lists and a comparison showing which categories are specific to one of them.
+use: Up- against down-regulated genes, or two conditions: what differs functionally.
+
+== workflow: HumanPSD/Cross-species mapping to ontologies, using orthologue information (HumanPSD(TM))
+summary: Functional classification of a gene list of another species through its human orthologs, with HumanPSD diseases and GO.
+
+== workflow: Common/Gene set enrichment analysis (Gene table) || HumanPSD/Gene set enrichment analysis HumanPSD (Gene table)
+summary: GSEA of a gene table ranked by a numeric column against GO, Reactome and other classifications (HumanPSD variant: plus diseases).
+use: A table with a value for every measured gene (e.g. log fold change): no cutoff needed.
+input: a gene table and the column to rank by.
+
+== workflow: Common/Gene set enrichment analysis - select a classification (Gene table)
+summary: GSEA of a ranked gene table against one chosen classification.
+
+== workflow: Common/Gene set enrichment analysis (Affymetrix probes) || Common/Gene set enrichment analysis (Agilent probes) || Common/Gene set enrichment analysis (Illumina probes) || HumanPSD/Gene set enrichment analysis HumanPSD (Affymetrix probes) || HumanPSD/Gene set enrichment analysis HumanPSD (Agilent probes) || HumanPSD/Gene set enrichment analysis HumanPSD (Illumina probes)
+summary: From normalized microarray tables of experiment and control to GSEA: fold changes, probe-to-gene conversion, enrichment against several classifications.
+input: the normalized experiment and control tables (from the 'Normalize ... experiment and control' analyses).
+
+== workflow: Common/Compute differentially expressed genes (Affymetrix probes) || Common/Compute differentially expressed genes (Agilent probes) || Common/Compute differentially expressed genes (Agilent Tox probes) || Common/Compute differentially expressed genes (Illumina probes)
+summary: Differentially expressed genes from normalized microarray tables of experiment and control: fold change, t-test, conversion of probes to Ensembl genes, annotated up-regulated, down-regulated and unchanged gene tables.
+use: The standard two-group microarray comparison (topic microarray-raw).
+input: the normalized experiment and control tables with probe ids.
+output: a folder with the up, down and non-changed gene tables (the latter is a good background for promoter analysis).
+next: topic gene-list on the up and down tables.
+
+== workflow: Common/Compute differentially expressed genes using Hypergeometric test (Affymetrix probes) || Common/Compute differentially expressed genes using Hypergeometric test (Agilent probes) || Common/Compute differentially expressed genes using Hypergeometric test (Illumina probes) || Common/Hypergeometric analysis for multiple inputs
+summary: Differentially expressed genes from normalized microarray tables with the hypergeometric (permutation-based) test, converted to annotated gene tables.
+use: Microarray data with very few replicates.
+
+== workflow: Common/Compute differentially expressed genes using Limma
+summary: Differentially expressed genes between up to five groups of sample columns of one expression table with limma, converted to annotated Ensembl gene tables of up- and down-regulated genes.
+use: The usual choice for a normalized expression table (topic expression-table).
+input: the table, the sample columns of each condition, the id type of the rows (probe type) and the species.
+
+== workflow: Common/Compute differentially expressed genes using Limma and Metadata || Common/Estimate DEGs with guided linear model analysis
+summary: Differentially expressed genes with limma guided by a sample annotation table (main factor, reference level), for normalized values or raw RNA-seq counts, with annotated result tables.
+use: Designs described by sample metadata; RNA-seq count tables.
+input: the data table, the sample table, the main factor column and the reference level.
+
+== workflow: Common/Compute differentially expressed genes using EBarrays
+summary: Differentially expressed genes between conditions with EBarrays, with quality plots and annotated gene tables.
+
+== workflow: Common/Convert identifiers for multiple gene sets
+summary: Convert the identifiers of every table in a folder to a chosen type.
+
+== workflow: Common/Full RNAseq analysis with HISAT2, featureCounts and limma (single-end) || Common/Full RNAseq analysis with HISAT2, featureCounts and limma (paired-end) || Common/Full RNAseq analysis with HISAT2, htseq-counts and limma (single-end) || Common/Full RNAseq analysis with HISAT2, htseq-counts and limma (paired-end) || Common/Full RNAseq analysis with subread, featureCounts and limma (single-end) || Common/Full RNAseq analysis with subread, featureCounts and limma (paired-end)
+summary: RNA-seq from FASTQ files of experiment and control to differentially expressed genes: alignment (HISAT2 or Subread), gene counts (featureCounts or htseq-count), limma-voom statistics.
+use: Raw RNA-seq reads of two conditions (topic rna-seq-raw). The HISAT2 + featureCounts variant is the default choice.
+input: the experiment and control FASTQ files (paired-end: folders of read pairs) and the reference genome and annotation (default Ensembl GRCh38).
+output: alignments, quality reports, count tables and the differential expression table.
+tips: Long-running (hours for full datasets). Check single- or paired-end with the user.
+
+== workflow: Common/RNAseq analysis with HISAT2 (single-end) || Common/RNAseq analysis with HISAT2 (paired-end) || Common/RNAseq analysis with Subread (single-end) || Common/RNAseq analysis with Subread (paired-end)
+summary: RNA-seq from FASTQ files to gene counts: alignment (HISAT2 or Subread), quality report, featureCounts.
+use: Counts for several samples, to be compared afterwards with topic expression-table.
+
+== workflow: Common/From multiple BAM files to gene counts
+summary: Gene count table from several aligned RNA-seq samples (BAM) with featureCounts.
+
+== workflow: Common/Analyze multiple BAM files to detect DEGs
+summary: Differentially expressed genes from aligned RNA-seq samples (BAM) of experiment and control: featureCounts and limma-voom.
+
+== workflow: Common/Quantification of RNA-seq with Cufflinks (no de-novo assembly) for FASTQ files || Common/Quantification of RNA-seq with Cufflinks (with de-novo assembly) for FASTQ files || Common/Quantification of RNA-seq in FASTQ format for mouse mm9 single end || Common/Quantification of RNA-seq in BAM format for mouse mm9 single end
+summary: Older RNA-seq pipelines with TopHat, Cufflinks and Cuffdiff for transcript quantification and differential expression (two of them for mouse mm9).
+use: Only when the user asks for Cufflinks or needs transcript assembly; otherwise prefer the 'Full RNAseq analysis' workflows.
+
+== workflow: Common/SRA to FASTQ
+summary: Convert sequencing reads from SRA format to FASTQ.
+
+== workflow: Common/Find genome variants and indels from RNA-seq_hg38 (single-end) || Common/Find genome variants and indels from RNA-seq_hg19 (single-end) || Common/Find genome variants and indels from full-genome NGS_hg38 || Common/Find genome variants and indels from full-genome NGS_hg19
+summary: Call variants (SNVs and indels) from sequencing reads: alignment, duplicate marking, realignment and recalibration, GATK genotyping; the RNA-seq variants also predict variant effects.
+use: FASTQ reads of a sample to a VCF. Long-running.
+next: topic variants.
+
+== workflow: Common/Flux Balance Analysis
+summary: Flux balance analysis of the metabolic network around a gene list: metabolites of the genes, a network cluster, flux bounds from scores, optimal fluxes shown on the diagram.
+
+== workflow: Common/Prediction of miRNA binding sites || HumanPSD/Prediction of miRNA binding sites in tissue-specific genes (HumanPSD(TM))
+summary: Predict miRNA binding sites in the 3' UTRs (or other transcript regions) of a gene list (HumanPSD variant: of the genes specific to a chosen tissue).
+
+== workflow: HumanPSD/Get gene list for selected tissue (HumanPSD(TM)) || HumanPSD/Get gene list for selected tissue with specified protein classification (HumanPSD(TM))
+summary: The genes specifically expressed in a chosen tissue (HumanPSD expression data), optionally only those of a protein class such as transcription factors.
+use: A tissue-specific reference gene list, e.g. as context genes or to restrict a motif profile.
+
+== workflow: Common/ChIP-Seq - Identify and classify target genes || HumanPSD/ChIP-Seq - Identify and classify target genes (HumanPSD(TM)) || TRANSPATH/ChIP-Seq - Identify and classify target genes (TRANSPATH(R))
+summary: From a peak track to target genes: genes near the peaks, their functional classification (GO, pathways; diseases in the HumanPSD variant) and a network cluster of the targets.
+use: "Which genes does my factor bind and what do they do?" (topic chip-seq).
+input: a track of peaks on a known genome.
+
+== workflow: TRANSFAC/ChIP-Seq - Identify TF binding sites on peaks (TRANSFAC(R)) || TRANSFAC/ChIP-Seq - Identify TF binding sites on peaks for multiple datasets (TRANSFAC(R))
+summary: Find the TRANSFAC motifs enriched in ChIP-seq peaks against background regions and the factors that bind them (one peak track, or every track of a folder).
+input: the peak track (Yes) and a background track (a default is provided), the profile.
+
+== workflow: TRANSFAC/ChIP-Seq - Identify composite modules on peaks (TRANSFAC(R))
+summary: Find the combination of TRANSFAC motifs (composite module) characteristic of ChIP-seq peaks against background regions, and its factors.
+
+== workflow: TRANSFAC/Identify enriched motifs in tracks (TRANSFAC(R)) || TRANSFAC/Identify enriched motifs in tracks with MATCH (TRANSFAC(R))
+summary: Find the TRANSFAC motifs enriched in the regions of a track against random genomic regions made by the workflow, and the factors that bind them (the first also fits a MEALR model of motif combinations).
+use: Motif enrichment for any set of genomic regions when no background track exists.
+
+== workflow: TRANSFAC/Identify enriched motifs in promoters (TRANSFAC(R)) || GTRD/Identify enriched motifs in promoters (GTRD)
+summary: Which transcription factors regulate a gene set: binding motifs enriched in its promoters against background genes, with statistics, the transcription factors behind them and a report (TRANSFAC motifs, or the free GTRD collection).
+use: The main promoter analysis (topic promoter-analysis).
+input: the gene table (Yes set); optionally a background gene table (default: housekeeping genes of the species), the promoter window (default -1000..100) and the profile.
+output: a folder with the enriched motif table, the transcription factor gene table, the profile of enriched motifs and the site tracks.
+next: 'Find master regulators in networks' on the transcription factor table; or run 'Enriched upstream analysis' for both steps at once.
+
+== workflow: TRANSFAC/Identify enriched composite modules in promoters (TRANSFAC(R)) || GTRD/Identify enriched composite modules in promoters (GTRD) || TRANSFAC/Identify composite modules in promoters (TRANSFAC(R))
+summary: Find the combination of binding motifs (composite module) that distinguishes the promoters of a gene set from background promoters, and the transcription factors in it (the 'enriched' variants first reduce the motifs to the enriched ones).
+use: Combinatorial regulation of a gene set. Slower than the plain motif enrichment.
+
+== workflow: TRANSFAC/Identify enriched motifs in tissue specific promoters (TRANSFAC(R)) || TRANSFAC/Identify enriched motifs in cell specific promoters (TRANSFAC(R))
+summary: Motif enrichment in the promoters of a gene set using the transcription start sites active in a chosen tissue or cell type.
+
+== workflow: TRANSFAC/Identify enriched motifs in tissue specific miRNA promoters (TRANSFAC(R)) || TRANSFAC/Identify enriched motifs in cell line specific miRNA promoters (TRANSFAC(R))
+summary: Motif enrichment in the promoters of a set of miRNAs for a chosen tissue or cell line: which transcription factors may control these miRNAs.
+input: a table of miRNAs (miRBase ids).
+
+== workflow: TRANSFAC/Cross-species identification of enriched motifs in promoters, using orthologue information (TRANSFAC(R))
+summary: Motif enrichment for a gene set of another species through the promoters of its orthologs.
+
+== workflow: TRANSFAC/Analyze promoters (TRANSFAC(R)) || GTRD/Analyze promoters (GTRD)
+summary: Search the promoters of a gene set and of background genes for binding sites and report over-represented motifs and their factors (the older, simpler promoter analysis).
+use: Prefer 'Identify enriched motifs in promoters' unless the user asks for this one.
+
+== workflow: TRANSFAC/Analyze any DNA sequence (TRANSFAC(R)) || GTRD/Analyze any DNA sequence (GTRD) || Common/Analyze any DNA sequence, Fasta || Common/Analyze any DNA sequence, EMBL || Common/Analyze any DNA sequence, GeneBank
+summary: Predict transcription factor binding sites in the user's own DNA sequences (an imported sequence collection, or a FASTA, EMBL or GenBank file).
+use: A cloned promoter, an enhancer, a construct: which factors could bind it.
+
+== workflow: TRANSFAC/Analyze any DNA sequence for site enrichment (TRANSFAC(R)) || GTRD/Analyze any DNA sequence for site enrichment (GTRD)
+summary: Motifs enriched in one set of the user's own sequences against another set, with the factors that bind them.
+
+== workflow: TRANSFAC/Combinatorial regulation analysis of genomic or custom sequences (TRANSFAC(R))
+summary: Scan regions or sequences with the library of MEALR motif-combination models trained on ChIP-seq data, and report the matching models, their motifs and the sites.
+use: Which known factor combinations, in which cell types or tissues, may regulate the user's regions.
+
+== workflow: TRANSFAC/Find enriched TF binding sites in variation sites (TRANSFAC(R))
+summary: Find the motifs enriched around the variants of a track (within gene promoters) against random regions: which factors' binding sites are preferentially hit.
+
+== workflow: TRANSFAC/Analyze SNP list (TRANSFAC(R))_hg38 || TRANSFAC/Analyze SNP list (TRANSFAC(R))_hg19 || GTRD/Analyze SNP list (GTRD)_hg38 || GTRD/Analyze SNP list (GTRD)_hg19
+summary: From a table of SNP ids to their positions and genes, the binding sites around each SNP enriched against background, the factors, and protein effect predictions (SIFT).
+use: A SNP list from a GWAS or a panel (topic variants). Pick the genome build the SNP coordinates should be on.
+input: a table whose row ids are rs ids.
+
+== workflow: TRANSFAC and TRANSPATH/Analyze SNP list (TRANSFAC(R) and TRANSPATH(R))_hg38 || TRANSFAC and TRANSPATH/Analyze SNP list (TRANSFAC(R) and TRANSPATH(R))_hg19
+summary: Compare two SNP lists (in one input folder): the genes, the binding sites gained or lost more often in one list, effect predictions, and the pathways of the affected genes.
+
+== workflow: GTRD/Discover regulatory mutations using GTRD and TRANSFAC
+summary: From a VCF track (hg38) to regulatory mutations: variants inside experimentally bound regions (GTRD) that create or destroy binding sites, with factors, target genes and annotation.
+use: Non-coding variants of a patient or cohort: which may change gene regulation.
+input: a VCF track on hg38.
+
+== workflow: TRANSPATH/Find master regulators in networks (TRANSPATH(R)) || Common/Find master regulators in networks (GeneWays)
+summary: Find master regulators upstream of a gene or protein list in the signalling network (TRANSPATH, or the free GeneWays network), annotated, with a network diagram of the top regulators.
+use: The network step of upstream analysis (topic master-regulators); input typically the transcription factors from a promoter analysis, or a list of changed genes.
+input: a gene table and its species.
+output: a folder with the master regulator table (Score, FDR, Z-score, hits) and network diagrams.
+
+== workflow: TRANSPATH/Find 10 master regulators in networks (TRANSPATH(R)) || TRANSPATH/Find master regulators in networks TF only (TRANSPATH(R)) || TRANSPATH/Find master regulators in networks with context genes (TRANSPATH(R)) || TRANSPATH/Find master regulators in networks with context genes and weighting  (TRANSPATH(R)) || TRANSPATH/Find 3 master regulators in networks with context genes and weighting  (TRANSPATH(R))
+summary: Variants of the master regulator search: searching up to 10 steps upstream, transcription factors only, favouring regulators consistent with a list of context genes, and using a numeric column as weights.
+use: See topic master-regulators for which variant fits.
+
+== workflow: TRANSPATH/Find master regulators for multiple gene sets (TRANSPATH(R)) || Common/Find master regulators for multiple gene sets (GeneWays)
+summary: Master regulator search for every gene table in a folder.
+
+== workflow: TRANSPATH/Find master regulators in mutated network (TRANSPATH(R))
+summary: Master regulator search in a signalling network adjusted for a sample's variants (VCF): molecules with damaging variants are taken into account.
+
+== workflow: TRANSPATH/Find common effectors in networks (TRANSPATH(R)) || Common/Find common effectors in networks (GeneWays) || TRANSPATH/Find common effectors for multiple gene sets (TRANSPATH(R)) || Common/Find common effectors for multiple gene sets (GeneWays)
+summary: Find common effectors downstream of a gene or protein list in the signalling network (or of every gene table in a folder), with a network diagram.
+use: What a set of receptors, ligands or altered proteins converges on.
+
+== workflow: TRANSFAC and TRANSPATH/Upstream analysis (TRANSFAC(R) and TRANSPATH(R)) || TRANSFAC/Upstream analysis (TRANSFAC(R) and GeneWays)
+summary: Upstream analysis in one run: over-represented binding sites in the promoters of a gene set, their transcription factors, and the master regulators above them in the signalling network, with a network diagram.
+use: From changed genes to candidate causes (topic master-regulators).
+input: the gene table; a background gene table (default: housekeeping genes); promoter window; profile.
+output: a folder with the motif table, the transcription factors, the master regulator table and diagrams.
+
+== workflow: TRANSFAC and TRANSPATH/Enriched upstream analysis (TRANSFAC(R) and TRANSPATH(R))
+summary: Upstream analysis with the enrichment-based motif search: enriched motifs in the promoters of a gene set, their transcription factors, master regulators in TRANSPATH, with a report and a network diagram.
+use: The recommended single run for "what drives my gene set" on a server with TRANSFAC and TRANSPATH.
+input: the gene table; optionally background genes, promoter window, profile.
+
+== workflow: TRANSFAC and TRANSPATH/Upstream analysis with feedback loop (TRANSFAC(R) and TRANSPATH(R)) || TRANSFAC and TRANSPATH/Search for self-regulating transcription factors (TRANSFAC(R) and TRANSPATH(R))
+summary: Upstream analysis looking for feedback: master regulators whose own genes are changed in the data, or transcription factors that lie downstream of their own target genes.
