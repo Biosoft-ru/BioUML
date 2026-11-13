@@ -46,6 +46,8 @@ public class PersistentConnectionReconnectTest extends TestCase
     static volatile long connectDelayMillis;
     /** the server cannot be reached: connecting fails */
     static volatile boolean failConnect;
+    /** counted down when a connect starts */
+    static volatile CountDownLatch connectStarted;
     private static Driver driver;
     private static int urlCounter;
 
@@ -60,6 +62,7 @@ public class PersistentConnectionReconnectTest extends TestCase
         opened.clear();
         connectDelayMillis = 0;
         failConnect = false;
+        connectStarted = null;
     }
 
     /** Distinct URL per test: pooled connections are thread-local and keyed by URL */
@@ -342,9 +345,11 @@ public class PersistentConnectionReconnectTest extends TestCase
 
     /**
      * A generated-keys statement on a replaced connection is prepared again with the same overload.
-     * Re-preparation is reached only through the Statement methods taking SQL text (execute(String) and the
-     * like), which PersistentStatement retries; JDBC does not allow them on a PreparedStatement, and the real
-     * prepared execution (execute(), executeQuery(), ...) never retries, see testPreparedExecutionIsNotRetried.
+     * This is a wrapper-internal test: re-preparation is reached only through the Statement methods taking SQL
+     * text (execute(String) and the like), which PersistentStatement retries. JDBC does not allow those on a
+     * PreparedStatement, and the fake driver accepts the call only so the wrapper's preparer can be exercised;
+     * it is not a supported usage and not evidence about real drivers. Supported prepared execution (execute(),
+     * executeQuery(), ...) never retries, see testPreparedExecutionIsNotRetried.
      */
     public void testGeneratedKeysStatementRebindsWithSameOverload() throws Exception
     {
@@ -489,12 +494,78 @@ public class PersistentConnectionReconnectTest extends TestCase
         names[0] = "other";
         conn.reconnect( null );
 
-        byIndex.execute( "SELECT 1" ); // re-prepares on the new connection (see testGeneratedKeysStatementRebindsWithSameOverload)
+        // wrapper-internal path, not supported JDBC usage (see testGeneratedKeysStatementRebindsWithSameOverload)
+        byIndex.execute( "SELECT 1" );
         assertEquals( "[INSERT INTO a VALUES(1), [1]]", opened.get( 1 ).lastCreateArgs );
         byName.execute( "SELECT 1" );
         assertEquals( "[INSERT INTO b VALUES(1), [id]]", opened.get( 1 ).lastCreateArgs );
         byIndex.close();
         byName.close();
+    }
+
+    /**
+     * close() of a statement while another thread is rebinding it to a new connection waits for the rebind and
+     * then closes the new JDBC statement: no JDBC statement is left open for a closed wrapper, and the wrapper is
+     * no longer registered (validation runs).
+     */
+    public void testCloseWaitsForConcurrentRebind() throws Exception
+    {
+        PersistentConnection conn = (PersistentConnection)SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+        Statement st = conn.createStatement();
+        opened.get( 0 ).closedByDriver = true;
+        connectStarted = new CountDownLatch( 1 );
+        connectDelayMillis = 300; // the rebind is in progress for a while
+
+        List<Throwable> errors = Collections.synchronizedList( new ArrayList<>() );
+        Thread rebinding = new Thread( () -> {
+            try
+            {
+                st.execute( "SELECT 1" );
+            }
+            catch( Throwable t )
+            {
+                errors.add( t );
+            }
+        } );
+        rebinding.start();
+        assertTrue( connectStarted.await( 10, TimeUnit.SECONDS ) );
+        st.close(); // while the rebind is reconnecting
+        rebinding.join( 10_000 );
+
+        assertEquals( "[]", errors.toString() );
+        assertEquals( 2, opened.size() );
+        FakeConnection second = opened.get( 1 );
+        assertEquals( 1, second.statementsCreated.get() );
+        assertEquals( "the rebound JDBC statement is closed", 1, second.statementsClosed.get() );
+        connectDelayMillis = 0;
+        conn.validateIfIdle( -1, 5 );
+        assertEquals( "the closed wrapper is not registered", 1, second.validations );
+    }
+
+    /** A closed statement is never rebound: a later failure is reported, without reconnecting or opening a JDBC statement */
+    public void testClosedStatementIsNotRebound() throws Exception
+    {
+        PersistentConnection conn = (PersistentConnection)SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+        PreparedStatement ps = conn.prepareStatement( "SELECT 1" );
+        Statement st = conn.createStatement();
+        ps.close();
+        st.close();
+        opened.get( 0 ).closedByDriver = true;
+
+        for( Statement closed : Arrays.asList( st, ps ) )
+        {
+            try
+            {
+                closed.execute( "SELECT 1" );
+                fail( "failure expected" );
+            }
+            catch( SQLException e )
+            {
+                assertEquals( "08003", e.getSQLState() );
+            }
+        }
+        assertEquals( "no reconnect for a closed statement", 1, opened.size() );
+        assertEquals( 2, opened.get( 0 ).statementsCreated.get() );
     }
 
     @FunctionalInterface
@@ -543,7 +614,8 @@ public class PersistentConnectionReconnectTest extends TestCase
         volatile CyclicBarrier executeBarrier;
         /** if set, isValid() counts down pingStarted and waits for pingRelease */
         volatile CountDownLatch pingStarted, pingRelease;
-        final AtomicInteger executedCount = new AtomicInteger(), statementsCreated = new AtomicInteger();
+        final AtomicInteger executedCount = new AtomicInteger(), statementsCreated = new AtomicInteger(),
+                statementsClosed = new AtomicInteger();
         volatile int validations;
         /** e.g. "prepareStatement[class java.lang.String, int]" */
         volatile String lastCreateSignature;
@@ -604,6 +676,7 @@ public class PersistentConnectionReconnectTest extends TestCase
                     Runnable hook = onStatementClose;
                     if( hook != null )
                         hook.run();
+                    statementsClosed.incrementAndGet();
                     return null;
                 case "execute":
                 case "executeQuery":
@@ -652,6 +725,9 @@ public class PersistentConnectionReconnectTest extends TestCase
         {
             if( !acceptsURL( url ) )
                 return null;
+            CountDownLatch started = connectStarted;
+            if( started != null )
+                started.countDown();
             if( failConnect )
                 throw new SQLException( "Connection refused", "08001" );
             try

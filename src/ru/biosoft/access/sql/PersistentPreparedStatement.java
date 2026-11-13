@@ -32,11 +32,16 @@ public class PersistentPreparedStatement extends PersistentStatement implements 
     @Override
     void reconnect(SQLException ex) throws SQLException
     {
-        preparedStatement = conn.reconnectIfCurrent(originalConnection, ex, c -> {
+        if( closed )
+            throw ex;
+        conn.reconnectIfCurrent(originalConnection, ex, c -> {
+            if( closed ) // rechecked under the replacement lock, see PersistentStatement.reconnect
+                throw ex;
             originalConnection = c;
-            return preparer.apply(c);
+            preparedStatement = preparer.apply(c);
+            parent = preparedStatement;
+            return preparedStatement;
         });
-        parent = preparedStatement;
     }
     
     /** @param original the wrapped connection to create it on; called under the connection's replacement lock */
