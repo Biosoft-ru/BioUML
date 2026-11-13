@@ -366,7 +366,7 @@ public class PhysicellResultWriter
 
     private boolean accepts(CurveProperties curve, Cell cell) throws Exception
     {
-        if( !cell.getDefinition().name.equals( curve.getCellType() ) )
+        if( !cell.typeName.equals( curve.getCellType() ) )
             return false;
 
         if( curve.isNoSignal() )

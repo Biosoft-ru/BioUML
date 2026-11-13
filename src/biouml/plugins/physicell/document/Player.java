@@ -7,7 +7,7 @@ public class Player extends Thread
 {
     private boolean playing;
     private int time;
-    private int delay;
+    private double delay;
     private PlayerListener listener; 
     private final PhysicellSimulationResult result;
 
@@ -15,7 +15,7 @@ public class Player extends Thread
     {
         this.result = result;
         this.time = result.getOptions().getTime();
-        this.delay = 1 / result.getOptions().getFps() ;
+        this.delay = 1.0 / result.getOptions().getFps() ; 
     }
     
     public void setListener(PlayerListener listener)
@@ -33,7 +33,7 @@ public class Player extends Thread
             doStep();
             try
             {
-                sleep(400);
+                sleep( (int) (delay* 1000));
             }
             catch( InterruptedException e )
             {

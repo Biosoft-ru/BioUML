@@ -123,7 +123,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
         else
             model = new ru.biosoft.physicell.core.Model();
 
-            model.getMicroenvironment().setStrictAgentsOrder(opts.isStrictAgentsOrder());
+            model.setStrictOrder(opts.isStrictAgentsOrder());
 
         if( opts.isUseManualSeed() )
             model.setSeed( opts.getSeed() );
@@ -209,7 +209,7 @@ public class PhysicellSimulationEngine extends SimulationEngine
         Microenvironment.initialize( m );
 
         String cellUpdateType = opts.getCellUpdateType();
-        CellContainer container = CellContainer.createCellContainer( m, cellUpdateType, 30 );
+        CellContainer container = CellContainer.createCellContainer( model, cellUpdateType, 30 );
         container.setRulesEnabled( true );
 
         List<CellDefinitionProperties> cds = emodel.getCellDefinitions();
