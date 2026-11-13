@@ -275,6 +275,8 @@ public class PersistentConnectionReconnectTest extends TestCase
         first.pingRelease.countDown();
         validation.join( 10_000 );
         user.join( 10_000 );
+        assertFalse( "validation thread did not finish", validation.isAlive() );
+        assertFalse( "statement thread did not finish", user.isAlive() );
 
         assertEquals( "[]", errors.toString() );
         assertEquals( 2, opened.size() );
@@ -531,6 +533,7 @@ public class PersistentConnectionReconnectTest extends TestCase
         assertTrue( connectStarted.await( 10, TimeUnit.SECONDS ) );
         st.close(); // while the rebind is reconnecting
         rebinding.join( 10_000 );
+        assertFalse( "rebind thread did not finish", rebinding.isAlive() );
 
         assertEquals( "[]", errors.toString() );
         assertEquals( 2, opened.size() );
@@ -595,7 +598,11 @@ public class PersistentConnectionReconnectTest extends TestCase
             t.start();
         }
         for( Thread t : list )
+        {
             t.join( 30_000 );
+            if( t.isAlive() )
+                errors.add( new AssertionError( t.getName() + " did not finish" ) );
+        }
         return errors;
     }
 
