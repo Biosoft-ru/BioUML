@@ -16,24 +16,42 @@ public class PersistentStatement implements Statement
     protected int holdability;
     protected String lastQuery; // for debug purposes
 
+    /**
+     * Reconnects after ex, unless the connection was already replaced since this statement was bound to it (by
+     * another statement or by idle validation): then this statement only moves to the new connection instead of
+     * closing the fresh one again. Checking, reconnecting and recreating the statement are atomic
+     * (PersistentConnection.reconnectIfCurrent).
+     */
     void reconnect(SQLException ex) throws SQLException
     {
-        conn.reconnect(ex);
-        this.originalConnection = conn.getOriginalConnection();
-        parent = originalConnection.createStatement(type, concurrency, holdability);
+        if( closed )
+            throw ex;
+        conn.reconnectIfCurrent(originalConnection, ex, c -> {
+            // rechecked under the replacement lock: a close() that got there first leaves nothing to rebind,
+            // and no new JDBC statement may be opened for a closed wrapper
+            if( closed )
+                throw ex;
+            originalConnection = c;
+            parent = c.createStatement(type, concurrency, holdability);
+            return parent;
+        });
     }
+
+    /** set under the connection's replacement lock, see close() */
+    protected volatile boolean closed;
     
     PersistentStatement()
     {
     }
     
-    PersistentStatement(PersistentConnection conn, int type, int concurrency, int holdability) throws SQLException
+    /** @param original the wrapped connection to create it on; called under the connection's replacement lock */
+    PersistentStatement(PersistentConnection conn, Connection original, int type, int concurrency, int holdability) throws SQLException
     {
         this.conn = conn;
         this.type = type;
         this.concurrency = concurrency;
         this.holdability = holdability;
-        this.originalConnection = conn.getOriginalConnection();
+        this.originalConnection = original;
         parent = originalConnection.createStatement(type, concurrency, holdability);
         this.conn.addStatement(this);
     }
@@ -70,8 +88,12 @@ public class PersistentStatement implements Statement
     public void close() throws SQLException
     {
         conn.touch();
-        this.conn.releaseStatement(this);
-        parent.close();
+        // under the replacement lock, so a concurrent rebind either completes before (and its new JDBC statement
+        // is the one closed here) or sees the closed flag; unregistered only after the JDBC close returns
+        conn.closeStatement(this, () -> {
+            closed = true;
+            parent.close();
+        });
     }
 
     @Override
