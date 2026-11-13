@@ -12,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
+import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLRecoverableException;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
@@ -662,7 +663,61 @@ public class PersistentConnection implements Connection
             cat.log(Level.WARNING, "Trying to reconnect on 'Connection reset'", ex);
             return;
         }
+        // The driver has already given up on the wrapped connection, e.g. MySQL's "No operations allowed after
+        // connection closed." (SQLNonTransientConnectionException, SQLState 08003) once an earlier call, often a
+        // prepared statement, which does not reconnect, hit a socket the server dropped after wait_timeout.
+        // Without reconnecting here every later call on this thread's connection fails the same way for good.
+        else if ( ex instanceof SQLNonTransientConnectionException || isConnectionState( ex.getSQLState() ) || isParentClosed() )
+            return;
         else
             throw ex;
+    }
+
+    /** SQLState class 08 = connection exception */
+    private static boolean isConnectionState(String sqlState)
+    {
+        return sqlState != null && sqlState.startsWith( "08" );
+    }
+
+    private boolean isParentClosed()
+    {
+        try
+        {
+            return parent.isClosed();
+        }
+        catch( SQLException e )
+        {
+            return true;
+        }
+    }
+
+    /**
+     * Replaces the wrapped connection if it has been idle for longer than idleMillis and no longer answers.
+     * A connection kept by a long-lived worker thread can sit unused for hours (e.g. through a CMA run) while
+     * the server drops it after wait_timeout; checking it once on checkout is cheaper than failing the analysis.
+     * Skipped while statements are open: a result set may still be streaming over this connection
+     * (reading rows does not update the activity time), and pinging or replacing it would break that.
+     */
+    public void validateIfIdle(long idleMillis, int timeoutSeconds) throws SQLException
+    {
+        if( closedByTimeout || System.currentTimeMillis() - lastActivity <= idleMillis )
+            return;
+        synchronized( statements )
+        {
+            if( !statements.isEmpty() )
+                return;
+        }
+        boolean valid;
+        try
+        {
+            valid = parent.isValid( timeoutSeconds );
+        }
+        catch( SQLException e )
+        {
+            valid = false;
+        }
+        if( !valid )
+            reconnect( null );
+        touch();
     }
 }
