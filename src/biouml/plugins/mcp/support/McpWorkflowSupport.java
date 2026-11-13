@@ -229,6 +229,7 @@ public final class McpWorkflowSupport
 				String lowerFilter = filter == null || filter.isEmpty() ? null : filter.toLowerCase( java.util.Locale.ENGLISH );
 				McpAnalysisSupport.collectProperties( ComponentFactory.getModel( parameters, ComponentFactory.Policy.DEFAULT, true ), "", props,
 						lowerFilter, 0 );
+				McpGuides.describeParameters( guide, props );
 				List<String> inputs = new ArrayList<String>();
 				List<String> outputs = new ArrayList<String>();
 				for ( Map<String, Object> p : props )

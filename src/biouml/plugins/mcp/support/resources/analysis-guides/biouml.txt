@@ -12,7 +12,7 @@ The two data kinds almost everything works on:
 - Table: rows with an id and columns. The id column has a type (reference type), e.g. 'Genes: Ensembl', 'Genes: Gene symbol', 'Proteins: UniProt', 'Probes: Affymetrix'. A "gene set" or "gene list" is simply a table whose row ids are genes; numeric columns (fold change, p-value, expression) are optional.
 - Track: genomic intervals (sites) on a genome: ChIP-seq peaks, variants (VCF), promoters, predicted binding sites. A track is bound to a genome build (hg19, hg38, mm10, ...): biouml_bsa_track_genome tells which. Never mix builds.
 
-Identifiers matter more than anything else. Most gene-level analyses (functional classification, enrichment, promoter analysis, regulator search) expect Ensembl gene ids as row ids. If the user's table has gene symbols, probe ids, UniProt, Entrez or anything else, run 'Convert table' first (targetType 'Genes: Ensembl'), and tell the user how many rows could not be converted (its unmatchedTable). Workflows usually do this conversion themselves.
+Identifiers matter more than anything else. Most gene-level analyses (functional classification, enrichment, promoter analysis) expect Ensembl gene ids as row ids. If the user's table has gene symbols, probe ids, UniProt, Entrez or anything else, run 'Convert table' first (targetType 'Genes: Ensembl'), and tell the user how many rows could not be converted (its unmatchedTable). Workflows usually do this conversion themselves.
 
 Getting data in: biouml_repo_import for a file on the server; the analysis 'Upload from FTP' for a URL (ftp, http(s), Google Drive share link). A small gene list can be made directly: biouml_repo_new_element kind 'table', then biouml_table_add_row or biouml_table_replace. After importing a table check with biouml_analysis_get_result that the id column and the numeric columns look right.
 
@@ -27,6 +27,27 @@ Parameters:
 
 Reading and reporting results: read tables page by page with biouml_analysis_get_result (columns to keep it small). Report the top rows with their statistics, say what the numbers mean in plain words, and state the caveats (number of input genes actually used, multiple-testing correction, predictions versus measurements). Give the repository path of every result so the user can open it in the web UI. A statistically significant list is a hypothesis, not a proof: say so.
 
+== topic: gene-list | I have a list of genes: what do they do and what may control them?
+summary: From a gene list (e.g. changed genes, a signature from a paper) to its functions and pathways and to the transcription factor binding sites over-represented in its promoters.
+Start: the list must be a table whose row ids are genes. Most analyses need Ensembl gene ids: with symbols, Entrez, UniProt or probe ids run 'Convert table' first (targetType 'Genes: Ensembl') and tell the user how many ids were not matched. Ask for the species if the table does not say.
+
+1. What do the genes do? 'Functional classification': the categories (GO, Reactome and others: the allowedValues of bioHub; which exist depends on the server) that hold more of the genes than expected by chance. Report the top categories by adjusted p-value with the genes behind them; 'Dot plot' or 'TreeMap on Functional classification' for a picture.
+2. With a value for every measured gene (e.g. log fold change) rather than a cut-off list: 'Enrichment analysis' on the whole table ranked by that column; no cutoff is needed.
+3. Which transcription factors may control them? 'Site search on gene set' searches the promoters of the genes (Yes set) and of background genes (No set) for binding sites of the motifs of a profile and reports the over-represented ones; 'Matrices to molecules' turns the motifs into the factors that bind them. The background decides the result: genes measured in the same experiment that did not change are best. These are predictions from sequence, and a motif usually stands for a family of related factors.
+4. Several lists: 'Venn diagrams' for their overlap; repeat step 1 for each list and for the overlap.
+Lists of fewer than about 20 genes give weak statistics; more than about 3000 dilute the signal: say so and offer to tighten or loosen the cutoff. A workflow that fits (biouml_analysis_list shows the workflows of this server) is shorter than these steps by hand.
+
+== topic: expression-table | I have an expression table: which genes differ between my groups?
+summary: Differential expression from a table of normalized values or raw counts, and the gene lists to carry on with.
+Look at the table first (biouml_analysis_get_result): which columns are samples, which group each belongs to, whether the values are raw counts (integers), log2 values or linear intensities. Ask the user for the groups if the column names do not tell.
+
+- Two groups of normalized values, replicates in each: 'Up and Down Identification' (a test per gene between the experiment and control columns; the sign of the score is the direction, its size -log10 of the p-value) and 'Fold-Change calculation' for the size of the change.
+- Raw RNA-seq counts, two groups: 'Differential expression with DESeq'.
+- Very few replicates: 'Hypergeometric analysis'.
+- No replicates: only 'Fold-Change calculation' is possible; say plainly that there is no statistical test.
+- The same comparison measured in several experiments: 'Meta analysis' combines the results.
+Then make the gene lists with 'Filter table' — state the cutoffs used and how many genes pass, separately for up and down — and draw a 'Volcano plot'. Genes with similar profiles across many conditions: 'K-means clustering'; similarity of samples: 'Correlation Analysis'. Continue with topic gene-list for the up and the down list separately.
+
 == topic: tables | Working with tables: filter, join, annotate, convert identifiers, plot
 summary: Which table analysis does what: subsets, joins, annotation, identifier conversion, transformations and plots.
 - Look at a table: biouml_analysis_get_result (column names, types, rows).
@@ -35,7 +56,7 @@ summary: Which table analysis does what: subsets, joins, annotation, identifier 
 - Keep some rows: 'Filter table' (a JavaScript condition on column names, or the N rows with the highest or lowest value of a column), 'Select top rows', 'Select random rows', 'Filter duplicate rows'.
 - Keep some columns: 'Select table columns'. New column from a formula: 'Add calculated column'. Log or power transform: 'Transform table'.
 - Combine tables by row id: 'Join two tables' (inner, outer, left, right join; choose columns), 'Join several tables' (more than two), 'Venn diagrams' (how up to three lists overlap, with the overlap tables).
-- Statistics and plots on a table: see topic expression-table for differential expression; 'Volcano plot', 'MA plot', 'Heatmap', 'PCA', 'Plot bar chart', 'Plot pie chart', 'Dot plot' for pictures.
+- Statistics and plots on a table: see topic expression-table for differential expression; 'Volcano plot', 'MA plot', 'Plot bar chart', 'Plot pie chart', 'Dot plot' for pictures.
 - Table to genomic intervals and back: 'Convert table to track', 'Convert track to table', 'Gene set to track' (promoters or gene regions of a gene list), 'Track to gene set' (genes near the sites of a track).
 Every analysis writes a new table and leaves its input unchanged.
 
@@ -81,7 +102,7 @@ tips: The genome build must be the one the file was made with: ask the user when
 == analysis: Fasta format (*.fasta) || EMBL format (*.embl) || GenBank format (*.gb)
 summary: Import formats for DNA sequences (FASTA, EMBL, GenBank): the file becomes a sequence collection.
 use: The user has their own sequences (a plasmid, a cloned promoter, a non-model genome) rather than coordinates on a reference genome.
-output: a sequence collection; it can be searched for binding sites with 'Site search on track' or the 'Analyze any DNA sequence' workflows.
+output: a sequence collection; it can be searched for binding sites with 'Site search on track'.
 
 == analysis: ZIP-archive (*.zip)
 summary: Import format for an archive of files of one format: each file is imported into a folder.
@@ -98,6 +119,7 @@ summary: Import formats for models and networks: SBML, CellDesigner SBML, CellML
 use: Bringing an existing mathematical model or interaction network into the repository as a diagram. See topic simulation.
 output: a diagram (SED-ML: the simulation experiment with its models).
 next: biouml_diagram_describe, then simulate or edit.
+param properties/diagramName: The name of the diagram written into the SBML file.
 
 == analysis: SDF file
 summary: Import format for chemical structures (SDF): a collection of compounds with their data fields.
@@ -127,10 +149,16 @@ summary: Add annotation columns (gene symbol, description, chromosome, ...) from
 use: Making a result readable for a person: a table of Ensembl ids gets gene symbols and descriptions. Also to copy columns from another table by row id.
 input: inputTablePath; annotationCollectionPath (e.g. databases/EnsemblHuman104/Data/gene for human genes, or any table); annotationColumns (allowedValues appear once the source is bound; for genes 'title' is the symbol and 'description' the name).
 output: outputTablePath: the input with the new columns.
+param defaultAnnotationPath: Read-only: the annotation source used when none is chosen (the gene table of the default Ensembl database).
+param annotationColumnKeys: Internal: the keys of the chosen annotation columns. Set annotationColumns instead.
 
 == analysis: Super annotate table
 summary: Annotate a table with columns from several other tables at once.
 use: Like 'Annotate table' with more than one annotation source.
+param inputTable: The table that receives the new columns.
+param idColumn: The column of the target table holding the ids to match on; '(none)' matches on the row id.
+param annotationTables: The tables to take columns from, each with the columns wanted; they are matched to the target by id.
+param outputTable: Where the annotated copy is written; the target table is not changed.
 
 == analysis: Filter table
 summary: Keep the rows of a table that satisfy a condition, or the N rows with the highest or lowest values of a column.
@@ -139,18 +167,31 @@ input: inputPath; filterExpression, a JavaScript condition on column names, e.g.
 output: outputPath, a new table.
 tips: Read the column names first (biouml_analysis_get_result). Tell the user how many rows passed; an empty result usually means a wrong column name or a cutoff that is too strict.
 
-== analysis: Fast table filter
-summary: Filter a large table with an SQL-like condition.
-use: Like 'Filter table' for tables too large to filter row by row; the condition is SQL ('ColumnA > 5 AND ColumnB < 0.05').
-
 == analysis: Select top rows
 summary: Take the top, middle or bottom rows of a table ordered by a column, by count or percent.
 use: The N most up- and down-regulated genes, or the strongest hits of any ranking.
 input: inputTable, column, types (Top, Middle, Bottom) with topCount/topPercent and the output for each.
+param column: The numeric column the rows are ranked by.
+param types: Which parts to write: Top (highest values), Middle (around the median), Bottom (lowest values); any combination.
+param topPercent: Top part: the share of rows to take, in percent; topCount caps it.
+param topCount: Top part: the largest number of rows to take. To take exactly N rows set topCount to N and topPercent to 100.
+param topMinCount: Top part: if fewer rows than this would be taken, the top table is not written.
+param topTable: Where the top rows are written.
+param middlePercent: Middle part: the share of rows to take, in percent; middleCount caps it.
+param middleCount: Middle part: the largest number of rows to take.
+param middleMinCount: Middle part: if fewer rows than this would be taken, the middle table is not written.
+param middleTable: Where the middle rows are written (e.g. unchanged genes as a background set).
+param bottomPercent: Bottom part: the share of rows to take, in percent; bottomCount caps it.
+param bottomCount: Bottom part: the largest number of rows to take.
+param bottomMinCount: Bottom part: if fewer rows than this would be taken, the bottom table is not written.
+param bottomTable: Where the bottom rows are written.
 
 == analysis: Select random rows
 summary: Take a random sample of the rows of a table.
 use: A random background set, or a smaller table for a quick trial.
+param rndCount: The largest number of rows to draw.
+param rndPercent: The share of the rows to draw, in percent; the smaller of this and rndCount applies.
+param rndTable: Where the table of randomly drawn rows is written.
 
 == analysis: Select table columns
 summary: Make a table with only the chosen columns.
@@ -158,6 +199,7 @@ input: columnGroup/tablePath and columnGroup/columns.
 
 == analysis: Filter duplicate rows
 summary: Remove rows that repeat a value in a column, keeping one of them (optionally the one with the best score).
+param removeRowsWithSameScore: When several rows share an id and also share the best score: true drops them all, false keeps them all.
 
 == analysis: Group table rows
 summary: Merge rows that have the same value in a column into one row.
@@ -170,9 +212,13 @@ input: inputPath, newName, type (e.g. Float, Text), expression using column name
 == analysis: Transform table
 summary: Apply log2, log10, power or exp to chosen columns of a table.
 use: Raw intensities need a log scale before statistics; or going back from log values.
+param columnGroup: The numeric columns to transform: tablePath and columns.
+param operation: The function applied to every value: Log2 or Log10 (linear to log scale; values must be positive), Pow2, Pow10 or Exp (back from log scale).
 
 == analysis: Merge table columns
 summary: Merge several columns of a table into one (average, extreme, ...).
+param tableColumns: The columns to merge into one: tablePath and columns.
+param aggregator: How the values of a row are combined: 'extreme' takes the value furthest from zero (keeps the strongest up or down change), or minimum, maximum, average, average without the 20% most extreme values, sum.
 
 == analysis: Table imputation
 summary: Replace missing values of a table with row means.
@@ -182,21 +228,19 @@ use: Before statistics or clustering that cannot handle missing values.
 summary: Make the value distributions of all columns of a table identical (quantile normalization).
 use: Making samples comparable when they were not normalized together.
 
-== analysis: Replace outliers
-summary: Clip the values of chosen columns to a lower and an upper bound.
-
 == analysis: Join two tables || Join full tables || Join tables
 summary: Join two tables by row id into one, with chosen columns from each (inner, outer, left or right join).
 use: Putting results side by side: fold changes from two comparisons, expression next to enrichment hits.
 input: leftGroup/tablePath, leftGroup/columns, rightGroup/tablePath, rightGroup/columns, joinType.
 output: output, a table. Both tables must use the same id type.
+param leftGroup: The first table and the columns to take from it: tablePath and columns.
+param rightGroup: The second table and the columns to take from it: tablePath and columns.
+param joinType: Which rows are kept, matched by row id. Inner join: ids in both tables. Outer join: ids in either. Left / Right join: all ids of that table, with values of the other where present. Left / Right subtraction: ids of that table that are not in the other.
 
 == analysis: Join several tables
 summary: Intersect or join more than two tables by row id, keeping all columns.
-
-== analysis: Intersect tables
-summary: The rows whose ids are in both tables.
-use: The genes common to two lists. For the overlap picture and all subsets use 'Venn diagrams'.
+param tablePaths: The tables to combine, as a list of repository paths; they are matched by row id.
+param joinType: Intersect: only the row ids present in all tables. Join: the row ids present in any table.
 
 == analysis: Venn diagrams
 summary: Draw how two or three lists overlap and save every overlap and difference as a table.
@@ -213,6 +257,10 @@ use: Not a research tool.
 
 == analysis: Convert .hic to table
 summary: Convert a Hi-C contact file (.hic) to a table at a given resolution.
+param hicPath: The Hi-C contact file (.hic) in the repository.
+param resolution: The bin size in base pairs at which contacts are read, e.g. 1000000, 100000, 10000; it must be one of the resolutions stored in the file.
+param normalization: The contact normalization stored in the file: NONE for raw counts, KR or VC (VC_SQRT) for balanced values.
+param resultTablePath: Where the table of contacts is written.
 
 # ============================================================================ plots
 
@@ -221,16 +269,30 @@ summary: Volcano plot of a differential expression table: fold change against si
 use: The standard picture of a differential expression result.
 input: inputTable, logfcColumn, pvalueColumn, labelsColumn (gene symbols), cutoffs.
 output: outputChart, an image.
+param inputTable: A differential expression result table with a p-value and a log fold change column.
+param pvalueColumn: The p-value column; prefer the adjusted p-value (e.g. adj.P.Val).
+param logfcColumn: The log2 fold change column (e.g. logFC).
+param numTopGenes: How many of the most significant genes get a label in the plot; 5-20 stays readable.
 
 == analysis: MA plot
 summary: MA plot of a differential expression table: fold change against mean expression.
+param inputTable: A differential expression result table with a log fold change and an average expression column.
+param pvalueCutoff: Genes also have to pass this p-value to be coloured as changed.
 
 == analysis: Plot bar chart || Plot pie chart
 summary: Bar or pie chart of one numeric column of a table, labelled by another column.
+param column: The numeric column that gives the bar heights.
+param autoFillLabels: true: the axis labels are taken from the names of the chosen columns.
+param xAxisLabel: Label of the category axis.
+param yAxisLabel: Label of the value axis.
+param column: The column that gives the size of each piece.
 
 == analysis: Dot plot
 summary: Dot plot of an enrichment result: categories with dot size by number of genes and position by significance.
 use: A picture of the top categories of 'Functional classification' or 'Enrichment analysis'.
+param inputTable: A functional classification or enrichment result table.
+param logPvalueColumn: The column that gives the position and colour of the dots, usually the (adjusted) p-value of each category.
+param numTopCategories: How many of the best categories are drawn; 10-20 stays readable.
 
 == analysis: TreeMap on Functional classification
 summary: Treemap picture of a GO functional classification result, grouping similar GO terms.
@@ -239,6 +301,10 @@ input: sourcePath, the result of 'Functional classification' with a GO classific
 
 # ============================================================================ expression statistics
 
+== analysis: Illumina normalization
+summary: Normalize raw Illumina microarray files into one table of expression values (probes as rows, files as columns).
+use: The first step with raw Illumina BeadChip files; continue with topic expression-table.
+
 == analysis: Up and Down Identification
 summary: Find up- and down-regulated genes between an experiment and a control group of columns (Student's t-test or Wilcoxon).
 use: A simple two-group comparison on a normalized expression table when each group has several replicates. For RNA-seq counts or designs with more factors prefer the linear-model tools when they are available.
@@ -246,12 +312,15 @@ input: experimentData/tablePath + experimentData/columns, controlData/tablePath 
 output: outputTablePath: a score per gene whose sign is the direction and whose size is -log10 of the p-value.
 next: filter the significant genes ('Filter table'), then functional and promoter analyses.
 tips: Needs at least 2-3 samples per group; with one sample per group use 'Fold-Change calculation' and say that no statistics are possible.
+param method: The test per gene between the two groups: Student's t-test (the usual choice, assumes roughly normal values, so use log-scale data) or Wilcoxon (rank-based, needs more replicates, at least 4-5 per group).
+param outputType: Which genes are written: 'Up and down regulated' (the usual choice), only 'Up regulated', only 'Down regulated', or 'Non-changed' (a background set).
 
 == analysis: Fold-Change calculation
 summary: Fold change of each gene between experiment and control columns.
 use: The size of the change without a statistical test, e.g. one sample per group, or as the ranking column for 'Enrichment analysis'.
 input: experimentData/..., controlData/..., type (how replicates are averaged), inputLogarithmBase and outputLogarithmBase (use log2 for the output).
 output: outputTablePath with fold-change columns; optionally a histogram.
+param type: How replicates are combined. 'Average all': mean of experiment against mean of control, one fold change per gene (the usual choice). 'Average Control' / 'Average Experiment': each sample of one group against the mean of the other. 'Each experiment to each control': every pair. 'One experiment to one control': sample i against sample i (paired design).
 
 == analysis: Hypergeometric analysis
 summary: Find up- and down-regulated genes by comparing each expression profile with a boundary value using permutations.
@@ -263,6 +332,7 @@ output: outputTablePath with a signed score per gene.
 summary: Combine the up/down results of several independent experiments into one list of consistently regulated genes.
 use: The same question was measured in several datasets and the user wants the genes that agree across them.
 input: tablePaths, the results of 'Hypergeometric analysis' for each dataset.
+param tablePaths: The result tables of the single experiments (same row ids, each with a score or p-value column), as a list of repository paths.
 
 == analysis: Differential expression with DESeq
 summary: Differential expression between two groups of RNA-seq count columns with DESeq or DESeq2.
@@ -270,6 +340,8 @@ use: The input is a table of raw read counts per gene (integers), not normalized
 input: experimentGroup/tablePath + columns, controlGroup/tablePath + columns, deseqVersion.
 output: testsTable with fold change and adjusted p-value per gene.
 tips: Counts must be raw: normalized or log values give wrong results. Needs replicates in each group.
+param experimentGroup: The columns with the raw read counts of the experiment (treated, disease) samples: tablePath and columns.
+param controlGroup: The columns with the raw read counts of the control samples: tablePath and columns.
 
 == analysis: Correlation Analysis
 summary: Pearson or Spearman correlation between rows or columns of one or two tables, with p-values.
@@ -278,6 +350,7 @@ use: Which genes behave alike across samples, or how similar the samples are.
 == analysis: Polynomial Regression analysis
 summary: Fit a polynomial trend to each gene's values over time points and report the genes with a significant trend.
 use: Time series: which genes change over time.
+param regressionPower: The degree of the polynomial fitted to each profile: 1 a straight line (trend), 2 a parabola (rise then fall), 3 and more for more complex time courses. Keep it well below the number of time points.
 
 == analysis: K-means clustering
 summary: Group genes with similar expression profiles into a chosen number of clusters.
@@ -286,6 +359,7 @@ input: experimentData/tablePath + columns, clusterCount.
 output: outputTablePath: each gene with its cluster.
 next: analyse each cluster as a gene set (functional classification, promoter analysis).
 tips: The number of clusters is a guess: try a few values.
+param method: The k-means variant; they differ in how cluster centres are updated. Hartigan-Wong, the default, is the usual choice.
 
 == analysis: CRC clustering
 summary: Cluster genes by expression profile without fixing the number of clusters (Chinese restaurant clustering).
@@ -294,6 +368,10 @@ next: 'CR cluster selector' picks the clusters to keep.
 
 == analysis: CR cluster selector
 summary: Save chosen clusters of a 'CRC clustering' result as separate gene tables.
+param maxClusters: How many of the clusters, taken from the best, are written out.
+param maxItemsPerCluster: Clusters with more rows than this are skipped as too broad.
+param minItemsPerCluster: Clusters with fewer rows than this are skipped as too small for further analysis (e.g. enrichment).
+param outputFolder: The folder that receives one table per selected cluster.
 
 # ============================================================================ functional classification
 
@@ -315,6 +393,7 @@ tips: Give it all measured genes, not only the significant ones. The sign of NES
 == analysis: Functional classification by diagrams
 summary: Which pathway diagrams of a repository folder are over-represented in a list of proteins or small molecules.
 use: Like 'Functional classification' with the user's own or a database's pathway diagrams as categories.
+param type: What the rows of the input table are: Proteins or Small molecules (metabolites).
 
 # ============================================================================ tracks
 
@@ -325,6 +404,8 @@ input: sourcePaths (tracks); species; from and to, how far upstream of the gene 
 output: destPath, a table of Ensembl genes with counts of sites (overall, in exons, introns, ...).
 next: functional classification of the genes; network analysis.
 tips: The window decides the answer: a few kb around genes finds promoter-proximal targets, larger windows add distal ones and noise. State the window used.
+param resultTypes: What to report for each gene about the sites near it: 'Count' the number of sites (the usual choice), counts in exons, introns, 5' and 3' regions, '+ or -' presence only, 'Schematic' a small picture of the site positions; several may be chosen, one column each.
+param allGenes: true: also list genes that have no site near them (with zero counts); false: only genes with at least one site.
 
 == analysis: Annotate track with genes
 summary: Write into each site of a track the genes it falls in or near.
@@ -356,6 +437,7 @@ use: To filter, join or plot site properties with the table tools.
 summary: Keep (Intersect) or remove (Subtract) the sites of a track that overlap the sites of another track.
 use: Peaks inside promoters, variants inside peaks, peaks of one experiment absent from another.
 input: inputTrack, filterTrack, mode, maxDistance.
+param selectedFilterFieldNames: Properties of the overlapping site of the filter track to copy into each kept site, e.g. the gene name of an annotation track.
 
 == analysis: Filter track by condition
 summary: Keep the sites of a track that satisfy a JavaScript condition on position, length, strand or site properties.
@@ -394,9 +476,12 @@ output: destPath (track), annotatedPath (SNPs with genes), outputGenes (gene tab
 == analysis: Track statistics
 summary: Quality statistics of a track or FASTQ file: read counts, quality and nucleotide content per position.
 use: A first quality check of sequencing reads.
+param sourcePath: Read-only, internal.
 
 == analysis: Illumina methylation probes to track
 summary: Turn a table of Illumina methylation probe ids (cg...) into a track of their genomic positions.
+param inputTable: A table whose row ids are Illumina methylation probe ids (cg...).
+param width: The length in base pairs of the region made around each probe position.
 
 # ============================================================================ NGS
 
@@ -406,16 +491,25 @@ use: The user has aligned ChIP-seq reads (BAM tracks) and needs the binding regi
 input: trackPath (the ChIP sample), controlPath (input/IgG control, optional but recommended), gsize (effective genome size), pvalue.
 output: outputPath, a track of peaks.
 next: 'Track to gene set' for target genes; motif analysis of the peaks.
+param gsize: The mappable genome size in base pairs: about 2.7e9 for human, 1.87e9 for mouse, 9e7 for C. elegans, 1.2e8 for fruit fly.
+param bw: The expected fragment length of the sonicated DNA in base pairs, used to build the peak model; 300 suits most libraries.
+param tsize: The read (tag) length in base pairs, e.g. 25, 36, 50.
+param computePeakProfile: true: also compute the read-density profile and summit of each peak, which later motif analyses use.
+param lambdaSet/lambda1: Window in base pairs for the local background estimate around a candidate peak; 1000 is the MACS default.
+param lambdaSet/lambda2: Second, wider window for the local background; 5000 is the MACS default.
+param lambdaSet/lambda3: Third, widest window for the local background; 10000 is the MACS default.
 
 == analysis: ChIP-seq peak profile
 summary: Compute the shape profile of ChIP-seq peaks from the aligned reads, for motif discovery that uses peak shape.
+param errorRate: The assumed fraction (0-1) of reads in a peak that are background noise rather than signal. 0.3 suits typical ChIP-seq; raise it for noisy data.
+param profileTrackPath: Where the track with the computed read-density profile of each peak is written.
 
 == analysis: ChIPMunk || DiChIPMunk
 summary: Discover the strongest DNA motif in a set of sequences such as ChIP-seq peaks (ChIPMunk; DiChIPMunk builds a dinucleotide motif).
 use: De novo motif discovery: what sequence pattern do these regions share, when no known motif is assumed.
 input: inputSequences (a track or sequence collection), startLength and stopLength (motif length range, e.g. 15 down to 8).
 output: a weight matrix in outputLibrary.
-next: 'Create matrix logo' when available to draw it; 'Create Match model' or 'Create weight matrix model' to search with it.
+next: 'Create Match model' or 'Create weight matrix model' to search with it.
 tips: Use the top few hundred to thousand peaks, shrunk around their summits; long or numerous sequences make it slow.
 
 == analysis: ChIPHorde || DiChIPHorde
@@ -424,14 +518,37 @@ use: Like ChIPMunk when more than one motif is expected, e.g. a factor with co-f
 
 == analysis: IPS motif discovery
 summary: Discover motifs in a sequence set starting from given frequency matrices (IPS method).
+param sequencesPath: The sequences to search for a shared motif: a track (e.g. the top ChIP-seq peaks) or a sequence collection.
 
 == analysis: Preprocess raw reads
 summary: Clean raw sequencing reads (FASTQ): remove adapters, trim low-quality ends, drop short or poor reads.
 use: Before aligning reads when quality checks show adapters or poor ends.
+param singleEndFastq: Single-end reads: the FASTQ file.
+param singleEndCSFasta: Single-end SOLiD colour-space reads: the csfasta file.
+param singleEndQual: Single-end SOLiD reads: the matching quality file.
+param pairedEndFastqFirst: Paired-end reads: the FASTQ file of the first mates (R1).
+param pairedEndFastqSecond: Paired-end reads: the FASTQ file of the second mates (R2), in the same order as the first.
+param pairedEndCSFastaFirst: Paired-end SOLiD reads: csfasta of the first mates.
+param pairedEndQualFirst: Paired-end SOLiD reads: qualities of the first mates.
+param pairedEndCSFastaSecond: Paired-end SOLiD reads: csfasta of the second mates.
+param pairedEndQualSecond: Paired-end SOLiD reads: qualities of the second mates.
+param taskProcessorsDPS/Trim low quality/phredQualityThreashold: Bases at the read ends with a Phred quality below this are cut off. 20 (1% error) is the usual value; 30 is strict.
+param taskProcessorsDPS/Cut adapters/adapters: The adapter sequences to remove from the reads, as used in the library preparation kit.
+param taskProcessorsDPS/Remove low quality reads: Drops whole reads whose quality is too low; its fields set the thresholds.
+param singleEndFastqOutput: Where the cleaned single-end FASTQ is written.
+param singleEndCSFastaOutput: Where the cleaned csfasta is written.
+param singleEndQualOutput: Where the cleaned quality file is written.
+param pairedEndFastqFirstOutput: Where the cleaned first-mate FASTQ is written.
+param pairedEndFastqSecondOutput: Where the cleaned second-mate FASTQ is written.
+param pairedEndCSFastaFirstOutput: Where the cleaned first-mate csfasta is written.
+param pairedEndQualFirstOutput: Where the cleaned first-mate qualities are written.
+param pairedEndCSFastaSecondOutput: Where the cleaned second-mate csfasta is written.
+param pairedEndQualSecondOutput: Where the cleaned second-mate qualities are written.
 
 == analysis: Read counter
 summary: Count the aligned reads overlapping each gene of a list.
 use: A quick gene-level read count from an alignment track.
+param trackPath: The track of aligned reads (BAM) to count.
 
 == analysis: Prepare GTF annotation
 summary: Make a GTF gene annotation file from an Ensembl database, for tools that need one.
@@ -441,6 +558,7 @@ summary: Predict the effect of each variant of a track on proteins (synonymous, 
 use: Which variants of a VCF change a protein.
 input: inputTrack (variants), genome.
 output: outputTrack: the variants with their effect.
+param genome: The genome the variant coordinates refer to (database and build, e.g. hg38). It must match the build the variants were called on.
 
 == analysis: Mutation effect on sites || Mutation effect on sites advanced
 summary: Find the transcription factor binding sites that variants create or destroy, with the genes they may regulate (the advanced version adds factor classes, pathway and disease annotation).
@@ -448,12 +566,17 @@ use: Regulatory variants: which non-coding mutations change the binding of which
 input: vcfTrack; genome; siteModels, a profile of binding-site models (e.g. a profile under databases/.../Data/profiles); scoreDiff, the minimal score change; targetGeneTSSUpstream/Downstream, the window linking a site to a gene.
 output: outputTable (variant, factor, gain or loss, score change, target gene), tracks of gained and lost sites, the important mutations, and a summary per site model.
 tips: These are sequence-based predictions: a changed motif score does not prove changed binding. The track must be on the genome chosen in genome.
+param tfClassDepth: How finely transcription factors are grouped in the result, as a level of the TF classification: 5 single factors, 4 subfamilies, 3 families.
+param transpathHub: The TRANSPATH pathway collection used to annotate the affected genes; keep the newest.
+param psdHub: The HumanPSD disease collection used to annotate the affected genes; keep the newest.
+param selectedGTRDPeaks: A track of GTRD ChIP-seq peaks or metaclusters: only variants inside these experimentally bound regions are analysed.
 
 == analysis: Compare TFBS mutations || Compare TFBS mutations advanced
 summary: Find transcription factors whose binding sites are gained or lost more often by the variants of one set than of another.
 use: Comparing two variant sets (cases against controls, tumour against normal): which factors' sites are preferentially hit.
 input: yesVCFTrack, noVCFTrack, genome, siteModels, pValueCutoff.
 output: siteGainsTable and siteLossesTable, one row per factor model.
+param useOverrepresented: true: test only the motifs whose sites are over-represented around the variants, which reduces the number of tests.
 
 # ============================================================================ binding sites (generic part)
 
@@ -471,6 +594,7 @@ use: Scanning peaks, promoters, variant surroundings or the user's own sequences
 input: trackPath; dbSelector, the genome of the track (or seqCollectionPath); profilePath.
 output: output, a track of predicted sites, each with its site model and score.
 next: 'Site search summary' compares the site counts of two such results (study against background).
+param seqCollectionPath: The genome sequences the track's coordinates refer to, e.g. the 'Sequences/chromosomes ...' collection of an Ensembl database of the right build.
 
 == analysis: Site search summary
 summary: Compare two site search results (study and background) and report the motifs with different site frequencies.
@@ -479,9 +603,12 @@ input: yesTrackPath and noTrackPath, results of 'Site search on track'.
 == analysis: Site search result optimization
 summary: Tune motif score cutoffs and promoter windows of a study/background site search to find the most over-represented motifs.
 use: After 'Site search on track' on Yes and No sets, to sharpen the enrichment and get a filtered profile.
+param outSummaryTable: Where the table of motifs with their optimized cutoffs and enrichment is written.
+param outProfile: Where the profile with the optimized cutoffs is written; it can be used in later site searches.
 
 == analysis: Site search report || Site search report with matrix table
 summary: Make a readable report of a site search: the top motifs and in which sequences their sites are.
+param useOriginalIds: true: name sequences in the report by their original ids rather than by generated ones.
 
 == analysis: Convert site search summary
 summary: Convert the motifs of a site search summary to transcription factors, keeping the statistics.
@@ -498,21 +625,42 @@ use: Restricting later searches to the motifs that matter, e.g. factors expresse
 
 == analysis: Change profile cutoffs || Compute profile thresholds
 summary: Set or recompute the score cutoffs of all site models of a profile (stricter cutoffs give fewer false positives).
+param inputProfile: The profile (motifs with score cutoffs) whose cutoffs are to be changed; the result is a new profile.
+param method/sampleSize: How many random sequences are scored to estimate the score distribution of each motif. More gives steadier cutoffs and takes longer; 1000 is a sensible minimum.
+param method/errorRate: The share of random positions allowed to score above the cutoff (the false positive rate). Smaller values give stricter cutoffs and fewer predicted sites.
 
 == analysis: Create Match model || Create weight matrix model || Create IPS model
 summary: Make a site model from a frequency matrix (e.g. a discovered motif) so it can be used in site searches.
+param frequencyMatrices: The position frequency matrices (motifs) the model is built from; several matrices of the same factor may be given.
+param windowSize: The length in base pairs of the window around a site whose neighbouring weak sites add to its score.
+param threshold: The score cutoff of the model: positions scoring above it are reported as sites. 0 reports everything; set it from 'Compute profile thresholds' or by trial.
+param nucleotideFrequencies/a: Background frequency of A in the genome; the four values must sum to 1. 0.25 each is neutral; human is about 0.3/0.2/0.2/0.3 for A/C/G/T.
+param nucleotideFrequencies/c: Background frequency of C.
+param nucleotideFrequencies/g: Background frequency of G.
+param nucleotideFrequencies/t: Background frequency of T.
 
 == analysis: Construct IPS CisModule
 summary: Find windows where several predicted sites of chosen models cluster (cis-regulatory modules).
+param siteTrackPath: The track of predicted binding sites (a site search result) in which clusters of sites are looked for.
+param windowSize: The length in base pairs of the window in which sites must co-occur to form a module; 200-500 is typical for enhancers and promoters.
+param moduleTrack: Where the track of the modules found is written.
 
 == analysis: Motif quality analysis
 summary: Measure how well a motif model separates real sites from shuffled sequence (ROC curve).
+param siteModel: The site model (motif with cutoff) to evaluate.
 
 # ============================================================================ miRNA
 
 == analysis: Create miRNA promoters
 summary: Make a track of the promoters of the miRNAs of a table, optionally for a cell line or tissue.
 use: The start of an analysis of which transcription factors control a set of miRNAs.
+param from: Start of the promoter relative to the transcription start site of the miRNA, in base pairs; negative is upstream. -1000 is usual.
+param to: End of the promoter relative to the transcription start site; positive is downstream. 100 is usual.
+param promoterSelectMode: Which start site to use when a miRNA has several: 'all' makes a promoter for each, "5' most" the most upstream one, "3' most" the one nearest to the miRNA.
+param cellLine: Use the start sites observed in this cell line; leave unset for start sites from all data.
+param cellType: Use the start sites observed in this tissue; leave unset for start sites from all data.
+param modeSuffix: Internal: text added to the default output name for the chosen mode. Ignore it.
+param cellSuffix: Internal: text added to the default output name for the chosen cell line or tissue. Ignore it.
 
 # ============================================================================ networks and models (generic part)
 
@@ -521,6 +669,15 @@ summary: Colour the molecules of a network or pathway diagram by values from a t
 use: Showing the user's data on a pathway or on a network found by a regulator search.
 input: inputDiagram; filterProperties/table and the columns to show (filterProperties/outsideOptions/columns).
 output: outputDiagram; draw it with biouml_diagram_image.
+param inputDiagram: The network or pathway diagram to colour.
+param filterProperties: How the values of a table are painted onto the nodes of the diagram. Each of the groups below paints one aspect and is used only when its table is set.
+param filterProperties/outsideOptions: Colours the border (outside) of each node by a column of a table, e.g. fold change.
+param filterProperties/insideOptions: Colours the inside of each node by a column of a table, e.g. fold change: one colour for negative, another for positive values.
+param filterProperties/pvalOptions: Marks nodes with stars by a p-value column: more stars, smaller p-value.
+param filterProperties/fluxOptions: Draws reaction edges thicker by a column of flux values.
+param filterProperties/fluxOptions/maxWidth: The line width, in pixels, of the edge with the largest flux.
+param table: Read-only: the table chosen for this group.
+param outputDiagram: Where the coloured copy of the diagram is written; the input diagram is not changed.
 
 == analysis: Annotate diagram
 summary: Add annotations from a table column to the elements of a diagram.
@@ -533,23 +690,33 @@ summary: Merge several diagrams of the same type into one and lay it out.
 
 == analysis: Compare diagrams
 summary: Compare the graph structures of two diagrams starting from chosen nodes.
+param comparator/attributeName: The attribute by which elements of the two diagrams are matched, when they are compared by an attribute rather than by name.
 
 == analysis: Get molecules from diagram
 summary: Extract chosen elements of a diagram into a new diagram.
 
 == analysis: Apply state to diagram
 summary: Apply a saved state (a set of changes) to a diagram.
+param inputDiagramPath: The diagram that has saved states (named sets of changes, e.g. an experiment's parameter values).
+param stateName: The name of the state to apply, as stored in the diagram.
+param newDiagram: true: write the result to outputDiagramPath; false: change the input diagram itself.
+param writeStateToDiagram: true: the changes of the state become part of the diagram and the state is removed; false: the diagram keeps the state as a separate, switchable set of changes.
+param outputDiagramPath: Where the new diagram is written when newDiagram is true.
 
 == analysis: Match genes and metabolites
 summary: The metabolites connected to a gene list through enzymatic reactions, or the genes connected to a metabolite list.
 use: Linking transcriptomics with metabolomics.
 input: sourceTable, moduleName (the metabolic database), strategy ('genes to metabolites' or 'metabolites to genes').
+param strategy: The direction: 'genes to metabolites' gives the metabolites of the reactions catalysed by the input genes' enzymes; 'metabolites to genes' gives the enzyme genes for the input metabolites.
+param suffix: Read-only, internal: text used in the default output name.
 
 == analysis: Simulation analysis
 summary: Simulate the mathematical model of a diagram and save the time courses.
 use: See topic simulation. For interactive work biouml_simulation_start is simpler; this analysis keeps the result in the repository.
 input: modelPath; simulationEngineName and simulationEngine settings (time span and step, solver).
 output: simulationResultPath; read it with biouml_analysis_get_result or plot with biouml_simulation_output.
+param simulationEngineName: The kind of simulation, one of the engines the server offers for this model (e.g. the ODE engine for a deterministic simulation, a stochastic or agent-based engine).
+param simulationEngine: The settings of the chosen engine: its fields include the time span (initial and completion time), the time step of the output and the solver.
 
 == analysis: Building Flux Balance DataTable
 summary: Make the table of flux bounds and objective coefficients that flux balance analysis needs from a metabolic model.
@@ -563,3 +730,52 @@ use: Context-specific flux balance analysis driven by the user's expression data
 summary: Flux balance analysis: the reaction fluxes of a metabolic model that maximize or minimize an objective.
 input: diagramPath (the model), fbcDataTablePath (from one of the table builders), typeObjectiveFunction.
 output: fbcResultPath, a table of fluxes.
+
+# ============================================================================ parameters
+
+# For a parameter of this name in any analysis or workflow whose own description is empty or repeats its name.
+== parameters: common
+param tablePath: Repository path of the table the columns are taken from.
+param namesDescription: Read-only: a summary of the chosen columns. Do not set it; choose the columns with the 'columns' key beside it.
+param inputTable: Repository path of the table to work on.
+param inputTrack: Repository path of the track to work on.
+param outputTable: Where the result is written: a repository path for a new element, normally in the user's project (data/Projects/<project>/Data/<name>). It need not exist yet; an existing element of that name is replaced. Left unset, a default next to the input is used when the analysis offers one.
+param outputTablePath: Where the result is written: a repository path for a new element, normally in the user's project (data/Projects/<project>/Data/<name>). It need not exist yet; an existing element of that name is replaced. Left unset, a default next to the input is used when the analysis offers one.
+param output: Where the result is written: a repository path for a new element, normally in the user's project (data/Projects/<project>/Data/<name>). It need not exist yet; an existing element of that name is replaced. Left unset, a default next to the input is used when the analysis offers one.
+param outputPath: Where the result is written: a repository path for a new element, normally in the user's project (data/Projects/<project>/Data/<name>). It need not exist yet; an existing element of that name is replaced. Left unset, a default next to the input is used when the analysis offers one.
+param destPath: Where the result is written: a repository path for a new element, normally in the user's project (data/Projects/<project>/Data/<name>). It need not exist yet; an existing element of that name is replaced. Left unset, a default next to the input is used when the analysis offers one.
+param outputTrack: Where the result is written: a repository path for a new element, normally in the user's project (data/Projects/<project>/Data/<name>). It need not exist yet; an existing element of that name is replaced. Left unset, a default next to the input is used when the analysis offers one.
+param outputChart: Where the picture is written: a repository path for a new chart element, normally in the user's project. View it with biouml_repo_export or the web UI.
+param outputDiagram: Where the result is written: a repository path for a new element, normally in the user's project (data/Projects/<project>/Data/<name>). It need not exist yet; an existing element of that name is replaced. Left unset, a default next to the input is used when the analysis offers one.
+param outputDiagramPath: Where the result is written: a repository path for a new element, normally in the user's project (data/Projects/<project>/Data/<name>). It need not exist yet; an existing element of that name is replaced. Left unset, a default next to the input is used when the analysis offers one.
+param resultTablePath: Where the result is written: a repository path for a new element, normally in the user's project (data/Projects/<project>/Data/<name>). It need not exist yet; an existing element of that name is replaced. Left unset, a default next to the input is used when the analysis offers one.
+param outputFolder: Repository path of the folder the results are written into; it is created if missing.
+param defaultProfile: Read-only: the profile (set of binding motifs with score cutoffs) used when none is chosen.
+param shortTargetType: Read-only, internal: a short name of the target identifier type, used to build the default output name. Ignore it.
+param hubShortName: Read-only, internal: a short name of the chosen classification, used to build the default output name. Ignore it.
+param imageWidth: Width of the picture in pixels.
+param imageHeight: Height of the picture in pixels.
+param labelsColumn: The column whose values label the points or pieces, e.g. a column of gene symbols; '(none)' labels by row id.
+param mergeColumns: What to do with columns of the same name in both tables: true merges them into one column, false keeps both.
+param ensembl: The Ensembl database (species and genome build) the genes or coordinates belong to. It must match the build of the data, e.g. a Human ...38 (hg38) entry for hg38 tracks. Check the default: it is the first database of the server, often not human.
+param stepLimit: ChIPMunk: how many times a motif is re-optimized from one starting point. Larger is more thorough and slower; the default 10 is fine.
+param tryLimit: ChIPMunk: how many random starting points are tried. Larger is more thorough and slower; 100 is the usual value, 10-20 gives a quick look.
+param shape: ChIPMunk: how the reads or peak summits are assumed to lie over the motif. 'flat': no positional preference (use it for plain sequences); 'single': one peak of coverage over the site (ChIP-seq peaks with summit information); 'double': two flanking peaks (e.g. ChIP-exo style data).
+param modelPath: Where the new site model is written: a repository path, normally in the user's project.
+param matrixPath: Repository path of the position frequency matrix (a motif) to build the model from, or where the discovered matrix is kept.
+param pValueCutoff: Only results with a p-value below this are reported. 0.05 is the usual choice; lower it (0.01, 0.001) for a shorter, more reliable list.
+param pvalueCutoff: Only results with a p-value below this are reported. 0.05 is the usual choice; lower it (0.01, 0.001) for a shorter, more reliable list.
+param yesVCFTrack: The VCF track with the variants of interest (cases, tumour, the experiment).
+param noVCFTrack: The VCF track with the variants to compare against (controls, normal tissue, random variants).
+param windowSize: Size in base pairs of the sliding window in which sites are counted or scored together.
+param critIPS: The lowest IPS score at which a site is reported; higher values give fewer, stronger sites.
+param column: The column whose values are used; '(none)' until the input table is set — bind the table first to see the choices.
+param maxPieces: The largest number of categories drawn; further categories are dropped, or summed into one when addRemaininig is true.
+param addRemaininig: true: the categories beyond maxPieces are drawn together as one piece called 'other'.
+param paletteName: The colour scheme of the chart; it has no effect on the data.
+param downCutoff: Genes with a log fold change below this (negative) value count as down-regulated. -0.6 in log2 is 1.5-fold down, -1 is 2-fold.
+param upCutoff: Genes with a log fold change above this value count as up-regulated. 0.6 in log2 is 1.5-fold up, 1 is 2-fold.
+param controlData/tablePath: Repository path of the table holding the control (reference) samples; may be the same table as for the experiment.
+param experimentData/tablePath: Repository path of the table holding the experiment (treated, disease) samples.
+param inputLogarithmBase: What the input values are: 'non-logarithmic' for linear intensities or counts, otherwise the base of the logarithm already applied (most normalized expression tables are log2). A wrong choice gives wrong fold changes.
+param outputLogarithmBase: The scale of the values written: log2 is the convention for expression values and fold changes.

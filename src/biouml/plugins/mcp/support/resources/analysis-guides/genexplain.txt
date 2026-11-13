@@ -129,9 +129,10 @@ input: the raw files of each group (celFiles / agilentFiles / illuminaFiles and 
 output: outputPath (experiment) and controlOutputPath (control), tables with probe ids as rows and one column per file.
 tips: Keep outputLogarithmBase at log2. Needs R on the server.
 
-== analysis: Affymetrix normalization || Agilent normalization || Illumina normalization
+== analysis: Affymetrix normalization || Agilent normalization
 summary: Normalize a set of raw microarray files into one table of expression values (probes as rows, files as columns).
 use: All samples of an experiment in one table, e.g. for more than two groups; then topic expression-table.
+param dualChannel: true for two-colour arrays (Cy5/Cy3 on one slide; the result is a log ratio of the channels), false for one-colour arrays.
 
 == analysis: Normalization quality plots
 summary: Box plots and density plots of the value distributions of the sample columns of a table.
@@ -159,10 +160,12 @@ use: An alternative to limma for few replicates; usually limma is the first choi
 == analysis: Calculate M-values
 summary: Convert methylation beta-values in chosen columns to M-values, which suit statistical tests.
 use: Before differential methylation statistics on beta-value tables.
+param columnGroup: The columns with methylation beta-values (0-1) to convert: tablePath and columns.
 
 == analysis: Variance filter
 summary: Keep the rows of a table with the highest (or lowest) variance across chosen columns.
 use: Reducing a table to its most variable genes before 'Heatmap', 'PCA' or clustering.
+param dataColumns: The numeric sample columns over which the variance of each row is computed.
 
 == analysis: Heatmap
 summary: Heatmap of a numeric table with hierarchical clustering of rows and columns.
@@ -179,12 +182,17 @@ input: inputTablePath; groups as firstName/firstColumns, secondName/secondColumn
 summary: t-SNE map of the data points of a table, coloured by a group column.
 use: Visualizing many samples or cells; for a handful of samples PCA is the right tool.
 tips: Perplexity must be smaller than a third of the number of points.
+param maxIter: Number of optimization steps; 1000 is usually enough, more only if the map still changes.
+param pcaCenter: true (usual): centre each variable before the initial PCA.
+param pcaScale: true: also scale each variable to unit variance before the initial PCA, so that variables on different scales count equally; false for expression values on one scale.
+param eta: Learning rate of the optimization; 200 is the standard. Lower it (10-100) if the points form a ball, raise it for very large data.
 
 == analysis: Train random forest
 summary: Train a random forest to predict a class or a value from the columns of a table; reports accuracy and variable importance.
 use: Building a classifier (e.g. responders against non-responders) or finding the most informative variables.
 input: columnTablePath (samples as rows, variables as columns), responseColumn, predictorColumns.
 output: outputFolderPath with the model, its error estimates and the importance table.
+param seed: Start value of the random number generator; keep it to make the result reproducible, change it to see how stable the result is.
 
 == analysis: Random forest prediction
 summary: Apply a trained random forest model to new data.
@@ -204,12 +212,42 @@ use: What is enriched in one gene set and not in the other: GO terms or motifs s
 input: firstTablePath/firstColumn and secondTablePath/secondColumn, the p-value columns of two results of the same kind.
 output: a scatter plot and a table of differences with FDR.
 
+== analysis: Fast table filter
+summary: Filter a large table with an SQL-like condition.
+use: Like 'Filter table' for tables too large to filter row by row; the condition is SQL ('ColumnA > 5 AND ColumnB < 0.05').
+
+== analysis: Replace outliers
+summary: Clip the values of chosen columns to a lower and an upper bound.
+
+== analysis: Intersect tables
+summary: The rows whose ids are in both tables.
+use: The genes common to two lists. For the overlap picture and all subsets use 'Venn diagrams'.
+param leftGroup: The first table and the columns to take from it: tablePath and columns.
+param rightGroup: The second table and the columns to take from it: tablePath and columns.
+
 == analysis: Verify Condition for Table
 summary: Workflow helper: pass a table on only if it meets a condition (enough rows, a column present, ...).
 use: Not a research step; used inside workflows.
+param inputPath: The table to check.
+param conditionMode: The rule to check: the table has more rows than conditionValue; a column of that name is present; a JavaScript expression holds; the table has a property of that name.
+param conditionValue: The value the rule is checked against: a row count, a column name, an expression or a property name.
+param outputPath: Where the table is copied to when the condition holds.
+param emptyOutput: true: when the condition fails, write an empty table instead of failing, so that later workflow steps can go on.
 
 == analysis: Import from BC Platform || Import from TranSMART
 summary: Load a dataset from a BC|Platform or tranSMART server into a table; needs that server's address and credentials from the user.
+param apiKey: The user's API key for the BC|Platform server. Ask the user for it; never invent one, and do not repeat it in answers.
+param password: The user's password for the server. Ask the user; do not repeat it in answers.
+param dataSet: The name of the data set on the server to load.
+param genes: Gene symbols to restrict the query to, comma-separated; empty for no restriction.
+param geneIds: As genes, by id.
+param geneSignatures: Names of gene signatures stored on the server to restrict the query to.
+param geneSignatureIds: As geneSignatures, by id.
+param proteins: Protein names to restrict the query to.
+param proteinIds: As proteins, by id.
+param pathways: Pathway names to restrict the query to (their genes are used).
+param pathwayIds: As pathways, by id.
+param snps: SNP ids (rs numbers) to restrict the query to.
 
 # ============================================================================ promoters and tracks
 
@@ -235,14 +273,31 @@ use: Peaks shared between two experiments and peaks unique to one; regions insid
 == analysis: Find regulatory regions
 summary: Make a track of the regulatory regions of a gene list: promoter windows, placed on ChIP-seq peaks near the gene when a peak track is given.
 use: Better regions than fixed promoters for site search when binding or open-chromatin data exist. A Genome Enhancer step.
+param inputGenes: The table of genes (Ensembl ids) whose regulatory regions are wanted.
+param chipSeqPeaks: Optional track of ChIP-seq or open-chromatin peaks: regions are then placed on the peaks near each gene instead of on its promoter only.
+param geneLeftBoundShift: How far upstream of the gene's start, in base pairs (negative), peaks or mutations are still assigned to the gene. -2000 keeps to the vicinity; -50000 takes in distal enhancers.
+param geneRightBoundShift: How far downstream of the gene's end, in base pairs, peaks or mutations are still assigned to the gene.
+param regulatoryRegionFrom: Start of the region made around each peak summit (or mutation cluster), in base pairs relative to it; -200 with regulatoryRegionTo 200 gives 400 bp regions, a good size for motif search.
+param regulatoryRegionTo: End of the region made around each peak summit (or mutation cluster), in base pairs relative to it.
 
 == analysis: Find regulatory regions with mutations
 summary: Make a track of regulatory regions of a gene list, placed where the mutations of a variant track are densest around each gene.
 use: Promoter analysis centred on a patient's regulatory variants. A Genome Enhancer step.
+param inputGenes: The table of genes (Ensembl ids) whose regulatory regions are wanted.
+param geneLeftBoundShift: How far upstream of the gene's start, in base pairs (negative), peaks or mutations are still assigned to the gene. -2000 keeps to the vicinity; -50000 takes in distal enhancers.
+param geneRightBoundShift: How far downstream of the gene's end, in base pairs, peaks or mutations are still assigned to the gene.
+param regulatoryRegionFrom: Start of the region made around each peak summit (or mutation cluster), in base pairs relative to it; -200 with regulatoryRegionTo 200 gives 400 bp regions, a good size for motif search.
+param regulatoryRegionTo: End of the region made around each peak summit (or mutation cluster), in base pairs relative to it.
 
 == analysis: Split VCF by regulation
 summary: Split a VCF track into the variants inside regulatory regions (a regulation track) and the others.
 use: Preparing Yes and No variant sets for 'Compare TFBS mutations'.
+param inputVCF: The VCF track with the variants to split.
+param regulationTrack: A track of regulatory regions (e.g. GTRD ChIP-seq peaks or promoters): variants inside them go to outYes, the others to outNo.
+param defaultVCF: A VCF track of background variants: when fewer than minNoSize variants fall outside regulatory regions, random variants from it fill the No set up.
+param minNoSize: The smallest acceptable number of variants in the No (background) set; 100 or more is needed for meaningful statistics.
+param outYes: Where the track of variants inside regulatory regions is written.
+param outNo: Where the track of the other (background) variants is written.
 
 == analysis: Mutations to genes with weights
 summary: Assign variants to genes and weight each by where it lies (promoter 1.3, exon 0.7, elsewhere 1.0), giving a gene table with mutation counts and weights.
@@ -254,6 +309,10 @@ next: 'Calculate weighted mutation score'; topic gene-list.
 == analysis: Calculate weighted mutation score
 summary: Score mutated genes by mutation weight, raised for genes linked to chosen diseases and to signalling pathways.
 input: inputTable, the gene table of 'Mutations to genes with weights'; diseases (use filter to find them).
+param countColumn: The column with the total number (or summed weight) of mutations per gene, from 'Mutations to genes with weights'.
+param exonCountColumn: The column with the number of mutations in exons.
+param promoterCountColumn: The column with the number of mutations in the promoter.
+param species: The species of the genes.
 
 # ============================================================================ binding sites, motifs, composite modules
 
@@ -264,18 +323,21 @@ input: yesSetPath (genes of interest) and noSetPath (background genes), tables o
 output: a table per motif: Adj. site FE and Site FDR (enrichment of sites), Adj. seq FE and Seq FDR (enrichment of promoters having a site), the optimized cutoff, and counts.
 next: 'Matrices to molecules' for the factors; 'Create profile from site model table' to keep the enriched motifs; 'Construct composite modules' for combinations; 'Regulator search' on the factors.
 tips: Background choice drives the result: unchanged genes of the same experiment are best, housekeeping genes ('data/Public/Data sets/Data/Housekeeping genes (<species>) 300') a usable default. Read topic promoter-analysis.
+param useOldPreparation: false (default): the current way of preparing matrices. true only to reproduce results of older versions.
 
 == analysis: Search for enriched TFBSs (tracks)
 summary: Find the binding motifs enriched in the sequences of a study track (peaks, regions) compared with a background track.
 use: Motif enrichment for genomic regions rather than gene promoters: ChIP-seq peaks, enhancers, regions around variants.
 input: yesSetPath and noSetPath (tracks on the same genome; a background can be made with 'Create random track'), dbSelector (genome), profilePath.
 output: as for 'Search for enriched TFBSs (genes)'.
+param useOldPreparation: false (default): the current way of preparing matrices. true only to reproduce results of older versions.
 
 == analysis: TRANSFAC(R) Match(TM) for tracks
 summary: Predict binding sites in the sequences of a track with TRANSFAC matrices by the Match algorithm.
 use: The classic TRANSFAC site prediction for regions or the user's sequences; for a study-against-background question use the enrichment analyses.
 input: sequencePath (track or sequences), dbSelector (genome), profilePath (a TRANSFAC profile with its cutoffs: minFP few false positives, minFN few missed sites, minSUM balanced).
 output: a track of predicted sites.
+param profilePath: The TRANSFAC profile: a set of matrices with score cutoffs. The vertebrate non-redundant profiles are the usual choice; minSUM balances missed and false sites, minFP gives few false positives (fewer, safer sites), minFN misses few real sites (many more predictions).
 
 == analysis: MEALR (tracks)
 summary: Find the combination of binding motifs that best discriminates study regions from background regions (sparse logistic regression).
@@ -285,6 +347,7 @@ next: 'MEALR classifier (tracks)' applies the model to new sequences.
 
 == analysis: MEALR classifier (tracks)
 summary: Apply a MEALR motif-combination model to new sequences to predict whether they are bound or regulated like the training regions.
+param modelPath: The MEALR model to apply: the model element in the output folder of 'MEALR (tracks)'.
 
 == analysis: TRANSFAC(R) MEALR combinatorial regulation analysis
 summary: Scan or classify sequences with a library of motif-combination models trained on TRANSFAC ChIP-seq data of many cell types and tissues.
@@ -293,6 +356,7 @@ input: sequencePath, dbSelector, cellSources and tissueSources (to focus on a co
 
 == analysis: Extract TRANSFAC(R) PWMs from combinatorial regulation analysis
 summary: List the TRANSFAC matrices that matter in the models found by the MEALR combinatorial regulation analysis.
+param probabilityCutoff: Only models that classify a sequence as bound with at least this probability (0-1) contribute matrices. 0.99 keeps confident hits only; lower it (0.9) if nothing is returned.
 
 == analysis: MSAT
 summary: Test for each motif whether its score in gene promoters is associated with a quantity measured for the genes (e.g. fold change).
@@ -306,9 +370,19 @@ use: Showing the user what an enriched or discovered motif looks like.
 == analysis: Create profile from matrix library
 summary: Make a profile (matrices with score cutoffs) from a matrix library, with cutoffs set by a p-value template.
 use: Making discovered or imported matrices usable in site searches.
+param nucleotideDistribution/a: Background frequency of A used to compute cutoffs; the four values must sum to 1. 0.25 each is neutral; human is about 0.3/0.2/0.2/0.3 for A/C/G/T.
+param nucleotideDistribution/c: Background frequency of C.
+param nucleotideDistribution/g: Background frequency of G.
+param nucleotideDistribution/t: Background frequency of T.
 
 == analysis: Extract matrices from profile || Factor-cluster redundancy filter
 summary: TRANSFAC helper analyses: list the matrices of a profile; reduce a matrix result to one representative per factor cluster.
+param profilePath: The profile whose matrices are listed.
+param matrixTable: The table of enriched motifs to reduce, e.g. the result of 'Search for enriched TFBSs'.
+param maxSiteColumn: The column with the site enrichment of each motif (e.g. Adj. site FE); the best motif per cluster is kept by it.
+param maxSeqColumn: The column with the sequence enrichment of each motif (e.g. Adj. seq FE).
+param clusterTable: The table that assigns matrices to clusters of similar factors.
+param matrixColumn: The column of the clusters table that lists the matrices of each cluster.
 
 == analysis: Construct composite modules || Construct composite modules on tracks
 summary: Find the combination of binding motifs (composite module) that best separates study promoters or regions from background ones, with a genetic algorithm.
@@ -330,6 +404,7 @@ summary: Continue a composite module search from its best model for more iterati
 
 == analysis: Reduce CMA results
 summary: Simplify a composite module by removing the motifs that contribute little to its score.
+param changeThreshold: A motif is removed from the module when leaving it out lowers the module's score by less than this share. 5% is a balanced choice; 10% gives a smaller module.
 
 == analysis: Apply CMA model to tracks || Recalculate composite module score on new track
 summary: Apply a found composite module to other regions: how well it separates new Yes and No tracks, or its score on each region of a new track.
@@ -361,6 +436,9 @@ input: as for 'Regulator search' (direction is Downstream).
 summary: Draw the network that links chosen master regulators (or effectors) of a search result with the input molecules, as a diagram.
 input: knResultPath (the result of 'Regulator search' or 'Effector search'), rankColumn and numTopRanking (how many top molecules), separateResults (one diagram each).
 output: outputPath, a diagram; biouml_diagram_image draws it.
+param suffix: Read-only, internal: text used in the default output name.
+param layoutXDist: Horizontal distance between nodes of the drawn network, in pixels; raise it if labels overlap.
+param layoutYDist: Vertical distance between the layers of the drawn network, in pixels.
 
 == analysis: Save hits
 summary: Save the input molecules reached by chosen top regulators or effectors as a table.
@@ -390,15 +468,22 @@ use: Prioritizing master regulators that are themselves changed in the data. A G
 
 == analysis: Select keynodes with top targets
 summary: Select the top master regulators, making sure the best drug targets from the compound analyses are covered.
+param knResultPath: The master regulator table (result of a regulator search) to select from.
+param numSelected: How many top master regulators to select.
+param topTargetsPaths: Tables of the best drug targets (from the compound analyses): master regulators that are among them are kept in the selection even if they rank lower.
+param sortTargetsAscending: How the target tables are ordered by their sorting column before the best are taken: true when smaller values are better (ranks, p-values), false when larger are (scores).
+param resultPath: Where the table of selected master regulators is written.
 
 == analysis: Calculate CMA regulation || Calculate CMA regulation extended || Calculate CMA regulation with extra elements
 summary: Build the intracellular regulation diagram: master regulators, signalling to the transcription factors of the composite module, and the regulated genes, with feed-forward loops.
 use: The summary picture of an upstream analysis; in Genome Enhancer it is redrawn to show chosen master regulators (see the Genome Enhancer guide).
 input: tfTablePath (transcription factors of the module), keynodesPath (regulator search result), rankColumn and topSelected, cmaTablePath, genesPath.
 output: resultDiagramPath and resultTablePath.
+param threshold: Only extra elements whose value in the extra rank column is above this are added to the diagram.
 
 == analysis: Calculate genes ranks
 summary: Rank genes by combining master regulator, transcriptomics, proteomics and composite-module scores. A Genome Enhancer step.
+param knScoreColumn: The column of the master regulator table that holds its score.
 
 # ============================================================================ drug targets and Genome Enhancer
 
@@ -406,6 +491,17 @@ summary: Rank genes by combining master regulator, transcriptomics, proteomics a
 summary: Genome Enhancer: build and run the multi-omics pipeline from the user's annotated data to transcription factors, master regulators, drug targets and drugs, with reports.
 use: The full personalized-medicine or disease-mechanism analysis. Follow the guide of the Genome Enhancer perspective (biouml_perspective_select 'Genome Enhancer'): it tells how to prepare the annotation diagram, choose conditions and diseases, run and read the reports.
 tips: A full run takes hours. Check first with runWorkflow false.
+param annotationDiagram: The annotation diagram that describes the user's data: which tables, tracks and files belong to which condition. It is made in the Genome Enhancer project when data are annotated (see the Genome Enhancer perspective guide for its path). Bind it first: the conditions offered are its categories.
+param speciesStr: The species of the data: Homo sapiens, Mus musculus or Rattus norvegicus.
+param tissue: The tissue the samples come from: promoters active in it and its expressed genes are used. Choose from allowedValues with filter (e.g. 'lung'); 'Nothing selected' uses general annotation.
+param diseases: The disease or diseases studied, from allowedValues (use filter, e.g. 'carcinoma', to find the name): known disease genes, targets and drugs for them are ranked higher and reported. Ask the user; leave empty only when no disease applies.
+param conditions: The conditions to analyse, as a list of items each with a 'condition' key: one condition for a single group, two to compare them (the first against the second: put the disease or treated group first and the control second).
+param conditions/condition: The name of a condition (a category of the annotation diagram). Its accepted values appear once annotationDiagram is bound.
+param runWorkflow: true: build the analysis workflow and run it (hours). false: only build it, a quick way to check that the inputs are accepted before the long run.
+param uniqueOutput: true: write the results into a new folder with a unique name so that earlier runs are kept; false: reuse the output folder and overwrite.
+param generateReport: true: write the final report (the main thing to show the user) when the workflow has finished.
+param diseaseMTB: For the Molecular Tumor Board report: a comma-separated list of the patient's diseases as named there. Leave empty unless that report is wanted.
+param diseaseMTBValue: For the Molecular Tumor Board report: the values matching diseaseMTB, comma-separated, in the same order.
 
 == analysis: PSD pharmaceutical compounds analysis
 summary: Find known drugs (HumanPSD) acting on the genes of a list and the best combination of targets among them, optionally for chosen diseases.
@@ -425,10 +521,19 @@ output: structTablePath (compounds) and targTablePath (targets).
 
 == analysis: COPreDict Report || Process COPreDict input
 summary: Steps of the COPreDict pipeline (gene panel processing and its report); used from the COPreDict perspective, not on their own.
+param upGenes: The table of up-regulated genes from the COPreDict pipeline.
+param upCMAWK: The composite-module-with-master-regulators result for the up-regulated genes.
+param diseaseList: The diseases to focus the report on; names from allowedValues (use filter to find them).
+param bacteriaPresent: Bacteria detected in the sample, from allowedValues.
+param bacteriaAbsent: Bacteria tested for and not detected, from allowedValues.
+param fullPath: Where the full report is written.
 
 == analysis: Refactor MTB table
 summary: Genome Enhancer helper: assemble the tables of the Molecular Tumor Board report.
 use: Not a research step by itself.
+param inputPath: The tables to assemble for the Molecular Tumor Board report.
+param drugsTablePath: The table that maps drugs to their names in the report.
+param somaticVariantsPath: The table of the patient's somatic variants relevant for drugs.
 
 # ============================================================================ miRNA
 
@@ -437,14 +542,29 @@ summary: Find the miRNAs whose predicted target genes are enriched in a gene lis
 use: Which miRNAs may explain a set of (typically down-regulated) genes.
 input: inputSetPath (genes), mirdbPath (target database), fdrCutoff.
 output: a table of miRNAs with fold enrichment, p-value, FDR and the hit genes.
+param species: The species of the input genes; only the listed ones have target predictions.
 
 == analysis: Get miRNA targets
 summary: The predicted target genes (TargetScan) of the miRNAs of a table, with scores.
 input: inTable (miRBase ids), targetScanDB, scoreThreshold.
+param scoreThreshold: Only targets with a prediction score at least this high are returned; 0 returns all, raise it for the more reliable ones.
 
 == analysis: miRNA feed forward loops
 summary: Find feed-forward loops of a transcription factor, a miRNA and a target gene they both regulate.
 input: miRNAs and/or targetGenes, siteModelCollection (motif profile), targetScanDB.
+param miRNAs: A table of miRNAs (miRBase ids) to look for loops with; optional if targetGenes is given.
+param targetGenes: A table of genes (Ensembl ids) to look for loops with; optional if miRNAs is given.
+param siteModelCollection: The profile of binding motifs used to predict transcription factor sites in the promoters.
+param ensembl: The Ensembl database (species and genome build) of the genes.
+param scoreType: How a transcription factor's link to a promoter is scored: 'Site count' by the number of predicted sites, 'MEALR' by a motif-combination model.
+param backgroundGenes: The background gene set the promoters are compared with; housekeeping genes by default.
+param from: Start of the promoter window relative to the transcription start site; -1000 is usual.
+param to: End of the promoter window relative to the transcription start site; 100 is usual.
+param miRNAPromoterScoreThreshold: How strongly a factor's sites must be enriched in a miRNA's promoter to count as its regulator, as -log10 of the p-value: 1 is p 0.1 (lenient), 2 is p 0.01.
+param targetGenePromoterScoreThreshold: The same threshold for the factor's link to the target gene's promoter, as -log10 of the p-value.
+param miRNATargetScoreThreshold: The lowest TargetScan score at which a gene counts as a target of a miRNA; 0 accepts all predictions.
+param scoreThreshold: The lowest combined score at which a loop is reported; raise it for a shorter, more reliable list.
+param outTable: Where the table of loops (factor, miRNA, target gene, scores) is written.
 
 # ============================================================================ workflows
 
@@ -655,3 +775,135 @@ input: the gene table; optionally background genes, promoter window, profile.
 
 == workflow: TRANSFAC and TRANSPATH/Upstream analysis with feedback loop (TRANSFAC(R) and TRANSPATH(R)) || TRANSFAC and TRANSPATH/Search for self-regulating transcription factors (TRANSFAC(R) and TRANSPATH(R))
 summary: Upstream analysis looking for feedback: master regulators whose own genes are changed in the data, or transcription factors that lie downstream of their own target genes.
+
+# ============================================================================ parameters
+
+# For a parameter of this name in any analysis or workflow whose own description is empty or repeats its name.
+== parameters: geneXplain
+param promoterFrom: Start of the promoter window relative to the transcription start site, in base pairs; negative is upstream. -1000 is the usual value; -500 focuses on the core promoter, -5000 or more also takes in distal elements and adds noise.
+param promoterTo: End of the promoter window relative to the transcription start site, in base pairs; positive is downstream. 100 is the usual value.
+param cellCondition: The tissue or cell type whose active transcription start sites (FANTOM5 CAGE data) define the promoters. Leave it at the default / 'Nothing selected' entry to use the annotated gene starts; use biouml_analysis_describe with filter (e.g. 'liver') to find an entry among the hundreds.
+param geneticParameters: Settings of the genetic algorithm that searches for the best motif combination.
+param iterationsCount: How many generations the genetic algorithm runs. More gives a better module and takes proportionally longer; 300 is a full run, 50-100 a quick look.
+param populationSize: How many candidate modules are kept in each generation. Larger explores more combinations and takes longer; 1000 is a full run, 200 a quick look.
+param modelParameters: The shape of the composite module searched for: how many motifs it may hold, how many sites of each count, and the window they must fit into. The defaults suit promoters.
+param gaussModelParameters: Settings of one module of the model: the number of motifs in it, the number of best sites counted per motif, and the width of the window in which the sites are scored together.
+param multiGaussModelParameters: The composite module model itself (see modelParameters of 'Construct composite modules').
+param decorators: Changes applied to the signalling network before the master regulator search, e.g. weights from the user's data; leave empty unless a workflow sets it.
+param initialTrackPath: Read-only, internal.
+param yesTrackPath: The track of the regions of interest (Yes set): e.g. promoters of the changed genes, or peaks.
+param noTrackPath: The track of background regions (No set) to compare against: e.g. promoters of unchanged genes, or random regions of similar length.
+param numTopRanking: How many of the best-ranked molecules (rows of the search result, ordered by rankColumn) are used. 1 gives the network of the top master regulator; 3-5 gives a wider picture.
+param topSelected: How many of the best-ranked master regulators are put into the diagram; about 10 stays readable.
+param geneIdColumn: The column that holds the Ensembl gene ids of each row (a row may list several); '(none)' until the table is set.
+param resultDiagramPath: Where the network diagram is written; draw it with biouml_diagram_image.
+param structTablePath: Where the table of compounds (drugs) is written: one row per compound with its score, targets and clinical status.
+param targTablePath: Where the table of targets is written: one row per target gene with its druggability score and the compounds acting on it.
+param controlFiles: The raw files of the control samples, as a list of repository paths; they are normalized together with the experiment files.
+param bgCorrection: Background correction: RMA is the standard; MAS reproduces the Affymetrix MAS5 pipeline; None skips it.
+param normMethod: How arrays are made comparable: 'quantiles' is the RMA standard; 'constant' scales to a common mean as MAS5 does; the others are rarely needed.
+param pmCorrection: 'pmonly' uses perfect-match probes only (RMA standard); 'subtractmm' subtracts mismatch probe signal (MAS5 style).
+param summarization: How the probes of a probe set are combined into one value: 'medianpolish' is the RMA standard, 'mas' the MAS5 one.
+param tScoreColumn: The column with the transcriptomics score of each gene (e.g. log fold change); '(none)' when there is no such data.
+param pScoreColumn: The column with the proteomics score of each gene; '(none)' when there is no such data.
+param diseases: The diseases the analysis is focused on: targets and drugs known for them are ranked higher. Names must be taken from allowedValues; find them with biouml_analysis_describe and filter (e.g. 'carcinoma'). Leave empty for no disease focus.
+param targetScanDB: The TargetScan table of predicted miRNA target sites; keep the default.
+param expertSettings: Fine-tuning for unusual data; the defaults suit most datasets, so change a value only for a stated reason.
+param lowerLogValue: Lower limit for log2 expression values: smaller values are treated as outliers and raised to it. -20 leaves real data unchanged.
+param upperLogValue: Does two things. A table whose values are all positive and not above this limit is taken to be log2-scale already and is not log-transformed; anything else is taken as linear. Log2 values above it are treated as outliers and lowered to it. 20 suits intensities and counts; lower it only if linear data never exceed 20 and are wrongly taken as log-scale.
+param lowerLogValueProt: As lowerLogValue, for proteomics tables.
+param upperLogValueProt: As upperLogValue, for proteomics tables.
+param geneBoundShiftLeft: How far upstream of a gene's start, in base pairs (negative), variants and peaks are still assigned to that gene. -5000 is the usual value; -50000 also takes in distal enhancers.
+param geneBoundShiftRight: How far downstream of a gene's end, in base pairs, variants and peaks are still assigned to that gene. 5000 is the usual value.
+param topGenes: How many of the most up-regulated genes are analysed for shared regulators. 300 is the usual value; 100-200 for a sharper signal with strong data, up to about 1000 when changes are small.
+param bottomGenes: How many of the most down-regulated genes are analysed for shared regulators; see topGenes.
+param middleGenes: How many unchanged genes (around the median of the ranking) form the background that promoters of changed genes are compared with. 500 is the usual value; keep it at least as large as topGenes.
+param useFeedbackLoops: true: master regulators whose own genes are regulated by the transcription factors found (a positive feedback loop) are ranked higher, and the loops are shown in the result diagram; false: feedback is not taken into account.
+param checkMode: true: check before starting that every chosen condition has usable data, and stop with a message if not; a cheap safeguard for a run that takes hours.
+
+# The parameters of the workflows, by the names their authors gave them; most have no description of their own.
+== parameters: geneXplain workflows
+param Species: The species of the input data, by latin name (e.g. Homo sapiens, Mus musculus, Rattus norvegicus). Usually taken from the input; set it when the input does not say or the default is wrong.
+param Profile: The set of binding motifs (matrices with score cutoffs) to search with. The default vertebrate non-redundant TRANSFAC profile suits most cases: minSUM balances missed and false sites, minFP gives fewer and safer sites, minFN more sites. For GTRD workflows the 'moderate threshold' profile is the usual choice.
+param ResultFolder: The folder the results are written into, normally in the user's project; it is created if missing. The default is made from the name of the input.
+param Result folder: The folder the results are written into, normally in the user's project; it is created if missing. The default is made from the name of the input.
+param Results folder: The folder the results are written into, normally in the user's project; it is created if missing. The default is made from the name of the input.
+param Results Folder: The folder the results are written into, normally in the user's project; it is created if missing. The default is made from the name of the input.
+param ResultsFolder: The folder the results are written into, normally in the user's project; it is created if missing. The default is made from the name of the input.
+param Result_folder: The folder the results are written into, normally in the user's project; it is created if missing. The default is made from the name of the input.
+param Output folder: The folder the results are written into, normally in the user's project; it is created if missing.
+param Output path: Where the result is written, normally in the user's project.
+param Output table: Where the result table is written, normally in the user's project.
+param Result file: Where the result is written, normally in the user's project (data/Projects/<project>/Data/<name>).
+param GeneTable: The table of genes to analyse: row ids are gene identifiers of any common type (they are converted to Ensembl). For a ranked analysis it also needs the numeric column to rank by.
+param Input gene table: The table of genes to analyse; row ids are gene identifiers.
+param Input table: The table to analyse; its row ids must be of the identifier type the workflow names.
+param ExperimentNormalized: The normalized expression table of the experiment (treated, disease) samples: probes as rows, one column per sample, as made by the 'Normalize ... experiment and control' analyses.
+param ControlNormalized: The normalized expression table of the control samples, with the same probes as rows.
+param experimentZip: The raw microarray files of the experiment samples, imported as one collection (a ZIP of the files).
+param controlZip: The raw microarray files of the control samples, imported as one collection (a ZIP of the files).
+param Probe type: The identifier type of the table's rows, i.e. the microarray platform (e.g. 'Probes: Affymetrix'); it must match the array the data come from, otherwise few probes are converted to genes.
+param Input Yes gene set: The genes of interest (Yes set), e.g. the up- or down-regulated genes: a table with gene ids as rows.
+param Input Yes genes: The genes of interest (Yes set), e.g. the up- or down-regulated genes: a table with gene ids as rows.
+param Gene set (Yes set): The genes of interest (Yes set), e.g. the up- or down-regulated genes: a table with gene ids as rows.
+param Input No gene set: The background genes (No set) the Yes set is compared with. Best: genes measured in the same experiment that did not change, at least as many as the Yes set. The default housekeeping genes are a usable fallback.
+param No Set: The background genes (No set) the Yes set is compared with; unchanged genes of the same experiment are best, the default housekeeping genes a usable fallback.
+param Background set: The background genes the input is compared with; unchanged genes of the same experiment are best, the default housekeeping genes a usable fallback.
+param Input Yes track: The regions of interest (Yes set) as a track, e.g. ChIP-seq peaks.
+param Input Yes tracks: A folder of tracks with regions of interest; each is analysed in turn.
+param Input No track: The background regions (No set) as a track on the same genome; the default is promoters of housekeeping genes (human).
+param Input no track: The background regions (No set) as a track on the same genome; the default is promoters of housekeeping genes (human).
+param Start promoter: Start of the promoter window relative to the transcription start site, in base pairs; negative is upstream. -1000 is the usual value; -500 focuses on the core promoter.
+param End promoter: End of the promoter window relative to the transcription start site, in base pairs; 100 is the usual value.
+param Sequence source: The genome (Ensembl database and build) the track's coordinates refer to; it must match the build of the data (e.g. hg38 against hg19).
+param Genome: The genome build the coordinates refer to; it must match the data.
+param ReferenceEnsembl: The reference genome and gene annotation the reads are aligned to and counted against: GRCh38 (hg38) for current human data, GRCh37 (hg19) for older data, NCBIM for mouse.
+param AnnotationSource: The gene table used to add gene symbols and descriptions to the results; choose the Ensembl database of the data's species.
+param Annotation source: The gene table used to add gene symbols and descriptions to the results; choose the Ensembl database of the data's species.
+param classification: The classification to test the genes against, e.g. 'GO (biological process)' or 'Reactome pathways'; the choices are those the server has.
+param Molecular classification: The class of proteins to keep, e.g. transcription_factors, ligands, hormones.
+param Tissue: The tissue whose specifically expressed genes or active promoters are used; one of the listed names.
+param TSS selection: The tissue or cell type whose active transcription start sites (CAGE data) define the promoters.
+param Transcript region: The part of the transcripts to search: 3' UTR (the usual place of miRNA binding sites), 5' UTR, Promoter, Intron or Exon.
+param mirBase collection: The miRBase collection of miRNA sequences to search with; choose the one of the data's species.
+param Input SNP Table: A table whose row ids are SNP ids (rs numbers).
+param SNP surrounding region, bp: How many base pairs on each side of a SNP are searched for binding sites; 60 covers the sites a variant can affect.
+param Variation surrounding region, bp: How many base pairs on each side of a variant are searched for binding sites.
+param 5' flank length: How far upstream of a gene, in base pairs, a SNP or site is still assigned to it; 10000 is usual.
+param Input VCF: The track of variants (an imported VCF) to analyse; check its genome build first.
+param Input Variation track: The track of variants (an imported VCF) to analyse; check its genome build first.
+param Gene promoters: The track of gene promoters within which variants are considered.
+param Input table 1: The first table (e.g. the first gene set or SNP list).
+param Input table 2: The second table, compared with the first.
+param InputTable1: The first gene table.
+param InputTable2: The second gene table, compared with the first.
+param Input folder: A folder holding the input tables or files; each is analysed in turn.
+param Input_folder: A folder holding the input tables; each is analysed in turn.
+param Experiment fastq files: The FASTQ files of the experiment (treated, disease) samples; for paired-end data a folder with the read pairs.
+param Control fastq files: The FASTQ files of the control samples; for paired-end data a folder with the read pairs.
+param Input fastq file: The FASTQ file of the reads.
+param Forward fastq: The FASTQ file of the first mates (R1) of paired-end reads.
+param Reverse fastq: The FASTQ file of the second mates (R2), in the same order as the forward file.
+param Experiment BAM files: The aligned reads (BAM tracks) of the experiment samples.
+param Control BAM files: The aligned reads (BAM tracks) of the control samples.
+param BAM files: The aligned reads (BAM tracks) of the samples to count.
+param in: The input track.
+param Input file (EMBL): The file with the DNA sequences to analyse, uploaded to the project.
+param Input file (embl): The file with the DNA sequences to analyse, uploaded to the project.
+param Context genes: A second gene table giving the context, e.g. all genes expressed in the tissue: master regulators consistent with it are ranked higher.
+param Context weighting column: A numeric column of the context genes table to weight them by (e.g. expression level); '(none)' for equal weights.
+param Weighting column: A numeric column of the input table used as weights (e.g. fold change), so that strongly changed genes count more.
+param Expression: The numeric column of the input table with the expression change, used to colour or weight the result.
+param Input type: What the values of the table are: 'Raw counts' (RNA-seq read counts; voom is applied), 'Transformed counts' or 'Normalized expression' (e.g. log2 microarray values).
+param Data columns: The sample columns of the input table to use.
+param 3_Columns: The sample columns of the third condition; leave empty when there are only two.
+param 4_Columns: The sample columns of the fourth condition; leave empty when not needed.
+param 5_Columns: The sample columns of the fifth condition; leave empty when not needed.
+param Min number of hits to group: The smallest number of genes a category must hold to be reported.
+param Number of iterations: How many generations the composite module search runs; 300 is a full run, fewer is faster and rougher.
+param Number of pairs: The largest number of motif pairs the composite module may hold.
+param Minimal number of pairs: The smallest number of motif pairs the composite module may hold.
+param Model accuracy cutoff: Only motif-combination models at least this accurate (0-1) on their training data are used; 0.85 keeps reliable models.
+param Probability cutoff: Only sequences classified as bound with at least this probability (0-1) are reported; 0.99 keeps confident hits.
+param Species output: The species the result is given for (the species of the orthologs).
+param Input transpath molecules: A table of TRANSPATH molecules to start the network search from.

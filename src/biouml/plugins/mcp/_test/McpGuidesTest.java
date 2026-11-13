@@ -79,13 +79,13 @@ public class McpGuidesTest extends TestCase
 		assertEquals( "Start: with a table.\n\n1. Classify.", topic.getBody() );
 	}
 
-	/** Every bundled entry has a summary of one moderate line, and no name is described twice. */
+	/** Every bundled entry has a summary of one moderate line, and no file describes a name twice. */
 	public void testBundledFilesAreWellFormed() throws Exception
 	{
-		Set<String> seen = new HashSet<String>();
 		int count = 0;
 		for ( String file : BUNDLED )
 		{
+			Set<String> seen = new HashSet<String>(); // a later file may replace an entry of an earlier one
 			String text = read( file );
 			for ( McpGuides.Guide guide : McpGuides.parse( text ) )
 			{
@@ -104,7 +104,8 @@ public class McpGuidesTest extends TestCase
 				assertTrue( file + ": bad entry line: " + line, colon > 0 );
 				String kind = line.substring( 3, colon ).trim();
 				assertTrue( file + ": unknown kind in: " + line,
-						McpGuides.ANALYSIS.equals( kind ) || McpGuides.WORKFLOW.equals( kind ) || McpGuides.TOPIC.equals( kind ) );
+						McpGuides.ANALYSIS.equals( kind ) || McpGuides.WORKFLOW.equals( kind ) || McpGuides.TOPIC.equals( kind )
+								|| McpGuides.PARAMETERS.equals( kind ) );
 				String names = McpGuides.TOPIC.equals( kind ) ? line.substring( colon + 1 ).split( "\\|" )[0] : line.substring( colon + 1 );
 				for ( String name : names.split( "\\|\\|" ) )
 					assertTrue( file + ": described twice: " + kind + " " + name.trim(),
@@ -123,11 +124,13 @@ public class McpGuidesTest extends TestCase
 		assertFalse( McpGuides.topics().isEmpty() );
 		assertNotNull( McpGuides.topic( "basics" ) );
 
+		assertSame( "aliases share one entry", McpGuides.analysis( "Join two tables" ), McpGuides.analysis( "Join tables" ) );
 		McpGuides.Guide byPath = McpGuides.workflow( "Common/Explain my genes" );
 		assertNotNull( byPath );
 		assertSame( "a workflow kept elsewhere is found by its name", byPath, McpGuides.workflow( "Explain my genes" ) );
-		assertSame( "aliases share one entry", McpGuides.workflow( "TRANSFAC/Identify enriched motifs in promoters (TRANSFAC(R))" ),
+		assertSame( McpGuides.workflow( "TRANSFAC/Identify enriched motifs in promoters (TRANSFAC(R))" ),
 				McpGuides.workflow( "GTRD/Identify enriched motifs in promoters (GTRD)" ) );
+		assertTrue( "a later file replaces a topic of an earlier one", McpGuides.topic( "gene-list" ).getBody().contains( "master regulators" ) );
 
 		assertTrue( McpGuides.matches( guide, null, McpGuides.words( "GO  Pathways" ) ) );
 		assertFalse( McpGuides.matches( guide, null, McpGuides.words( "zzzz" ) ) );
@@ -154,6 +157,100 @@ public class McpGuidesTest extends TestCase
 		assertEquals( McpConstants.CODE_NOT_FOUND, missing.getCode() );
 	}
 
+	public void testSaysNothing()
+	{
+		assertTrue( McpGuides.saysNothing( null, "promoterFrom", "Promoter from" ) );
+		assertTrue( McpGuides.saysNothing( " ", "promoterFrom", "Promoter from" ) );
+		assertTrue( "repeats the display name", McpGuides.saysNothing( "Promoter from", "expertSettings/promoterFrom", "Promoter from" ) );
+		assertTrue( "repeats the key", McpGuides.saysNothing( "namesDescription", "group/namesDescription", null ) );
+		assertFalse( McpGuides.saysNothing( "Start of the promoter relative to the TSS", "promoterFrom", "Promoter from" ) );
+	}
+
+	/** Guides describe the parameters the analysis leaves undescribed, and add a hint to the others. */
+	public void testDescribeParameters() throws Exception
+	{
+		File dir = TempFiles.dir( "mcpGuidesParams" );
+		try
+		{
+			File folder = new File( dir, "analysis-guides" );
+			assertTrue( folder.mkdirs() );
+			Files.write( new File( folder, "site.txt" ).toPath(), ( "== analysis: Site analysis\nsummary: Ours.\n"
+					+ "param cutoff: Scores below it are dropped;\n  0.05 is usual.\n"
+					+ "param settings/window: The window.\n"
+					+ "param items/name: An item.\n"
+					+ "param steps/Trim low quality/limit: With spaces.\n"
+					+ "param described: More about it.\n"
+					+ "== parameters: ours\nparam outputFolder: Where results go.\nparam cutoff: Not used: the analysis has its own.\n" )
+							.getBytes( StandardCharsets.UTF_8 ) );
+			System.setProperty( McpPerspectiveSupport.GUIDES_PROPERTY, dir.getPath() );
+			List<Map<String, Object>> properties = new java.util.ArrayList<Map<String, Object>>();
+			properties.add( property( "cutoff", "Cutoff", "Cutoff" ) );
+			properties.add( property( "settings/window", "Window", null ) );
+			properties.add( property( "items/0/name", "Name", "" ) );
+			properties.add( property( "steps/Trim low quality/limit", "Limit", "Limit" ) );
+			properties.add( property( "described", "Described", "The analysis says what it is." ) );
+			properties.add( property( "nested/outputFolder", "Output folder", "Output folder" ) );
+			properties.add( property( "unknown", "Unknown", "Unknown" ) );
+			McpGuides.describeParameters( McpGuides.analysis( "Site analysis" ), properties );
+			assertEquals( "Scores below it are dropped; 0.05 is usual.", properties.get( 0 ).get( "description" ) );
+			assertEquals( "The window.", properties.get( 1 ).get( "description" ) );
+			assertEquals( "an array item, by its key without the index", "An item.", properties.get( 2 ).get( "description" ) );
+			assertEquals( "With spaces.", properties.get( 3 ).get( "description" ) );
+			assertEquals( "a declared description is kept", "The analysis says what it is.", properties.get( 4 ).get( "description" ) );
+			assertEquals( "More about it.", properties.get( 4 ).get( "hint" ) );
+			assertEquals( "by the last part of the key, from the common entries", "Where results go.", properties.get( 5 ).get( "description" ) );
+			assertEquals( "Unknown", properties.get( 6 ).get( "description" ) );
+			assertNull( properties.get( 0 ).get( "hint" ) );
+
+			// without a guide of the analysis only the common entries apply
+			List<Map<String, Object>> other = new java.util.ArrayList<Map<String, Object>>();
+			other.add( property( "cutoff", "Cutoff", "Cutoff" ) );
+			McpGuides.describeParameters( null, other );
+			assertEquals( "Not used: the analysis has its own.", other.get( 0 ).get( "description" ) );
+		}
+		finally
+		{
+			System.clearProperty( McpPerspectiveSupport.GUIDES_PROPERTY );
+			deleteAll( dir );
+		}
+	}
+
+	/** The bundled guides describe parameters too. */
+	public void testBundledParameters()
+	{
+		List<Map<String, Object>> properties = new java.util.ArrayList<Map<String, Object>>();
+		properties.add( property( "topCount", "Top max count", "Top max count" ) );
+		properties.add( property( "outputTable", "Output table", "Output table" ) );
+		McpGuides.describeParameters( McpGuides.analysis( "Select top rows" ), properties );
+		for ( Map<String, Object> property : properties )
+			assertFalse( "described: " + property.get( "name" ),
+					McpGuides.saysNothing( (String) property.get( "description" ), (String) property.get( "name" ), property.get( "displayName" ) ) );
+	}
+
+	/** The parameters an agent found undescribed: the expert settings of Genome Enhancer. */
+	public void testGenomeEnhancerParameters()
+	{
+		List<Map<String, Object>> properties = new java.util.ArrayList<Map<String, Object>>();
+		properties.add( property( "annotationDiagram", "Data source", "Data source" ) );
+		properties.add( property( "expertSettings/promoterFrom", "Promoter from", "Promoter from" ) );
+		properties.add( property( "expertSettings/topGenes", "Top genes", "Top genes" ) );
+		properties.add( property( "conditions/0/condition", "Condition 1", "Condition 1" ) );
+		McpGuides.describeParameters( McpGuides.analysis( "Generate workflow from annotation diagram" ), properties );
+		for ( Map<String, Object> property : properties )
+			assertFalse( "described: " + property.get( "name" ),
+					McpGuides.saysNothing( (String) property.get( "description" ), (String) property.get( "name" ), property.get( "displayName" ) ) );
+	}
+
+	private static Map<String, Object> property( String name, String displayName, String description )
+	{
+		Map<String, Object> property = new java.util.LinkedHashMap<String, Object>();
+		property.put( "name", name );
+		property.put( "displayName", displayName );
+		if ( description != null )
+			property.put( "description", description );
+		return property;
+	}
+
 	/** A server's own guide folder adds entries and replaces bundled ones; removing it restores them. */
 	public void testExternalGuides() throws Exception
 	{
@@ -164,11 +261,16 @@ public class McpGuidesTest extends TestCase
 			File folder = new File( dir, "analysis-guides" );
 			assertTrue( folder.mkdirs() );
 			Files.write( new File( folder, "site.txt" ).toPath(), ( "== analysis: Functional classification\nsummary: Replaced.\n"
-					+ "== analysis: Site analysis\nsummary: Ours.\n== topic: site | Our topic\nsummary: Ours too.\nText.\n" ).getBytes( StandardCharsets.UTF_8 ) );
+					+ "== analysis: Site analysis\nsummary: Ours.\n== workflow: Common/Our flow || Other/Second flow\nsummary: A flow.\n== topic: site | Our topic\nsummary: Ours too.\nText.\n" ).getBytes( StandardCharsets.UTF_8 ) );
 			System.setProperty( McpPerspectiveSupport.GUIDES_PROPERTY, dir.getPath() );
 			assertEquals( "Replaced.", McpGuides.analysis( "Functional classification" ).getSummary() );
 			assertEquals( "Ours.", McpGuides.analysis( "Site analysis" ).getSummary() );
 			assertEquals( "Our topic", McpGuides.topic( "site" ).title );
+			McpGuides.Guide flow = McpGuides.workflow( "Common/Our flow" );
+			assertEquals( "A flow.", flow.getSummary() );
+			assertSame( "aliases share one entry", flow, McpGuides.workflow( "Other/Second flow" ) );
+			assertSame( "a workflow kept elsewhere is found by its name", flow, McpGuides.workflow( "data/Projects/Mine/Our flow" ) );
+			assertNull( McpGuides.workflow( "Common/No such flow" ) );
 			assertNotNull( "bundled entries stay", McpGuides.topic( "basics" ) );
 		}
 		finally
@@ -178,6 +280,7 @@ public class McpGuidesTest extends TestCase
 		}
 		assertEquals( bundled, McpGuides.analysis( "Functional classification" ).getSummary() );
 		assertNull( McpGuides.analysis( "Site analysis" ) );
+		assertNull( McpGuides.workflow( "Common/Our flow" ) );
 	}
 
 	private static void deleteAll( File file )
