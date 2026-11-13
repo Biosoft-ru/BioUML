@@ -3,6 +3,7 @@ package ru.biosoft.access._test;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -16,6 +17,7 @@ import java.sql.SQLSyntaxErrorException;
 import java.sql.SQLTransientConnectionException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -42,6 +44,8 @@ public class PersistentConnectionReconnectTest extends TestCase
     static final List<FakeConnection> opened = Collections.synchronizedList( new ArrayList<>() );
     /** delay of every connect, to widen race windows in the concurrency tests */
     static volatile long connectDelayMillis;
+    /** the server cannot be reached: connecting fails */
+    static volatile boolean failConnect;
     private static Driver driver;
     private static int urlCounter;
 
@@ -55,6 +59,7 @@ public class PersistentConnectionReconnectTest extends TestCase
         }
         opened.clear();
         connectDelayMillis = 0;
+        failConnect = false;
     }
 
     /** Distinct URL per test: pooled connections are thread-local and keyed by URL */
@@ -291,6 +296,111 @@ public class PersistentConnectionReconnectTest extends TestCase
     }
 
     @FunctionalInterface
+    interface StatementCreator
+    {
+        Statement create(Connection connection) throws SQLException;
+    }
+
+    /**
+     * Every statement the connection hands out takes part in the lifecycle, whichever overload created it
+     * (generated keys / columns, callable): while it is open, idle validation does not ping or replace the
+     * connection; once it is closed, validation runs again.
+     */
+    public void testOpenStatementOfEveryOverloadPreventsValidation() throws Exception
+    {
+        String sql = "SELECT 1";
+        List<StatementCreator> creators = Arrays.asList( c -> c.createStatement(),
+                c -> c.createStatement( ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY ),
+                c -> c.createStatement( ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT ),
+                c -> c.prepareStatement( sql ),
+                c -> c.prepareStatement( sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY ),
+                c -> c.prepareStatement( sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT ),
+                c -> c.prepareStatement( sql, Statement.RETURN_GENERATED_KEYS ),
+                c -> c.prepareStatement( sql, new int[] {1} ),
+                c -> c.prepareStatement( sql, new String[] {"id"} ),
+                c -> c.prepareCall( sql ),
+                c -> c.prepareCall( sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY ),
+                c -> c.prepareCall( sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT ) );
+        for( int i = 0; i < creators.size(); i++ )
+        {
+            opened.clear();
+            PersistentConnection conn = (PersistentConnection)SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+            Statement st = creators.get( i ).create( conn );
+            String what = "overload #" + i + " (" + opened.get( 0 ).lastCreateSignature + ")";
+            opened.get( 0 ).dead = true;
+
+            conn.validateIfIdle( -1, 5 );
+            assertEquals( what + ": not validated while open", 0, opened.get( 0 ).validations );
+            assertEquals( what, 1, opened.size() );
+            assertSame( what, conn, st.getConnection() );
+
+            st.close();
+            conn.validateIfIdle( -1, 5 );
+            assertEquals( what + ": validated once closed", 2, opened.size() );
+        }
+    }
+
+    /** A generated-keys statement on a replaced connection is prepared again with the same overload */
+    public void testGeneratedKeysStatementRebindsWithSameOverload() throws Exception
+    {
+        PersistentConnection conn = (PersistentConnection)SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+        PreparedStatement ps = conn.prepareStatement( "INSERT INTO t VALUES(1)", Statement.RETURN_GENERATED_KEYS );
+        conn.reconnect( null );
+
+        ps.execute( "SELECT 1" );
+
+        assertEquals( 2, opened.size() );
+        assertEquals( "prepareStatement[class java.lang.String, int]", opened.get( 1 ).lastCreateSignature );
+        assertEquals( 1, opened.get( 1 ).executedCount.get() );
+        ps.close();
+    }
+
+    /** The replacement connection itself fails while a statement is being created on it: reconnect again and retry */
+    public void testStatementCreationFailsOnReplacementConnection() throws Exception
+    {
+        PersistentConnection conn = (PersistentConnection)SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+        conn.reconnect( null );
+        opened.get( 1 ).closedByDriver = true;
+
+        try (Statement st = conn.createStatement())
+        {
+            st.execute( "SELECT 1" );
+        }
+
+        assertEquals( 3, opened.size() );
+        assertEquals( 1, opened.get( 2 ).executedCount.get() );
+    }
+
+    /**
+     * Statement creation fails because the server cannot be reached at all: the failure propagates, and the
+     * connection is not left in a broken state, the next call reconnects once the server is back.
+     */
+    public void testFailedReconnectPropagatesAndRecoversLater() throws Exception
+    {
+        Connection conn = SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+        opened.get( 0 ).closedByDriver = true;
+        failConnect = true;
+        try
+        {
+            conn.createStatement();
+            fail( "connection failure expected" );
+        }
+        catch( SQLException e )
+        {
+            assertEquals( "08001", e.getSQLState() );
+        }
+        assertEquals( 1, opened.size() );
+
+        failConnect = false;
+        try (Statement st = conn.createStatement())
+        {
+            st.execute( "SELECT 1" );
+        }
+        assertEquals( 2, opened.size() );
+        assertEquals( 1, opened.get( 1 ).executedCount.get() );
+    }
+
+    @FunctionalInterface
     interface IndexedTask
     {
         void run(int i) throws Exception;
@@ -338,6 +448,8 @@ public class PersistentConnectionReconnectTest extends TestCase
         volatile CountDownLatch pingStarted, pingRelease;
         final AtomicInteger executedCount = new AtomicInteger(), statementsCreated = new AtomicInteger();
         volatile int validations;
+        /** e.g. "prepareStatement[class java.lang.String, int]" */
+        volatile String lastCreateSignature;
         int executed;
 
         @Override
@@ -364,9 +476,12 @@ public class PersistentConnectionReconnectTest extends TestCase
                     return ResultSet.HOLD_CURSORS_OVER_COMMIT;
                 case "createStatement":
                 case "prepareStatement":
+                case "prepareCall":
                     checkOpen();
                     statementsCreated.incrementAndGet();
-                    Class<?> type = method.getName().equals( "createStatement" ) ? Statement.class : PreparedStatement.class;
+                    lastCreateSignature = method.getName() + Arrays.toString( method.getParameterTypes() );
+                    Class<?> type = method.getName().equals( "createStatement" ) ? Statement.class
+                            : method.getName().equals( "prepareCall" ) ? CallableStatement.class : PreparedStatement.class;
                     return Proxy.newProxyInstance( getClass().getClassLoader(), new Class<?>[] {type}, (p, m, a) -> statement( m ) );
                 case "toString":
                     return "FakeConnection";
@@ -428,6 +543,8 @@ public class PersistentConnectionReconnectTest extends TestCase
         {
             if( !acceptsURL( url ) )
                 return null;
+            if( failConnect )
+                throw new SQLException( "Connection refused", "08001" );
             try
             {
                 Thread.sleep( connectDelayMillis );

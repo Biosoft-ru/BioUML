@@ -26,13 +26,15 @@ public class PersistentPreparedStatement extends PersistentStatement implements 
 {
     protected String query;
     protected PreparedStatement preparedStatement;
+    /** how to prepare it on a connection: the same JDBC overload is used again after a reconnect */
+    private final PersistentConnection.ConnectionFunction<PreparedStatement> preparer;
 
     @Override
     void reconnect(SQLException ex) throws SQLException
     {
         preparedStatement = conn.reconnectIfCurrent(originalConnection, ex, c -> {
             originalConnection = c;
-            return c.prepareStatement(query, type, concurrency, holdability);
+            return preparer.apply(c);
         });
         parent = preparedStatement;
     }
@@ -40,13 +42,31 @@ public class PersistentPreparedStatement extends PersistentStatement implements 
     /** @param original the wrapped connection to create it on; called under the connection's replacement lock */
     PersistentPreparedStatement(PersistentConnection conn, Connection original, String query, int type, int concurrency, int holdability) throws SQLException
     {
+        this(conn, original, query, type, concurrency, holdability, c -> c.prepareStatement(query, type, concurrency, holdability));
+    }
+
+    /**
+     * For the other prepareStatement overloads (generated keys / columns): preparer calls the overload the caller used.
+     * @param original the wrapped connection to create it on; called under the connection's replacement lock
+     */
+    PersistentPreparedStatement(PersistentConnection conn, Connection original, String query,
+            PersistentConnection.ConnectionFunction<PreparedStatement> preparer) throws SQLException
+    {
+        this(conn, original, query, java.sql.ResultSet.TYPE_FORWARD_ONLY, java.sql.ResultSet.CONCUR_READ_ONLY,
+                java.sql.ResultSet.HOLD_CURSORS_OVER_COMMIT, preparer);
+    }
+
+    private PersistentPreparedStatement(PersistentConnection conn, Connection original, String query, int type, int concurrency,
+            int holdability, PersistentConnection.ConnectionFunction<PreparedStatement> preparer) throws SQLException
+    {
         this.conn = conn;
         this.type = type;
         this.concurrency = concurrency;
         this.holdability = holdability;
         this.query = query;
+        this.preparer = preparer;
         this.originalConnection = original;
-        preparedStatement = originalConnection.prepareStatement(query, type, concurrency, holdability);
+        preparedStatement = preparer.apply(originalConnection);
         parent = preparedStatement;
         this.conn.addStatement(this);
     }

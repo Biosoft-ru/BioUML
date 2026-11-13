@@ -117,7 +117,8 @@ public class PersistentConnection implements Connection
 
     /**
      * Runs function on the current wrapped connection; if it fails with a connection error, reconnects and runs it
-     * once more. All of it happens under {@link #replacementLock}: another thread failing at the same time waits and
+     * once more. Only for creating statements: never pass the execution of SQL, which may already have taken effect
+     * on the server when the connection failed (a retried INSERT could run twice). All of it happens under {@link #replacementLock}: another thread failing at the same time waits and
      * then simply uses the new connection instead of replacing it a second time.
      */
     <T> T withRetry(ConnectionFunction<T> function) throws SQLException
@@ -418,21 +419,21 @@ public class PersistentConnection implements Connection
     public CallableStatement prepareCall(String arg0, int arg1, int arg2, int arg3) throws SQLException
     {
         touch();
-        return withRetry( c -> c.prepareCall(arg0, arg1, arg2, arg3) );
+        return withRetry( c -> TrackedCallableStatement.wrap(this, c.prepareCall(arg0, arg1, arg2, arg3)) );
     }
 
     @Override
     public CallableStatement prepareCall(String arg0, int arg1, int arg2) throws SQLException
     {
         touch();
-        return withRetry( c -> c.prepareCall(arg0, arg1, arg2) );
+        return withRetry( c -> TrackedCallableStatement.wrap(this, c.prepareCall(arg0, arg1, arg2)) );
     }
 
     @Override
     public CallableStatement prepareCall(String arg0) throws SQLException
     {
         touch();
-        return withRetry( c -> c.prepareCall(arg0) );
+        return withRetry( c -> TrackedCallableStatement.wrap(this, c.prepareCall(arg0)) );
     }
 
     @Override
@@ -453,21 +454,21 @@ public class PersistentConnection implements Connection
     public PreparedStatement prepareStatement(String arg0, int arg1) throws SQLException
     {
         touch();
-        return withRetry( c -> c.prepareStatement(arg0, arg1) );
+        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, c2 -> c2.prepareStatement(arg0, arg1)) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0, int[] arg1) throws SQLException
     {
         touch();
-        return withRetry( c -> c.prepareStatement(arg0, arg1) );
+        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, c2 -> c2.prepareStatement(arg0, arg1)) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0, String[] arg1) throws SQLException
     {
         touch();
-        return withRetry( c -> c.prepareStatement(arg0, arg1) );
+        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, c2 -> c2.prepareStatement(arg0, arg1)) );
     }
 
     @Override
