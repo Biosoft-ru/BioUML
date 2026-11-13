@@ -12,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLRecoverableException;
 import java.sql.SQLWarning;
@@ -702,22 +703,38 @@ public class PersistentConnection implements Connection
     {
         if( closedByTimeout || System.currentTimeMillis() - lastActivity <= idleMillis )
             return;
+        // Held through the ping and the reconnect, not just the emptiness check: the connection object can be
+        // shared between threads (callers keep it in fields), and a statement registers itself here before it can
+        // run anything, so no statement can start or still be streaming while the connection is pinged or replaced.
+        // A statement created meanwhile on the replaced connection rebinds on its first failure
+        // (PersistentStatement.reconnect) instead of reconnecting again.
         synchronized( statements )
         {
             if( !statements.isEmpty() )
                 return;
+            if( !isAlive( timeoutSeconds ) )
+                reconnect( null );
         }
-        boolean valid;
+        touch();
+    }
+
+    private boolean isAlive(int timeoutSeconds)
+    {
         try
         {
-            valid = parent.isValid( timeoutSeconds );
+            if( parent.isValid( timeoutSeconds ) )
+                return true;
+            cat.log( Level.WARNING, "Idle connection " + url + " (user:" + user + ") did not answer within " + timeoutSeconds + " s" );
+            return false;
+        }
+        catch( SQLFeatureNotSupportedException | AbstractMethodError e )
+        {
+            return true; // the driver cannot tell: keep the connection, as before validation existed
         }
         catch( SQLException e )
         {
-            valid = false;
+            cat.log( Level.WARNING, "Validation of idle connection " + url + " (user:" + user + ") failed, reconnecting", e );
+            return false;
         }
-        if( !valid )
-            reconnect( null );
-        touch();
     }
 }

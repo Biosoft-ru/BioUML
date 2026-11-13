@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLSyntaxErrorException;
+import java.sql.SQLTransientConnectionException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -129,6 +130,67 @@ public class PersistentConnectionReconnectTest extends TestCase
         assertEquals( 1, opened.size() );
     }
 
+    /** A connection failure the driver reports from a query (not via isValid), with SQLState class 08 */
+    public void testConnectionStateErrorFromQueryReconnectsAndRetries() throws Exception
+    {
+        checkQueryFailureReconnects( new SQLTransientConnectionException( "Communications link failure", "08S01" ) );
+    }
+
+    /** Same, when the driver throws a plain SQLException that only the SQLState identifies */
+    public void testPlainSqlExceptionWithConnectionStateReconnects() throws Exception
+    {
+        checkQueryFailureReconnects( new SQLException( "Communications link failure", "08S01" ) );
+    }
+
+    private void checkQueryFailureReconnects(SQLException failure) throws Exception
+    {
+        Connection conn = SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+        opened.get( 0 ).executeFailure = failure;
+
+        SqlUtil.checkConnection( conn );
+
+        assertEquals( 2, opened.size() );
+        assertEquals( 0, opened.get( 0 ).executed );
+        assertEquals( "the query is retried on the new connection", 1, opened.get( 1 ).executed );
+    }
+
+    /** isValid() throwing is logged and treated as a dead connection */
+    public void testValidationErrorReconnects() throws Exception
+    {
+        PersistentConnection conn = (PersistentConnection)SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+        opened.get( 0 ).validationFailure = new SQLException( "ping failed", "08S01" );
+        conn.validateIfIdle( -1, 5 );
+        assertEquals( 2, opened.size() );
+    }
+
+    /** A driver without isValid() keeps its connection instead of reconnecting on every checkout */
+    public void testValidationNotSupportedKeepsConnection() throws Exception
+    {
+        PersistentConnection conn = (PersistentConnection)SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+        opened.get( 0 ).validationFailure = new SQLFeatureNotSupportedException( "isValid" );
+        conn.validateIfIdle( -1, 5 );
+        assertEquals( 1, opened.size() );
+    }
+
+    /**
+     * A statement created before the connection was replaced (by another statement's reconnect or by idle
+     * validation on another thread) moves to the new connection instead of reconnecting a second time,
+     * which would close the fresh connection under the other statements.
+     */
+    public void testStatementOnReplacedConnectionRebinds() throws Exception
+    {
+        PersistentConnection conn = (PersistentConnection)SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+        Statement st = conn.createStatement();
+        conn.reconnect( null ); // closes connection 0, opens connection 1
+
+        st.execute( "SELECT 1" );
+
+        assertEquals( "no second reconnect", 2, opened.size() );
+        assertFalse( opened.get( 1 ).closedByDriver );
+        assertEquals( 1, opened.get( 1 ).executed );
+        st.close();
+    }
+
     static class FakeConnection implements InvocationHandler
     {
         /** the driver marked this connection closed: every call fails with 08003 */
@@ -136,6 +198,10 @@ public class PersistentConnectionReconnectTest extends TestCase
         /** the server dropped the socket: isValid() is false */
         boolean dead;
         boolean syntaxError;
+        /** thrown once by the next query */
+        SQLException executeFailure;
+        /** thrown by isValid() */
+        SQLException validationFailure;
         int executed, validations;
 
         @Override
@@ -145,6 +211,8 @@ public class PersistentConnectionReconnectTest extends TestCase
             {
                 case "isValid":
                     validations++;
+                    if( validationFailure != null )
+                        throw validationFailure;
                     return !dead && !closedByDriver;
                 case "isClosed":
                     return closedByDriver;
@@ -176,6 +244,12 @@ public class PersistentConnectionReconnectTest extends TestCase
                     checkOpen();
                     if( syntaxError )
                         throw new SQLSyntaxErrorException( "You have an error in your SQL syntax", "42000" );
+                    if( executeFailure != null )
+                    {
+                        SQLException e = executeFailure;
+                        executeFailure = null;
+                        throw e;
+                    }
                     executed++;
                     return true;
                 case "toString":
