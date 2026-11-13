@@ -18,9 +18,20 @@ public class PersistentStatement implements Statement
 
     void reconnect(SQLException ex) throws SQLException
     {
-        conn.reconnect(ex);
-        this.originalConnection = conn.getOriginalConnection();
+        reconnectOrRebind(ex);
         parent = originalConnection.createStatement(type, concurrency, holdability);
+    }
+
+    /**
+     * Reconnects, unless the connection was already replaced since this statement was created (by another
+     * statement's reconnect or by idle validation): then this statement only moves to the new connection,
+     * so it does not close the fresh connection again.
+     */
+    protected void reconnectOrRebind(SQLException ex) throws SQLException
+    {
+        if( originalConnection == conn.getOriginalConnection() )
+            conn.reconnect(ex);
+        this.originalConnection = conn.getOriginalConnection();
     }
     
     PersistentStatement()

@@ -29,8 +29,7 @@ public class PersistentPreparedStatement extends PersistentStatement implements 
     @Override
     void reconnect(SQLException ex) throws SQLException
     {
-        conn.reconnect(ex);
-        this.originalConnection = conn.getOriginalConnection();
+        reconnectOrRebind(ex);
         preparedStatement = originalConnection.prepareStatement(query, type, concurrency, holdability);
         parent = preparedStatement;
     }
