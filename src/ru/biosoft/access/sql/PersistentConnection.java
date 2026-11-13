@@ -35,9 +35,17 @@ import java.util.logging.Logger;
 public class PersistentConnection implements Connection
 {
     private static Logger cat = Logger.getLogger(PersistentConnection.class.getName());
-    private Connection parent;
+    private volatile Connection parent;
     private volatile long lastActivity;
-    private boolean closedByTimeout;
+    private volatile boolean closedByTimeout;
+    /**
+     * Guards every replacement of {@link #parent} (reconnect, idle close and reopen, idle validation) and every
+     * creation of a statement on it, so that a statement is always created on the current connection and
+     * concurrent failures of statements on the same connection replace it once.
+     * Lock order: replacementLock before {@link #statements}, never the reverse. Statements register only from
+     * their constructors, which run under replacementLock (see {@link #withRetry}).
+     */
+    private final Object replacementLock = new Object();
     private String url, user, password;
     private Collection<Statement> statements = new ArrayList<>();
     private static String CONNECTION_RESET = "Connection reset";
@@ -63,7 +71,15 @@ public class PersistentConnection implements Connection
         }
     }
 
-    public synchronized void reconnect(SQLException ex) throws SQLException
+    public void reconnect(SQLException ex) throws SQLException
+    {
+        synchronized( replacementLock )
+        {
+            doReconnect( ex );
+        }
+    }
+
+    private void doReconnect(SQLException ex) throws SQLException
     {
         if( ex != null )
         {
@@ -92,17 +108,64 @@ public class PersistentConnection implements Connection
         }
         cat.info("Reconnected successfully!");
     }
+
+    @FunctionalInterface
+    interface ConnectionFunction<T>
+    {
+        T apply(Connection connection) throws SQLException;
+    }
+
+    /**
+     * Runs function on the current wrapped connection; if it fails with a connection error, reconnects and runs it
+     * once more. All of it happens under {@link #replacementLock}: another thread failing at the same time waits and
+     * then simply uses the new connection instead of replacing it a second time.
+     */
+    <T> T withRetry(ConnectionFunction<T> function) throws SQLException
+    {
+        synchronized( replacementLock )
+        {
+            try
+            {
+                return function.apply( parent );
+            }
+            catch( SQLException e )
+            {
+                doReconnect( e );
+                return function.apply( parent );
+            }
+        }
+    }
+
+    /**
+     * For a statement bound to expected that failed with ex: reconnects unless the connection was already replaced
+     * since then (by another statement or by validation), then runs function on the current connection to create the
+     * statement's replacement. The check, the reconnect and the creation are one critical section, so the new
+     * statement cannot end up on a connection that is being replaced.
+     */
+    <T> T reconnectIfCurrent(Connection expected, SQLException ex, ConnectionFunction<T> function) throws SQLException
+    {
+        synchronized( replacementLock )
+        {
+            if( parent == expected )
+                doReconnect( ex );
+            return function.apply( parent );
+        }
+    }
+
+    void reconnectIfCurrent(Connection expected, SQLException ex) throws SQLException
+    {
+        reconnectIfCurrent( expected, ex, c -> null );
+    }
     
     /**
      * Update last activity time
      * @throws SQLException
      */
-    private Object lock = new Object();
     public void touch()
     {
         if(closedByTimeout)
         {
-            synchronized( lock )
+            synchronized( replacementLock )
             {
                 if( closedByTimeout )
                 {
@@ -125,10 +188,9 @@ public class PersistentConnection implements Connection
     {
         if( !closedByTimeout )
         {
-            synchronized( lock )
+            synchronized( replacementLock )
             {
-
-                if( !closedByTimeout && statements.isEmpty() && System.currentTimeMillis() - lastActivity > millis )
+                if( !closedByTimeout && noOpenStatements() && System.currentTimeMillis() - lastActivity > millis )
                 {
                     try
                     {
@@ -140,6 +202,14 @@ public class PersistentConnection implements Connection
                     closedByTimeout = true;
                 }
             }
+        }
+    }
+
+    private boolean noOpenStatements()
+    {
+        synchronized( statements )
+        {
+            return statements.isEmpty();
         }
     }
 
@@ -222,45 +292,21 @@ public class PersistentConnection implements Connection
     public Statement createStatement() throws SQLException
     {
         touch();
-        try
-        {
-            return new PersistentStatement(this, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability());
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return new PersistentStatement(this, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability());
-        }
+        return withRetry( c -> new PersistentStatement(this, c, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability()) );
     }
 
     @Override
     public Statement createStatement(int arg0, int arg1, int arg2) throws SQLException
     {
         touch();
-        try
-        {
-            return new PersistentStatement(this, arg0, arg1, arg2);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return new PersistentStatement(this, arg0, arg1, arg2);
-        }
+        return withRetry( c -> new PersistentStatement(this, c, arg0, arg1, arg2) );
     }
 
     @Override
     public Statement createStatement(int arg0, int arg1) throws SQLException
     {
         touch();
-        try
-        {
-            return new PersistentStatement(this, arg0, arg1, getHoldability());
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return new PersistentStatement(this, arg0, arg1, getHoldability());
-        }
+        return withRetry( c -> new PersistentStatement(this, c, arg0, arg1, getHoldability()) );
     }
 
     @Override
@@ -372,135 +418,63 @@ public class PersistentConnection implements Connection
     public CallableStatement prepareCall(String arg0, int arg1, int arg2, int arg3) throws SQLException
     {
         touch();
-        try
-        {
-            return parent.prepareCall(arg0, arg1, arg2, arg3);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return parent.prepareCall(arg0, arg1, arg2, arg3);
-        }
+        return withRetry( c -> c.prepareCall(arg0, arg1, arg2, arg3) );
     }
 
     @Override
     public CallableStatement prepareCall(String arg0, int arg1, int arg2) throws SQLException
     {
         touch();
-        try
-        {
-            return parent.prepareCall(arg0, arg1, arg2);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return parent.prepareCall(arg0, arg1, arg2);
-        }
+        return withRetry( c -> c.prepareCall(arg0, arg1, arg2) );
     }
 
     @Override
     public CallableStatement prepareCall(String arg0) throws SQLException
     {
         touch();
-        try
-        {
-            return parent.prepareCall(arg0);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return parent.prepareCall(arg0);
-        }
+        return withRetry( c -> c.prepareCall(arg0) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0, int arg1, int arg2, int arg3) throws SQLException
     {
         touch();
-        try
-        {
-            return new PersistentPreparedStatement(this, arg0, arg1, arg2, arg3);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return new PersistentPreparedStatement(this, arg0, arg1, arg2, arg3);
-        }
+        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, arg1, arg2, arg3) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0, int arg1, int arg2) throws SQLException
     {
         touch();
-        try
-        {
-            return new PersistentPreparedStatement(this, arg0, arg1, arg2, getHoldability());
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return new PersistentPreparedStatement(this, arg0, arg1, arg2, getHoldability());
-        }
+        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, arg1, arg2, getHoldability()) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0, int arg1) throws SQLException
     {
         touch();
-        try
-        {
-            return parent.prepareStatement(arg0, arg1);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return parent.prepareStatement(arg0, arg1);
-        }
+        return withRetry( c -> c.prepareStatement(arg0, arg1) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0, int[] arg1) throws SQLException
     {
         touch();
-        try
-        {
-            return parent.prepareStatement(arg0, arg1);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return parent.prepareStatement(arg0, arg1);
-        }
+        return withRetry( c -> c.prepareStatement(arg0, arg1) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0, String[] arg1) throws SQLException
     {
         touch();
-        try
-        {
-            return parent.prepareStatement(arg0, arg1);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return parent.prepareStatement(arg0, arg1);
-        }
+        return withRetry( c -> c.prepareStatement(arg0, arg1) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0) throws SQLException
     {
         touch();
-        try
-        {
-            return new PersistentPreparedStatement(this, arg0, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability());
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return new PersistentPreparedStatement(this, arg0, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability());
-        }
+        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability()) );
     }
 
     @Override
@@ -514,13 +488,14 @@ public class PersistentConnection implements Connection
     public void rollback() throws SQLException
     {
         touch();
+        Connection current = parent;
         try
         {
-            parent.rollback();
+            current.rollback();
         }
         catch (SQLException e)
         {
-            reconnect(e);
+            reconnectIfCurrent(current, e);
         }
     }
 
@@ -701,21 +676,25 @@ public class PersistentConnection implements Connection
      */
     public void validateIfIdle(long idleMillis, int timeoutSeconds) throws SQLException
     {
-        if( closedByTimeout || System.currentTimeMillis() - lastActivity <= idleMillis )
-            return;
-        // Held through the ping and the reconnect, not just the emptiness check: the connection object can be
-        // shared between threads (callers keep it in fields), and a statement registers itself here before it can
-        // run anything, so no statement can start or still be streaming while the connection is pinged or replaced.
-        // A statement created meanwhile on the replaced connection rebinds on its first failure
-        // (PersistentStatement.reconnect) instead of reconnecting again.
-        synchronized( statements )
+        if( !isIdle( idleMillis ) )
+            return; // cheap check without the lock; repeated under it
+        // Held through the ping and the reconnect: statements are only created and registered under this lock,
+        // so with no open statement none can start (or still be streaming) while the connection is pinged or
+        // replaced, even when the connection object is shared between threads (callers keep it in fields)
+        synchronized( replacementLock )
         {
-            if( !statements.isEmpty() )
+            // rechecked under the lock: another thread may have used the connection in the meantime
+            if( !isIdle( idleMillis ) || !noOpenStatements() )
                 return;
             if( !isAlive( timeoutSeconds ) )
-                reconnect( null );
+                doReconnect( null );
         }
         touch();
+    }
+
+    private boolean isIdle(long idleMillis)
+    {
+        return !closedByTimeout && System.currentTimeMillis() - lastActivity > idleMillis;
     }
 
     private boolean isAlive(int timeoutSeconds)

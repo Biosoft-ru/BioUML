@@ -16,35 +16,32 @@ public class PersistentStatement implements Statement
     protected int holdability;
     protected String lastQuery; // for debug purposes
 
+    /**
+     * Reconnects after ex, unless the connection was already replaced since this statement was bound to it (by
+     * another statement or by idle validation): then this statement only moves to the new connection instead of
+     * closing the fresh one again. Checking, reconnecting and recreating the statement are atomic
+     * (PersistentConnection.reconnectIfCurrent).
+     */
     void reconnect(SQLException ex) throws SQLException
     {
-        reconnectOrRebind(ex);
-        parent = originalConnection.createStatement(type, concurrency, holdability);
-    }
-
-    /**
-     * Reconnects, unless the connection was already replaced since this statement was created (by another
-     * statement's reconnect or by idle validation): then this statement only moves to the new connection,
-     * so it does not close the fresh connection again.
-     */
-    protected void reconnectOrRebind(SQLException ex) throws SQLException
-    {
-        if( originalConnection == conn.getOriginalConnection() )
-            conn.reconnect(ex);
-        this.originalConnection = conn.getOriginalConnection();
+        parent = conn.reconnectIfCurrent(originalConnection, ex, c -> {
+            originalConnection = c;
+            return c.createStatement(type, concurrency, holdability);
+        });
     }
     
     PersistentStatement()
     {
     }
     
-    PersistentStatement(PersistentConnection conn, int type, int concurrency, int holdability) throws SQLException
+    /** @param original the wrapped connection to create it on; called under the connection's replacement lock */
+    PersistentStatement(PersistentConnection conn, Connection original, int type, int concurrency, int holdability) throws SQLException
     {
         this.conn = conn;
         this.type = type;
         this.concurrency = concurrency;
         this.holdability = holdability;
-        this.originalConnection = conn.getOriginalConnection();
+        this.originalConnection = original;
         parent = originalConnection.createStatement(type, concurrency, holdability);
         this.conn.addStatement(this);
     }

@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
@@ -15,8 +16,13 @@ import java.sql.SQLSyntaxErrorException;
 import java.sql.SQLTransientConnectionException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import junit.framework.TestCase;
@@ -33,7 +39,9 @@ public class PersistentConnectionReconnectTest extends TestCase
     private static final String URL_PREFIX = "jdbc:fakereconnect:";
 
     /** Connections opened by the fake driver, in order */
-    static final List<FakeConnection> opened = new ArrayList<>();
+    static final List<FakeConnection> opened = Collections.synchronizedList( new ArrayList<>() );
+    /** delay of every connect, to widen race windows in the concurrency tests */
+    static volatile long connectDelayMillis;
     private static Driver driver;
     private static int urlCounter;
 
@@ -46,6 +54,7 @@ public class PersistentConnectionReconnectTest extends TestCase
             DriverManager.registerDriver( driver );
         }
         opened.clear();
+        connectDelayMillis = 0;
     }
 
     /** Distinct URL per test: pooled connections are thread-local and keyed by URL */
@@ -191,18 +200,145 @@ public class PersistentConnectionReconnectTest extends TestCase
         st.close();
     }
 
+    /**
+     * Several threads share one connection (callers keep Connection objects in fields) and their statements fail
+     * together on the dropped connection: exactly one replacement connection is opened, and every statement
+     * retries on it. Each thread waiting for the reconnect must see the connection was already replaced.
+     */
+    public void testConcurrentFailuresReconnectOnce() throws Exception
+    {
+        int threads = 4;
+        Connection conn = SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+        List<Statement> statements = new ArrayList<>();
+        for( int i = 0; i < threads; i++ )
+            statements.add( conn.createStatement() );
+        FakeConnection first = opened.get( 0 );
+        first.closedByDriver = true;
+        first.executeBarrier = new CyclicBarrier( threads ); // all fail at the same moment
+        connectDelayMillis = 200; // the others wait while the first reconnect is in progress
+
+        List<Throwable> errors = runConcurrently( threads, i -> statements.get( i ).execute( "SELECT 1" ) );
+
+        assertEquals( "[]", errors.toString() );
+        assertEquals( "one replacement connection", 2, opened.size() );
+        assertFalse( opened.get( 1 ).closedByDriver );
+        assertEquals( threads, opened.get( 1 ).executedCount.get() );
+    }
+
+    /**
+     * While idle validation pings (and then replaces) the connection, another thread creating a statement on it
+     * waits, and gets its statement on the new connection: nothing runs on the connection being replaced.
+     */
+    public void testStatementCreationWaitsForValidation() throws Exception
+    {
+        PersistentConnection conn = (PersistentConnection)SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+        FakeConnection first = opened.get( 0 );
+        first.dead = true;
+        first.pingStarted = new CountDownLatch( 1 );
+        first.pingRelease = new CountDownLatch( 1 );
+        CountDownLatch statementDone = new CountDownLatch( 1 );
+
+        Thread validation = new Thread( () -> {
+            try
+            {
+                conn.validateIfIdle( -1, 5 );
+            }
+            catch( SQLException e )
+            {
+                throw new RuntimeException( e );
+            }
+        } );
+        validation.start();
+        assertTrue( first.pingStarted.await( 10, TimeUnit.SECONDS ) );
+        List<Throwable> errors = Collections.synchronizedList( new ArrayList<>() );
+        Thread user = new Thread( () -> {
+            try (Statement st = conn.createStatement())
+            {
+                st.execute( "SELECT 1" );
+            }
+            catch( Throwable t )
+            {
+                errors.add( t );
+            }
+            statementDone.countDown();
+        } );
+        user.start();
+        assertFalse( "statement creation must wait for the validation", statementDone.await( 300, TimeUnit.MILLISECONDS ) );
+        first.pingRelease.countDown();
+        validation.join( 10_000 );
+        user.join( 10_000 );
+
+        assertEquals( "[]", errors.toString() );
+        assertEquals( 2, opened.size() );
+        assertEquals( "nothing created on the connection being replaced", 0, first.statementsCreated.get() );
+        assertEquals( 0, first.executedCount.get() );
+        assertEquals( 1, opened.get( 1 ).executedCount.get() );
+    }
+
+    /** A prepared statement on a replaced connection is prepared again on the latest connection */
+    public void testPreparedStatementOnReplacedConnectionRebinds() throws Exception
+    {
+        PersistentConnection conn = (PersistentConnection)SqlConnectionPool.getPersistentConnection( newUrl(), "u", "p" );
+        PreparedStatement ps = conn.prepareStatement( "SELECT 1" );
+        conn.reconnect( null );
+
+        ps.execute( "SELECT 1" );
+
+        assertEquals( "no second reconnect", 2, opened.size() );
+        assertEquals( 1, opened.get( 1 ).statementsCreated.get() );
+        assertEquals( 1, opened.get( 1 ).executedCount.get() );
+        ps.close();
+    }
+
+    @FunctionalInterface
+    interface IndexedTask
+    {
+        void run(int i) throws Exception;
+    }
+
+    private static List<Throwable> runConcurrently(int threads, IndexedTask task) throws InterruptedException
+    {
+        List<Throwable> errors = Collections.synchronizedList( new ArrayList<>() );
+        List<Thread> list = new ArrayList<>();
+        for( int i = 0; i < threads; i++ )
+        {
+            int index = i;
+            Thread t = new Thread( () -> {
+                try
+                {
+                    task.run( index );
+                }
+                catch( Throwable e )
+                {
+                    errors.add( e );
+                }
+            } );
+            list.add( t );
+            t.start();
+        }
+        for( Thread t : list )
+            t.join( 30_000 );
+        return errors;
+    }
+
     static class FakeConnection implements InvocationHandler
     {
         /** the driver marked this connection closed: every call fails with 08003 */
-        boolean closedByDriver;
+        volatile boolean closedByDriver;
         /** the server dropped the socket: isValid() is false */
-        boolean dead;
-        boolean syntaxError;
+        volatile boolean dead;
+        volatile boolean syntaxError;
         /** thrown once by the next query */
-        SQLException executeFailure;
+        volatile SQLException executeFailure;
         /** thrown by isValid() */
-        SQLException validationFailure;
-        int executed, validations;
+        volatile SQLException validationFailure;
+        /** if set, every query waits here first, so that concurrent queries fail together */
+        volatile CyclicBarrier executeBarrier;
+        /** if set, isValid() counts down pingStarted and waits for pingRelease */
+        volatile CountDownLatch pingStarted, pingRelease;
+        final AtomicInteger executedCount = new AtomicInteger(), statementsCreated = new AtomicInteger();
+        volatile int validations;
+        int executed;
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable
@@ -211,6 +347,11 @@ public class PersistentConnectionReconnectTest extends TestCase
             {
                 case "isValid":
                     validations++;
+                    if( pingStarted != null )
+                    {
+                        pingStarted.countDown();
+                        pingRelease.await( 10, TimeUnit.SECONDS );
+                    }
                     if( validationFailure != null )
                         throw validationFailure;
                     return !dead && !closedByDriver;
@@ -222,9 +363,11 @@ public class PersistentConnectionReconnectTest extends TestCase
                 case "getHoldability":
                     return ResultSet.HOLD_CURSORS_OVER_COMMIT;
                 case "createStatement":
+                case "prepareStatement":
                     checkOpen();
-                    return Proxy.newProxyInstance( getClass().getClassLoader(), new Class<?>[] {Statement.class},
-                            (p, m, a) -> statement( m ) );
+                    statementsCreated.incrementAndGet();
+                    Class<?> type = method.getName().equals( "createStatement" ) ? Statement.class : PreparedStatement.class;
+                    return Proxy.newProxyInstance( getClass().getClassLoader(), new Class<?>[] {type}, (p, m, a) -> statement( m ) );
                 case "toString":
                     return "FakeConnection";
                 case "hashCode":
@@ -236,11 +379,14 @@ public class PersistentConnectionReconnectTest extends TestCase
             }
         }
 
-        private Object statement(Method m) throws SQLException
+        private Object statement(Method m) throws Exception
         {
             switch( m.getName() )
             {
                 case "execute":
+                    CyclicBarrier barrier = executeBarrier;
+                    if( barrier != null )
+                        barrier.await( 10, TimeUnit.SECONDS );
                     checkOpen();
                     if( syntaxError )
                         throw new SQLSyntaxErrorException( "You have an error in your SQL syntax", "42000" );
@@ -250,7 +396,7 @@ public class PersistentConnectionReconnectTest extends TestCase
                         executeFailure = null;
                         throw e;
                     }
-                    executed++;
+                    executed = executedCount.incrementAndGet();
                     return true;
                 case "toString":
                     return "FakeStatement";
@@ -278,10 +424,18 @@ public class PersistentConnectionReconnectTest extends TestCase
     static class FakeDriver implements Driver
     {
         @Override
-        public Connection connect(String url, Properties info)
+        public Connection connect(String url, Properties info) throws SQLException
         {
             if( !acceptsURL( url ) )
                 return null;
+            try
+            {
+                Thread.sleep( connectDelayMillis );
+            }
+            catch( InterruptedException e )
+            {
+                throw new SQLException( e );
+            }
             FakeConnection handler = new FakeConnection();
             opened.add( handler );
             return (Connection)Proxy.newProxyInstance( FakeDriver.class.getClassLoader(), new Class<?>[] {Connection.class}, handler );
