@@ -34,6 +34,12 @@ final class TrackedCallableStatement
                             return "TrackedCallableStatement: " + statement;
                         case "getConnection":
                             return conn;
+                        case "close":
+                            conn.touch();
+                            // same protocol as PersistentStatement.close: under the replacement lock, unregistered
+                            // only after the JDBC close has returned
+                            conn.closeStatement( (CallableStatement)proxy, statement::close );
+                            return null;
                         default:
                             break;
                     }
@@ -45,13 +51,6 @@ final class TrackedCallableStatement
                     catch( InvocationTargetException e )
                     {
                         throw e.getCause();
-                    }
-                    finally
-                    {
-                        // unregistered only after the JDBC statement is closed: until then idle validation must
-                        // still see it as open
-                        if( method.getName().equals( "close" ) )
-                            conn.releaseStatement( (CallableStatement)proxy );
                     }
                 } );
         conn.addStatement( tracked );

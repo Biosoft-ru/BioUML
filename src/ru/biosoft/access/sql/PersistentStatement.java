@@ -24,11 +24,21 @@ public class PersistentStatement implements Statement
      */
     void reconnect(SQLException ex) throws SQLException
     {
-        parent = conn.reconnectIfCurrent(originalConnection, ex, c -> {
+        if( closed )
+            throw ex;
+        conn.reconnectIfCurrent(originalConnection, ex, c -> {
+            // rechecked under the replacement lock: a close() that got there first leaves nothing to rebind,
+            // and no new JDBC statement may be opened for a closed wrapper
+            if( closed )
+                throw ex;
             originalConnection = c;
-            return c.createStatement(type, concurrency, holdability);
+            parent = c.createStatement(type, concurrency, holdability);
+            return parent;
         });
     }
+
+    /** set under the connection's replacement lock, see close() */
+    protected volatile boolean closed;
     
     PersistentStatement()
     {
@@ -78,15 +88,12 @@ public class PersistentStatement implements Statement
     public void close() throws SQLException
     {
         conn.touch();
-        // unregistered only after the JDBC statement is closed: until then idle validation must still see it as open
-        try
-        {
+        // under the replacement lock, so a concurrent rebind either completes before (and its new JDBC statement
+        // is the one closed here) or sees the closed flag; unregistered only after the JDBC close returns
+        conn.closeStatement(this, () -> {
+            closed = true;
             parent.close();
-        }
-        finally
-        {
-            this.conn.releaseStatement(this);
-        }
+        });
     }
 
     @Override

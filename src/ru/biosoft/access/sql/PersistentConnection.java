@@ -157,6 +157,32 @@ public class PersistentConnection implements Connection
     {
         reconnectIfCurrent( expected, ex, c -> null );
     }
+
+    @FunctionalInterface
+    interface SqlAction
+    {
+        void run() throws SQLException;
+    }
+
+    /**
+     * Closes a statement of this connection under {@link #replacementLock}, so the close cannot interleave with the
+     * statement being rebound to a new connection (which happens under the same lock), and unregisters it only after
+     * the JDBC close has returned or thrown: until then idle validation must still see it as open.
+     */
+    void closeStatement(Statement statement, SqlAction close) throws SQLException
+    {
+        synchronized( replacementLock )
+        {
+            try
+            {
+                close.run();
+            }
+            finally
+            {
+                releaseStatement( statement );
+            }
+        }
+    }
     
     /**
      * Update last activity time
