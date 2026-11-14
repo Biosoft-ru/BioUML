@@ -300,6 +300,12 @@ the one `biouml_analysis_describe` lists (`expertSettings/promoterFrom`), or its
 item is left out (`conditions/condition`). An entry `== parameters: <any name>` holds `param` lines for parameters
 of that name in any analysis or workflow (`outputTable`, `tablePath`, ...), used when nothing else describes them.
 
+A `variant <name>: <text>` line in an entry shared by several names (`== analysis: A || B`) is added to the
+summary of the one it names, so look-alike analyses are told apart in `biouml_analysis_list`: the entry says what
+they share, the line how this one differs ("This one has no joinType parameter..."). The bundled files give one to
+every analysis that shares an entry. The parameter list the platform generates at the end of a help page
+("Data source – Data source") is left out of `help`: the schema describes each parameter.
+
 Bundled files are in `support/resources/analysis-guides/` and are listed by the `files` key of its
 `index.properties`: `biouml.txt` (the analyses of the BioUML platform and the research topics they answer). A
 server adds guides for its own analyses and workflows, or replaces bundled ones, by putting `*.txt` files into the

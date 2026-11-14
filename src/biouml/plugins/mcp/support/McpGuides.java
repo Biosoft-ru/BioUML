@@ -44,7 +44,8 @@ import java.util.logging.Logger;
  * param expertSettings/cutoff: a nested parameter, by its key
  *
  * == workflow: Common/Explain my genes || Common/Another workflow sharing this entry
- * summary: ...
+ * summary: what they have in common
+ * variant Common/Another workflow sharing this entry: how this one differs from the others of the entry
  *
  * == topic: gene-list | I have a list of genes
  * summary: one line, shown in the topic list
@@ -61,6 +62,10 @@ import java.util.logging.Logger;
  * a description that is empty or repeats the parameter's name ("Promoter from"). The parameter is named by its
  * key as biouml_analysis_describe lists it, or by the last part of the key; the index of an array item is left
  * out ({@code conditions/condition}). See {@link #describeParameters}.</p>
+ *
+ * <p>A {@code variant} line of an entry with several names is added to the summary of the one it names, so that
+ * look-alike analyses are told apart in biouml_analysis_list: the entry says what they share, the line how this
+ * one differs.</p>
  */
 public final class McpGuides
 {
@@ -72,6 +77,7 @@ public final class McpGuides
 	/** An entry whose {@code param} lines hold for the parameters of that name of every analysis and workflow. */
 	public static final String PARAMETERS = "parameters";
 	private static final String PARAM = "param ";
+	private static final String VARIANT = "variant ";
 
 	/** The fields of an analysis or workflow guide, in the order they are returned. */
 	public static final List<String> FIELDS = Collections.unmodifiableList( Arrays.asList( "summary", "use", "input", "output", "next", "tips" ) );
@@ -94,12 +100,35 @@ public final class McpGuides
 		private final Map<String, String> fields = new LinkedHashMap<String, String>();
 		private Map<String, String> params = new LinkedHashMap<String, String>();
 		private final StringBuilder body = new StringBuilder();
+		/** The names sharing the entry, as written. */
+		private List<String> names = Collections.emptyList();
+		/** How one of the names differs from the others: by its key. */
+		private final Map<String, String> variants = new LinkedHashMap<String, String>();
 
 		Guide( String kind, String name, String title )
 		{
 			this.kind = kind;
 			this.name = name;
 			this.title = title;
+		}
+
+		/** The guide as it reads for one of its names: the summary says how that one differs, when the entry tells. */
+		Guide as( String... keys )
+		{
+			for ( String key : keys )
+			{
+				String differs = variants.get( key );
+				if ( differs == null )
+					continue;
+				Guide guide = new Guide( kind, name, title );
+				guide.fields.putAll( fields );
+				String summary = fields.get( "summary" );
+				guide.fields.put( "summary", summary == null ? differs : summary + " " + differs );
+				guide.params = params;
+				guide.body.append( body );
+				return guide;
+			}
+			return this;
 		}
 
 		public String getSummary()
@@ -168,7 +197,8 @@ public final class McpGuides
 	/** The guide of an analysis, or null. */
 	public static Guide analysis( String name )
 	{
-		return name == null ? null : guides( ANALYSIS ).get( key( name ) );
+		Guide guide = name == null ? null : guides( ANALYSIS ).get( key( name ) );
+		return guide == null ? null : guide.as( key( name ) );
 	}
 
 	/**
@@ -182,7 +212,9 @@ public final class McpGuides
 		Map<String, Guide> guides = guides( WORKFLOW );
 		Guide guide = guides.get( key( relativePath ) );
 		int slash = relativePath.lastIndexOf( '/' );
-		return guide != null ? guide : guides( WORKFLOW_NAME ).get( key( relativePath.substring( slash + 1 ) ) );
+		if ( guide == null )
+			guide = guides( WORKFLOW_NAME ).get( key( relativePath.substring( slash + 1 ) ) );
+		return guide == null ? null : guide.as( key( relativePath ), key( relativePath.substring( slash + 1 ) ) );
 	}
 
 	/** The research topics, in file order. */
@@ -214,7 +246,7 @@ public final class McpGuides
 			if ( !( name instanceof String ) )
 				continue;
 			String declared = property.get( "description" ) instanceof String ? (String) property.get( "description" ) : null;
-			boolean vague = saysNothing( declared, (String) name, property.get( "displayName" ) );
+			boolean vague = saysNothing( declared, (String) name, property.get( "displayName" ) ) || namesType( declared, property.get( "type" ) );
 			String own = guide == null ? null : lookup( guide.params, (String) name );
 			if ( own != null && !vague )
 				property.put( "hint", own );
@@ -246,6 +278,16 @@ public final class McpGuides
 			return true;
 		String name = key.substring( key.lastIndexOf( '/' ) + 1 );
 		return text.equals( letters( name ) ) || text.equals( letters( displayName == null ? null : displayName.toString() ) );
+	}
+
+	/** Whether a declared description is only the class of the value ("ConditionBean"), as beans without one have it. */
+	private static boolean namesType( String description, Object type )
+	{
+		if ( description == null || !( type instanceof String ) )
+			return false;
+		String simple = ( (String) type ).replaceAll( "^\\[+L|;$", "" );
+		simple = simple.substring( Math.max( simple.lastIndexOf( '.' ), simple.lastIndexOf( '$' ) ) + 1 );
+		return !simple.isEmpty() && letters( description ).equals( letters( simple ) );
 	}
 
 	private static String letters( String text )
@@ -407,6 +449,7 @@ public final class McpGuides
 					if ( names.isEmpty() )
 						continue;
 					guide = new Guide( kind, names.get( 0 ), null );
+					guide.names = names;
 					into.add( guide, names );
 				}
 				continue;
@@ -414,8 +457,21 @@ public final class McpGuides
 			if ( guide == null )
 				continue;
 			String name = fieldName( line, guide );
-			String param = name == null ? paramName( line, guide ) : null;
-			if ( param != null )
+			String variant = name == null ? variantName( line, guide ) : null;
+			String param = name == null && variant == null ? paramName( line, guide ) : null;
+			if ( variant != null )
+			{
+				field = VARIANT + variant;
+				guide.variants.put( variant, line.replaceFirst( variantPattern( variant ), "" ).trim() );
+				if ( WORKFLOW.equals( guide.kind ) ) // a copy kept elsewhere is known by its name alone
+					guide.variants.putIfAbsent( variant.substring( variant.lastIndexOf( '/' ) + 1 ), guide.variants.get( variant ) );
+			}
+			else if ( name == null && param == null && field != null && field.startsWith( VARIANT ) && !line.trim().isEmpty() )
+			{
+				String key = field.substring( VARIANT.length() );
+				guide.variants.put( key, guide.variants.get( key ) + " " + line.trim() );
+			}
+			else if ( param != null )
 			{
 				field = PARAM + param;
 				guide.params.put( param, line.substring( line.indexOf( ':' ) + 1 ).trim() );
@@ -439,6 +495,31 @@ public final class McpGuides
 			else if ( field != null && !line.trim().isEmpty() )
 				guide.fields.put( field, ( guide.fields.get( field ) + " " + line.trim() ).trim() );
 		}
+	}
+
+	/**
+	 * The key of the name a line tells apart from the others of its entry ("variant Join tables: ..."), or null.
+	 * The name is one of the entry's own, so it may itself hold a colon.
+	 */
+	private static String variantName( String line, Guide guide )
+	{
+		if ( !line.startsWith( VARIANT ) )
+			return null;
+		String found = null;
+		for ( String name : guide.names )
+			if ( line.matches( variantPattern( key( name ) ) + ".*" ) && ( found == null || name.length() > found.length() ) )
+				found = name;
+		return found == null ? null : key( found );
+	}
+
+	/** Matches the start of a variant line for a name key, however the name is spaced and cased there. */
+	private static String variantPattern( String nameKey )
+	{
+		StringBuilder pattern = new StringBuilder( "(?i)^variant\\s+" );
+		String[] words = nameKey.split( " " );
+		for ( int i = 0; i < words.length; i++ )
+			pattern.append( i == 0 ? "" : "\\s+" ).append( java.util.regex.Pattern.quote( words[i] ) );
+		return pattern.append( "\\s*:" ).toString();
 	}
 
 	/** The parameter a line describes ("param inputTable: ..."), or null; a topic has none. */

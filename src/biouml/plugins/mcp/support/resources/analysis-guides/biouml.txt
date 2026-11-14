@@ -98,11 +98,17 @@ use: ChIP-seq/ATAC-seq peaks, regions of interest, annotation. Used through biou
 input: the file; properties/dbSelector, the genome the coordinates refer to (one of its allowedValues, e.g. an Ensembl human hg38 entry) — or properties/genomeId such as 'hg19'.
 output: a track.
 tips: The genome build must be the one the file was made with: ask the user when it is not stated. A track without a genome cannot be used for sequence analyses (site search).
+variant BED format (*.bed): BED: intervals with optional name, score and strand; the usual format of peaks and regions.
+variant General Feature Format (*.gff): GFF: annotation features with a type and attributes (genes, exons, any feature set).
+variant Wiggle format (*.wig): WIG: a numeric signal along the genome (coverage, scores), not a set of intervals.
 
 == analysis: Fasta format (*.fasta) || EMBL format (*.embl) || GenBank format (*.gb)
 summary: Import formats for DNA sequences (FASTA, EMBL, GenBank): the file becomes a sequence collection.
 use: The user has their own sequences (a plasmid, a cloned promoter, a non-model genome) rather than coordinates on a reference genome.
 output: a sequence collection; it can be searched for binding sites with 'Site search on track'.
+variant Fasta format (*.fasta): FASTA: plain sequences, each under a name line, without annotation.
+variant EMBL format (*.embl): EMBL: sequences with their annotated features in the EMBL flat-file format.
+variant GenBank format (*.gb): GenBank: sequences with their annotated features in the GenBank flat-file format.
 
 == analysis: ZIP-archive (*.zip)
 summary: Import format for an archive of files of one format: each file is imported into a folder.
@@ -119,6 +125,12 @@ summary: Import formats for models and networks: SBML, CellDesigner SBML, CellML
 use: Bringing an existing mathematical model or interaction network into the repository as a diagram. See topic simulation.
 output: a diagram (SED-ML: the simulation experiment with its models).
 next: biouml_diagram_describe, then simulate or edit.
+variant SBML: This one: standard SBML, the usual exchange format of mathematical models.
+variant SBML(CellDesigner): This one: SBML written by CellDesigner, keeping its layout and notation.
+variant CellML: This one: CellML models (e.g. from the Physiome repository).
+variant BioUML format(*.dml): This one: BioUML's own diagram files, with everything a BioUML diagram holds.
+variant SED-ML file: This one: a SED-ML description of simulation experiments, not a model by itself.
+variant SIF: This one: a plain interaction list (source, relation, target) giving a network without mathematics.
 param properties/diagramName: The name of the diagram written into the SBML file.
 
 == analysis: SDF file
@@ -233,6 +245,9 @@ summary: Join two tables by row id into one, with chosen columns from each (inne
 use: Putting results side by side: fold changes from two comparisons, expression next to enrichment hits.
 input: leftGroup/tablePath, leftGroup/columns, rightGroup/tablePath, rightGroup/columns, joinType.
 output: output, a table. Both tables must use the same id type.
+variant Join two tables: This one is the one to use: joinType chooses inner, outer, left or right join, a subtraction or the symmetric difference.
+variant Join full tables: This one takes the same parameters as 'Join two tables'; use that one unless a workflow names this.
+variant Join tables: This one has no joinType parameter: it cannot choose the kind of join, so prefer 'Join two tables'.
 param leftGroup: The first table and the columns to take from it: tablePath and columns.
 param rightGroup: The second table and the columns to take from it: tablePath and columns.
 param joinType: Which rows are kept, matched by row id. Inner join: ids in both tables. Outer join: ids in either. Left / Right join: all ids of that table, with values of the other where present. Left / Right subtraction: ids of that table that are not in the other.
@@ -281,6 +296,8 @@ param pvalueCutoff: Genes also have to pass this p-value to be coloured as chang
 
 == analysis: Plot bar chart || Plot pie chart
 summary: Bar or pie chart of one numeric column of a table, labelled by another column.
+variant Plot bar chart: This one: bars, with axis labels; for comparing values.
+variant Plot pie chart: This one: a pie; for shares of a whole, with few categories.
 param column: The numeric column that gives the bar heights.
 param autoFillLabels: true: the axis labels are taken from the names of the chosen columns.
 param xAxisLabel: Label of the category axis.
@@ -491,6 +508,8 @@ use: The user has aligned ChIP-seq reads (BAM tracks) and needs the binding regi
 input: trackPath (the ChIP sample), controlPath (input/IgG control, optional but recommended), gsize (effective genome size), pvalue.
 output: outputPath, a track of peaks.
 next: 'Track to gene set' for target genes; motif analysis of the peaks.
+variant Run MACS 1_4_0 on ChiP-Seq: This one is 1.4.0: it builds its model from regions of moderate enrichment (mfoldLower to mfoldUpper), handles duplicate reads (keepDup) and can compute peak profiles.
+variant Run MACS 1_3_7 on ChiP-Seq: This one is the older 1.3.7, with a single mfold and three lambda windows; only for reproducing old results.
 param gsize: The mappable genome size in base pairs: about 2.7e9 for human, 1.87e9 for mouse, 9e7 for C. elegans, 1.2e8 for fruit fly.
 param bw: The expected fragment length of the sonicated DNA in base pairs, used to build the peak model; 300 suits most libraries.
 param tsize: The read (tag) length in base pairs, e.g. 25, 36, 50.
@@ -511,10 +530,14 @@ input: inputSequences (a track or sequence collection), startLength and stopLeng
 output: a weight matrix in outputLibrary.
 next: 'Create Match model' or 'Create weight matrix model' to search with it.
 tips: Use the top few hundred to thousand peaks, shrunk around their summits; long or numerous sequences make it slow.
+variant ChIPMunk: This one: a classic position weight matrix (one nucleotide per position); the default choice.
+variant DiChIPMunk: This one: a dinucleotide matrix, which captures dependencies between neighbouring positions; needs more sequences and gives a model fewer tools accept.
 
 == analysis: ChIPHorde || DiChIPHorde
 summary: Discover several different DNA motifs in a set of sequences, one after another (ChIPHorde; DiChIPHorde for dinucleotide motifs).
 use: Like ChIPMunk when more than one motif is expected, e.g. a factor with co-factors.
+variant ChIPHorde: This one: classic position weight matrices; the default choice.
+variant DiChIPHorde: This one: dinucleotide matrices (dependencies between neighbouring positions).
 
 == analysis: IPS motif discovery
 summary: Discover motifs in a sequence set starting from given frequency matrices (IPS method).
@@ -566,6 +589,8 @@ use: Regulatory variants: which non-coding mutations change the binding of which
 input: vcfTrack; genome; siteModels, a profile of binding-site models (e.g. a profile under databases/.../Data/profiles); scoreDiff, the minimal score change; targetGeneTSSUpstream/Downstream, the window linking a site to a gene.
 output: outputTable (variant, factor, gain or loss, score change, target gene), tracks of gained and lost sites, the important mutations, and a summary per site model.
 tips: These are sequence-based predictions: a changed motif score does not prove changed binding. The track must be on the genome chosen in genome.
+variant Mutation effect on sites: This one is the plain version: sites gained and lost and their target genes.
+variant Mutation effect on sites advanced: This one also annotates the result with transcription factor classes, TRANSPATH pathways and HumanPSD diseases, and can restrict sites to GTRD ChIP-seq peaks; it needs those databases.
 param tfClassDepth: How finely transcription factors are grouped in the result, as a level of the TF classification: 5 single factors, 4 subfamilies, 3 families.
 param transpathHub: The TRANSPATH pathway collection used to annotate the affected genes; keep the newest.
 param psdHub: The HumanPSD disease collection used to annotate the affected genes; keep the newest.
@@ -576,6 +601,8 @@ summary: Find transcription factors whose binding sites are gained or lost more 
 use: Comparing two variant sets (cases against controls, tumour against normal): which factors' sites are preferentially hit.
 input: yesVCFTrack, noVCFTrack, genome, siteModels, pValueCutoff.
 output: siteGainsTable and siteLossesTable, one row per factor model.
+variant Compare TFBS mutations: This one is the plain version: the two tables only.
+variant Compare TFBS mutations advanced: This one can also write a filtered variant track (filterVCF) holding the variants that affect the top site models.
 param useOverrepresented: true: test only the motifs whose sites are over-represented around the variants, which reduces the number of tests.
 
 # ============================================================================ binding sites (generic part)
@@ -608,6 +635,8 @@ param outProfile: Where the profile with the optimized cutoffs is written; it ca
 
 == analysis: Site search report || Site search report with matrix table
 summary: Make a readable report of a site search: the top motifs and in which sequences their sites are.
+variant Site search report: This one takes a site search result folder as it is (result).
+variant Site search report with matrix table: This one takes the summary table and the site track separately, with a column to choose the top motifs by: for results that were filtered or optimized after the search.
 param useOriginalIds: true: name sequences in the report by their original ids rather than by generated ones.
 
 == analysis: Convert site search summary
@@ -618,19 +647,28 @@ summary: Turn a table of binding-site models (matrices) into the transcription f
 use: After a motif enrichment: the motif names are not the answer the user wants, the factors are.
 input: sitesCollection (table with site models as rows), siteModelsCollection (the profile used in the search), species, targetType (e.g. 'Genes: Ensembl').
 output: outputTable of transcription factors. One motif often maps to several related factors of a family: say so.
+variant Matrices to molecules: This one takes the same parameters as 'Convert site models to proteins' and does the same conversion; either can be used.
+variant Convert site models to proteins: This one takes the same parameters as 'Matrices to molecules' and does the same conversion; either can be used.
 
 == analysis: Create profile from site model table || Create profile from gene table
 summary: Make a smaller profile holding only the site models of a table (e.g. the enriched ones) or only those of the factors in a gene table.
 use: Restricting later searches to the motifs that matter, e.g. factors expressed in the studied tissue.
+variant Create profile from site model table: This one keeps the site models listed in a table (e.g. the enriched motifs of a search) and can take their cutoffs from a column.
+variant Create profile from gene table: This one keeps the site models of the transcription factors found in a gene table (e.g. the factors expressed in a tissue).
 
 == analysis: Change profile cutoffs || Compute profile thresholds
 summary: Set or recompute the score cutoffs of all site models of a profile (stricter cutoffs give fewer false positives).
+variant Change profile cutoffs: This one sets cutoffs directly: one value for all models, or a ready template such as minFP or minFN.
+variant Compute profile thresholds: This one computes the cutoffs anew from sequences for a wanted error rate; slower, for models without ready cutoffs (e.g. made from a discovered motif).
 param inputProfile: The profile (motifs with score cutoffs) whose cutoffs are to be changed; the result is a new profile.
 param method/sampleSize: How many random sequences are scored to estimate the score distribution of each motif. More gives steadier cutoffs and takes longer; 1000 is a sensible minimum.
 param method/errorRate: The share of random positions allowed to score above the cutoff (the false positive rate). Smaller values give stricter cutoffs and fewer predicted sites.
 
 == analysis: Create Match model || Create weight matrix model || Create IPS model
 summary: Make a site model from a frequency matrix (e.g. a discovered motif) so it can be used in site searches.
+variant Create Match model: This one: a Match(TM) model with matrix and core cutoffs, the kind TRANSFAC profiles hold; the usual choice.
+variant Create weight matrix model: This one: a plain weight matrix model (identity, log or log-odds scoring against background nucleotide frequencies) with one threshold.
+variant Create IPS model: This one: an IPS model, which scores clusters of sites of one or several matrices within a window instead of single sites.
 param frequencyMatrices: The position frequency matrices (motifs) the model is built from; several matrices of the same factor may be given.
 param windowSize: The length in base pairs of the window around a site whose neighbouring weak sites add to its score.
 param threshold: The score cutoff of the model: positions scoring above it are reported as sites. 0 reports everything; set it from 'Compute profile thresholds' or by trial.
