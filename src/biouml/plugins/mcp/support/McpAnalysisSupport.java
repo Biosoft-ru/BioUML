@@ -315,7 +315,7 @@ public final class McpAnalysisSupport
 			// an analysis that says nothing of itself, or only its name: what its guide says it is for
 			McpGuides.Guide about = McpGuides.analysis( name );
 			Object said = m.get( "description" );
-			if ( about != null && about.getSummary() != null && McpGuides.saysNothing( said == null ? null : said.toString(), name, name ) )
+			if ( about != null && about.getSummary() != null && ( McpGuides.saysNothing( said == null ? null : said.toString(), name, name ) || isLabel( said.toString() ) ) )
 				m.put( "description", about.getSummary() );
 		}
 		catch ( Exception e )
@@ -488,13 +488,19 @@ public final class McpAnalysisSupport
 		return vc == null || !DataElementPath.class.isAssignableFrom( vc ) && ( vc.getPackage() == null || !vc.getPackage().getName().startsWith( "java." ) );
 	}
 
-	/** The first line of a help text that is not a heading; null when it has only headings. */
+	/** The first line of a help text that is not a heading or a list item; null when it has only those. */
 	private static String firstParagraph( String text )
 	{
 		for ( String line : text.split( "\n" ) )
-			if ( !line.startsWith( "## " ) && !line.trim().isEmpty() )
+			if ( !line.startsWith( "## " ) && !line.startsWith( "- " ) && !line.trim().isEmpty() )
 				return line.trim();
 		return null;
+	}
+
+	/** Whether a declared description is a label of a few words ("Transfac 2.0 analysis") rather than a sentence. */
+	public static boolean isLabel( String description )
+	{
+		return description.trim().split( "\\s+" ).length <= 3;
 	}
 
 	private static final String GENERATED_PARAMETERS = "<h3>Parameters:</h3><ul type=\"circle\">";

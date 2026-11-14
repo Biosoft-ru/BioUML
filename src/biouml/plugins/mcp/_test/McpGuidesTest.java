@@ -203,6 +203,15 @@ public class McpGuidesTest extends TestCase
 		assertEquals( "a list the author wrote stays", written, McpAnalysisSupport.withoutGeneratedParameters( written ) );
 	}
 
+	/** A description of a few words is a label: the guide summary says more. */
+	public void testLabelDescriptions()
+	{
+		assertTrue( McpAnalysisSupport.isLabel( "Transfac 2.0 analysis" ) );
+		assertFalse( McpAnalysisSupport.isLabel( "Find transcription factor binding sites affected by mutations." ) );
+		String summary = McpGuides.analysis( "Hypergeometric analysis" ).getSummary();
+		assertTrue( "the name and the method differ: " + summary, summary.contains( "despite the name" ) && summary.contains( "permutations" ) );
+	}
+
 	public void testSaysNothing()
 	{
 		assertTrue( McpGuides.saysNothing( null, "promoterFrom", "Promoter from" ) );
