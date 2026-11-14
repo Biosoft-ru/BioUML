@@ -340,7 +340,7 @@ output: outputTablePath with fold-change columns; optionally a histogram.
 param type: How replicates are combined. 'Average all': mean of experiment against mean of control, one fold change per gene (the usual choice). 'Average Control' / 'Average Experiment': each sample of one group against the mean of the other. 'Each experiment to each control': every pair. 'One experiment to one control': sample i against sample i (paired design).
 
 == analysis: Hypergeometric analysis
-summary: Find up- and down-regulated genes by comparing each expression profile with a boundary value using permutations.
+summary: Find up- and down-regulated genes by comparing each gene's values with a boundary value; despite the name, the p-value comes from random permutations of the table, as the analysis' own help says.
 use: A robust alternative to the t-test for microarray data with few replicates.
 input: experimentData/..., controlData/..., bv, pvalue, fdr.
 output: outputTablePath with a signed score per gene.
