@@ -307,7 +307,8 @@ public final class McpAnalysisSupport
 				String first = firstParagraph( help );
 				if ( first != null )
 					m.put( "description", clipText( first, 300 ) );
-				if ( first != null && ( filter == null || filter.isEmpty() ) && ( only == null || only.isEmpty() ) )
+				boolean onlyHeadings = help.replaceAll( "(?m)^## .*$", "" ).trim().isEmpty();
+				if ( !onlyHeadings && ( filter == null || filter.isEmpty() ) && ( only == null || only.isEmpty() ) )
 					m.put( "help", clipText( help, HELP_CHARS ) );
 			}
 			else
@@ -488,12 +489,12 @@ public final class McpAnalysisSupport
 		return vc == null || !DataElementPath.class.isAssignableFrom( vc ) && ( vc.getPackage() == null || !vc.getPackage().getName().startsWith( "java." ) );
 	}
 
-	/** The first line of a help text that is not a heading or a list item; null when it has only those. */
+	/** The first line of a help text after its headings, when it is prose; null when the text opens with a list or has only headings. */
 	private static String firstParagraph( String text )
 	{
 		for ( String line : text.split( "\n" ) )
-			if ( !line.startsWith( "## " ) && !line.startsWith( "- " ) && !line.trim().isEmpty() )
-				return line.trim();
+			if ( !line.startsWith( "## " ) && !line.trim().isEmpty() )
+				return line.startsWith( "- " ) ? null : line.trim(); // a page that opens with a list has no introduction
 		return null;
 	}
 
