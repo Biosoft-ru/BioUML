@@ -121,6 +121,9 @@ Tables for PCA, heatmaps and clustering should be on a log scale ('Transform tab
 == analysis: Affymetrix CEL file (*.cel) || Agilent microarray file (*.txt) || Illumina microarray file (*.txt)
 summary: Import formats for raw microarray files (Affymetrix CEL, Agilent, Illumina); the files must be normalized after import.
 use: See topic microarray-raw. Import a ZIP of the files with the matching format.
+variant Affymetrix CEL file (*.cel): This one: Affymetrix CEL files.
+variant Agilent microarray file (*.txt): This one: Agilent Feature Extraction text files.
+variant Illumina microarray file (*.txt): This one: Illumina BeadStudio/GenomeStudio text exports.
 
 == analysis: Normalize Affymetrix experiment and control || Normalize Agilent experiment and control || Normalize Illumina experiment and control
 summary: Normalize raw microarray files of an experiment group and a control group together, giving one normalized table per group.
@@ -128,10 +131,15 @@ use: The start of a two-group microarray comparison; the outputs are the inputs 
 input: the raw files of each group (celFiles / agilentFiles / illuminaFiles and controlFiles); for Affymetrix a method (RMA is a good default; arrays of the newer designs are always RMA).
 output: outputPath (experiment) and controlOutputPath (control), tables with probe ids as rows and one column per file.
 tips: Keep outputLogarithmBase at log2. Needs R on the server.
+variant Normalize Affymetrix experiment and control: This one: Affymetrix CEL files, with a choice of method (RMA, MAS5 and their steps).
+variant Normalize Agilent experiment and control: This one: Agilent files, single- or dual-channel.
+variant Normalize Illumina experiment and control: This one: Illumina files; no method to choose.
 
 == analysis: Affymetrix normalization || Agilent normalization
 summary: Normalize a set of raw microarray files into one table of expression values (probes as rows, files as columns).
 use: All samples of an experiment in one table, e.g. for more than two groups; then topic expression-table.
+variant Affymetrix normalization: This one: Affymetrix CEL files, with a choice of method (RMA, MAS5 and their steps).
+variant Agilent normalization: This one: Agilent files, single- or dual-channel.
 param dualChannel: true for two-colour arrays (Cy5/Cy3 on one slide; the result is a log ratio of the channels), false for one-colour arrays.
 
 == analysis: Normalization quality plots
@@ -236,6 +244,8 @@ param emptyOutput: true: when the condition fails, write an empty table instead 
 
 == analysis: Import from BC Platform || Import from TranSMART
 summary: Load a dataset from a BC|Platform or tranSMART server into a table; needs that server's address and credentials from the user.
+variant Import from BC Platform: This one: BC|Platform, by API key and data set.
+variant Import from TranSMART: This one: tranSMART, by token and study, with constraints on concepts, assays and patients.
 param apiKey: The user's API key for the BC|Platform server. Ask the user for it; never invent one, and do not repeat it in answers.
 param password: The user's password for the server. Ask the user; do not repeat it in answers.
 param dataSet: The name of the data set on the server to load.
@@ -377,6 +387,8 @@ param nucleotideDistribution/t: Background frequency of T.
 
 == analysis: Extract matrices from profile || Factor-cluster redundancy filter
 summary: TRANSFAC helper analyses: list the matrices of a profile; reduce a matrix result to one representative per factor cluster.
+variant Extract matrices from profile: This one: lists the matrices of a profile as a table.
+variant Factor-cluster redundancy filter: This one: reduces a table of enriched matrices to the best one per cluster of related factors, so that a family is not reported many times.
 param profilePath: The profile whose matrices are listed.
 param matrixTable: The table of enriched motifs to reduce, e.g. the result of 'Search for enriched TFBSs'.
 param maxSiteColumn: The column with the site enrichment of each motif (e.g. Adj. site FE); the best motif per cluster is kept by it.
@@ -391,13 +403,19 @@ input: siteSearchResult (or yesTrackPath and noTrackPath); geneticParameters (it
 output: a folder with the model (the motifs, their cutoffs and weights), its score for every sequence and a histogram showing how well Yes and No separate.
 next: 'Composite module to proteins' for the factors; 'Regulator search' above them; 'Apply CMA model to tracks' to test the model on other regions.
 tips: Slow (a stochastic search, minutes to hours); results vary slightly between runs. A model that separates Yes from No only weakly should be reported as such.
+variant Construct composite modules: This one works on promoters: it takes the result of 'Site search on gene set' (siteSearchResult).
+variant Construct composite modules on tracks: This one works on any regions: it takes a Yes track and a No track (yesTrackPath, noTrackPath), e.g. peaks against background.
 
 == analysis: Construct composite modules with keynodes || Construct composite modules on tracks with keynodes
 summary: Composite module search that also scores each candidate module by the master regulators above its transcription factors.
 use: Used by Genome Enhancer to pick modules whose factors share upstream signalling.
+variant Construct composite modules with keynodes: This one works on promoters: it takes the result of 'Site search on gene set'.
+variant Construct composite modules on tracks with keynodes: This one works on any regions: it takes a Yes track and a No track.
 
 == analysis: Construct composite modules on track (correlation) || Construct composite modules on track (weighted correlation)
 summary: Composite module search for regions with a numeric value (e.g. expression change) rather than a Yes and No set: finds the motif combination whose score correlates with the value.
+variant Construct composite modules on track (correlation): This one: plain correlation of the module score with the value.
+variant Construct composite modules on track (weighted correlation): This one: each region can be given a weight (weightColumn), and known interactions between transcription factors (interactionsPath, alpha) can favour modules of factors that work together.
 
 == analysis: Continue CMA
 summary: Continue a composite module search from its best model for more iterations.
@@ -409,6 +427,8 @@ param changeThreshold: A motif is removed from the module when leaving it out lo
 == analysis: Apply CMA model to tracks || Recalculate composite module score on new track
 summary: Apply a found composite module to other regions: how well it separates new Yes and No tracks, or its score on each region of a new track.
 use: Validating a module on independent data.
+variant Apply CMA model to tracks: This one: takes new Yes and No tracks and reports how well the module separates them.
+variant Recalculate composite module score on new track: This one: takes a single track and gives the module score of each of its regions, with no Yes/No comparison.
 
 == analysis: Composite module to proteins
 summary: Turn the motifs of a composite module into the transcription factors that bind them.
@@ -454,6 +474,8 @@ summary: Connect the molecules of a list into network clusters through the short
 use: Do my genes' products interact? Shows which of them form connected signalling modules.
 input: sourcePath, bioHub (network), direction, maxRadius, species.
 output: a table of clusters and a diagram of the connected molecules.
+variant Cluster by shortest path: This one uses only the shortest paths between the molecules: a smaller, readable network; the usual choice.
+variant Cluster by path: This one uses all paths within the radius: a fuller and larger network.
 
 == analysis: Find longest connected chains
 summary: Find the longest signalling chains that pass through as many molecules of a list as possible.
@@ -479,6 +501,9 @@ summary: Build the intracellular regulation diagram: master regulators, signalli
 use: The summary picture of an upstream analysis; in Genome Enhancer it is redrawn to show chosen master regulators (see the Genome Enhancer guide).
 input: tfTablePath (transcription factors of the module), keynodesPath (regulator search result), rankColumn and topSelected, cmaTablePath, genesPath.
 output: resultDiagramPath and resultTablePath.
+variant Calculate CMA regulation: This one is the standard version: a gene list to show (genesPath) and options for isoforms and feed-forward loops.
+variant Calculate CMA regulation extended: This one takes a second composite-module score table (cmaTableExtraPath, rankColumnExtra, threshold) whose genes above the threshold are brought in as well.
+variant Calculate CMA regulation with extra elements: This one also adds gene and master regulator pairs given in a table (additionalElementsTablePath) to the diagram.
 param threshold: Only extra elements whose value in the extra rank column is above this are added to the diagram.
 
 == analysis: Calculate genes ranks
@@ -490,6 +515,8 @@ param knScoreColumn: The column of the master regulator table that holds its sco
 == analysis: Generate workflow from annotation diagram
 summary: Genome Enhancer: build and run the multi-omics pipeline from the user's annotated data to transcription factors, master regulators, drug targets and drugs, with reports.
 use: The full personalized-medicine or disease-mechanism analysis. Follow the guide of the Genome Enhancer perspective (biouml_perspective_select 'Genome Enhancer'): it tells how to prepare the annotation diagram, choose conditions and diseases, run and read the reports.
+input: annotationDiagram (the user's annotated data), the conditions to analyse from it, and the diseases studied. The data may be any mix of transcriptomics (tables, counts or FASTQ), proteomics, epigenomics (ChIP-seq or ATAC-seq peaks, methylation), genomics (VCF) and metabolomics. Human, mouse or rat.
+output: the folder outPath: the Genome Enhancer report (a full and a brief version) with the transcription factors, master regulators, drug targets and drugs found, and the tables, tracks and network diagrams behind every step.
 tips: A full run takes hours. Check first with runWorkflow false.
 param annotationDiagram: The annotation diagram that describes the user's data: which tables, tracks and files belong to which condition. It is made in the Genome Enhancer project when data are annotated (see the Genome Enhancer perspective guide for its path). Bind it first: the conditions offered are its categories.
 param speciesStr: The species of the data: Homo sapiens, Mus musculus or Rattus norvegicus.
@@ -497,6 +524,21 @@ param tissue: The tissue the samples come from: promoters active in it and its e
 param diseases: The disease or diseases studied, from allowedValues (use filter, e.g. 'carcinoma', to find the name): known disease genes, targets and drugs for them are ranked higher and reported. Ask the user; leave empty only when no disease applies.
 param conditions: The conditions to analyse, as a list of items each with a 'condition' key: one condition for a single group, two to compare them (the first against the second: put the disease or treated group first and the control second).
 param conditions/condition: The name of a condition (a category of the annotation diagram). Its accepted values appear once annotationDiagram is bound.
+param baseline: The control condition, one of the chosen conditions: every other condition is compared against it. Set it whenever two or more conditions are chosen; when it is empty the first condition is taken as the studied one.
+param expertSettings/cutoffFC: Log2 scale, not a linear ratio: a gene counts as up-regulated when its log2 fold change is above this value and as down-regulated when it is below minus this value (and its p-value passes cutoffPVal). The default 0.1 is about a 7% change, so in practice the p-value and topGenes do the selecting. Use 0.58 (1.5-fold) or 1 (2-fold) when thousands of genes pass and only strong changes should drive the promoter and pathway analysis; keep the default for subtle effects or few samples.
+param expertSettings/cutoffPVal: Linear scale, 0 to 1: the raw (unadjusted) p-value of the limma or edgeR test. Genes below it that also pass cutoffFC are the significant up- and down-regulated genes whose promoters and pathways are analysed. 0.1 is permissive and suits few replicates; use 0.05 or 0.01 when thousands of genes pass. A condition with a single sample has no p-value: there only the fold change decides.
+param expertSettings/cutoffFCSoft: Log2 scale, like cutoffFC, for the wider 'all up- and down-regulated' gene tables: these mark which candidate master regulators are themselves changed in the data, and select hypermethylated sites from methylation data. Keep it no stricter than cutoffFC; raise it (e.g. to 0.58) only if too many weakly changed genes are reported as regulated master regulators.
+param expertSettings/cutoffPValSoft: Linear scale, 0 to 1, raw p-value: the companion of cutoffFCSoft for the wider gene tables. Keep it no stricter than cutoffPVal.
+param expertSettings/minCountsLimma: Raw read counts, linear (not log): for count data (from FASTQ files or a count table) a gene enters the statistics only if at least one sample has more reads than this. 100 removes weakly expressed genes; lower it to 10-20 for shallow sequencing or when too few genes are left, since nothing below it can be reported as changed.
+param expertSettings/minExpressionLimma: Linear scale, for normalized transcriptomics tables that are not counts; for a log2 table it is converted automatically (100 becomes 6.64). A gene enters the statistics only if at least one sample is above it. 100 suits microarray intensities; for values on a small scale such as TPM or FPKM use about 1, otherwise most genes are dropped.
+param expertSettings/minExpressionLimmaProt: As minExpressionLimma, for proteomics tables: linear scale, converted automatically for log2 tables. Proteomics intensities are often in the millions, where 100 filters nothing; for ratio-like or small-scale values lower it to about 1.
+param expertSettings/minNumericSize: A count of rows, not an expression value: a table with fewer genes than this is taken as a plain gene list, its numbers are ignored and no statistics are computed. 1500 suits genome-wide data; lower it (e.g. to 100) only for a targeted panel whose values should be used.
+param expertSettings/maxPeaks: A count per gene, used when ChIP-seq or ATAC-seq peaks are among the data: the peaks nearest the transcription start site that are searched for binding sites. 3 is the usual value; 5-10 covers more distant enhancers at the cost of more sequence and noise.
+param expertSettings/maxMethCount: A count, used with methylation data: at most this many of the most hypermethylated CpG sites are turned into regions. 10000 is the usual value; lower it for a faster run.
+param notifyOnComplete: true: e-mail the user when the run has ended; useful because a run takes hours.
+param addMTBReport: true: also write a Molecular Tumor Board report. It is made only for genomics data (variants), a cancer disease and at most two conditions; otherwise it is silently skipped.
+param outPath: The folder all results and reports are written to. With uniqueOutput true a number is added to its name when it already exists.
+param maxStep: How far the pipeline goes: 'TF Modules' stops at the transcription factors, 'Master Regulators' adds the search in the signalling network, 'Drug Targets' is the full analysis with drug targets and drugs. The default is the furthest step the databases of the server allow; choose an earlier one only for a shorter run.
 param runWorkflow: true: build the analysis workflow and run it (hours). false: only build it, a quick way to check that the inputs are accepted before the long run.
 param uniqueOutput: true: write the results into a new folder with a unique name so that earlier runs are kept; false: reuse the output folder and overwrite.
 param generateReport: true: write the final report (the main thing to show the user) when the workflow has finished.
@@ -521,6 +563,8 @@ output: structTablePath (compounds) and targTablePath (targets).
 
 == analysis: COPreDict Report || Process COPreDict input
 summary: Steps of the COPreDict pipeline (gene panel processing and its report); used from the COPreDict perspective, not on their own.
+variant COPreDict Report: This one: writes the report from the results folder.
+variant Process COPreDict input: This one: normalizes the gene panel values by control genes and computes averages and fold changes.
 param upGenes: The table of up-regulated genes from the COPreDict pipeline.
 param upCMAWK: The composite-module-with-master-regulators result for the up-regulated genes.
 param diseaseList: The diseases to focus the report on; names from allowedValues (use filter to find them).
@@ -689,6 +733,8 @@ summary: Find the combination of TRANSFAC motifs (composite module) characterist
 == workflow: TRANSFAC/Identify enriched motifs in tracks (TRANSFAC(R)) || TRANSFAC/Identify enriched motifs in tracks with MATCH (TRANSFAC(R))
 summary: Find the TRANSFAC motifs enriched in the regions of a track against random genomic regions made by the workflow, and the factors that bind them (the first also fits a MEALR model of motif combinations).
 use: Motif enrichment for any set of genomic regions when no background track exists.
+variant TRANSFAC/Identify enriched motifs in tracks (TRANSFAC(R)): This one uses the enrichment search and also fits a MEALR model of motif combinations.
+variant TRANSFAC/Identify enriched motifs in tracks with MATCH (TRANSFAC(R)): This one uses the Match(TM) site search; no MEALR model.
 
 == workflow: TRANSFAC/Identify enriched motifs in promoters (TRANSFAC(R)) || GTRD/Identify enriched motifs in promoters (GTRD)
 summary: Which transcription factors regulate a gene set: binding motifs enriched in its promoters against background genes, with statistics, the transcription factors behind them and a report (TRANSFAC motifs, or the free GTRD collection).
@@ -700,6 +746,9 @@ next: 'Find master regulators in networks' on the transcription factor table; or
 == workflow: TRANSFAC/Identify enriched composite modules in promoters (TRANSFAC(R)) || GTRD/Identify enriched composite modules in promoters (GTRD) || TRANSFAC/Identify composite modules in promoters (TRANSFAC(R))
 summary: Find the combination of binding motifs (composite module) that distinguishes the promoters of a gene set from background promoters, and the transcription factors in it (the 'enriched' variants first reduce the motifs to the enriched ones).
 use: Combinatorial regulation of a gene set. Slower than the plain motif enrichment.
+variant TRANSFAC/Identify enriched composite modules in promoters (TRANSFAC(R)): This one first reduces the TRANSFAC motifs to the enriched ones: faster and the usual choice.
+variant GTRD/Identify enriched composite modules in promoters (GTRD): This one first reduces the motifs to the enriched ones and uses the free GTRD motif collection.
+variant TRANSFAC/Identify composite modules in promoters (TRANSFAC(R)): This one searches among all motifs of the profile without the enrichment step: slower.
 
 == workflow: TRANSFAC/Identify enriched motifs in tissue specific promoters (TRANSFAC(R)) || TRANSFAC/Identify enriched motifs in cell specific promoters (TRANSFAC(R))
 summary: Motif enrichment in the promoters of a gene set using the transcription start sites active in a chosen tissue or cell type.
@@ -747,10 +796,17 @@ summary: Find master regulators upstream of a gene or protein list in the signal
 use: The network step of upstream analysis (topic master-regulators); input typically the transcription factors from a promoter analysis, or a list of changed genes.
 input: a gene table and its species.
 output: a folder with the master regulator table (Score, FDR, Z-score, hits) and network diagrams.
+variant TRANSPATH/Find master regulators in networks (TRANSPATH(R)): This one uses the TRANSPATH network (licensed, curated).
+variant Common/Find master regulators in networks (GeneWays): This one uses the free GeneWays network (text-mined, less reliable).
 
 == workflow: TRANSPATH/Find 10 master regulators in networks (TRANSPATH(R)) || TRANSPATH/Find master regulators in networks TF only (TRANSPATH(R)) || TRANSPATH/Find master regulators in networks with context genes (TRANSPATH(R)) || TRANSPATH/Find master regulators in networks with context genes and weighting  (TRANSPATH(R)) || TRANSPATH/Find 3 master regulators in networks with context genes and weighting  (TRANSPATH(R))
 summary: Variants of the master regulator search: searching up to 10 steps upstream, transcription factors only, favouring regulators consistent with a list of context genes, and using a numeric column as weights.
 use: See topic master-regulators for which variant fits.
+variant TRANSPATH/Find 10 master regulators in networks (TRANSPATH(R)): This one searches up to 10 steps upstream by default (the others 3): for regulators far above the input genes.
+variant TRANSPATH/Find master regulators in networks TF only (TRANSPATH(R)): This one reports only master regulators that are transcription factors.
+variant TRANSPATH/Find master regulators in networks with context genes (TRANSPATH(R)): This one favours regulators whose paths run through a given list of context genes (e.g. genes expressed in the tissue).
+variant TRANSPATH/Find master regulators in networks with context genes and weighting (TRANSPATH(R)): This one uses context genes and a numeric column of the input as weights.
+variant TRANSPATH/Find 3 master regulators in networks with context genes and weighting (TRANSPATH(R)): This one takes the same parameters as the 'with context genes and weighting' workflow, 3 steps upstream by default.
 
 == workflow: TRANSPATH/Find master regulators for multiple gene sets (TRANSPATH(R)) || Common/Find master regulators for multiple gene sets (GeneWays)
 summary: Master regulator search for every gene table in a folder.
@@ -767,6 +823,8 @@ summary: Upstream analysis in one run: over-represented binding sites in the pro
 use: From changed genes to candidate causes (topic master-regulators).
 input: the gene table; a background gene table (default: housekeeping genes); promoter window; profile.
 output: a folder with the motif table, the transcription factors, the master regulator table and diagrams.
+variant TRANSFAC and TRANSPATH/Upstream analysis (TRANSFAC(R) and TRANSPATH(R)): This one uses the TRANSPATH network (licensed, curated).
+variant TRANSFAC/Upstream analysis (TRANSFAC(R) and GeneWays): This one uses the free GeneWays network (text-mined, less reliable).
 
 == workflow: TRANSFAC and TRANSPATH/Enriched upstream analysis (TRANSFAC(R) and TRANSPATH(R))
 summary: Upstream analysis with the enrichment-based motif search: enriched motifs in the promoters of a gene set, their transcription factors, master regulators in TRANSPATH, with a report and a network diagram.
@@ -775,6 +833,8 @@ input: the gene table; optionally background genes, promoter window, profile.
 
 == workflow: TRANSFAC and TRANSPATH/Upstream analysis with feedback loop (TRANSFAC(R) and TRANSPATH(R)) || TRANSFAC and TRANSPATH/Search for self-regulating transcription factors (TRANSFAC(R) and TRANSPATH(R))
 summary: Upstream analysis looking for feedback: master regulators whose own genes are changed in the data, or transcription factors that lie downstream of their own target genes.
+variant TRANSFAC and TRANSPATH/Upstream analysis with feedback loop (TRANSFAC(R) and TRANSPATH(R)): This one: master regulators whose own genes are changed in the data.
+variant TRANSFAC and TRANSPATH/Search for self-regulating transcription factors (TRANSFAC(R) and TRANSPATH(R)): This one: transcription factors that lie downstream of their own target genes.
 
 # ============================================================================ parameters
 

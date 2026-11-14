@@ -304,12 +304,19 @@ public final class McpAnalysisSupport
 			if ( help != null )
 			{
 				// the description names a help page: give its text instead of the resource path
-				m.put( "description", clipText( firstParagraph( help ), 300 ) );
-				if ( ( filter == null || filter.isEmpty() ) && ( only == null || only.isEmpty() ) )
+				String first = firstParagraph( help );
+				if ( first != null )
+					m.put( "description", clipText( first, 300 ) );
+				if ( first != null && ( filter == null || filter.isEmpty() ) && ( only == null || only.isEmpty() ) )
 					m.put( "help", clipText( help, HELP_CHARS ) );
 			}
 			else
 				m.put( "description", description );
+			// an analysis that says nothing of itself, or only its name: what its guide says it is for
+			McpGuides.Guide about = McpGuides.analysis( name );
+			Object said = m.get( "description" );
+			if ( about != null && about.getSummary() != null && McpGuides.saysNothing( said == null ? null : said.toString(), name, name ) )
+				m.put( "description", about.getSummary() );
 		}
 		catch ( Exception e )
 		{
@@ -481,13 +488,48 @@ public final class McpAnalysisSupport
 		return vc == null || !DataElementPath.class.isAssignableFrom( vc ) && ( vc.getPackage() == null || !vc.getPackage().getName().startsWith( "java." ) );
 	}
 
-	/** The first line of a help text that is not a heading. */
+	/** The first line of a help text that is not a heading; null when it has only headings. */
 	private static String firstParagraph( String text )
 	{
 		for ( String line : text.split( "\n" ) )
 			if ( !line.startsWith( "## " ) && !line.trim().isEmpty() )
 				return line.trim();
-		return text;
+		return null;
+	}
+
+	private static final String GENERATED_PARAMETERS = "<h3>Parameters:</h3><ul type=\"circle\">";
+
+	/**
+	 * A help page without the parameter list the platform generates for it ("Data source – Data source"): the
+	 * parameters are described one by one in the schema, with what the guide adds. A list the page's author wrote
+	 * is kept.
+	 */
+	public static String withoutGeneratedParameters( String html )
+	{
+		int start = html.indexOf( GENERATED_PARAMETERS );
+		if ( start < 0 )
+			return html;
+		int at = start + GENERATED_PARAMETERS.length();
+		if ( html.startsWith( "<br>", start - 4 ) )
+			start -= 4;
+		for ( int depth = 1; depth > 0; )
+		{
+			int open = html.indexOf( "<ul", at );
+			int close = html.indexOf( "</ul>", at );
+			if ( close < 0 )
+				return html.substring( 0, start );
+			if ( open >= 0 && open < close )
+			{
+				depth++;
+				at = open + 3;
+			}
+			else
+			{
+				depth--;
+				at = close + 5;
+			}
+		}
+		return html.substring( 0, start ) + html.substring( at );
 	}
 
 	private static String clipText( String text, int max )
@@ -519,7 +561,7 @@ public final class McpAnalysisSupport
 			String html = info == null ? null : info.getDescriptionHTML();
 			if ( html == null || html.isEmpty() )
 				return null;
-			String text = McpIntroPages.htmlText( html );
+			String text = McpIntroPages.htmlText( withoutGeneratedParameters( html ) );
 			return text.isEmpty() ? null : text;
 		}
 		catch ( Exception e )

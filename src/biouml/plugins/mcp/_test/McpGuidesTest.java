@@ -96,10 +96,19 @@ public class McpGuidesTest extends TestCase
 				if ( McpGuides.TOPIC.equals( guide.kind ) )
 					assertTrue( file + ": topic " + guide.name + " has no text", guide.getBody().length() > 200 );
 			}
+			String entry = "";
 			for ( String line : text.split( "\n" ) )
 			{
+				if ( line.startsWith( "variant " ) )
+				{
+					boolean named = false;
+					for ( String name : entry.substring( entry.indexOf( ':' ) + 1 ).split( "\\|\\|" ) )
+						named |= line.startsWith( "variant " + name.trim().replaceAll( "\\s+", " " ) + ":" );
+					assertTrue( file + ": a variant line names none of its entry: " + line, named );
+				}
 				if ( !line.startsWith( "== " ) )
 					continue;
+				entry = line;
 				int colon = line.indexOf( ':' );
 				assertTrue( file + ": bad entry line: " + line, colon > 0 );
 				String kind = line.substring( 3, colon ).trim();
@@ -107,9 +116,18 @@ public class McpGuidesTest extends TestCase
 						McpGuides.ANALYSIS.equals( kind ) || McpGuides.WORKFLOW.equals( kind ) || McpGuides.TOPIC.equals( kind )
 								|| McpGuides.PARAMETERS.equals( kind ) );
 				String names = McpGuides.TOPIC.equals( kind ) ? line.substring( colon + 1 ).split( "\\|" )[0] : line.substring( colon + 1 );
+				Set<String> summaries = new HashSet<String>();
 				for ( String name : names.split( "\\|\\|" ) )
+				{
 					assertTrue( file + ": described twice: " + kind + " " + name.trim(),
 							seen.add( kind + ":" + name.trim().replaceAll( "\\s+", " " ).toLowerCase() ) );
+					if ( !McpGuides.ANALYSIS.equals( kind ) )
+						continue;
+					// look-alikes sharing an entry are told apart: each has a 'variant' line
+					String summary = McpGuides.analysis( name ).getSummary();
+					assertTrue( file + ": the summary of " + name.trim() + " does not tell it from the others of its entry", summaries.add( summary ) );
+					assertTrue( file + ": summary of " + name.trim() + " with its variant is too long (" + summary.length() + ")", summary.length() <= 520 );
+				}
 			}
 		}
 		assertTrue( "bundled guides were read, got " + count, count > 100 );
@@ -124,7 +142,7 @@ public class McpGuidesTest extends TestCase
 		assertFalse( McpGuides.topics().isEmpty() );
 		assertNotNull( McpGuides.topic( "basics" ) );
 
-		assertSame( "aliases share one entry", McpGuides.analysis( "Join two tables" ), McpGuides.analysis( "Join tables" ) );
+		assertSame( "aliases share one entry", McpGuides.analysis( "Plot bar chart" ).toMap().get( "use" ), McpGuides.analysis( "Plot pie chart" ).toMap().get( "use" ) );
 		McpGuides.Guide byPath = McpGuides.workflow( "Common/Explain my genes" );
 		assertNotNull( byPath );
 		assertSame( "a workflow kept elsewhere is found by its name", byPath, McpGuides.workflow( "Explain my genes" ) );
@@ -155,6 +173,40 @@ public class McpGuidesTest extends TestCase
 		McpEnvelope missing = McpAnalysisSupport.guide( "no-such-topic" );
 		assertFalse( missing.isOk() );
 		assertEquals( McpConstants.CODE_NOT_FOUND, missing.getCode() );
+	}
+
+	/** A shared entry says how each of its names differs; the rest of the guide is common. */
+	public void testVariants() throws Exception
+	{
+		List<McpGuides.Guide> guides = McpGuides.parse( "== analysis: Plot bars || Plot: pie\n"
+				+ "summary: A chart.\n"
+				+ "use: To look.\n"
+				+ "variant Plot bars: This one: bars,\n"
+				+ "  for comparing.\n"
+				+ "variant plot:  PIE: This one: a pie.\n"
+				+ "variant Unknown: not a name of the entry, so it continues the line above\n"
+				+ "param column: The column.\n" );
+		assertEquals( 1, guides.size() );
+		assertEquals( "the shared entry", "A chart.", guides.get( 0 ).getSummary() );
+
+		assertEquals( "Join two tables, Join full tables and Join tables differ", 3, new HashSet<String>( java.util.Arrays.asList(
+				McpGuides.analysis( "Join two tables" ).getSummary(), McpGuides.analysis( "Join full tables" ).getSummary(),
+				McpGuides.analysis( "Join tables" ).getSummary() ) ).size() );
+		McpGuides.Guide two = McpGuides.analysis( "Join two tables" );
+		assertTrue( two.getSummary(), two.getSummary().startsWith( "Join two tables by row id" ) && two.getSummary().contains( "joinType" ) );
+		assertEquals( "the rest is shared", two.toMap().get( "use" ), McpGuides.analysis( "Join tables" ).toMap().get( "use" ) );
+		assertTrue( "a variant is found by search", McpGuides.matches( McpGuides.analysis( "Plot pie chart" ), null, new String[] {"shares"} ) );
+	}
+
+	/** The parameter list the platform generates for a help page repeats names; the schema describes them. */
+	public void testGeneratedParametersLeftOut()
+	{
+		String generated = "<br><h3>Parameters:</h3><ul type=\"circle\"><li><b>Data source</b> – Data source</li>"
+				+ "<li><b>Expert</b><ul><li><b>Promoter from</b> – Promoter from</li></ul></li></ul>";
+		assertEquals( "<h1>A</h1><p>Text.</p><p>After.</p>",
+				McpAnalysisSupport.withoutGeneratedParameters( "<h1>A</h1><p>Text.</p>" + generated + "<p>After.</p>" ) );
+		String written = "<h3>Parameters:</h3><ul><li><b>Join type</b> - inner or outer</li></ul>";
+		assertEquals( "a list the author wrote stays", written, McpAnalysisSupport.withoutGeneratedParameters( written ) );
 	}
 
 	public void testSaysNothing()
@@ -235,10 +287,24 @@ public class McpGuidesTest extends TestCase
 		properties.add( property( "expertSettings/promoterFrom", "Promoter from", "Promoter from" ) );
 		properties.add( property( "expertSettings/topGenes", "Top genes", "Top genes" ) );
 		properties.add( property( "conditions/0/condition", "Condition 1", "Condition 1" ) );
+		Map<String, Object> item = property( "conditions/0", "[0]", "ConditionBean" );
+		item.put( "type", "biouml.plugins.genomeenhancer.megaworkflow.ConditionBean" );
+		properties.add( item );
+		String[] cutoffs = {"cutoffFC", "cutoffPVal", "cutoffFCSoft", "cutoffPValSoft", "minCountsLimma", "minExpressionLimma", "minExpressionLimmaProt"};
+		for ( String cutoff : cutoffs )
+			properties.add( property( "expertSettings/" + cutoff, cutoff, "A declared description of some cutoff, without its scale" ) );
 		McpGuides.describeParameters( McpGuides.analysis( "Generate workflow from annotation diagram" ), properties );
 		for ( Map<String, Object> property : properties )
 			assertFalse( "described: " + property.get( "name" ),
 					McpGuides.saysNothing( (String) property.get( "description" ), (String) property.get( "name" ), property.get( "displayName" ) ) );
+		assertFalse( "a class name is no description", "ConditionBean".equals( item.get( "description" ) ) );
+		for ( Map<String, Object> property : properties )
+			if ( ( (String) property.get( "name" ) ).matches( "expertSettings/(cutoff|min).*" ) )
+			{
+				String hint = (String) property.get( "hint" );
+				assertNotNull( "when to change " + property.get( "name" ), hint );
+				assertTrue( "the scale of " + property.get( "name" ) + ": " + hint, hint.matches( "(?s).*(Log2 scale|[Ll]inear).*" ) );
+			}
 	}
 
 	private static Map<String, Object> property( String name, String displayName, String description )
