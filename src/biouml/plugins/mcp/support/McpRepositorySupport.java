@@ -149,7 +149,11 @@ public final class McpRepositorySupport
 	}
 
 	/**
-	 * @param budgetMs  wall-clock budget of the walk; when it runs out the matches found so far are
+	 * The budget is cooperative: it is checked before each collection listing and each child load,
+	 * so a single slow {@code getNameList()} or {@code get()} (one database query) can overrun it by
+	 * that query's duration. It bounds the walk, which is what ran for days, not one query.
+	 *
+	 * @param budgetMs  elapsed-time budget of the walk; when it runs out the matches found so far are
 	 *                  returned with {@code truncated} and {@code timedOut} set
 	 * @param jc        job control of a background search (its cancellation stops the walk), or null
 	 */
@@ -157,7 +161,7 @@ public final class McpRepositorySupport
 	{
 		if ( query == null || query.isEmpty() )
 			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "query must be a non-empty string" );
-		SearchWalk walk = new SearchWalk( query.toLowerCase(), System.currentTimeMillis() + budgetMs, jc );
+		SearchWalk walk = new SearchWalk( query.toLowerCase(), System.nanoTime() + java.util.concurrent.TimeUnit.MILLISECONDS.toNanos( budgetMs ), jc );
 		List<String> scopes = new ArrayList<String>();
 		if ( scope != null && !scope.isEmpty() )
 			scopes.add( scope );
@@ -193,6 +197,7 @@ public final class McpRepositorySupport
 	private static final class SearchWalk
 	{
 		final String query;
+		/** {@link System#nanoTime()} deadline. */
 		final long deadline;
 		final ru.biosoft.jobcontrol.JobControl jc;
 		final List<String> matches = new ArrayList<String>();
@@ -213,26 +218,43 @@ public final class McpRepositorySupport
 			if ( Thread.currentThread().isInterrupted()
 					|| ( jc != null && jc.getStatus() == ru.biosoft.jobcontrol.JobControl.TERMINATED_BY_REQUEST ) )
 				cancelled = true;
-			else if ( System.currentTimeMillis() > deadline )
+			else if ( System.nanoTime() - deadline >= 0 )
 				timedOut = true;
 			return timedOut || cancelled;
 		}
 	}
 
+	/** How many finished background searches keep their result for {@link #searchStatus(String)}. */
+	static final int SEARCH_JOBS_KEPT = 64;
+
 	/**
-	 * Job controls of recent background searches by task name, for {@link #searchStatus(String)}:
-	 * the task store may hand back a different {@code TaskInfo} than the one holding the job control.
-	 * Bounded, oldest first out.
+	 * Job controls of background searches by task name, for {@link #searchStatus(String)}: the task
+	 * store may hand back a different {@code TaskInfo} than the one holding the job control. Only
+	 * finished searches are evicted (oldest first) once there are more than {@link #SEARCH_JOBS_KEPT}
+	 * entries, so a running search never loses its result; the running ones are few, as each holds a
+	 * task-pool thread and stops within {@link #SEARCH_ASYNC_BUDGET_MS}.
 	 */
-	private static final Map<String, SearchJobControl> SEARCH_JOBS = Collections.synchronizedMap(
-			new LinkedHashMap<String, SearchJobControl>()
-			{
-				@Override
-				protected boolean removeEldestEntry( Map.Entry<String, SearchJobControl> eldest )
-				{
-					return size() > 64;
-				}
-			} );
+	private static final Map<String, SearchJobControl> SEARCH_JOBS = new LinkedHashMap<String, SearchJobControl>();
+
+	private static void registerSearchJob( String taskName, SearchJobControl jc )
+	{
+		synchronized ( SEARCH_JOBS )
+		{
+			SEARCH_JOBS.put( taskName, jc );
+			java.util.Iterator<SearchJobControl> it = SEARCH_JOBS.values().iterator();
+			while ( SEARCH_JOBS.size() > SEARCH_JOBS_KEPT && it.hasNext() )
+				if ( it.next().isFinished() )
+					it.remove();
+		}
+	}
+
+	private static SearchJobControl searchJob( String taskName )
+	{
+		synchronized ( SEARCH_JOBS )
+		{
+			return SEARCH_JOBS.get( taskName );
+		}
+	}
 
 	/** Job control of a background search; keeps the search result for {@link #searchStatus(String)}. */
 	private static final class SearchJobControl extends ru.biosoft.jobcontrol.FunctionJobControl
@@ -240,6 +262,7 @@ public final class McpRepositorySupport
 		private final String query;
 		private final String scope;
 		volatile McpEnvelope result;
+		private volatile boolean finished;
 
 		SearchJobControl( String query, String scope )
 		{
@@ -257,8 +280,20 @@ public final class McpRepositorySupport
 			}
 			catch ( RuntimeException e )
 			{
+				result = McpEnvelope.error( McpConstants.CODE_INTERNAL, "search failed: " + e );
 				throw new ru.biosoft.jobcontrol.JobControlException( e );
 			}
+			finally
+			{
+				finished = true;
+			}
+		}
+
+		boolean isFinished()
+		{
+			int status = getStatus();
+			return finished || status == ru.biosoft.jobcontrol.JobControl.TERMINATED_BY_REQUEST
+					|| status == ru.biosoft.jobcontrol.JobControl.TERMINATED_BY_ERROR;
 		}
 	}
 
@@ -300,7 +335,7 @@ public final class McpRepositorySupport
 				jc, null, null, null, true, task );
 		if ( info == null )
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not queue the search task" );
-		SEARCH_JOBS.put( info.getName(), jc );
+		registerSearchJob( info.getName(), jc );
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
 		m.put( "taskId", info.getName() );
 		m.put( "status", "queued" );
@@ -310,7 +345,8 @@ public final class McpRepositorySupport
 	/**
 	 * Report the status of a queued repo-search task. Reads the task's {@link JobControl} status, so
 	 * it works for tasks created in a previous request (the status is task-derived, not stored).
-	 * Once the search is done the data also has {@code result}: the same map {@link #search} returns.
+	 * Once the search is done the data also has {@code result}: the same map {@link #search} returns;
+	 * if the search failed, status is {@code error} with {@code error} and {@code code} instead.
 	 */
 	public static McpEnvelope searchStatus( String taskId )
 	{
@@ -324,10 +360,17 @@ public final class McpRepositorySupport
 		m.put( "taskId", info.getName() );
 		m.put( "status", taskStatusString( status ) );
 		m.put( "elapsedMs", Long.valueOf( info.getJobControl() == null ? 0 : info.getJobControl().getElapsedTime() ) );
-		SearchJobControl search = SEARCH_JOBS.get( info.getName() );
+		SearchJobControl search = searchJob( info.getName() );
 		McpEnvelope result = search == null ? null : search.result;
 		if ( result != null && result.isOk() )
 			m.put( "result", result.getData() );
+		else if ( result != null )
+		{
+			// a search that returned an error envelope still ends the job normally: report it as an error
+			m.put( "status", "error" );
+			m.put( "error", result.getError() );
+			m.put( "code", result.getCode() );
+		}
 		return McpEnvelope.ok( m );
 	}
 
@@ -379,12 +422,23 @@ public final class McpRepositorySupport
 				if ( child instanceof DataCollection )
 					collectMatches( (DataCollection<?>) child, walk, depth - 1 );
 			}
+			catch ( InterruptedException e )
+			{
+				// catching it clears the interrupt flag: restore it so the walk (and the caller) sees it
+				Thread.currentThread().interrupt();
+				walk.cancelled = true;
+				return;
+			}
 			catch ( Exception e )
 			{
 				// skip
 			}
 		}
 	}
+
+	/** {@link DataCollection} classes whose supertypes may be declared as an element type of a parent. */
+	private static final Class<?>[] COLLECTION_CLASSES = { ru.biosoft.access.core.AbstractDataCollection.class,
+			biouml.model.Compartment.class, biouml.standard.type.Reaction.class, biouml.standard.type.TableExperiment.class };
 
 	/** Whether the collection's declared element type admits sub-collections. */
 	static boolean mayContainCollections( DataCollection<?> dc )
@@ -398,8 +452,14 @@ public final class McpRepositorySupport
 		{
 			return true;
 		}
-		return type == null || DataCollection.class.isAssignableFrom( type )
-				|| type.isAssignableFrom( ru.biosoft.access.core.AbstractDataCollection.class );
+		if ( type == null || DataCollection.class.isAssignableFrom( type ) )
+			return true;
+		// a supertype of a collection class may hold collections: AbstractDataCollection covers most of
+		// them, the rest are the DataCollection implementations outside that hierarchy
+		for ( Class<?> collectionClass : COLLECTION_CLASSES )
+			if ( type.isAssignableFrom( collectionClass ) )
+				return true;
+		return false;
 	}
 
 	/**
