@@ -392,7 +392,7 @@ public final class RepoTools
 					( ex, args ) -> McpRepositorySupport.getLog() );
 
 		catalog.registerOps( "biouml_repo_search",
-				"Search element names (case-insensitive substring) under scope (default: all roots). Matches are names only, at most 3 levels below each scope root and at most 100. op search (default): return the matches; it stops after 45 s and then returns what it found with timedOut:true and truncated:true — narrow the scope, or use op start, which runs the same search in the background (up to 10 min) and returns a taskId at once; poll op status (taskId: queued/running/done/cancelled/error) until 'done': its result field holds the matches.",
+				"Search element names (case-insensitive substring) under scope (default: all roots). Matches are names only, at most 3 levels below each scope root and at most 100. op search (default): return the matches; it stops after 45 s and then returns what it found with timedOut:true and truncated:true — narrow the scope, or use op start, which runs the same search in the background (up to 10 min) and returns a taskId at once; poll op status (taskId: queued/running/done/cancelled/error) until 'done': its result field holds the matches (status 'error' carries error and code instead).",
 				"{\"type\":\"object\",\"properties\":{\"query\":{\"type\":\"string\"},\"scope\":{\"type\":\"string\"},\"taskId\":{\"type\":\"string\"}}}",
 				"search",
 				McpToolCatalog.op( "search", "biouml_repo_search.search" ),

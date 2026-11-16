@@ -232,6 +232,110 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 		assertEquals( Boolean.TRUE, sm.get( "truncated" ) );
 	}
 
+	/** A thread interrupt during the walk cancels it: the remaining children are not visited. */
+	@SuppressWarnings( "unchecked" )
+	public void testSearchStopsWhenInterrupted() throws Exception
+	{
+		CountingCollection<ru.biosoft.access.core.DataElement> root = new CountingCollection<ru.biosoft.access.core.DataElement>( "mcpinterrupt", ru.biosoft.access.core.DataElement.class, null )
+		{
+			@Override
+			public ru.biosoft.access.core.DataElement get( String name )
+			{
+				gets++;
+				Thread.currentThread().interrupt();
+				return super.get( name );
+			}
+		};
+		for ( int i = 0; i < 5; i++ )
+			root.put( new CountingCollection<>( "sub" + i, ru.biosoft.access.core.DataElement.class, root ) );
+		CollectionFactory.registerRoot( root );
+		try
+		{
+			Map<String, Object> sm = (Map<String, Object>) data( McpRepositorySupport.search( "sub", "mcpinterrupt" ) ).getData();
+			assertEquals( Boolean.TRUE, sm.get( "cancelled" ) );
+			assertEquals( Boolean.TRUE, sm.get( "truncated" ) );
+			assertEquals( "the walk stops after the interrupting load: sub1..sub4 are not visited",
+					java.util.Collections.singletonList( "mcpinterrupt/sub0" ), sm.get( "matches" ) );
+			assertTrue( "the interrupt flag is left set for the caller", Thread.currentThread().isInterrupted() );
+		}
+		finally
+		{
+			Thread.interrupted();
+			CollectionFactory.unregisterRoot( root );
+		}
+	}
+
+	/** A running background search keeps its result although many later searches finish first. */
+	@SuppressWarnings( "unchecked" )
+	public void testRunningSearchIsNotEvicted() throws Exception
+	{
+		java.util.concurrent.CountDownLatch started = new java.util.concurrent.CountDownLatch( 1 );
+		java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch( 1 );
+		CountingCollection<ru.biosoft.access.core.DataElement> root = new CountingCollection<ru.biosoft.access.core.DataElement>( "mcpslow", ru.biosoft.access.core.DataElement.class, null )
+		{
+			@Override
+			public List<String> getNameList()
+			{
+				started.countDown();
+				try
+				{
+					release.await( 30, java.util.concurrent.TimeUnit.SECONDS );
+				}
+				catch ( InterruptedException e )
+				{
+					Thread.currentThread().interrupt();
+				}
+				return super.getNameList();
+			}
+		};
+		root.put( new Row( "slow_match", root ) );
+		CollectionFactory.registerRoot( root );
+		try
+		{
+			String slowId = startSearch( "slow_match", "mcpslow" );
+			assertTrue( "slow search started", started.await( 30, java.util.concurrent.TimeUnit.SECONDS ) );
+			List<String> quick = new java.util.ArrayList<>();
+			for ( int i = 0; i < 70; i++ )
+				quick.add( startSearch( "projects", "mcpdata" ) );
+			for ( String id : quick )
+				awaitDone( id );
+			release.countDown();
+			Map<String, Object> result = (Map<String, Object>) awaitDone( slowId ).get( "result" );
+			assertNotNull( "the running search kept its result", result );
+			assertEquals( java.util.Collections.singletonList( "mcpslow/slow_match" ), result.get( "matches" ) );
+		}
+		finally
+		{
+			release.countDown();
+			CollectionFactory.unregisterRoot( root );
+		}
+	}
+
+	@SuppressWarnings( "unchecked" )
+	private String startSearch( String query, String scope )
+	{
+		McpEnvelope async = biouml.plugins.mcp.support.McpProviderSupport.withUserSession( biouml.plugins.mcp.McpConstants.TASK_USER,
+				() -> McpRepositorySupport.searchAsync( query, scope ) );
+		return String.valueOf( ( (Map<String, Object>) data( async ).getData() ).get( "taskId" ) );
+	}
+
+	@SuppressWarnings( "unchecked" )
+	private Map<String, Object> awaitDone( String id ) throws InterruptedException
+	{
+		Map<String, Object> st = null;
+		for ( int i = 0; i < 600; i++ )
+		{
+			McpEnvelope env = biouml.plugins.mcp.support.McpProviderSupport.withUserSession( biouml.plugins.mcp.McpConstants.TASK_USER,
+					() -> McpRepositorySupport.searchStatus( id ) );
+			st = (Map<String, Object>) data( env ).getData();
+			if ( "done".equals( st.get( "status" ) ) || "error".equals( st.get( "status" ) ) )
+				return st;
+			Thread.sleep( 50 );
+		}
+		fail( "search " + id + " did not finish: " + st );
+		return st;
+	}
+
 	@SuppressWarnings( "unchecked" )
 	public void testCopyElement()
 	{
