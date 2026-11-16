@@ -372,9 +372,7 @@ public final class McpRepositorySupport
 				return McpEnvelope.error( McpConstants.CODE_BUSY,
 						SEARCH_JOBS_ACTIVE_MAX + " repository searches are already in progress; poll them with op status or retry later" );
 			info = ru.biosoft.tasks.TaskManager.getInstance().addTask(
-					"repo-search",
-					ru.biosoft.access.core.DataElementPath.create( "mcp/repo-search" ),
-					jc, null, null, null, true, task );
+					"repo-search", searchTaskSource( scope ), jc, null, null, null, true, task );
 			if ( info == null )
 				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not queue the search task" );
 			jc.taskName = info.getName();
@@ -386,6 +384,20 @@ public final class McpRepositorySupport
 		m.put( "taskId", info.getName() );
 		m.put( "status", "queued" );
 		return McpEnvelope.ok( m );
+	}
+
+	/**
+	 * The source of a repo-search task: the searched scope if it is an existing element, else none. The
+	 * web UI's task list links a task to its source and opens it when clicked, so it must be a real
+	 * element: the former placeholder "mcp/repo-search" made the UI request the missing element "mcp"
+	 * about once a second, each logged as NotFound.
+	 */
+	static DataElementPath searchTaskSource( String scope )
+	{
+		if ( scope == null || scope.isEmpty() )
+			return null;
+		McpEnvelope r = resolve( scope );
+		return r.isOk() ? ( (DataElement) r.getData() ).getCompletePath() : null;
 	}
 
 	/**
