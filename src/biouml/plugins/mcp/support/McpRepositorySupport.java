@@ -362,6 +362,10 @@ public final class McpRepositorySupport
 		ru.biosoft.tasks.TaskInfo info;
 		// Check the cap, queue and register under one lock: the task may start (and finish) as soon as
 		// addTask returns, and its completion callback takes this lock, so it sees the registration.
+		// Holding the lock across addTask cannot deadlock: addTask only stores the task and submits it
+		// (JVMExecutor -> TaskPool.submit -> ThreadPoolExecutor.submit on an unbounded queue, as a
+		// RunnableTask has weight 1), it never waits for the task. Were the task ever run inline
+		// (TaskPool runs weight-0 tasks on the caller), the monitor is reentrant: still no deadlock.
 		synchronized ( SEARCH_JOBS )
 		{
 			if ( activeSearchJobs() >= SEARCH_JOBS_ACTIVE_MAX )
@@ -375,8 +379,8 @@ public final class McpRepositorySupport
 				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not queue the search task" );
 			jc.taskName = info.getName();
 			SEARCH_JOBS.put( jc.taskName, jc );
-			if ( jc.isFinished() )
-				pruneSearchJobs();
+			// unconditionally: a search cancelled while queued never reaches searchJobFinished()
+			pruneSearchJobs();
 		}
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
 		m.put( "taskId", info.getName() );
