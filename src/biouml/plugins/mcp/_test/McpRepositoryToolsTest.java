@@ -265,6 +265,30 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 		}
 	}
 
+	/**
+	 * A repo-search task's source is the searched scope (the web UI links and opens it), or none for a
+	 * missing or empty scope: never a made-up path such as the former "mcp/repo-search".
+	 */
+	public void testSearchTaskSourceIsTheScope() throws Exception
+	{
+		String scoped = startSearch( "projects", "mcpdata" );
+		String missing = startSearch( "projects", "no-such-root" );
+		String all = startSearch( "no-such-name-xyz", null );
+		for ( String id : new String[] { scoped, missing, all } )
+			awaitDone( id );
+		assertEquals( "mcpdata", sourceOf( scoped ) );
+		assertNull( sourceOf( missing ) );
+		assertNull( sourceOf( all ) );
+	}
+
+	private static String sourceOf( String taskId )
+	{
+		ru.biosoft.tasks.TaskInfo info = biouml.plugins.mcp.support.McpProviderSupport.withUserSession( McpConstants.TASK_USER,
+				() -> ru.biosoft.tasks.TaskManager.getInstance().getTask( taskId ) );
+		assertNotNull( "task " + taskId, info );
+		return info.getSource() == null ? null : info.getSource().toString();
+	}
+
 	/** An interrupt reported by getNameList() (wrapped: it declares no checked exception) cancels the walk. */
 	@SuppressWarnings( "unchecked" )
 	public void testSearchStopsWhenListingIsInterrupted() throws Exception
