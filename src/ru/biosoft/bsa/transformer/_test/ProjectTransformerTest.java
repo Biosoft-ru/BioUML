@@ -2,8 +2,8 @@ package ru.biosoft.bsa.transformer._test;
 
 import java.awt.Color;
 
-import junit.framework.TestCase;
 import ru.biosoft.access.Entry;
+import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.bsa.AnnotatedSequence;
@@ -20,10 +20,13 @@ import ru.biosoft.bsa.view.colorscheme.SiteColorScheme;
 import ru.biosoft.bsa.view.colorscheme.SiteWeightColorScheme;
 import ru.biosoft.graphics.Brush;
 
-public class ProjectTransformerTest extends TestCase
+public class ProjectTransformerTest extends AbstractBioUMLTest
 {
     public void testSimple() throws Exception
     {
+        // createRepository returns an already registered root of the same name: a "databases" root
+        // left by an earlier test (several test repositories use that name) would be used instead
+        CollectionFactory.unregisterAllRoot();
         CollectionFactory.createRepository( "../data/test/ru/biosoft/bsa" );
         ProjectTransformer transformer = new ProjectTransformer();
         assertNotNull("Can not create project transformer", transformer);
