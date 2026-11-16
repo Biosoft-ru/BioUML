@@ -149,11 +149,87 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 			}
 		}
 		assertEquals( "async search completed", "done", status );
+		McpEnvelope done = biouml.plugins.mcp.support.McpProviderSupport.withUserSession( biouml.plugins.mcp.McpConstants.TASK_USER,
+				() -> McpRepositorySupport.searchStatus( id ) );
+		Map<String, Object> result = (Map<String, Object>) ( (Map<String, Object>) data( done ).getData() ).get( "result" );
+		assertNotNull( "a done search reports its result", result );
+		assertTrue( "async search found projects", ( (List<String>) result.get( "matches" ) ).contains( "mcpdata/projects" ) );
 
 		// A status lookup for an unknown task is a clean not_found, not an exception.
 		McpEnvelope missing = McpRepositorySupport.searchStatus( "no-such-task-xyz" );
 		assertFalse( missing.isOk() );
 		assertEquals( McpConstants.CODE_NOT_FOUND, missing.getCode() );
+	}
+
+	/** A leaf element: its type cannot hold sub-collections. */
+	public static class Row extends ru.biosoft.access.core.DataElementSupport
+	{
+		public Row( String name, DataCollection<?> origin )
+		{
+			super( name, origin );
+		}
+	}
+
+	/** An in-memory collection that counts element loads (a database round trip for SQL collections). */
+	private static class CountingCollection<T extends ru.biosoft.access.core.DataElement> extends ru.biosoft.access.core.VectorDataCollection<T>
+	{
+		int gets;
+
+		CountingCollection( String name, Class<T> type, DataCollection<?> parent )
+		{
+			super( name, type, parent );
+		}
+
+		@Override
+		public T get( String name )
+		{
+			gets++;
+			return super.get( name );
+		}
+	}
+
+	/**
+	 * The search must match leaf names without loading the leaves: neither the rows of a collection
+	 * whose element type is not a collection, nor the children on the last walked level.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testSearchDoesNotLoadLeaves() throws Exception
+	{
+		CountingCollection<ru.biosoft.access.core.DataElement> root = new CountingCollection<>( "mcpsearch", ru.biosoft.access.core.DataElement.class, null );
+		CountingCollection<Row> rows = new CountingCollection<>( "rows", Row.class, root );
+		for ( int i = 0; i < 50; i++ )
+			rows.put( new Row( i == 7 ? "RPPA_row" : "row" + i, rows ) );
+		CountingCollection<ru.biosoft.access.core.DataElement> a = new CountingCollection<>( "a", ru.biosoft.access.core.DataElement.class, root );
+		CountingCollection<ru.biosoft.access.core.DataElement> b = new CountingCollection<>( "b", ru.biosoft.access.core.DataElement.class, a );
+		CountingCollection<ru.biosoft.access.core.DataElement> c = new CountingCollection<>( "RPPA_deep", ru.biosoft.access.core.DataElement.class, b );
+		b.put( c );
+		a.put( b );
+		root.put( rows );
+		root.put( a );
+		CollectionFactory.registerRoot( root );
+		try
+		{
+			Map<String, Object> sm = (Map<String, Object>) data( McpRepositorySupport.search( "rppa", "mcpsearch" ) ).getData();
+			List<String> matches = (List<String>) sm.get( "matches" );
+			assertTrue( matches.toString(), matches.contains( "mcpsearch/rows/RPPA_row" ) );
+			assertTrue( matches.toString(), matches.contains( "mcpsearch/a/b/RPPA_deep" ) );
+			assertEquals( "rows of a leaf-typed collection are matched by name, not loaded", 0, rows.gets );
+			assertEquals( "children on the last level are not loaded", 0, b.gets );
+			assertNull( sm.get( "timedOut" ) );
+		}
+		finally
+		{
+			CollectionFactory.unregisterRoot( root );
+		}
+	}
+
+	/** A search that runs out of its budget returns what it found, flagged as timed out. */
+	@SuppressWarnings( "unchecked" )
+	public void testSearchStopsAtBudget()
+	{
+		Map<String, Object> sm = (Map<String, Object>) data( McpRepositorySupport.search( "projects", "mcpdata", -1, null ) ).getData();
+		assertEquals( Boolean.TRUE, sm.get( "timedOut" ) );
+		assertEquals( Boolean.TRUE, sm.get( "truncated" ) );
 	}
 
 	@SuppressWarnings( "unchecked" )
