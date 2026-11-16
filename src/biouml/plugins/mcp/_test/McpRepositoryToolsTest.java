@@ -149,11 +149,268 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 			}
 		}
 		assertEquals( "async search completed", "done", status );
+		McpEnvelope done = biouml.plugins.mcp.support.McpProviderSupport.withUserSession( biouml.plugins.mcp.McpConstants.TASK_USER,
+				() -> McpRepositorySupport.searchStatus( id ) );
+		Map<String, Object> result = (Map<String, Object>) ( (Map<String, Object>) data( done ).getData() ).get( "result" );
+		assertNotNull( "a done search reports its result", result );
+		assertTrue( "async search found projects", ( (List<String>) result.get( "matches" ) ).contains( "mcpdata/projects" ) );
 
 		// A status lookup for an unknown task is a clean not_found, not an exception.
 		McpEnvelope missing = McpRepositorySupport.searchStatus( "no-such-task-xyz" );
 		assertFalse( missing.isOk() );
 		assertEquals( McpConstants.CODE_NOT_FOUND, missing.getCode() );
+	}
+
+	/** A leaf element: its type cannot hold sub-collections. */
+	public static class Row extends ru.biosoft.access.core.DataElementSupport
+	{
+		public Row( String name, DataCollection<?> origin )
+		{
+			super( name, origin );
+		}
+	}
+
+	/** An in-memory collection that counts element loads (a database round trip for SQL collections). */
+	private static class CountingCollection<T extends ru.biosoft.access.core.DataElement> extends ru.biosoft.access.core.VectorDataCollection<T>
+	{
+		int gets;
+
+		CountingCollection( String name, Class<T> type, DataCollection<?> parent )
+		{
+			super( name, type, parent );
+		}
+
+		@Override
+		public T get( String name )
+		{
+			gets++;
+			return super.get( name );
+		}
+	}
+
+	/**
+	 * The search must match leaf names without loading the leaves: neither the rows of a collection
+	 * whose element type is not a collection, nor the children on the last walked level.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testSearchDoesNotLoadLeaves() throws Exception
+	{
+		CountingCollection<ru.biosoft.access.core.DataElement> root = new CountingCollection<>( "mcpsearch", ru.biosoft.access.core.DataElement.class, null );
+		CountingCollection<Row> rows = new CountingCollection<>( "rows", Row.class, root );
+		for ( int i = 0; i < 50; i++ )
+			rows.put( new Row( i == 7 ? "RPPA_row" : "row" + i, rows ) );
+		CountingCollection<ru.biosoft.access.core.DataElement> a = new CountingCollection<>( "a", ru.biosoft.access.core.DataElement.class, root );
+		CountingCollection<ru.biosoft.access.core.DataElement> b = new CountingCollection<>( "b", ru.biosoft.access.core.DataElement.class, a );
+		CountingCollection<ru.biosoft.access.core.DataElement> c = new CountingCollection<>( "RPPA_deep", ru.biosoft.access.core.DataElement.class, b );
+		b.put( c );
+		a.put( b );
+		root.put( rows );
+		root.put( a );
+		CollectionFactory.registerRoot( root );
+		try
+		{
+			Map<String, Object> sm = (Map<String, Object>) data( McpRepositorySupport.search( "rppa", "mcpsearch" ) ).getData();
+			List<String> matches = (List<String>) sm.get( "matches" );
+			assertTrue( matches.toString(), matches.contains( "mcpsearch/rows/RPPA_row" ) );
+			assertTrue( matches.toString(), matches.contains( "mcpsearch/a/b/RPPA_deep" ) );
+			assertEquals( "rows of a leaf-typed collection are matched by name, not loaded", 0, rows.gets );
+			assertEquals( "children on the last level are not loaded", 0, b.gets );
+			assertNull( sm.get( "timedOut" ) );
+		}
+		finally
+		{
+			CollectionFactory.unregisterRoot( root );
+		}
+	}
+
+	/** A search that runs out of its budget returns what it found, flagged as timed out. */
+	@SuppressWarnings( "unchecked" )
+	public void testSearchStopsAtBudget()
+	{
+		Map<String, Object> sm = (Map<String, Object>) data( McpRepositorySupport.search( "projects", "mcpdata", -1, null ) ).getData();
+		assertEquals( Boolean.TRUE, sm.get( "timedOut" ) );
+		assertEquals( Boolean.TRUE, sm.get( "truncated" ) );
+	}
+
+	/** A thread interrupt during the walk cancels it: the remaining children are not visited. */
+	@SuppressWarnings( "unchecked" )
+	public void testSearchStopsWhenInterrupted() throws Exception
+	{
+		CountingCollection<ru.biosoft.access.core.DataElement> root = new CountingCollection<ru.biosoft.access.core.DataElement>( "mcpinterrupt", ru.biosoft.access.core.DataElement.class, null )
+		{
+			@Override
+			public ru.biosoft.access.core.DataElement get( String name )
+			{
+				gets++;
+				Thread.currentThread().interrupt();
+				return super.get( name );
+			}
+		};
+		for ( int i = 0; i < 5; i++ )
+			root.put( new CountingCollection<>( "sub" + i, ru.biosoft.access.core.DataElement.class, root ) );
+		CollectionFactory.registerRoot( root );
+		try
+		{
+			Map<String, Object> sm = (Map<String, Object>) data( McpRepositorySupport.search( "sub", "mcpinterrupt" ) ).getData();
+			assertEquals( Boolean.TRUE, sm.get( "cancelled" ) );
+			assertEquals( Boolean.TRUE, sm.get( "truncated" ) );
+			assertEquals( "the walk stops after the interrupting load: sub1..sub4 are not visited",
+					java.util.Collections.singletonList( "mcpinterrupt/sub0" ), sm.get( "matches" ) );
+			assertTrue( "the interrupt flag is left set for the caller", Thread.currentThread().isInterrupted() );
+		}
+		finally
+		{
+			Thread.interrupted();
+			CollectionFactory.unregisterRoot( root );
+		}
+	}
+
+	/** An interrupt reported by getNameList() (wrapped: it declares no checked exception) cancels the walk. */
+	@SuppressWarnings( "unchecked" )
+	public void testSearchStopsWhenListingIsInterrupted() throws Exception
+	{
+		CountingCollection<ru.biosoft.access.core.DataElement> root = new CountingCollection<>( "mcplistint", ru.biosoft.access.core.DataElement.class, null );
+		CountingCollection<ru.biosoft.access.core.DataElement> sub = new CountingCollection<ru.biosoft.access.core.DataElement>( "sub0", ru.biosoft.access.core.DataElement.class, root )
+		{
+			@Override
+			public List<String> getNameList()
+			{
+				throw new RuntimeException( new InterruptedException( "query interrupted" ) );
+			}
+		};
+		root.put( sub );
+		root.put( new CountingCollection<>( "sub1", ru.biosoft.access.core.DataElement.class, root ) );
+		CollectionFactory.registerRoot( root );
+		try
+		{
+			Map<String, Object> sm = (Map<String, Object>) data( McpRepositorySupport.search( "sub", "mcplistint" ) ).getData();
+			assertEquals( Boolean.TRUE, sm.get( "cancelled" ) );
+			assertEquals( "sub1 is not visited after the interrupted listing",
+					java.util.Collections.singletonList( "mcplistint/sub0" ), sm.get( "matches" ) );
+			assertTrue( "the interrupt flag is restored", Thread.currentThread().isInterrupted() );
+		}
+		finally
+		{
+			Thread.interrupted();
+			CollectionFactory.unregisterRoot( root );
+		}
+	}
+
+	/** At most SEARCH_JOBS_ACTIVE_MAX (16) background searches may be queued or running at once. */
+	@SuppressWarnings( "unchecked" )
+	public void testActiveSearchesAreCapped() throws Exception
+	{
+		java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch( 1 );
+		CountingCollection<ru.biosoft.access.core.DataElement> root = new CountingCollection<ru.biosoft.access.core.DataElement>( "mcpcap", ru.biosoft.access.core.DataElement.class, null )
+		{
+			@Override
+			public List<String> getNameList()
+			{
+				try
+				{
+					release.await( 30, java.util.concurrent.TimeUnit.SECONDS );
+				}
+				catch ( InterruptedException e )
+				{
+					Thread.currentThread().interrupt();
+				}
+				return super.getNameList();
+			}
+		};
+		CollectionFactory.registerRoot( root );
+		List<String> ids = new java.util.ArrayList<>();
+		try
+		{
+			// queued or running, they all count: this does not depend on the task pool size
+			for ( int i = 0; i < 16; i++ )
+				ids.add( startSearch( "x", "mcpcap" ) );
+			McpEnvelope refused = biouml.plugins.mcp.support.McpProviderSupport.withUserSession( McpConstants.TASK_USER,
+					() -> McpRepositorySupport.searchAsync( "x", "mcpcap" ) );
+			assertFalse( "the 17th active search is refused", refused.isOk() );
+			assertEquals( McpConstants.CODE_BUSY, refused.getCode() );
+		}
+		finally
+		{
+			release.countDown();
+			for ( String id : ids )
+				awaitDone( id );
+			CollectionFactory.unregisterRoot( root );
+		}
+		assertTrue( "a search is accepted again once the others finished", data(
+				biouml.plugins.mcp.support.McpProviderSupport.withUserSession( McpConstants.TASK_USER,
+						() -> McpRepositorySupport.searchAsync( "projects", "mcpdata" ) ) ).isOk() );
+	}
+
+	/** A running background search keeps its result although many later searches finish first. */
+	@SuppressWarnings( "unchecked" )
+	public void testRunningSearchIsNotEvicted() throws Exception
+	{
+		// the slow search holds one pool thread while the quick ones run: they need a second one
+		if ( ru.biosoft.access.security.SecurityManager.getMaximumThreadsNumber() < 2 )
+			return;
+		java.util.concurrent.CountDownLatch started = new java.util.concurrent.CountDownLatch( 1 );
+		java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch( 1 );
+		CountingCollection<ru.biosoft.access.core.DataElement> root = new CountingCollection<ru.biosoft.access.core.DataElement>( "mcpslow", ru.biosoft.access.core.DataElement.class, null )
+		{
+			@Override
+			public List<String> getNameList()
+			{
+				started.countDown();
+				try
+				{
+					release.await( 30, java.util.concurrent.TimeUnit.SECONDS );
+				}
+				catch ( InterruptedException e )
+				{
+					Thread.currentThread().interrupt();
+				}
+				return super.getNameList();
+			}
+		};
+		root.put( new Row( "slow_match", root ) );
+		CollectionFactory.registerRoot( root );
+		try
+		{
+			String slowId = startSearch( "slow_match", "mcpslow" );
+			assertTrue( "slow search started", started.await( 30, java.util.concurrent.TimeUnit.SECONDS ) );
+			// one at a time: at most two searches are active, well under the cap and the pool size
+			for ( int i = 0; i < 70; i++ )
+				awaitDone( startSearch( "projects", "mcpdata" ) );
+			release.countDown();
+			Map<String, Object> result = (Map<String, Object>) awaitDone( slowId ).get( "result" );
+			assertNotNull( "the running search kept its result", result );
+			assertEquals( java.util.Collections.singletonList( "mcpslow/slow_match" ), result.get( "matches" ) );
+		}
+		finally
+		{
+			release.countDown();
+			CollectionFactory.unregisterRoot( root );
+		}
+	}
+
+	@SuppressWarnings( "unchecked" )
+	private String startSearch( String query, String scope )
+	{
+		McpEnvelope async = biouml.plugins.mcp.support.McpProviderSupport.withUserSession( biouml.plugins.mcp.McpConstants.TASK_USER,
+				() -> McpRepositorySupport.searchAsync( query, scope ) );
+		return String.valueOf( ( (Map<String, Object>) data( async ).getData() ).get( "taskId" ) );
+	}
+
+	@SuppressWarnings( "unchecked" )
+	private Map<String, Object> awaitDone( String id ) throws InterruptedException
+	{
+		Map<String, Object> st = null;
+		for ( int i = 0; i < 600; i++ )
+		{
+			McpEnvelope env = biouml.plugins.mcp.support.McpProviderSupport.withUserSession( biouml.plugins.mcp.McpConstants.TASK_USER,
+					() -> McpRepositorySupport.searchStatus( id ) );
+			st = (Map<String, Object>) data( env ).getData();
+			if ( "done".equals( st.get( "status" ) ) || "error".equals( st.get( "status" ) ) )
+				return st;
+			Thread.sleep( 50 );
+		}
+		fail( "search " + id + " did not finish: " + st );
+		return st;
 	}
 
 	@SuppressWarnings( "unchecked" )

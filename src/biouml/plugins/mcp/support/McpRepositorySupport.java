@@ -132,16 +132,36 @@ public final class McpRepositorySupport
 		return McpEnvelope.ok( result );
 	}
 
+	/** Wall-clock budget of a synchronous search: below the MCP client's ~60 s per-request timeout. */
+	static final long SEARCH_SYNC_BUDGET_MS = 45_000L;
+
+	/** Wall-clock budget of a background search started with {@link #searchAsync(String, String)}. */
+	static final long SEARCH_ASYNC_BUDGET_MS = 10 * 60_000L;
+
 	/**
 	 * Search element names (case-insensitive substring) under a scope path. Defaults to all
-	 * registered roots when scope is null/empty. Returns matching full paths (capped).
+	 * registered roots when scope is null/empty. Returns matching full paths (capped). The walk stops
+	 * after {@link #SEARCH_SYNC_BUDGET_MS}; the result then has {@code timedOut: true}.
 	 */
 	public static McpEnvelope search( String query, String scope )
 	{
+		return search( query, scope, SEARCH_SYNC_BUDGET_MS, null );
+	}
+
+	/**
+	 * The budget is cooperative: it is checked before each collection listing and each child load,
+	 * so a single slow {@code getNameList()} or {@code get()} (one database query) can overrun it by
+	 * that query's duration. It bounds the walk, which is what ran for days, not one query.
+	 *
+	 * @param budgetMs  elapsed-time budget of the walk; when it runs out the matches found so far are
+	 *                  returned with {@code truncated} and {@code timedOut} set
+	 * @param jc        job control of a background search (its cancellation stops the walk), or null
+	 */
+	public static McpEnvelope search( String query, String scope, long budgetMs, ru.biosoft.jobcontrol.JobControl jc )
+	{
 		if ( query == null || query.isEmpty() )
 			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "query must be a non-empty string" );
-		String q = query.toLowerCase();
-		List<String> matches = new ArrayList<String>();
+		SearchWalk walk = new SearchWalk( query.toLowerCase(), System.nanoTime() + java.util.concurrent.TimeUnit.MILLISECONDS.toNanos( budgetMs ), jc );
 		List<String> scopes = new ArrayList<String>();
 		if ( scope != null && !scope.isEmpty() )
 			scopes.add( scope );
@@ -150,22 +170,161 @@ public final class McpRepositorySupport
 				scopes.add( root );
 		for ( String s : scopes )
 		{
+			if ( walk.shouldStop() )
+				break;
 			McpEnvelope r = resolve( s );
 			if ( !r.isOk() )
 				continue;
 			DataElement de = (DataElement) r.getData();
 			if ( !( de instanceof DataCollection ) )
 				continue;
-			collectMatches( (DataCollection<?>) de, q, matches, 3 ); // depth limit to keep it bounded
-			if ( matches.size() >= McpConstants.LIST_CHILDREN_CAP )
-				break;
+			collectMatches( (DataCollection<?>) de, walk, 3 ); // depth limit to keep it bounded
 		}
+		List<String> matches = walk.matches;
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
 		result.put( "query", query );
 		result.put( "count", Integer.valueOf( matches.size() ) );
-		result.put( "truncated", Boolean.valueOf( matches.size() >= McpConstants.LIST_CHILDREN_CAP ) );
+		result.put( "truncated", Boolean.valueOf( matches.size() >= McpConstants.LIST_CHILDREN_CAP || walk.timedOut || walk.cancelled ) );
+		if ( walk.timedOut )
+			result.put( "timedOut", Boolean.TRUE );
+		if ( walk.cancelled )
+			result.put( "cancelled", Boolean.TRUE );
 		result.put( "matches", matches );
 		return McpEnvelope.ok( result );
+	}
+
+	/** State of one search walk: the matches so far and the conditions that end it early. */
+	private static final class SearchWalk
+	{
+		final String query;
+		/** {@link System#nanoTime()} deadline. */
+		final long deadline;
+		final ru.biosoft.jobcontrol.JobControl jc;
+		final List<String> matches = new ArrayList<String>();
+		boolean timedOut;
+		boolean cancelled;
+
+		SearchWalk( String query, long deadline, ru.biosoft.jobcontrol.JobControl jc )
+		{
+			this.query = query;
+			this.deadline = deadline;
+			this.jc = jc;
+		}
+
+		boolean shouldStop()
+		{
+			if ( matches.size() >= McpConstants.LIST_CHILDREN_CAP || timedOut || cancelled )
+				return true;
+			if ( Thread.currentThread().isInterrupted()
+					|| ( jc != null && jc.getStatus() == ru.biosoft.jobcontrol.JobControl.TERMINATED_BY_REQUEST ) )
+				cancelled = true;
+			else if ( System.nanoTime() - deadline >= 0 )
+				timedOut = true;
+			return timedOut || cancelled;
+		}
+	}
+
+	/** How many finished background searches keep their result for {@link #searchStatus(String)}. */
+	static final int SEARCH_JOBS_KEPT = 64;
+
+	/** How many background searches may be queued or running at once (all users together). */
+	static final int SEARCH_JOBS_ACTIVE_MAX = 16;
+
+	/**
+	 * Job controls of background searches by task name, for {@link #searchStatus(String)}: the task
+	 * store may hand back a different {@code TaskInfo} than the one holding the job control. A search
+	 * is re-inserted when it finishes, so the finished entries are in completion order and the oldest
+	 * completed is evicted first once more than {@link #SEARCH_JOBS_KEPT} are finished. Unfinished
+	 * entries are never evicted; {@link #SEARCH_JOBS_ACTIVE_MAX} bounds them, so the map holds at most
+	 * {@code SEARCH_JOBS_KEPT + SEARCH_JOBS_ACTIVE_MAX} entries. Guarded by itself.
+	 */
+	private static final Map<String, SearchJobControl> SEARCH_JOBS = new LinkedHashMap<String, SearchJobControl>();
+
+	/** Called with the {@link #SEARCH_JOBS} lock held. */
+	private static int activeSearchJobs()
+	{
+		int active = 0;
+		for ( SearchJobControl jc : SEARCH_JOBS.values() )
+			if ( !jc.isFinished() )
+				active++;
+		return active;
+	}
+
+	/** Called with the {@link #SEARCH_JOBS} lock held. */
+	private static void pruneSearchJobs()
+	{
+		int finished = SEARCH_JOBS.size() - activeSearchJobs();
+		java.util.Iterator<SearchJobControl> it = SEARCH_JOBS.values().iterator();
+		while ( finished > SEARCH_JOBS_KEPT && it.hasNext() )
+			if ( it.next().isFinished() )
+			{
+				it.remove();
+				finished--;
+			}
+	}
+
+	/** Moves a finished search to the end of {@link #SEARCH_JOBS} (completion order) and prunes. */
+	private static void searchJobFinished( SearchJobControl jc )
+	{
+		synchronized ( SEARCH_JOBS )
+		{
+			if ( jc.taskName != null && SEARCH_JOBS.remove( jc.taskName ) == jc )
+				SEARCH_JOBS.put( jc.taskName, jc );
+			pruneSearchJobs();
+		}
+	}
+
+	private static SearchJobControl searchJob( String taskName )
+	{
+		synchronized ( SEARCH_JOBS )
+		{
+			return SEARCH_JOBS.get( taskName );
+		}
+	}
+
+	/** Job control of a background search; keeps the search result for {@link #searchStatus(String)}. */
+	private static final class SearchJobControl extends ru.biosoft.jobcontrol.FunctionJobControl
+	{
+		private final String query;
+		private final String scope;
+		volatile McpEnvelope result;
+		private volatile boolean finished;
+		/** Set when registered in {@link #SEARCH_JOBS}, before the search can finish. */
+		volatile String taskName;
+
+		SearchJobControl( String query, String scope )
+		{
+			super( McpRepositorySupport.log );
+			this.query = query;
+			this.scope = scope;
+		}
+
+		@Override
+		protected void doRun() throws ru.biosoft.jobcontrol.JobControlException
+		{
+			try
+			{
+				result = search( query, scope, SEARCH_ASYNC_BUDGET_MS, this );
+			}
+			catch ( RuntimeException e )
+			{
+				result = McpEnvelope.error( McpConstants.CODE_INTERNAL, "search failed: " + e );
+				throw new ru.biosoft.jobcontrol.JobControlException( e );
+			}
+			finally
+			{
+				finished = true;
+				searchJobFinished( this );
+			}
+		}
+
+		boolean isFinished()
+		{
+			// a search cancelled while still queued never runs doRun(): its status tells it is over
+			int status = getStatus();
+			return finished || status == ru.biosoft.jobcontrol.JobControl.TERMINATED_BY_REQUEST
+					|| status == ru.biosoft.jobcontrol.JobControl.TERMINATED_BY_ERROR;
+		}
 	}
 
 	/**
@@ -180,6 +339,9 @@ public final class McpRepositorySupport
 	 *
 	 * @param query  case-insensitive substring
 	 * @param scope  scope path, or null/empty for all registered roots
+	 * <p>The background walk stops after {@link #SEARCH_ASYNC_BUDGET_MS} or when the task is
+	 * cancelled; {@link #searchStatus(String)} returns its result once the task is done.</p>
+	 *
 	 * @return an envelope whose data is {@code {taskId, status:"queued"}} on success, or an error.
 	 */
 	public static McpEnvelope searchAsync( String query, String scope )
@@ -193,30 +355,33 @@ public final class McpRepositorySupport
 		// (begin/end) is driven by doRun() below so the task status actually transitions
 		// queued -> running -> done (addTask stores the JobControl as the task's status holder but
 		// never runs it itself).
-		ru.biosoft.jobcontrol.FunctionJobControl jc = new ru.biosoft.jobcontrol.FunctionJobControl( log )
-		{
-			@Override
-			protected void doRun() throws ru.biosoft.jobcontrol.JobControlException
-			{
-				try
-				{
-					search( query, scope );
-				}
-				catch ( RuntimeException e )
-				{
-					throw new ru.biosoft.jobcontrol.JobControlException( e );
-				}
-			}
-		};
+		SearchJobControl jc = new SearchJobControl( query, scope );
 		ru.biosoft.access.task.RunnableTask task = new ru.biosoft.access.task.RunnableTask(
 				"repo-search:" + query,
 				jc::run );
-		ru.biosoft.tasks.TaskInfo info = ru.biosoft.tasks.TaskManager.getInstance().addTask(
-				"repo-search",
-				ru.biosoft.access.core.DataElementPath.create( "mcp/repo-search" ),
-				jc, null, null, null, true, task );
-		if ( info == null )
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not queue the search task" );
+		ru.biosoft.tasks.TaskInfo info;
+		// Check the cap, queue and register under one lock: the task may start (and finish) as soon as
+		// addTask returns, and its completion callback takes this lock, so it sees the registration.
+		// Holding the lock across addTask cannot deadlock: addTask only stores the task and submits it
+		// (JVMExecutor -> TaskPool.submit -> ThreadPoolExecutor.submit on an unbounded queue, as a
+		// RunnableTask has weight 1), it never waits for the task. Were the task ever run inline
+		// (TaskPool runs weight-0 tasks on the caller), the monitor is reentrant: still no deadlock.
+		synchronized ( SEARCH_JOBS )
+		{
+			if ( activeSearchJobs() >= SEARCH_JOBS_ACTIVE_MAX )
+				return McpEnvelope.error( McpConstants.CODE_BUSY,
+						SEARCH_JOBS_ACTIVE_MAX + " repository searches are already in progress; poll them with op status or retry later" );
+			info = ru.biosoft.tasks.TaskManager.getInstance().addTask(
+					"repo-search",
+					ru.biosoft.access.core.DataElementPath.create( "mcp/repo-search" ),
+					jc, null, null, null, true, task );
+			if ( info == null )
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not queue the search task" );
+			jc.taskName = info.getName();
+			SEARCH_JOBS.put( jc.taskName, jc );
+			// unconditionally: a search cancelled while queued never reaches searchJobFinished()
+			pruneSearchJobs();
+		}
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
 		m.put( "taskId", info.getName() );
 		m.put( "status", "queued" );
@@ -226,6 +391,8 @@ public final class McpRepositorySupport
 	/**
 	 * Report the status of a queued repo-search task. Reads the task's {@link JobControl} status, so
 	 * it works for tasks created in a previous request (the status is task-derived, not stored).
+	 * Once the search is done the data also has {@code result}: the same map {@link #search} returns;
+	 * if the search failed, status is {@code error} with {@code error} and {@code code} instead.
 	 */
 	public static McpEnvelope searchStatus( String taskId )
 	{
@@ -239,6 +406,17 @@ public final class McpRepositorySupport
 		m.put( "taskId", info.getName() );
 		m.put( "status", taskStatusString( status ) );
 		m.put( "elapsedMs", Long.valueOf( info.getJobControl() == null ? 0 : info.getJobControl().getElapsedTime() ) );
+		SearchJobControl search = searchJob( info.getName() );
+		McpEnvelope result = search == null ? null : search.result;
+		if ( result != null && result.isOk() )
+			m.put( "result", result.getData() );
+		else if ( result != null )
+		{
+			// a search that returned an error envelope still ends the job normally: report it as an error
+			m.put( "status", "error" );
+			m.put( "error", result.getError() );
+			m.put( "code", result.getCode() );
+		}
 		return McpEnvelope.ok( m );
 	}
 
@@ -259,9 +437,9 @@ public final class McpRepositorySupport
 		return "unknown";
 	}
 
-	private static void collectMatches( DataCollection<?> dc, String q, List<String> out, int depth )
+	private static void collectMatches( DataCollection<?> dc, SearchWalk walk, int depth )
 	{
-		if ( depth <= 0 || out.size() >= McpConstants.LIST_CHILDREN_CAP )
+		if ( depth <= 0 || walk.shouldStop() )
 			return;
 		List<String> names;
 		try
@@ -270,25 +448,79 @@ public final class McpRepositorySupport
 		}
 		catch ( Exception e )
 		{
+			// getNameList() declares no checked exception, but an interrupted query may come wrapped
+			cancelIfInterrupted( e, walk );
 			return;
 		}
+		// Loading a child costs a database round trip for SQL-backed collections, so load children only
+		// when they are walked into: never on the last level, and never when the collection's element
+		// type cannot be a collection (e.g. the rows of a gene table). Matching uses the names alone.
+		boolean descend = depth > 1 && mayContainCollections( dc );
 		for ( String name : names )
 		{
-			if ( out.size() >= McpConstants.LIST_CHILDREN_CAP )
+			if ( walk.shouldStop() )
 				return;
-			String full = DataElementPath.create( dc, name ).toString();
-			if ( name.toLowerCase().contains( q ) )
-				out.add( full );
+			if ( name.toLowerCase().contains( walk.query ) )
+				walk.matches.add( DataElementPath.create( dc, name ).toString() );
+			if ( !descend )
+				continue;
 			try
 			{
-				if ( dc.get( name ) instanceof DataCollection )
-					collectMatches( (DataCollection<?>) dc.get( name ), q, out, depth - 1 );
+				DataElement child = dc.get( name );
+				if ( child instanceof DataCollection )
+					collectMatches( (DataCollection<?>) child, walk, depth - 1 );
 			}
 			catch ( Exception e )
 			{
-				// skip
+				if ( cancelIfInterrupted( e, walk ) )
+					return;
+				// otherwise skip the child
 			}
 		}
+	}
+
+	/**
+	 * If the exception, or one of its causes, reports an interruption, restore the interrupt flag
+	 * (catching an {@link InterruptedException} clears it) and cancel the walk.
+	 * @return whether the walk was cancelled
+	 */
+	private static boolean cancelIfInterrupted( Throwable e, SearchWalk walk )
+	{
+		for ( Throwable t = e; t != null; t = t.getCause() == t ? null : t.getCause() )
+			if ( t instanceof InterruptedException || t instanceof java.nio.channels.ClosedByInterruptException
+					|| t instanceof java.io.InterruptedIOException && !( t instanceof java.net.SocketTimeoutException ) )
+			{
+				Thread.currentThread().interrupt();
+				walk.cancelled = true;
+				return true;
+			}
+		return false;
+	}
+
+	/** {@link DataCollection} classes whose supertypes may be declared as an element type of a parent. */
+	private static final Class<?>[] COLLECTION_CLASSES = { ru.biosoft.access.core.AbstractDataCollection.class,
+			biouml.model.Compartment.class, biouml.standard.type.Reaction.class, biouml.standard.type.TableExperiment.class };
+
+	/** Whether the collection's declared element type admits sub-collections. */
+	static boolean mayContainCollections( DataCollection<?> dc )
+	{
+		Class<?> type;
+		try
+		{
+			type = dc.getDataElementType();
+		}
+		catch ( RuntimeException e )
+		{
+			return true;
+		}
+		if ( type == null || DataCollection.class.isAssignableFrom( type ) )
+			return true;
+		// a supertype of a collection class may hold collections: AbstractDataCollection covers most of
+		// them, the rest are the DataCollection implementations outside that hierarchy
+		for ( Class<?> collectionClass : COLLECTION_CLASSES )
+			if ( type.isAssignableFrom( collectionClass ) )
+				return true;
+		return false;
 	}
 
 	/**
