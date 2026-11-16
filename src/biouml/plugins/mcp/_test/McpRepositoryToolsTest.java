@@ -265,10 +265,89 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 		}
 	}
 
+	/** An interrupt reported by getNameList() (wrapped: it declares no checked exception) cancels the walk. */
+	@SuppressWarnings( "unchecked" )
+	public void testSearchStopsWhenListingIsInterrupted() throws Exception
+	{
+		CountingCollection<ru.biosoft.access.core.DataElement> root = new CountingCollection<>( "mcplistint", ru.biosoft.access.core.DataElement.class, null );
+		CountingCollection<ru.biosoft.access.core.DataElement> sub = new CountingCollection<ru.biosoft.access.core.DataElement>( "sub0", ru.biosoft.access.core.DataElement.class, root )
+		{
+			@Override
+			public List<String> getNameList()
+			{
+				throw new RuntimeException( new InterruptedException( "query interrupted" ) );
+			}
+		};
+		root.put( sub );
+		root.put( new CountingCollection<>( "sub1", ru.biosoft.access.core.DataElement.class, root ) );
+		CollectionFactory.registerRoot( root );
+		try
+		{
+			Map<String, Object> sm = (Map<String, Object>) data( McpRepositorySupport.search( "sub", "mcplistint" ) ).getData();
+			assertEquals( Boolean.TRUE, sm.get( "cancelled" ) );
+			assertEquals( "sub1 is not visited after the interrupted listing",
+					java.util.Collections.singletonList( "mcplistint/sub0" ), sm.get( "matches" ) );
+			assertTrue( "the interrupt flag is restored", Thread.currentThread().isInterrupted() );
+		}
+		finally
+		{
+			Thread.interrupted();
+			CollectionFactory.unregisterRoot( root );
+		}
+	}
+
+	/** At most SEARCH_JOBS_ACTIVE_MAX (16) background searches may be queued or running at once. */
+	@SuppressWarnings( "unchecked" )
+	public void testActiveSearchesAreCapped() throws Exception
+	{
+		java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch( 1 );
+		CountingCollection<ru.biosoft.access.core.DataElement> root = new CountingCollection<ru.biosoft.access.core.DataElement>( "mcpcap", ru.biosoft.access.core.DataElement.class, null )
+		{
+			@Override
+			public List<String> getNameList()
+			{
+				try
+				{
+					release.await( 30, java.util.concurrent.TimeUnit.SECONDS );
+				}
+				catch ( InterruptedException e )
+				{
+					Thread.currentThread().interrupt();
+				}
+				return super.getNameList();
+			}
+		};
+		CollectionFactory.registerRoot( root );
+		List<String> ids = new java.util.ArrayList<>();
+		try
+		{
+			// queued or running, they all count: this does not depend on the task pool size
+			for ( int i = 0; i < 16; i++ )
+				ids.add( startSearch( "x", "mcpcap" ) );
+			McpEnvelope refused = biouml.plugins.mcp.support.McpProviderSupport.withUserSession( McpConstants.TASK_USER,
+					() -> McpRepositorySupport.searchAsync( "x", "mcpcap" ) );
+			assertFalse( "the 17th active search is refused", refused.isOk() );
+			assertEquals( McpConstants.CODE_BUSY, refused.getCode() );
+		}
+		finally
+		{
+			release.countDown();
+			for ( String id : ids )
+				awaitDone( id );
+			CollectionFactory.unregisterRoot( root );
+		}
+		assertTrue( "a search is accepted again once the others finished", data(
+				biouml.plugins.mcp.support.McpProviderSupport.withUserSession( McpConstants.TASK_USER,
+						() -> McpRepositorySupport.searchAsync( "projects", "mcpdata" ) ) ).isOk() );
+	}
+
 	/** A running background search keeps its result although many later searches finish first. */
 	@SuppressWarnings( "unchecked" )
 	public void testRunningSearchIsNotEvicted() throws Exception
 	{
+		// the slow search holds one pool thread while the quick ones run: they need a second one
+		if ( ru.biosoft.access.security.SecurityManager.getMaximumThreadsNumber() < 2 )
+			return;
 		java.util.concurrent.CountDownLatch started = new java.util.concurrent.CountDownLatch( 1 );
 		java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch( 1 );
 		CountingCollection<ru.biosoft.access.core.DataElement> root = new CountingCollection<ru.biosoft.access.core.DataElement>( "mcpslow", ru.biosoft.access.core.DataElement.class, null )
@@ -294,11 +373,9 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 		{
 			String slowId = startSearch( "slow_match", "mcpslow" );
 			assertTrue( "slow search started", started.await( 30, java.util.concurrent.TimeUnit.SECONDS ) );
-			List<String> quick = new java.util.ArrayList<>();
+			// one at a time: at most two searches are active, well under the cap and the pool size
 			for ( int i = 0; i < 70; i++ )
-				quick.add( startSearch( "projects", "mcpdata" ) );
-			for ( String id : quick )
-				awaitDone( id );
+				awaitDone( startSearch( "projects", "mcpdata" ) );
 			release.countDown();
 			Map<String, Object> result = (Map<String, Object>) awaitDone( slowId ).get( "result" );
 			assertNotNull( "the running search kept its result", result );

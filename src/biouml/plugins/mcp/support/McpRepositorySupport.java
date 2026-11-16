@@ -227,24 +227,50 @@ public final class McpRepositorySupport
 	/** How many finished background searches keep their result for {@link #searchStatus(String)}. */
 	static final int SEARCH_JOBS_KEPT = 64;
 
+	/** How many background searches may be queued or running at once (all users together). */
+	static final int SEARCH_JOBS_ACTIVE_MAX = 16;
+
 	/**
 	 * Job controls of background searches by task name, for {@link #searchStatus(String)}: the task
-	 * store may hand back a different {@code TaskInfo} than the one holding the job control. Only
-	 * finished searches are evicted (oldest first) once there are more than {@link #SEARCH_JOBS_KEPT}
-	 * entries, so a running search never loses its result; the running ones are few, as each holds a
-	 * task-pool thread and stops within {@link #SEARCH_ASYNC_BUDGET_MS}.
+	 * store may hand back a different {@code TaskInfo} than the one holding the job control. A search
+	 * is re-inserted when it finishes, so the finished entries are in completion order and the oldest
+	 * completed is evicted first once more than {@link #SEARCH_JOBS_KEPT} are finished. Unfinished
+	 * entries are never evicted; {@link #SEARCH_JOBS_ACTIVE_MAX} bounds them, so the map holds at most
+	 * {@code SEARCH_JOBS_KEPT + SEARCH_JOBS_ACTIVE_MAX} entries. Guarded by itself.
 	 */
 	private static final Map<String, SearchJobControl> SEARCH_JOBS = new LinkedHashMap<String, SearchJobControl>();
 
-	private static void registerSearchJob( String taskName, SearchJobControl jc )
+	/** Called with the {@link #SEARCH_JOBS} lock held. */
+	private static int activeSearchJobs()
+	{
+		int active = 0;
+		for ( SearchJobControl jc : SEARCH_JOBS.values() )
+			if ( !jc.isFinished() )
+				active++;
+		return active;
+	}
+
+	/** Called with the {@link #SEARCH_JOBS} lock held. */
+	private static void pruneSearchJobs()
+	{
+		int finished = SEARCH_JOBS.size() - activeSearchJobs();
+		java.util.Iterator<SearchJobControl> it = SEARCH_JOBS.values().iterator();
+		while ( finished > SEARCH_JOBS_KEPT && it.hasNext() )
+			if ( it.next().isFinished() )
+			{
+				it.remove();
+				finished--;
+			}
+	}
+
+	/** Moves a finished search to the end of {@link #SEARCH_JOBS} (completion order) and prunes. */
+	private static void searchJobFinished( SearchJobControl jc )
 	{
 		synchronized ( SEARCH_JOBS )
 		{
-			SEARCH_JOBS.put( taskName, jc );
-			java.util.Iterator<SearchJobControl> it = SEARCH_JOBS.values().iterator();
-			while ( SEARCH_JOBS.size() > SEARCH_JOBS_KEPT && it.hasNext() )
-				if ( it.next().isFinished() )
-					it.remove();
+			if ( jc.taskName != null && SEARCH_JOBS.remove( jc.taskName ) == jc )
+				SEARCH_JOBS.put( jc.taskName, jc );
+			pruneSearchJobs();
 		}
 	}
 
@@ -263,6 +289,8 @@ public final class McpRepositorySupport
 		private final String scope;
 		volatile McpEnvelope result;
 		private volatile boolean finished;
+		/** Set when registered in {@link #SEARCH_JOBS}, before the search can finish. */
+		volatile String taskName;
 
 		SearchJobControl( String query, String scope )
 		{
@@ -286,11 +314,13 @@ public final class McpRepositorySupport
 			finally
 			{
 				finished = true;
+				searchJobFinished( this );
 			}
 		}
 
 		boolean isFinished()
 		{
+			// a search cancelled while still queued never runs doRun(): its status tells it is over
 			int status = getStatus();
 			return finished || status == ru.biosoft.jobcontrol.JobControl.TERMINATED_BY_REQUEST
 					|| status == ru.biosoft.jobcontrol.JobControl.TERMINATED_BY_ERROR;
@@ -329,13 +359,25 @@ public final class McpRepositorySupport
 		ru.biosoft.access.task.RunnableTask task = new ru.biosoft.access.task.RunnableTask(
 				"repo-search:" + query,
 				jc::run );
-		ru.biosoft.tasks.TaskInfo info = ru.biosoft.tasks.TaskManager.getInstance().addTask(
-				"repo-search",
-				ru.biosoft.access.core.DataElementPath.create( "mcp/repo-search" ),
-				jc, null, null, null, true, task );
-		if ( info == null )
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not queue the search task" );
-		registerSearchJob( info.getName(), jc );
+		ru.biosoft.tasks.TaskInfo info;
+		// Check the cap, queue and register under one lock: the task may start (and finish) as soon as
+		// addTask returns, and its completion callback takes this lock, so it sees the registration.
+		synchronized ( SEARCH_JOBS )
+		{
+			if ( activeSearchJobs() >= SEARCH_JOBS_ACTIVE_MAX )
+				return McpEnvelope.error( McpConstants.CODE_BUSY,
+						SEARCH_JOBS_ACTIVE_MAX + " repository searches are already in progress; poll them with op status or retry later" );
+			info = ru.biosoft.tasks.TaskManager.getInstance().addTask(
+					"repo-search",
+					ru.biosoft.access.core.DataElementPath.create( "mcp/repo-search" ),
+					jc, null, null, null, true, task );
+			if ( info == null )
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not queue the search task" );
+			jc.taskName = info.getName();
+			SEARCH_JOBS.put( jc.taskName, jc );
+			if ( jc.isFinished() )
+				pruneSearchJobs();
+		}
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
 		m.put( "taskId", info.getName() );
 		m.put( "status", "queued" );
@@ -402,6 +444,8 @@ public final class McpRepositorySupport
 		}
 		catch ( Exception e )
 		{
+			// getNameList() declares no checked exception, but an interrupted query may come wrapped
+			cancelIfInterrupted( e, walk );
 			return;
 		}
 		// Loading a child costs a database round trip for SQL-backed collections, so load children only
@@ -422,18 +466,31 @@ public final class McpRepositorySupport
 				if ( child instanceof DataCollection )
 					collectMatches( (DataCollection<?>) child, walk, depth - 1 );
 			}
-			catch ( InterruptedException e )
-			{
-				// catching it clears the interrupt flag: restore it so the walk (and the caller) sees it
-				Thread.currentThread().interrupt();
-				walk.cancelled = true;
-				return;
-			}
 			catch ( Exception e )
 			{
-				// skip
+				if ( cancelIfInterrupted( e, walk ) )
+					return;
+				// otherwise skip the child
 			}
 		}
+	}
+
+	/**
+	 * If the exception, or one of its causes, reports an interruption, restore the interrupt flag
+	 * (catching an {@link InterruptedException} clears it) and cancel the walk.
+	 * @return whether the walk was cancelled
+	 */
+	private static boolean cancelIfInterrupted( Throwable e, SearchWalk walk )
+	{
+		for ( Throwable t = e; t != null; t = t.getCause() == t ? null : t.getCause() )
+			if ( t instanceof InterruptedException || t instanceof java.nio.channels.ClosedByInterruptException
+					|| t instanceof java.io.InterruptedIOException && !( t instanceof java.net.SocketTimeoutException ) )
+			{
+				Thread.currentThread().interrupt();
+				walk.cancelled = true;
+				return true;
+			}
+		return false;
 	}
 
 	/** {@link DataCollection} classes whose supertypes may be declared as an element type of a parent. */

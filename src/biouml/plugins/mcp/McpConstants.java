@@ -72,6 +72,9 @@ public final class McpConstants
 	 */
 	public static final String CODE_INTERNAL = "internal_error";
 
+	/** Error code: the server is at its limit for this kind of request; retry later. */
+	public static final String CODE_BUSY = "busy";
+
 	/**
 	 * The username used when a tool must run under a <em>named</em> (logged-in) session so that
 	 * user-gated providers (task status/cancel, job control) can resolve an owner. In a plain test JVM a
