@@ -265,6 +265,57 @@ public class McpRepositoryToolsTest extends AbstractBioUMLTest
 		}
 	}
 
+	/**
+	 * A repo-search task's source is the searched scope (the web UI links and opens it), or none for a
+	 * missing or empty scope: never a made-up path such as the former "mcp/repo-search".
+	 */
+	public void testSearchTaskSourceIsTheScope() throws Exception
+	{
+		String scoped = startSearch( "projects", "mcpdata" );
+		String missing = startSearch( "projects", "no-such-root" );
+		String all = startSearch( "no-such-name-xyz", null );
+		String empty = startSearch( "no-such-name-xyz", "" );
+		for ( String id : new String[] { scoped, missing, all, empty } )
+			awaitDone( id );
+		assertEquals( "mcpdata", sourceOf( scoped ) );
+		assertNull( sourceOf( missing ) );
+		assertNull( sourceOf( all ) );
+		assertNull( sourceOf( empty ) );
+	}
+
+	/**
+	 * The web UI opens a task from the task list with jobcontrol action=attach, which sends the task's
+	 * parameters: it must work for a task without a source (it used to call getSource().toString()).
+	 */
+	public void testWebAttachToSourcelessTask() throws Exception
+	{
+		String id = startSearch( "no-such-name-xyz", null );
+		awaitDone( id );
+		assertNull( sourceOf( id ) );
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		biouml.plugins.mcp.support.McpProviderSupport.withUserSession( McpConstants.TASK_USER,
+				() -> biouml.plugins.mcp.support.McpProviderSupport.inSession( () -> {
+					Map<String, String> args = new java.util.HashMap<>();
+					args.put( "action", "attach" );
+					args.put( "jobID", "sourceless-test" );
+					args.put( "taskID", id );
+					new ru.biosoft.server.servlets.webservices.providers.JobControlProvider().process(
+							new ru.biosoft.server.servlets.webservices.BiosoftWebRequest( args ),
+							new ru.biosoft.server.servlets.webservices.JSONResponse( out ) );
+					return null;
+				} ) );
+		String json = out.toString( "UTF-8" );
+		assertTrue( "a JSON bean response, not an error: " + json, json.contains( "\"type\":0" ) || json.contains( "\"values\"" ) );
+	}
+
+	private static String sourceOf( String taskId )
+	{
+		ru.biosoft.tasks.TaskInfo info = biouml.plugins.mcp.support.McpProviderSupport.withUserSession( McpConstants.TASK_USER,
+				() -> ru.biosoft.tasks.TaskManager.getInstance().getTask( taskId ) );
+		assertNotNull( "task " + taskId, info );
+		return info.getSource() == null ? null : info.getSource().toString();
+	}
+
 	/** An interrupt reported by getNameList() (wrapped: it declares no checked exception) cancels the walk. */
 	@SuppressWarnings( "unchecked" )
 	public void testSearchStopsWhenListingIsInterrupted() throws Exception

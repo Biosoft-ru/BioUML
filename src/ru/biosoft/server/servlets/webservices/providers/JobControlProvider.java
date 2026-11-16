@@ -59,7 +59,9 @@ public class JobControlProvider extends WebJSONProviderSupport
                 response.sendString("ok");
             } else
             {
-                WebBeanProvider.sendBeanStructure(task.getSource().toString(), bean, response, Property.SHOW_EXPERT);
+                // a task need not have a source (e.g. an MCP repository search over all roots)
+                WebBeanProvider.sendBeanStructure(task.getSource() == null ? "" : task.getSource().toString(), bean, response,
+                        Property.SHOW_EXPERT);
             }
             return;
         }
