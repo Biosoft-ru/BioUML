@@ -156,6 +156,29 @@ public class TestBeanAsMapUtil extends TestCase
     {
         private Choice[] choices = {Choice.createInstance( "Count" )};
         private int[] numbers = {7};
+        private int limit = 5;
+        public int getLimit()
+        {
+            return limit;
+        }
+        public void setLimit(int limit)
+        {
+            if( limit < 0 )
+                throw new IllegalArgumentException( "limit must be >= 0" );
+            Object oldValue = this.limit;
+            this.limit = limit;
+            firePropertyChange( "limit", oldValue, limit );
+        }
+        private String fixed = "fixed";
+        public String getFixed()
+        {
+            return fixed;
+        }
+        public void setFixed(String fixed)
+        {
+            this.fixed = fixed;
+        }
+
         public int[] getNumbers()
         {
             return numbers;
@@ -189,6 +212,8 @@ public class TestBeanAsMapUtil extends TestCase
         {
             property( "choices" ).simple().hideChildren().add();
             property( "numbers" ).simple().hideChildren().add();
+            add( "limit" );
+            property( "fixed" ).readOnly().add();
         }
     }
 
@@ -286,5 +311,44 @@ public class TestBeanAsMapUtil extends TestCase
         {
             assertTrue( e.getMessage(), e.getMessage().contains( "int[]" ) );
         }
+    }
+
+    private static ChoiceBean bind(String name, Object value, boolean strict)
+    {
+        ChoiceBean bean = new ChoiceBean();
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put( name, value );
+        BeanAsMapUtil.readBeanFromHierarchicalMap( map, bean, strict );
+        return bean;
+    }
+
+    private static void assertStrictError(String name, Object value, String expected)
+    {
+        try
+        {
+            bind( name, value, true );
+            fail( name + "=" + value + " was accepted" );
+        }
+        catch( IllegalArgumentException e )
+        {
+            assertTrue( name + "=" + value + ": " + e.getMessage(), e.getMessage().contains( expected ) );
+        }
+    }
+
+    /** Strict binding reports what lenient binding drops: a primitive cleared, a setter refusing, a read-only property. */
+    public void testStrictReportsWhatLenientDrops()
+    {
+        assertStrictError( "limit", "", "cannot convert" );
+        // also an int given null (getValueClass() is Integer, so this is the setter call failing)
+        assertStrictError( "limit", null, "limit: null was refused by the property" );
+        // the setter's IllegalArgumentException is logged and swallowed by Property.setValue: detected by the result
+        assertStrictError( "limit", -1, "limit: -1 was refused by the property" );
+        assertStrictError( "fixed", "other", "fixed is read-only" );
+        assertEquals( 3, bind( "limit", 3, true ).getLimit() );
+        assertEquals( 5, bind( "limit", 5, true ).getLimit() );
+        assertEquals( "fixed", bind( "fixed", "fixed", true ).getFixed() );
+
+        assertEquals( 5, bind( "limit", -1, false ).getLimit() );
+        assertEquals( "fixed", bind( "fixed", "other", false ).getFixed() );
     }
 }

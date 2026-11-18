@@ -184,6 +184,14 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		assertEquals( McpConstants.CODE_INVALID_PARAMS, env.getCode() );
 		assertTrue( env.getError(), env.getError().contains( "could not bind parameter 'resultTypes'" )
 				&& env.getError().contains( "resultTypes[1]: cannot convert \"count\"" ) && env.getError().contains( "allowed values" ) );
+
+		// and a valid list reaches the analysis through biouml_analysis_run (the stub declares resultTypes the same way)
+		Map<String, Object> run = params( 2 );
+		run.put( "resultTypes", java.util.Arrays.asList( "Count in exons", "Positions" ) );
+		McpTestAnalysis.lastResultTypes = null;
+		env = McpAnalysisSupport.runAnalysis( McpTestAnalysis.NAME, run, null, true );
+		assertTrue( "run should be ok, got " + env.getCode() + " " + env.getError(), env.isOk() );
+		assertEquals( "[Count in exons, Positions]", java.util.Arrays.toString( McpTestAnalysis.lastResultTypes ) );
 	}
 
 	@SuppressWarnings( "unchecked" )
@@ -468,8 +476,8 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		assertEquals( "Experiment", byName.get( "conditions/0/condition" ).get( "default" ) );
 		assertEquals( "Control", byName.get( "conditions/1/condition" ).get( "default" ) );
 
-		McpEnvelope filtered = McpAnalysisSupport.describeMethod( McpTestAnalysis.NAME, null, "EX" );
-		assertEquals( "EX", ( (Map<String, Object>) filtered.getData() ).get( "filter" ) );
+		McpEnvelope filtered = McpAnalysisSupport.describeMethod( McpTestAnalysis.NAME, null, "XAC" );
+		assertEquals( "XAC", ( (Map<String, Object>) filtered.getData() ).get( "filter" ) );
 		byName = properties( filtered );
 		assertEquals( "only the choices with matches", java.util.Collections.singleton( "mode" ), byName.keySet() );
 		Map<String, Object> mode = byName.get( "mode" );

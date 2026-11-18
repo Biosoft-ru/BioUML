@@ -24,6 +24,8 @@ public class McpTestAnalysis extends AnalysisMethodSupport<McpTestAnalysis.Param
 
 	/** The conditions bound for the last run (lets tests check array-of-bean binding). */
 	public static volatile Condition[] lastConditions;
+	/** The resultTypes the last run saw: a list-valued choice, declared as TrackToGeneSet declares its own. */
+	public static volatile biouml.plugins.ensembl.analysis.SiteAggregator[] lastResultTypes;
 
 	public McpTestAnalysis( DataCollection<?> origin, String name )
 	{
@@ -47,6 +49,7 @@ public class McpTestAnalysis extends AnalysisMethodSupport<McpTestAnalysis.Param
 	public Object justAnalyzeAndPut() throws Exception
 	{
 		lastConditions = parameters.getConditions();
+		lastResultTypes = parameters.getResultTypes();
 		DataElementPath outPath = parameters.getOutput();
 		if ( outPath == null )
 			outPath = DataElementPath.create( getOrigin(), "mcpTestResult" );
@@ -115,6 +118,18 @@ public class McpTestAnalysis extends AnalysisMethodSupport<McpTestAnalysis.Param
 			firePropertyChange( "mode", oldValue, mode );
 		}
 
+		private biouml.plugins.ensembl.analysis.SiteAggregator[] resultTypes = {new biouml.plugins.ensembl.analysis.CountSiteAggregator()};
+		public biouml.plugins.ensembl.analysis.SiteAggregator[] getResultTypes()
+		{
+			return resultTypes;
+		}
+		public void setResultTypes( biouml.plugins.ensembl.analysis.SiteAggregator[] resultTypes )
+		{
+			Object oldValue = this.resultTypes;
+			this.resultTypes = resultTypes;
+			firePropertyChange( "resultTypes", oldValue, resultTypes );
+		}
+
 		private Condition[] conditions = new Condition[0];
 		@PropertyName( "Conditions" )
 		public Condition[] getConditions()
@@ -162,6 +177,8 @@ public class McpTestAnalysis extends AnalysisMethodSupport<McpTestAnalysis.Param
 			add( "output" );
 			add( "conditions" );
 			property( "mode" ).tags( "fast", "exact" ).add();
+			property( "resultTypes" ).editor( biouml.plugins.ensembl.analysis.SiteAggregator.SiteAggregatorSelector.class ).simple()
+					.hideChildren().add();
 		}
 	}
 }
