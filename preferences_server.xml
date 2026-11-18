@@ -28,4 +28,5 @@
         </dynamicPropertySet>
     </property>
     <property name="JAVA_LIBRARY_PATH" type="java.lang.String" value="" display-name="java.library.path" short-description="Extra library path for plugins"/>
+    <property name="JavaScriptClassShutter" type="java.lang.String" value="audit" display-name="JavaScript class shutter" short-description="Java classes server-side JavaScript may use: audit (allow, log what the class list does not allow), enforce (deny it), off"/>
 </dynamicPropertySet> 
