@@ -366,4 +366,48 @@ public class TestBeanAsMapUtil extends TestCase
         assertEquals( 5, bind( "limit", -1, false ).getLimit() );
         assertEquals( "fixed", bind( "fixed", "other", false ).getFixed() );
     }
+
+    /** A plain bean that fires no events itself: its changes reach listeners only through the model's own event. */
+    public static class QuietBean
+    {
+        private String label = "a";
+        public String getLabel()
+        {
+            return label;
+        }
+        public void setLabel(String label)
+        {
+            this.label = label;
+        }
+    }
+
+    public static class QuietBeanBeanInfo extends BeanInfoEx2<QuietBean>
+    {
+        public QuietBeanBeanInfo()
+        {
+            super( QuietBean.class );
+        }
+        @Override
+        protected void initProperties() throws Exception
+        {
+            add( "label" );
+        }
+    }
+
+    /** Strict binding goes through Property.setValue as lenient binding does, so the model still fires its event. */
+    public void testStrictBindingFiresModelEvents()
+    {
+        for( boolean strict : new boolean[] {false, true} )
+        {
+            QuietBean bean = new QuietBean();
+            com.developmentontheedge.beans.model.ComponentModel model = com.developmentontheedge.beans.model.ComponentFactory.getModel( bean );
+            List<String> events = new ArrayList<>();
+            model.addPropertyChangeListener( e -> events.add( e.getPropertyName() + "=" + e.getNewValue() ) );
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put( "label", "b" );
+            BeanAsMapUtil.readBeanFromHierarchicalMap( map, bean, strict );
+            assertEquals( "b", bean.getLabel() );
+            assertEquals( "strict=" + strict, Collections.singletonList( "label=b" ), events );
+        }
+    }
 }
