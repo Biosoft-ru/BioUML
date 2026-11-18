@@ -171,7 +171,12 @@ public class BeanAsMapUtil
     private static void setPropertyFromSimpleObject(Property property, Object value, boolean strict)
     {
         if( property.isReadOnly() )
+        {
+            // strict: a read-only property given another value than its own is an error; echoing it back is fine
+            if( strict && !Objects.deepEquals( property.getValue(), value ) )
+                throw new IllegalArgumentException( property.getName() + " is read-only" );
             return;
+        }
         Object input = value;
         if( value != null && !property.getValueClass().isInstance( value ) )
         {
@@ -203,9 +208,15 @@ public class BeanAsMapUtil
         }
         if( strict && input != null )
             checkConverted( property, input, value );
+        Object before = strict ? property.getValue() : null;
         try
         {
             property.setValue( value );
+            // Property.setValue logs and swallows what the setter throws: strict, a value that differs from the
+            // property's and left it unchanged was refused
+            if( strict && !Objects.deepEquals( before, value ) && Objects.deepEquals( before, property.getValue() ) )
+                throw new IllegalArgumentException( property.getName() + ": " + ( input == null ? "null" : toText( property.getValueClass(), input ) )
+                        + " was refused by the property (see the server log for why)" );
             if(property.getBooleanAttribute( BeanInfoEx2.STRUCTURE_CHANGING_PROPERTY ))
             {
                 ComponentFactory.recreateChildProperties( property.getParent() );
@@ -228,18 +239,28 @@ public class BeanAsMapUtil
         String text = toText( type, input );
         if( value == null )
         {
-            if( text.isEmpty() )
+            if( text.isEmpty() && !type.isPrimitive() )
                 return;
             throw new IllegalArgumentException( "cannot convert " + text + " to " + type.getSimpleName() );
         }
         if( !wrapper( type ).isInstance( value ) )
             throw new IllegalArgumentException( "cannot convert " + text + " to " + type.getSimpleName() );
-        if( type.isArray() && !type.getComponentType().isPrimitive() )
+        checkItems( property.getName(), input, value );
+    }
+
+    /** Every item of an object array, and of the arrays nested in it, is present. */
+    private static void checkItems(String name, Object input, Object value)
+    {
+        Class<?> type = value.getClass();
+        if( !type.isArray() || type.getComponentType().isPrimitive() )
+            return;
+        for( int i = 0; i < Array.getLength( value ); i++ )
         {
-            for( int i = 0; i < Array.getLength( value ); i++ )
-                if( Array.get( value, i ) == null )
-                    throw new IllegalArgumentException( property.getName() + "[" + i + "]: cannot convert " + itemText( input, i )
-                            + " to " + type.getComponentType().getSimpleName() );
+            Object item = Array.get( value, i );
+            if( item == null )
+                throw new IllegalArgumentException( name + "[" + i + "]: cannot convert " + itemText( input, i ) + " to "
+                        + type.getComponentType().getSimpleName() );
+            checkItems( name + "[" + i + "]", input instanceof List ? ( (List<?>)input ).get( i ) : null, item );
         }
     }
 
@@ -256,7 +277,7 @@ public class BeanAsMapUtil
             if( input instanceof String )
                 return Json.parse( (String)input ).asArray().get( i ).toString();
         }
-        catch( Exception e )
+        catch( RuntimeException e )
         {
             // not a list: the whole input is reported
         }
@@ -281,7 +302,9 @@ public class BeanAsMapUtil
             return Short.class;
         if( type == byte.class )
             return Byte.class;
-        return Character.class;
+        if( type == char.class )
+            return Character.class;
+        throw new IllegalArgumentException( "no value of type " + type );
     }
 
     /**
