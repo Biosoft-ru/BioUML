@@ -155,6 +155,30 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		assertTrue( "describe must capture a default value", hasDefault );
 	}
 
+	/**
+	 * A list-valued choice parameter (resultTypes of 'Track to gene set', as of 'Mutations to genes with weights')
+	 * binds from the JSON list describe shows as its default; it used to be bound as null, which the one analysis
+	 * rejected in validation and the other failed on with a NullPointerException. An unknown name is an error
+	 * that lists the allowed values.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testListValuedChoiceBinds()
+	{
+		List<String> only = java.util.Collections.singletonList( "resultTypes" );
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		params.put( "resultTypes", java.util.Arrays.asList( "Count in exons", "Count" ) );
+		McpEnvelope env = McpAnalysisSupport.describeMethod( "Track to gene set", params, null, only );
+		assertTrue( "describe should be ok, got " + env.getCode() + " " + env.getError(), env.isOk() );
+		Map<String, Object> p = ( (List<Map<String, Object>>) ( (Map<String, Object>) env.getData() ).get( "properties" ) ).get( 0 );
+		assertEquals( java.util.Arrays.asList( "Count in exons", "Count" ), p.get( "default" ) );
+
+		params.put( "resultTypes", java.util.Arrays.asList( "count" ) );
+		env = McpAnalysisSupport.describeMethod( "Track to gene set", params, null, only );
+		assertFalse( "an unknown name must not bind", env.isOk() );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, env.getCode() );
+		assertTrue( env.getError(), env.getError().contains( "allowed values" ) && env.getError().contains( "Count in exons" ) );
+	}
+
 	@SuppressWarnings( "unchecked" )
 	public void testRunSync()
 	{
