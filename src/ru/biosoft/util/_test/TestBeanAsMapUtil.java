@@ -155,6 +155,17 @@ public class TestBeanAsMapUtil extends TestCase
     public static class ChoiceBean extends Option
     {
         private Choice[] choices = {Choice.createInstance( "Count" )};
+        private int[] numbers = {7};
+        public int[] getNumbers()
+        {
+            return numbers;
+        }
+        public void setNumbers(int[] numbers)
+        {
+            Object oldValue = this.numbers;
+            this.numbers = numbers;
+            firePropertyChange( "numbers", oldValue, numbers );
+        }
         public Choice[] getChoices()
         {
             return choices;
@@ -177,6 +188,7 @@ public class TestBeanAsMapUtil extends TestCase
         protected void initProperties() throws Exception
         {
             property( "choices" ).simple().hideChildren().add();
+            property( "numbers" ).simple().hideChildren().add();
         }
     }
 
@@ -210,30 +222,69 @@ public class TestBeanAsMapUtil extends TestCase
         assertEquals( "[Count, Positions]", choicesOf( "[\"Count\",\"Positions\"]" ) );
     }
 
-    private static final Object[] UNKNOWN_CHOICES = {"count", "Count,Positions", "[\"count\"]", java.util.Arrays.asList( "count" ),
-            java.util.Arrays.asList( "Count", "nope" )};
-
-    /** Strict binding (MCP): an unknown name is an error, not a silent null (or a null item) the analysis later fails on. */
+    /** Strict binding (MCP): a value that converts to nothing, or to an array with a missing item, is an error. */
     public void testUnknownChoiceIsRejected()
     {
-        for( Object value : UNKNOWN_CHOICES )
+        Object[][] cases = {
+                {"count", "cannot convert count to Choice[]"},
+                {"Count,Positions", "cannot convert Count,Positions to Choice[]"},
+                {"[\"count\"]", "choices[0]: cannot convert \"count\" to Choice"},
+                {java.util.Arrays.asList( "count" ), "choices[0]: cannot convert \"count\" to Choice"},
+                {java.util.Arrays.asList( "Count", "nope", "Positions" ), "choices[1]: cannot convert \"nope\" to Choice"},
+                {java.util.Arrays.asList( "Count", null ), "choices[1]: cannot convert null to Choice"},
+                {java.util.Arrays.asList( (Object)null ), "choices[0]: cannot convert null to Choice"},
+                {java.util.Arrays.asList( "Count", 123 ), "choices[1]: cannot convert \"123\" to Choice"},
+                {java.util.Arrays.asList( java.util.Arrays.asList( "Count" ) ), "to Choice"}};
+        for( Object[] c : cases )
         {
             try
             {
-                String bound = choicesOf( value, true );
-                fail( "unknown choice " + value + " was bound as " + bound );
+                String bound = choicesOf( c[0], true );
+                fail( "unknown choice " + c[0] + " was bound as " + bound );
             }
             catch( IllegalArgumentException e )
             {
-                assertTrue( e.getMessage(), e.getMessage().contains( "Choice[]" ) );
+                assertTrue( c[0] + ": " + e.getMessage(), e.getMessage().contains( (String)c[1] ) );
             }
         }
     }
 
-    /** Lenient binding (workflows): an unknown name is skipped, the property keeps its value and is never set to null. */
-    public void testUnknownChoiceIsSkippedWhenLenient()
+    /** An explicit null and an empty string clear the property in both modes; an empty list is an empty array. */
+    public void testNullAndEmptyClear()
     {
-        for( Object value : UNKNOWN_CHOICES )
-            assertEquals( String.valueOf( value ), "[Positions]", choicesOf( value, false ) );
+        for( boolean strict : new boolean[] {true, false} )
+        {
+            assertEquals( "null", choicesOf( null, strict ) );
+            assertEquals( "null", choicesOf( "", strict ) );
+            assertEquals( "[]", choicesOf( new ArrayList<>(), strict ) );
+        }
+    }
+
+    /** Lenient binding (workflows) is unchanged but for lists: an unknown name is bound as null, as it always was. */
+    public void testLenientBinding()
+    {
+        assertEquals( "[Count]", choicesOf( java.util.Arrays.asList( "Count" ), false ) );
+        assertEquals( "null", choicesOf( "count", false ) );
+    }
+
+    /** List items are passed as strings and parsed by the component type, so a list of numbers binds an int[]. */
+    public void testListBindsToSimplePrimitiveArray()
+    {
+        ChoiceBean bean = new ChoiceBean();
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put( "numbers", java.util.Arrays.asList( 1, 2 ) );
+        BeanAsMapUtil.readBeanFromHierarchicalMap( map, bean, true );
+        assertEquals( "[1, 2]", java.util.Arrays.toString( bean.getNumbers() ) );
+
+        map.put( "numbers", java.util.Arrays.asList( "x" ) );
+        try
+        {
+            BeanAsMapUtil.readBeanFromHierarchicalMap( map, bean, true );
+            fail( "[\"x\"] was bound as " + java.util.Arrays.toString( bean.getNumbers() ) );
+        }
+        catch( IllegalArgumentException e )
+        {
+            assertTrue( e.getMessage(), e.getMessage().contains( "int[]" ) );
+        }
     }
 }
