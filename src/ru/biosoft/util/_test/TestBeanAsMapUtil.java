@@ -170,6 +170,18 @@ public class TestBeanAsMapUtil extends TestCase
             firePropertyChange( "limit", oldValue, limit );
         }
         private String fixed = "fixed";
+        private String tag = "t";
+        public String getTag()
+        {
+            return tag;
+        }
+        /** Normalizes, and throws after changing the field: strict binding must report it all the same. */
+        public void setTag(String tag)
+        {
+            this.tag = tag.trim();
+            if( this.tag.isEmpty() )
+                throw new IllegalArgumentException( "tag must not be blank" );
+        }
         public String getFixed()
         {
             return fixed;
@@ -213,6 +225,7 @@ public class TestBeanAsMapUtil extends TestCase
             property( "choices" ).simple().hideChildren().add();
             property( "numbers" ).simple().hideChildren().add();
             add( "limit" );
+            add( "tag" );
             property( "fixed" ).readOnly().add();
         }
     }
@@ -339,10 +352,12 @@ public class TestBeanAsMapUtil extends TestCase
     public void testStrictReportsWhatLenientDrops()
     {
         assertStrictError( "limit", "", "cannot convert" );
-        // also an int given null (getValueClass() is Integer, so this is the setter call failing)
-        assertStrictError( "limit", null, "limit: null was refused by the property" );
-        // the setter's IllegalArgumentException is logged and swallowed by Property.setValue: detected by the result
-        assertStrictError( "limit", -1, "limit: -1 was refused by the property" );
+        // getValueClass() is Integer, so an int given null fails only in the setter call
+        assertStrictError( "limit", null, "limit: cannot set null" );
+        // Property.setValue logs and swallows what the setter throws: strict binding calls the setter itself
+        assertStrictError( "limit", -1, "limit: -1 was refused: limit must be >= 0" );
+        assertStrictError( "tag", "  ", "tag:    was refused: tag must not be blank" );
+        assertEquals( "x", bind( "tag", " x ", true ).getTag() );
         assertStrictError( "fixed", "other", "fixed is read-only" );
         assertEquals( 3, bind( "limit", 3, true ).getLimit() );
         assertEquals( 5, bind( "limit", 5, true ).getLimit() );
