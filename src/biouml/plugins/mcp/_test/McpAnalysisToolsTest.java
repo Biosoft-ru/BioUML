@@ -177,6 +177,13 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		assertFalse( "an unknown name must not bind", env.isOk() );
 		assertEquals( McpConstants.CODE_INVALID_PARAMS, env.getCode() );
 		assertTrue( env.getError(), env.getError().contains( "allowed values" ) && env.getError().contains( "Count in exons" ) );
+
+		// biouml_analysis_run binds through the same bindParameters, on its own fresh bean: a bad item is named
+		params.put( "resultTypes", java.util.Arrays.asList( "Count", "count" ) );
+		env = McpAnalysisSupport.runAnalysis( "Track to gene set", params, null, true );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, env.getCode() );
+		assertTrue( env.getError(), env.getError().contains( "could not bind parameter 'resultTypes'" )
+				&& env.getError().contains( "resultTypes[1]: cannot convert \"count\"" ) && env.getError().contains( "allowed values" ) );
 	}
 
 	@SuppressWarnings( "unchecked" )

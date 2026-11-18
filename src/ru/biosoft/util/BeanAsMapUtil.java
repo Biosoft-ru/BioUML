@@ -1,7 +1,6 @@
 package ru.biosoft.util;
 
 import java.beans.PropertyEditor;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -126,7 +125,13 @@ public class BeanAsMapUtil
 
     /**
      * @param strict whether a value that cannot be converted to its property's type is an
-     *        {@link IllegalArgumentException}; otherwise such a value is skipped and the property keeps its value
+     *        {@link IllegalArgumentException}: a value that converts to nothing (an unknown choice name), to another
+     *        type, or to an array with a missing item. An explicit null, and an empty string, still clear the
+     *        property. Lenient binding keeps the historical behavior: such a value is assigned as whatever the
+     *        conversion gave (possibly null) or, when the property rejects it, skipped. Either way the bean is
+     *        bound property by property, and an array of beans item by item, so a failure can leave the
+     *        properties bound before it changed: a caller that needs all or nothing binds a fresh bean and
+     *        discards it on error.
      */
     public static void readBeanFromHierarchicalMap(Map<String, Object> hMap, Object bean, boolean strict)
     {
@@ -167,11 +172,12 @@ public class BeanAsMapUtil
     {
         if( property.isReadOnly() )
             return;
+        Object input = value;
         if( value != null && !property.getValueClass().isInstance( value ) )
         {
             try
             {
-                value = TextUtil2.fromString( property.getValueClass(), toText( value ), true );
+                value = TextUtil2.fromString( property.getValueClass(), toText( property.getValueClass(), value ), true );
             }
             catch(ParseException e)
             {
@@ -194,10 +200,9 @@ public class BeanAsMapUtil
                     }
                 }
             }
-            if( strict && value != null && !MethodType.methodType( property.getValueClass() ).wrap().returnType().isInstance( value ) )
-                throw new IllegalArgumentException( "cannot convert " + toText( value ) + " to "
-                        + property.getValueClass().getSimpleName() );
         }
+        if( strict && input != null )
+            checkConverted( property, input, value );
         try
         {
             property.setValue( value );
@@ -212,25 +217,112 @@ public class BeanAsMapUtil
     }
 
     /**
-     * The text a simple property's value is parsed from. A list of scalars (an array property shown as one
-     * value, e.g. a multi-select of SiteAggregator) becomes a JSON array of strings, the form
-     * {@link TextUtil2#fromString} reads arrays from: {@code List.toString()} gives {@code [Count]}, which is no
-     * JSON and was bound as null.
+     * Strict binding: the value {@code input} converted to must be a value of the property's type, and an
+     * array one without missing items. {@link TextUtil2#fromString} answers an unknown name of a
+     * {@code createInstance} factory (SiteAggregator, Species) with null, also in its strict mode, which other
+     * callers rely on; so it is checked here, where a null for a non-empty input is a conversion failure.
      */
-    private static String toText(Object value)
+    private static void checkConverted(Property property, Object input, Object value)
     {
-        if( value instanceof Collection )
+        Class<?> type = property.getValueClass();
+        String text = toText( type, input );
+        if( value == null )
         {
-            JsonArray array = new JsonArray();
-            for( Object item : (Collection<?>)value )
+            if( text.isEmpty() )
+                return;
+            throw new IllegalArgumentException( "cannot convert " + text + " to " + type.getSimpleName() );
+        }
+        if( !wrapper( type ).isInstance( value ) )
+            throw new IllegalArgumentException( "cannot convert " + text + " to " + type.getSimpleName() );
+        if( type.isArray() && !type.getComponentType().isPrimitive() )
+        {
+            for( int i = 0; i < Array.getLength( value ); i++ )
+                if( Array.get( value, i ) == null )
+                    throw new IllegalArgumentException( property.getName() + "[" + i + "]: cannot convert " + itemText( input, i )
+                            + " to " + type.getComponentType().getSimpleName() );
+        }
+    }
+
+    /** The {@code i}-th item of a list or JSON-array input, as text for an error message. */
+    private static String itemText(Object input, int i)
+    {
+        try
+        {
+            if( input instanceof List )
             {
-                if( item instanceof Map || item instanceof Collection )
-                    return TextUtil2.toString( value );
-                array.add( item == null ? Json.NULL : Json.value( TextUtil2.toString( item ) ) );
+                Object item = ( (List<?>)input ).get( i );
+                return item == null ? "null" : "\"" + TextUtil2.toString( item ) + "\"";
             }
-            return array.toString();
+            if( input instanceof String )
+                return Json.parse( (String)input ).asArray().get( i ).toString();
+        }
+        catch( Exception e )
+        {
+            // not a list: the whole input is reported
+        }
+        return TextUtil2.toString( input );
+    }
+
+    private static Class<?> wrapper(Class<?> type)
+    {
+        if( !type.isPrimitive() )
+            return type;
+        if( type == int.class )
+            return Integer.class;
+        if( type == long.class )
+            return Long.class;
+        if( type == double.class )
+            return Double.class;
+        if( type == float.class )
+            return Float.class;
+        if( type == boolean.class )
+            return Boolean.class;
+        if( type == short.class )
+            return Short.class;
+        if( type == byte.class )
+            return Byte.class;
+        return Character.class;
+    }
+
+    /**
+     * The text a simple property's value is parsed from. For an array property shown as one value (a
+     * multi-select of SiteAggregator) a list becomes a JSON array, the form {@link TextUtil2#fromString} reads
+     * arrays from: {@code List.toString()} gives {@code [Count]}, which is no JSON and was bound as null. The items
+     * are JSON strings, as {@code fromString} reads each item with {@code asString()} and parses it by the
+     * component type (so {@code [1, 2]} binds an {@code int[]}); a nested list becomes a nested array. Any other
+     * value, and a list holding a map, is converted as before.
+     */
+    private static String toText(Class<?> type, Object value)
+    {
+        if( type.isArray() && value instanceof Collection )
+        {
+            JsonArray array = toJsonArray( (Collection<?>)value );
+            if( array != null )
+                return array.toString();
         }
         return TextUtil2.toString( value );
+    }
+
+    private static JsonArray toJsonArray(Collection<?> items)
+    {
+        JsonArray array = new JsonArray();
+        for( Object item : items )
+        {
+            if( item == null )
+                array.add( Json.NULL );
+            else if( item instanceof Collection )
+            {
+                JsonArray nested = toJsonArray( (Collection<?>)item );
+                if( nested == null )
+                    return null;
+                array.add( nested );
+            }
+            else if( item instanceof Map )
+                return null;
+            else
+                array.add( Json.value( TextUtil2.toString( item ) ) );
+        }
+        return array;
     }
 
     private static void setArrayPropertyFromList(ArrayProperty model, List<?> list, boolean strict)

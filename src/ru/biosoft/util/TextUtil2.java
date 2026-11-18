@@ -558,16 +558,7 @@ public class TextUtil2
         try
         {
             Method method = type.getMethod("createInstance", String.class);
-            Object instance = method.invoke(null, valueStr);
-            // A factory answers an unknown name with null: in strict mode that is a parse failure, not a value,
-            // or an array of such items (an unknown "count" for a SiteAggregator[]) would be bound as null.
-            if( instance == null && strict && !valueStr.isEmpty() )
-                throw new ParseException(valueStr, type);
-            return instance;
-        }
-        catch( ParseException e1 )
-        {
-            throw e1;
+            return method.invoke(null, valueStr);
         }
         catch( Exception e1 )
         {
