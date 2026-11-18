@@ -87,7 +87,7 @@ public class FunctionalGOHub extends SqlCachedFunctionalHubSupport
     @Override
     protected Iterable<Group> getGroups() throws Exception
     {
-        String speciesList = "'"+String.join("','", getSpeciesList())+"'";
+        String speciesList = "'"+String.join("','", getSpeciesList().stream().map(s -> s.replace("'", "''")).toList())+"'";
         String query = "select distinct g.symbol,t.acc,t.name from gene_product g,species s,term t,association a "
                 + "where s.id=g.species_id and s.common_name in(" + speciesList + ") and a.term_id=t.id and gene_product_id=g.id"
                 + ( subType.equals("all") ? "" : " and term_type='" + subType + "'" );
