@@ -1,10 +1,7 @@
 package ru.biosoft.util;
 
-import java.beans.FeatureDescriptor;
-import java.beans.PropertyDescriptor;
 import java.beans.PropertyEditor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,6 +16,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.developmentontheedge.beans.editors.PropertyEditorEx;
+import com.developmentontheedge.beans.log.BeanLogger;
+import com.developmentontheedge.beans.log.Logger;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonValue;
@@ -216,7 +215,7 @@ public class BeanAsMapUtil
         try
         {
             if( strict )
-                invokeSetter( property, input, value );
+                setValueStrictly( property, input, value );
             else
                 property.setValue( value );
             if(property.getBooleanAttribute( BeanInfoEx2.STRUCTURE_CHANGING_PROPERTY ))
@@ -230,37 +229,66 @@ public class BeanAsMapUtil
     }
 
     /**
-     * Strict binding: call the property's setter so that what it throws is reported. {@link Property#setValue}
-     * (beans 3.0.4) invokes the same write method but logs and swallows any Throwable, also the
-     * IllegalArgumentException of a null for an {@code int}. The contract is that the setter accepted the value: it
-     * may normalize it. Only the model's own PropertyChangeEvent, which setValue fires for a bean that does not fire
-     * its events itself, is not fired; the bean's setter fires its own, and a structure-changing property is
-     * recreated by the caller. A property without a plain write method is set through setValue as before.
+     * Strict binding: {@link Property#setValue}, but what it fails with is reported. setValue (beans 3.0.4, and
+     * ArrayProperty through it) invokes the write method, fires the model's PropertyChangeEvent, and logs any
+     * Exception to the beans {@link Logger} instead of throwing it: a refusing setter, also one that changed the
+     * field before throwing, and a null for an {@code int}. So setValue runs as always, with the library's own
+     * thread-local logger hook capturing the errors it logs; warnings still reach the logger in use.
      */
-    private static void invokeSetter(Property property, Object input, Object value) throws NoSuchMethodException
+    private static void setValueStrictly(Property property, Object input, Object value) throws NoSuchMethodException
     {
-        FeatureDescriptor descriptor = property.getDescriptor();
-        Method write = descriptor instanceof PropertyDescriptor ? ( (PropertyDescriptor)descriptor ).getWriteMethod() : null;
-        if( write == null )
+        BeanLogger outer = Logger.getLogger();
+        List<Throwable> errors = new ArrayList<>();
+        BeanLogger capture = new BeanLogger()
         {
-            property.setValue( value );
-            return;
-        }
-        String text = input == null ? "null" : toText( property.getValueClass(), input );
+            @Override
+            public void warn(String message)
+            {
+                outer.warn( message );
+            }
+            @Override
+            public void warn(String message, Throwable t)
+            {
+                outer.warn( message, t );
+            }
+            @Override
+            public void error(String message)
+            {
+                errors.add( new IllegalStateException( message ) );
+            }
+            @Override
+            public void error(String message, Throwable t)
+            {
+                errors.add( t == null ? new IllegalStateException( message ) : t );
+            }
+        };
         try
         {
-            write.invoke( property.getOwner(), value );
+            Logger.withLogger( capture, () -> {
+                property.setValue( value );
+                return null;
+            } );
         }
-        catch( InvocationTargetException e )
+        catch( NoSuchMethodException | RuntimeException e )
         {
-            Throwable cause = e.getCause();
+            throw e;
+        }
+        catch( Exception e )
+        {
+            throw new IllegalStateException( e );
+        }
+        if( errors.isEmpty() )
+            return;
+        String text = input == null ? "null" : toText( property.getValueClass(), input );
+        Throwable error = errors.get( 0 );
+        if( error instanceof InvocationTargetException && error.getCause() != null )
+        {
+            Throwable cause = error.getCause();
             throw new IllegalArgumentException( property.getName() + ": " + text + " was refused"
                     + ( cause.getMessage() == null ? " (" + cause.getClass().getSimpleName() + ")" : ": " + cause.getMessage() ), cause );
         }
-        catch( IllegalAccessException | IllegalArgumentException e )
-        {
-            throw new IllegalArgumentException( property.getName() + ": cannot set " + text, e );
-        }
+        throw new IllegalArgumentException( property.getName() + ": cannot set " + text
+                + ( error.getMessage() == null ? "" : " (" + error.getMessage() + ")" ), error );
     }
 
     /**
