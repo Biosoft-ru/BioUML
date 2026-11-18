@@ -84,7 +84,9 @@ public class ChartAnalysisParameters extends AbstractAnalysisParameters
     }
     public void setOutputChart(DataElementPath outputChart)
     {
+        DataElementPath oldValue = this.outputChart;
         this.outputChart = outputChart;
+        firePropertyChange( "outputChart", oldValue, outputChart );
     }
 
     private String paletteName = ADVANCED_PALETTE;

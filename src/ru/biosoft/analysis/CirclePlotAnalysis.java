@@ -98,18 +98,21 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
 
     private String getRScript(File inputFile, File imageFile)
     {
-        String sortStr = parameters.getOrderColumn();
+        String sortColName = parameters.getOrderColumn();
         String descriptionColumn = parameters.getCategoryColumn();
         String title = "Dotplot for " + parameters.getInputTable().getName();
         String sortTitlesStr = null;
-        if( sortStr != null )
+        if( sortColName != null )
         {
-            sortTitlesStr = sortStr;
+
             if( parameters.isSortDescending() )
-                sortStr = "desc(" + sortStr + ")";
+                sortColName = "desc(`" + sortColName + "`)";
+            else
+                sortColName = "`" + sortColName + "`";
+            sortTitlesStr = sortColName;
         }
         else
-            sortStr = descriptionColumn;
+            sortColName = "`" + descriptionColumn + "`";
         String xColumn = parameters.getValuesColumn();
         String sizeColumn = parameters.getCircleSizeColumn();
         String colorColumn = parameters.getCircleColorColumn();
@@ -130,27 +133,29 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
                 + "showCategory <- " +parameters.getNumTopCategories()+ "\n"
                 + "gsea_res <- gsea_res %>%\n");
 
-        script.append("  arrange("+ sortStr +") %>%\n"
+        script.append( "  arrange(" + sortColName + ") %>%\n"
                 + "  head(showCategory)" );
         if( sortTitlesStr != null )
         {
             script.append( "%>%\n" );
-            script.append( "mutate (`" + descriptionColumn + "` = reorder(`" + descriptionColumn + "`, `" + sortTitlesStr + "`))\n" );
+            script.append( "mutate (`" + descriptionColumn + "` = reorder(`" + descriptionColumn + "`, " + sortTitlesStr + "))\n" );
         }
         else
             script.append( "\n" );
+        String xValue = "`" + xColumn + "`";
         
-        
+        if( parameters.isNeedLog() )
+            xValue = "log10(" + xValue + ")";
         script.append( "# ---- 3. Draw the plot and assign it to a variable 'p' ----\n" 
-                + "p <- ggplot(gsea_res, aes(x = `" + xColumn + "`, y = `" + descriptionColumn + "`)) +\n" 
+                + "p <- ggplot(gsea_res, aes(x = " + xValue + ", y = `" + descriptionColumn + "`)) +\n"
                 + "  geom_point(aes(size = `" + sizeColumn + "`, fill = `" + fillColor + "`),shape=21,color=\"black\",stroke=0.5) +\n" );
         if(colorColumn != null)
         {
             script.append( "  scale_fill_gradient(\n" + "    name    = \"" + colorColumn + "\",\n"
                 + "    low     = \"red\",\n" 
                 + "    high    = \"blue\",\n" 
-                + "    trans   = \""+ (parameters.isNeedLog() ? "log10" : "none")
-                    + "\",\n    guide   = guide_colorbar(reverse = TRUE)) + \n" );
+                + "    transform   = \"identity\",\n"
+                + "    guide   = guide_colorbar(reverse = TRUE)) + \n" );
         }
         script.append( "scale_x_continuous(expand = expansion(mult = c(0.15, 0.15))) +\n" );
         script.append( " scale_size_continuous(name = \"" + sizeColumn + "\", range = c(2, 8)) +\n" + "  labs(\n" + "    title = \"" + title + "\",\n" + "    x     = \""
