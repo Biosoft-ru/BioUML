@@ -74,6 +74,13 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
         // a typo must not switch the protection off
         assertEquals( ScriptClassShutter.Mode.ENFORCE, ScriptClassShutter.parseMode( "enforced" ) );
 
+        // from preferences.xml
+        assertEquals( ScriptClassShutter.Mode.AUDIT, ScriptClassShutter.modeFrom( null ) );
+        com.developmentontheedge.beans.Preferences preferences = new com.developmentontheedge.beans.Preferences();
+        assertEquals( ScriptClassShutter.Mode.AUDIT, ScriptClassShutter.modeFrom( preferences ) );
+        preferences.add( new com.developmentontheedge.beans.DynamicProperty( ScriptClassShutter.MODE_PREFERENCE, String.class, "enforce" ) );
+        assertEquals( ScriptClassShutter.Mode.ENFORCE, ScriptClassShutter.modeFrom( preferences ) );
+
         ScriptClassShutter audit = shutter( ScriptClassShutter.Mode.AUDIT );
         assertTrue( "audit allows, and logs", audit.visibleToScripts( "java.io.File" ) );
         assertTrue( audit.visibleToScripts( "java.io.File" ) );
