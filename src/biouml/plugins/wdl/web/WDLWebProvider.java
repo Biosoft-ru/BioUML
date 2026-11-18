@@ -32,7 +32,6 @@ public class WDLWebProvider extends WebJSONProviderSupport
     private static final String WDL_TO_DIAGRAM = "wdl2diagram";
     private static final String RUN_WDL = "run";
 
-    String outputDir = TempFiles.path( "nextflow" ).getAbsolutePath();
 
     @Override
     public void process(BiosoftWebRequest arguments, JSONResponse response) throws Exception
@@ -94,6 +93,7 @@ public class WDLWebProvider extends WebJSONProviderSupport
             settings.initParameters( diagram );
             JSONArray jsonSettings = arguments.getJSONArray( "settings" );
             JSONUtils.correctBeanOptions( settings, jsonSettings );
+            String outputDir = TempFiles.path( "nextflow" ).getAbsolutePath();
             try
             {
                 String log = NextFlowRunner.runNextFlow( diagram, null, settings, outputDir, false );
