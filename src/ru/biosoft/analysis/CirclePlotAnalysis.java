@@ -158,7 +158,6 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
             script.append( "  scale_fill_gradient(\n" + "    name    = \"" + colorColumn + "\",\n"
                 + "    low     = \"red\",\n" 
                 + "    high    = \"blue\",\n" 
-                + "    transform   = \"identity\",\n"
                 + "    guide   = guide_colorbar(reverse = TRUE)) + \n" );
         }
         script.append( "scale_x_continuous(expand = expansion(mult = c(0.15, 0.15))) +\n" );
