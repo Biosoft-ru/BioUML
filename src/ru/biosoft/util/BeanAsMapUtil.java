@@ -1,8 +1,10 @@
 package ru.biosoft.util;
 
 import java.beans.PropertyEditor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,6 +16,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.developmentontheedge.beans.editors.PropertyEditorEx;
+import com.developmentontheedge.beans.log.BeanLogger;
+import com.developmentontheedge.beans.log.Logger;
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonValue;
 import com.developmentontheedge.beans.model.ArrayProperty;
 import com.developmentontheedge.beans.model.ComponentFactory;
 import com.developmentontheedge.beans.model.ComponentFactory.Policy;
@@ -117,43 +124,69 @@ public class BeanAsMapUtil
 
     public static void readBeanFromHierarchicalMap(Map<String, Object> hMap, Object bean)
     {
-        ComponentModel model = ComponentFactory.getModel( bean );
-        setCompositePropertyFromMap( model, hMap );
+        readBeanFromHierarchicalMap( hMap, bean, false );
     }
 
-    private static void setPropertyFromObject(Property property, Object value)
+    /**
+     * @param strict whether a value that cannot be converted to its property's type is an
+     *        {@link IllegalArgumentException}: a value that converts to nothing (an unknown choice name), to another
+     *        type, or to an array with a missing item. An explicit null, and an empty string, still clear the
+     *        property. Lenient binding keeps the historical behavior: such a value is assigned as whatever the
+     *        conversion gave (possibly null) or, when the property rejects it, skipped. Either way the bean is
+     *        bound property by property, and an array of beans item by item, so a failure can leave the
+     *        properties bound before it changed: a caller that needs all or nothing binds a fresh bean and
+     *        discards it on error.
+     */
+    public static void readBeanFromHierarchicalMap(Map<String, Object> hMap, Object bean, boolean strict)
+    {
+        ComponentModel model = ComponentFactory.getModel( bean );
+        setCompositePropertyFromMap( model, hMap, strict );
+    }
+
+    private static void setPropertyFromObject(Property property, Object value, boolean strict)
     {
         if( value == null )
         {
-            setPropertyFromSimpleObject( property, null );
+            setPropertyFromSimpleObject( property, null, strict );
         }
         else if( isCompositeProperty( property ) )
         {
             if( ! ( value instanceof Map ) )
                 throw new IllegalArgumentException();
-            setCompositePropertyFromMap( (CompositeProperty)property, (Map<?, ?>)value );
+            setCompositePropertyFromMap( (CompositeProperty)property, (Map<?, ?>)value, strict );
         }
         else if( isArrayProperty( property ) )
         {
             if( ! ( value instanceof List ) )
                 throw new IllegalArgumentException();
-            setArrayPropertyFromList( (ArrayProperty)property, (List<?>)value );
+            setArrayPropertyFromList( (ArrayProperty)property, (List<?>)value, strict );
         }
         else
         {
-            setPropertyFromSimpleObject( property, value );
+            setPropertyFromSimpleObject( property, value, strict );
         }
     }
 
     public static void setPropertyFromSimpleObject(Property property, Object value)
     {
+        setPropertyFromSimpleObject( property, value, false );
+    }
+
+    private static void setPropertyFromSimpleObject(Property property, Object value, boolean strict)
+    {
         if( property.isReadOnly() )
+        {
+            // strict: a read-only property given another value than its own is an error; echoing it back is fine
+            if( strict && !Objects.deepEquals( property.getValue(), value ) )
+                throw new IllegalArgumentException( property.getName() + " is read-only" );
             return;
+        }
+        Object input = value;
         if( value != null && !property.getValueClass().isInstance( value ) )
         {
             try
             {
-                value = TextUtil2.fromString( property.getValueClass(), TextUtil2.toString( value ), true );
+                value = TextUtil2.fromString( property.getValueClass(), toText( property.getValueClass(), value ), true );
             }
             catch(ParseException e)
             {
@@ -177,9 +210,14 @@ public class BeanAsMapUtil
                 }
             }
         }
+        if( strict && input != null )
+            checkConverted( property, input, value );
         try
         {
-            property.setValue( value );
+            if( strict )
+                setValueStrictly( property, input, value );
+            else
+                property.setValue( value );
             if(property.getBooleanAttribute( BeanInfoEx2.STRUCTURE_CHANGING_PROPERTY ))
             {
                 ComponentFactory.recreateChildProperties( property.getParent() );
@@ -187,10 +225,214 @@ public class BeanAsMapUtil
         }
         catch( NoSuchMethodException e )
         {
+            if( strict )
+                throw new IllegalArgumentException( property.getName() + " has no setter", e );
         }
     }
 
-    private static void setArrayPropertyFromList(ArrayProperty model, List<?> list)
+    /**
+     * Strict binding: {@link Property#setValue}, but what it fails with is reported. setValue (beans 3.0.4, and
+     * ArrayProperty through it) invokes the write method, fires the model's PropertyChangeEvent, and logs any
+     * Exception to the beans {@link Logger} instead of throwing it: a refusing setter, also one that changed the
+     * field before throwing, and a null for an {@code int}. So setValue runs as always, with the library's own
+     * thread-local logger hook ({@link Logger#withLogger}, which restores the previous logger also on failure)
+     * capturing the errors it logs.
+     * <p>
+     * The contract: any error the beans model reports while assigning the value is a binding failure. Besides
+     * the setter, that is a model PropertyChangeListener throwing, as setValue fires the event inside the same
+     * catch; nothing else in BioUML logs to the beans logger from a setter. The captured error is not logged
+     * again: it is the caller's error to report (MCP returns it, with the setter's message, to the client),
+     * and its cause is kept. Warnings still reach the logger in use. setValue's NoSuchMethodException (no
+     * write method) is passed on to the caller.
+     */
+    private static void setValueStrictly(Property property, Object input, Object value) throws NoSuchMethodException
+    {
+        BeanLogger outer = Logger.getLogger();
+        List<Throwable> errors = new ArrayList<>();
+        BeanLogger capture = new BeanLogger()
+        {
+            @Override
+            public void warn(String message)
+            {
+                outer.warn( message );
+            }
+            @Override
+            public void warn(String message, Throwable t)
+            {
+                outer.warn( message, t );
+            }
+            @Override
+            public void error(String message)
+            {
+                errors.add( new IllegalStateException( message ) );
+            }
+            @Override
+            public void error(String message, Throwable t)
+            {
+                errors.add( t == null ? new IllegalStateException( message ) : t );
+            }
+        };
+        try
+        {
+            Logger.withLogger( capture, () -> {
+                property.setValue( value );
+                return null;
+            } );
+        }
+        catch( NoSuchMethodException | RuntimeException e )
+        {
+            throw e;
+        }
+        catch( Exception e )
+        {
+            throw new IllegalStateException( e );
+        }
+        if( errors.isEmpty() )
+            return;
+        String text = input == null ? "null" : toText( property.getValueClass(), input );
+        Throwable error = errors.get( 0 );
+        if( error instanceof InvocationTargetException && error.getCause() != null )
+        {
+            Throwable cause = error.getCause();
+            throw new IllegalArgumentException( property.getName() + ": " + text + " was refused"
+                    + ( cause.getMessage() == null ? " (" + cause.getClass().getSimpleName() + ")" : ": " + cause.getMessage() ), cause );
+        }
+        throw new IllegalArgumentException( property.getName() + ": cannot set " + text
+                + ( error.getMessage() == null ? "" : " (" + error.getMessage() + ")" ), error );
+    }
+
+    /**
+     * Strict binding: the value {@code input} converted to must be a value of the property's type, and an
+     * array one without missing items. {@link TextUtil2#fromString} answers an unknown name of a
+     * {@code createInstance} factory (SiteAggregator, Species) with null, also in its strict mode, which other
+     * callers rely on; so it is checked here, where a null for a non-empty input is a conversion failure.
+     */
+    private static void checkConverted(Property property, Object input, Object value)
+    {
+        Class<?> type = property.getValueClass();
+        String text = toText( type, input );
+        if( value == null )
+        {
+            if( text.isEmpty() && !type.isPrimitive() )
+                return;
+            throw new IllegalArgumentException( "cannot convert " + text + " to " + type.getSimpleName() );
+        }
+        if( !wrapper( type ).isInstance( value ) )
+            throw new IllegalArgumentException( "cannot convert " + text + " to " + type.getSimpleName() );
+        checkItems( property.getName(), input, value );
+    }
+
+    /** Every item of an object array, and of the arrays nested in it, is present. */
+    private static void checkItems(String name, Object input, Object value)
+    {
+        Class<?> type = value.getClass();
+        if( !type.isArray() || type.getComponentType().isPrimitive() )
+            return;
+        for( int i = 0; i < Array.getLength( value ); i++ )
+        {
+            Object item = Array.get( value, i );
+            if( item == null )
+                throw new IllegalArgumentException( name + "[" + i + "]: cannot convert " + itemText( input, i ) + " to "
+                        + type.getComponentType().getSimpleName() );
+            checkItems( name + "[" + i + "]", itemOf( input, i ), item );
+        }
+    }
+
+    /** The {@code i}-th item of a list, JSON array or JSON-array text input, or null if it has none. */
+    private static Object itemOf(Object input, int i)
+    {
+        try
+        {
+            if( input instanceof List )
+                return ( (List<?>)input ).get( i );
+            if( input instanceof JsonValue )
+                return ( (JsonValue)input ).asArray().get( i );
+            if( input instanceof String )
+                return Json.parse( (String)input ).asArray().get( i );
+        }
+        catch( RuntimeException e )
+        {
+            // not a list of that size
+        }
+        return null;
+    }
+
+    /** The {@code i}-th item of the input, as text for an error message; the whole input if it is no list. */
+    private static String itemText(Object input, int i)
+    {
+        Object item = itemOf( input, i );
+        if( item instanceof JsonValue )
+            return item.toString();
+        if( item != null )
+            return "\"" + TextUtil2.toString( item ) + "\"";
+        return input instanceof List || input instanceof JsonValue ? "null" : TextUtil2.toString( input );
+    }
+
+    private static Class<?> wrapper(Class<?> type)
+    {
+        if( !type.isPrimitive() )
+            return type;
+        if( type == int.class )
+            return Integer.class;
+        if( type == long.class )
+            return Long.class;
+        if( type == double.class )
+            return Double.class;
+        if( type == float.class )
+            return Float.class;
+        if( type == boolean.class )
+            return Boolean.class;
+        if( type == short.class )
+            return Short.class;
+        if( type == byte.class )
+            return Byte.class;
+        if( type == char.class )
+            return Character.class;
+        throw new IllegalArgumentException( "no value of type " + type );
+    }
+
+    /**
+     * The text a simple property's value is parsed from. For an array property shown as one value (a
+     * multi-select of SiteAggregator) a list becomes a JSON array, the form {@link TextUtil2#fromString} reads
+     * arrays from: {@code List.toString()} gives {@code [Count]}, which is no JSON and was bound as null. The items
+     * are JSON strings, as {@code fromString} reads each item with {@code asString()} and parses it by the
+     * component type (so {@code [1, 2]} binds an {@code int[]}); a nested list becomes a nested array. Any other
+     * value, and a list holding a map, is converted as before.
+     */
+    private static String toText(Class<?> type, Object value)
+    {
+        if( type.isArray() && value instanceof Collection )
+        {
+            JsonArray array = toJsonArray( (Collection<?>)value );
+            if( array != null )
+                return array.toString();
+        }
+        return TextUtil2.toString( value );
+    }
+
+    private static JsonArray toJsonArray(Collection<?> items)
+    {
+        JsonArray array = new JsonArray();
+        for( Object item : items )
+        {
+            if( item == null )
+                array.add( Json.NULL );
+            else if( item instanceof Collection )
+            {
+                JsonArray nested = toJsonArray( (Collection<?>)item );
+                if( nested == null )
+                    return null;
+                array.add( nested );
+            }
+            else if( item instanceof Map )
+                return null;
+            else
+                array.add( Json.value( TextUtil2.toString( item ) ) );
+        }
+        return array;
+    }
+
+    private static void setArrayPropertyFromList(ArrayProperty model, List<?> list, boolean strict)
     {
         if(model.getValue() == null)
         {
@@ -217,20 +459,20 @@ public class BeanAsMapUtil
                 catch( IllegalAccessException ignore2 )
                 {
                 }
-            setPropertyFromObject( model.getPropertyAt( i ), list.get( i ) );
+            setPropertyFromObject( model.getPropertyAt( i ), list.get( i ), strict );
         }
         while( model.getPropertyCount() > list.size() )
             model.removeItem( model.getPropertyCount() - 1 );
     }
 
-    private static void setCompositePropertyFromMap(CompositeProperty model, Map<?, ?> hMap)
+    private static void setCompositePropertyFromMap(CompositeProperty model, Map<?, ?> hMap, boolean strict)
     {
         for(int i = 0; i < model.getPropertyCount(); i++)
         {
             Property property = model.getPropertyAt( i );
             if(!hMap.containsKey( property.getName() ))
                 continue;
-            setPropertyFromObject(property, hMap.get( property.getName() ) );
+            setPropertyFromObject(property, hMap.get( property.getName() ), strict );
         }
     }
 
