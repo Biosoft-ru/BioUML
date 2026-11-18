@@ -1,6 +1,10 @@
 package ru.biosoft.util;
 
+import java.beans.FeatureDescriptor;
+import java.beans.PropertyDescriptor;
 import java.beans.PropertyEditor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,6 +21,7 @@ import java.util.regex.Pattern;
 import com.developmentontheedge.beans.editors.PropertyEditorEx;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonValue;
 import com.developmentontheedge.beans.model.ArrayProperty;
 import com.developmentontheedge.beans.model.ComponentFactory;
 import com.developmentontheedge.beans.model.ComponentFactory.Policy;
@@ -208,15 +213,12 @@ public class BeanAsMapUtil
         }
         if( strict && input != null )
             checkConverted( property, input, value );
-        Object before = strict ? property.getValue() : null;
         try
         {
-            property.setValue( value );
-            // Property.setValue logs and swallows what the setter throws: strict, a value that differs from the
-            // property's and left it unchanged was refused
-            if( strict && !Objects.deepEquals( before, value ) && Objects.deepEquals( before, property.getValue() ) )
-                throw new IllegalArgumentException( property.getName() + ": " + ( input == null ? "null" : toText( property.getValueClass(), input ) )
-                        + " was refused by the property (see the server log for why)" );
+            if( strict )
+                invokeSetter( property, input, value );
+            else
+                property.setValue( value );
             if(property.getBooleanAttribute( BeanInfoEx2.STRUCTURE_CHANGING_PROPERTY ))
             {
                 ComponentFactory.recreateChildProperties( property.getParent() );
@@ -224,6 +226,40 @@ public class BeanAsMapUtil
         }
         catch( NoSuchMethodException e )
         {
+        }
+    }
+
+    /**
+     * Strict binding: call the property's setter so that what it throws is reported. {@link Property#setValue}
+     * (beans 3.0.4) invokes the same write method but logs and swallows any Throwable, also the
+     * IllegalArgumentException of a null for an {@code int}. The contract is that the setter accepted the value: it
+     * may normalize it. Only the model's own PropertyChangeEvent, which setValue fires for a bean that does not fire
+     * its events itself, is not fired; the bean's setter fires its own, and a structure-changing property is
+     * recreated by the caller. A property without a plain write method is set through setValue as before.
+     */
+    private static void invokeSetter(Property property, Object input, Object value) throws NoSuchMethodException
+    {
+        FeatureDescriptor descriptor = property.getDescriptor();
+        Method write = descriptor instanceof PropertyDescriptor ? ( (PropertyDescriptor)descriptor ).getWriteMethod() : null;
+        if( write == null )
+        {
+            property.setValue( value );
+            return;
+        }
+        String text = input == null ? "null" : toText( property.getValueClass(), input );
+        try
+        {
+            write.invoke( property.getOwner(), value );
+        }
+        catch( InvocationTargetException e )
+        {
+            Throwable cause = e.getCause();
+            throw new IllegalArgumentException( property.getName() + ": " + text + " was refused"
+                    + ( cause.getMessage() == null ? " (" + cause.getClass().getSimpleName() + ")" : ": " + cause.getMessage() ), cause );
+        }
+        catch( IllegalAccessException | IllegalArgumentException e )
+        {
+            throw new IllegalArgumentException( property.getName() + ": cannot set " + text, e );
         }
     }
 
@@ -260,28 +296,38 @@ public class BeanAsMapUtil
             if( item == null )
                 throw new IllegalArgumentException( name + "[" + i + "]: cannot convert " + itemText( input, i ) + " to "
                         + type.getComponentType().getSimpleName() );
-            checkItems( name + "[" + i + "]", input instanceof List ? ( (List<?>)input ).get( i ) : null, item );
+            checkItems( name + "[" + i + "]", itemOf( input, i ), item );
         }
     }
 
-    /** The {@code i}-th item of a list or JSON-array input, as text for an error message. */
-    private static String itemText(Object input, int i)
+    /** The {@code i}-th item of a list, JSON array or JSON-array text input, or null if it has none. */
+    private static Object itemOf(Object input, int i)
     {
         try
         {
             if( input instanceof List )
-            {
-                Object item = ( (List<?>)input ).get( i );
-                return item == null ? "null" : "\"" + TextUtil2.toString( item ) + "\"";
-            }
+                return ( (List<?>)input ).get( i );
+            if( input instanceof JsonValue )
+                return ( (JsonValue)input ).asArray().get( i );
             if( input instanceof String )
-                return Json.parse( (String)input ).asArray().get( i ).toString();
+                return Json.parse( (String)input ).asArray().get( i );
         }
         catch( RuntimeException e )
         {
-            // not a list: the whole input is reported
+            // not a list of that size
         }
-        return TextUtil2.toString( input );
+        return null;
+    }
+
+    /** The {@code i}-th item of the input, as text for an error message; the whole input if it is no list. */
+    private static String itemText(Object input, int i)
+    {
+        Object item = itemOf( input, i );
+        if( item instanceof JsonValue )
+            return item.toString();
+        if( item != null )
+            return "\"" + TextUtil2.toString( item ) + "\"";
+        return input instanceof List || input instanceof JsonValue ? "null" : TextUtil2.toString( input );
     }
 
     private static Class<?> wrapper(Class<?> type)
