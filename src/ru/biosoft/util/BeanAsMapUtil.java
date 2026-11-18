@@ -225,6 +225,8 @@ public class BeanAsMapUtil
         }
         catch( NoSuchMethodException e )
         {
+            if( strict )
+                throw new IllegalArgumentException( property.getName() + " has no setter", e );
         }
     }
 
@@ -233,7 +235,15 @@ public class BeanAsMapUtil
      * ArrayProperty through it) invokes the write method, fires the model's PropertyChangeEvent, and logs any
      * Exception to the beans {@link Logger} instead of throwing it: a refusing setter, also one that changed the
      * field before throwing, and a null for an {@code int}. So setValue runs as always, with the library's own
-     * thread-local logger hook capturing the errors it logs; warnings still reach the logger in use.
+     * thread-local logger hook ({@link Logger#withLogger}, which restores the previous logger also on failure)
+     * capturing the errors it logs.
+     * <p>
+     * The contract: any error the beans model reports while assigning the value is a binding failure. Besides
+     * the setter, that is a model PropertyChangeListener throwing, as setValue fires the event inside the same
+     * catch; nothing else in BioUML logs to the beans logger from a setter. The captured error is not logged
+     * again: it is the caller's error to report (MCP returns it, with the setter's message, to the client),
+     * and its cause is kept. Warnings still reach the logger in use. setValue's NoSuchMethodException (no
+     * write method) is passed on to the caller.
      */
     private static void setValueStrictly(Property property, Object input, Object value) throws NoSuchMethodException
     {

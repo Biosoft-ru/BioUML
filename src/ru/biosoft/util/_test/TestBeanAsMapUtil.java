@@ -371,6 +371,20 @@ public class TestBeanAsMapUtil extends TestCase
     public static class QuietBean
     {
         private String label = "a";
+        private String note = "";
+        public String getNote()
+        {
+            return note;
+        }
+        /** Reports to the beans logger as the library itself does: a warning, or an error without throwing. */
+        public void setNote(String note)
+        {
+            if( note.startsWith( "warn" ) )
+                com.developmentontheedge.beans.log.Logger.getLogger().warn( "note: " + note );
+            if( note.startsWith( "error" ) )
+                com.developmentontheedge.beans.log.Logger.getLogger().error( "note: " + note, new IllegalStateException( note ) );
+            this.note = note;
+        }
         public String getLabel()
         {
             return label;
@@ -391,6 +405,7 @@ public class TestBeanAsMapUtil extends TestCase
         protected void initProperties() throws Exception
         {
             add( "label" );
+            add( "note" );
         }
     }
 
@@ -409,5 +424,67 @@ public class TestBeanAsMapUtil extends TestCase
             assertEquals( "b", bean.getLabel() );
             assertEquals( "strict=" + strict, Collections.singletonList( "label=b" ), events );
         }
+    }
+
+    /** A beans logger recording what reaches it. */
+    private static class RecordingLogger implements com.developmentontheedge.beans.log.BeanLogger
+    {
+        final List<String> lines = new ArrayList<>();
+        @Override
+        public void warn(String message)
+        {
+            lines.add( "warn " + message );
+        }
+        @Override
+        public void warn(String message, Throwable t)
+        {
+            lines.add( "warn " + message );
+        }
+        @Override
+        public void error(String message)
+        {
+            lines.add( "error " + message );
+        }
+        @Override
+        public void error(String message, Throwable t)
+        {
+            lines.add( "error " + message );
+        }
+    }
+
+    private static void bindNote(QuietBean bean, String note)
+    {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put( "note", note );
+        BeanAsMapUtil.readBeanFromHierarchicalMap( map, bean, true );
+    }
+
+    /**
+     * The capture is scoped to one assignment: the logger in use is restored also after a failure, warnings reach
+     * it, a logged error is the binding's failure and is not logged again, and the next binding is unaffected.
+     */
+    public void testStrictCaptureIsScopedToTheAssignment() throws Exception
+    {
+        RecordingLogger outer = new RecordingLogger();
+        QuietBean bean = new QuietBean();
+        com.developmentontheedge.beans.log.Logger.withLogger( outer, () -> {
+            bindNote( bean, "warn me" );
+            assertEquals( "warn me", bean.getNote() );
+            try
+            {
+                bindNote( bean, "error here" );
+                fail( "an error logged by the setter was accepted" );
+            }
+            catch( IllegalArgumentException e )
+            {
+                assertTrue( e.getMessage(), e.getMessage().contains( "note: cannot set error here" ) );
+                assertTrue( e.getCause() instanceof IllegalStateException );
+            }
+            assertSame( outer, com.developmentontheedge.beans.log.Logger.getLogger() );
+            bindNote( bean, "fine" );
+            assertEquals( "fine", bean.getNote() );
+            return null;
+        } );
+        assertEquals( Collections.singletonList( "warn note: warn me" ), outer.lines );
     }
 }
