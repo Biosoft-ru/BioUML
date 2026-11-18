@@ -65,8 +65,9 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
         String rScript = getRScript( inputFile, imageFile );
         log.log( Level.FINE, rScript );
         SecurityManager.runPrivileged( () -> ScriptTypeRegistry.execute( "R", rScript, env, false ) );
-        ImageFileImporter importer = new ImageFileImporter();
         DataElementPath outPath = parameters.getOutputChart();
+        ImageFileImporter importer = new ImageFileImporter();
+        importer.getProperties( outPath.getParentCollection(), imageFile, outPath.getName() ).setPreserveExtension( false );
         ImageDataElement result = (ImageDataElement) importer.doImport( outPath.getParentCollection(), imageFile, outPath.getName(), null, log );
         imageFile.delete();
         return new Object[] { result };
@@ -143,9 +144,12 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
         else
             script.append( "\n" );
         String xValue = "`" + xColumn + "`";
-        
+        String xLabel = xColumn;
         if( parameters.isNeedLog() )
-            xValue = "log10(" + xValue + ")";
+        {
+            xValue = "-log10(" + xValue + ")";
+            xLabel = xColumn + " (-log10)";
+        }
         script.append( "# ---- 3. Draw the plot and assign it to a variable 'p' ----\n" 
                 + "p <- ggplot(gsea_res, aes(x = " + xValue + ", y = `" + descriptionColumn + "`)) +\n"
                 + "  geom_point(aes(size = `" + sizeColumn + "`, fill = `" + fillColor + "`),shape=21,color=\"black\",stroke=0.5) +\n" );
@@ -158,8 +162,9 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
                 + "    guide   = guide_colorbar(reverse = TRUE)) + \n" );
         }
         script.append( "scale_x_continuous(expand = expansion(mult = c(0.15, 0.15))) +\n" );
-        script.append( " scale_size_continuous(name = \"" + sizeColumn + "\", range = c(2, 8)) +\n" + "  labs(\n" + "    title = \"" + title + "\",\n" + "    x     = \""
-                + xColumn + "\",\n"
+        script.append( " scale_size_continuous(name = \"" + sizeColumn + "\", range = c(2, 8)) +\n" 
+        + "  labs(\n" + "    title = \"" + title + "\",\n" 
+                + "    x     = \"" + xLabel + "\",\n"
                 + "    y     = NULL\n" + "  ) +\n" + "  theme_minimal(base_size = 10) +\n"
                 + "  theme(\n"
                 + "    plot.title    = element_text(face = \"bold\", hjust = 0.5),\n" 
