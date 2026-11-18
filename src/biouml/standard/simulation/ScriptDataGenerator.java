@@ -52,6 +52,7 @@ public class ScriptDataGenerator extends SimulationDataGeneratorSupport
         this.origin = origin;
         this.name = name;
         context = Context.enter();
+        ru.biosoft.plugins.javascript.ScriptClassShutter.install( context );
         scope = new ImporterTopLevel();
         buck = new NativeObject();
         scope.put("$", scope, buck);
@@ -248,6 +249,7 @@ public class ScriptDataGenerator extends SimulationDataGeneratorSupport
         }
         
         context = Context.enter();
+        ru.biosoft.plugins.javascript.ScriptClassShutter.install( context );
         scope = new ImporterTopLevel();
         buck = new NativeObject();
         scope.put("$", scope, buck);

@@ -104,6 +104,8 @@ public class JScriptContext
         if( threadContext == null )
         {
             threadContext = Context.enter();
+            // before the scope and its host objects exist: they are wrapped through it too
+            ScriptClassShutter.install( threadContext );
             threadContext.setApplicationClassLoader(ClassLoading.getClassLoader());
             try
             {
@@ -123,6 +125,7 @@ public class JScriptContext
         if( Context.getCurrentContext() == null )
         {
             threadContext = Context.enter();
+            ScriptClassShutter.install( threadContext );
             try
             {
                 threadContext.setSecurityController(securityController);
@@ -709,6 +712,7 @@ public class JScriptContext
             c = ClassLoading.loadClass( className, element.getNamespaceIdentifier() );
 
             Object host = c.newInstance();
+            ScriptClassShutter.allowHostObjectClass( c );
             if( host instanceof JSEnvironmentProvider )
             {
                 ( (JSEnvironmentProvider)host ).setScopeObject(scope);
