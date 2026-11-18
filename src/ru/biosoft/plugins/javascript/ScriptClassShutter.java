@@ -13,6 +13,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.mozilla.javascript.ClassShutter;
+
+import com.developmentontheedge.application.Application;
+import com.developmentontheedge.beans.Preferences;
 import org.mozilla.javascript.Context;
 
 /**
@@ -29,15 +32,16 @@ import org.mozilla.javascript.Context;
  * one per line: {@code allow <entry>} or {@code deny <entry>}, {@code #} starting a comment. The classes of the host
  * objects declared in plugin.xml are allowed as they are defined ({@link #allowHostObjectClass}).</p>
  *
- * <p>The mode ({@value #MODE_PROPERTY}): {@code enforce} hides what the list does not allow; {@code audit}, the
- * default, allows it but logs each such class once, so the list can be completed from a real run before enforcing;
- * {@code off} installs no shutter.</p>
+ * <p>The mode, the {@value #MODE_PREFERENCE} entry of the server's preferences.xml (read once, at the first script):
+ * {@code enforce} hides what the list does not allow; {@code audit}, the default, allows it but logs each such class
+ * once, so the list can be completed from a real run before enforcing; {@code off} installs no shutter.</p>
  */
 public class ScriptClassShutter implements ClassShutter
 {
     private static final Logger log = Logger.getLogger( ScriptClassShutter.class.getName() );
 
-    public static final String MODE_PROPERTY = "biouml.javascript.classShutter";
+    /** The preferences.xml entry with the mode: enforce, audit or off. */
+    public static final String MODE_PREFERENCE = "JavaScriptClassShutter";
     public static final String FILE_PROPERTY = "biouml.javascript.classShutter.file";
 
     public enum Mode
@@ -110,15 +114,15 @@ public class ScriptClassShutter implements ClassShutter
             {
                 result = instance;
                 if( result == null )
-                    instance = result = fromSystemProperties();
+                    instance = result = fromConfiguration();
             }
         }
         return result;
     }
 
-    private static ScriptClassShutter fromSystemProperties()
+    private static ScriptClassShutter fromConfiguration()
     {
-        Mode mode = parseMode( System.getProperty( MODE_PROPERTY ) );
+        Mode mode = modeFrom( Application.getPreferences() );
         List<String> extraAllow = new ArrayList<>(), extraDeny = new ArrayList<>();
         String file = System.getProperty( FILE_PROPERTY );
         if( file != null && !file.isEmpty() )
@@ -145,7 +149,13 @@ public class ScriptClassShutter implements ClassShutter
         return new ScriptClassShutter( mode, extraAllow, extraDeny );
     }
 
-    /** The mode a {@value #MODE_PROPERTY} value names: audit when unset, enforce when unknown. */
+    /** The mode the preferences set ({@value #MODE_PREFERENCE}); audit without preferences or the entry. */
+    public static Mode modeFrom(Preferences preferences)
+    {
+        return parseMode( preferences == null ? null : preferences.getStringValue( MODE_PREFERENCE, null ) );
+    }
+
+    /** The mode a {@value #MODE_PREFERENCE} value names: audit when unset, enforce when unknown. */
     public static Mode parseMode(String value)
     {
         if( value == null || value.trim().isEmpty() )
@@ -157,7 +167,7 @@ public class ScriptClassShutter implements ClassShutter
         catch( IllegalArgumentException e )
         {
             // an unknown mode must not switch the shutter off
-            log.severe( "Unknown " + MODE_PROPERTY + " '" + value + "', using enforce" );
+            log.severe( "Unknown " + MODE_PREFERENCE + " '" + value + "' in preferences.xml, using enforce" );
             return Mode.ENFORCE;
         }
     }
@@ -183,7 +193,7 @@ public class ScriptClassShutter implements ClassShutter
     }
 
     /**
-     * Use this shutter for the contexts entered from now on; null configures it from the system properties again.
+     * Use this shutter for the contexts entered from now on; null configures it from preferences.xml again.
      * For tests and embedders (Java code; scripts cannot see this class).
      */
     public static void setInstance(ScriptClassShutter shutter)
