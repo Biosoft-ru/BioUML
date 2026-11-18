@@ -1,8 +1,10 @@
 package ru.biosoft.util;
 
 import java.beans.PropertyEditor;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,6 +16,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.developmentontheedge.beans.editors.PropertyEditorEx;
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
 import com.developmentontheedge.beans.model.ArrayProperty;
 import com.developmentontheedge.beans.model.ComponentFactory;
 import com.developmentontheedge.beans.model.ComponentFactory.Policy;
@@ -117,35 +121,49 @@ public class BeanAsMapUtil
 
     public static void readBeanFromHierarchicalMap(Map<String, Object> hMap, Object bean)
     {
-        ComponentModel model = ComponentFactory.getModel( bean );
-        setCompositePropertyFromMap( model, hMap );
+        readBeanFromHierarchicalMap( hMap, bean, false );
     }
 
-    private static void setPropertyFromObject(Property property, Object value)
+    /**
+     * @param strict whether a value that cannot be converted to its property's type is an
+     *        {@link IllegalArgumentException}; otherwise such a value is skipped and the property keeps its value
+     */
+    public static void readBeanFromHierarchicalMap(Map<String, Object> hMap, Object bean, boolean strict)
+    {
+        ComponentModel model = ComponentFactory.getModel( bean );
+        setCompositePropertyFromMap( model, hMap, strict );
+    }
+
+    private static void setPropertyFromObject(Property property, Object value, boolean strict)
     {
         if( value == null )
         {
-            setPropertyFromSimpleObject( property, null );
+            setPropertyFromSimpleObject( property, null, strict );
         }
         else if( isCompositeProperty( property ) )
         {
             if( ! ( value instanceof Map ) )
                 throw new IllegalArgumentException();
-            setCompositePropertyFromMap( (CompositeProperty)property, (Map<?, ?>)value );
+            setCompositePropertyFromMap( (CompositeProperty)property, (Map<?, ?>)value, strict );
         }
         else if( isArrayProperty( property ) )
         {
             if( ! ( value instanceof List ) )
                 throw new IllegalArgumentException();
-            setArrayPropertyFromList( (ArrayProperty)property, (List<?>)value );
+            setArrayPropertyFromList( (ArrayProperty)property, (List<?>)value, strict );
         }
         else
         {
-            setPropertyFromSimpleObject( property, value );
+            setPropertyFromSimpleObject( property, value, strict );
         }
     }
 
     public static void setPropertyFromSimpleObject(Property property, Object value)
+    {
+        setPropertyFromSimpleObject( property, value, false );
+    }
+
+    private static void setPropertyFromSimpleObject(Property property, Object value, boolean strict)
     {
         if( property.isReadOnly() )
             return;
@@ -153,7 +171,7 @@ public class BeanAsMapUtil
         {
             try
             {
-                value = TextUtil2.fromString( property.getValueClass(), TextUtil2.toString( value ), true );
+                value = TextUtil2.fromString( property.getValueClass(), toText( value ), true );
             }
             catch(ParseException e)
             {
@@ -176,6 +194,9 @@ public class BeanAsMapUtil
                     }
                 }
             }
+            if( strict && value != null && !MethodType.methodType( property.getValueClass() ).wrap().returnType().isInstance( value ) )
+                throw new IllegalArgumentException( "cannot convert " + toText( value ) + " to "
+                        + property.getValueClass().getSimpleName() );
         }
         try
         {
@@ -190,7 +211,29 @@ public class BeanAsMapUtil
         }
     }
 
-    private static void setArrayPropertyFromList(ArrayProperty model, List<?> list)
+    /**
+     * The text a simple property's value is parsed from. A list of scalars (an array property shown as one
+     * value, e.g. a multi-select of SiteAggregator) becomes a JSON array of strings, the form
+     * {@link TextUtil2#fromString} reads arrays from: {@code List.toString()} gives {@code [Count]}, which is no
+     * JSON and was bound as null.
+     */
+    private static String toText(Object value)
+    {
+        if( value instanceof Collection )
+        {
+            JsonArray array = new JsonArray();
+            for( Object item : (Collection<?>)value )
+            {
+                if( item instanceof Map || item instanceof Collection )
+                    return TextUtil2.toString( value );
+                array.add( item == null ? Json.NULL : Json.value( TextUtil2.toString( item ) ) );
+            }
+            return array.toString();
+        }
+        return TextUtil2.toString( value );
+    }
+
+    private static void setArrayPropertyFromList(ArrayProperty model, List<?> list, boolean strict)
     {
         if(model.getValue() == null)
         {
@@ -217,20 +260,20 @@ public class BeanAsMapUtil
                 catch( IllegalAccessException ignore2 )
                 {
                 }
-            setPropertyFromObject( model.getPropertyAt( i ), list.get( i ) );
+            setPropertyFromObject( model.getPropertyAt( i ), list.get( i ), strict );
         }
         while( model.getPropertyCount() > list.size() )
             model.removeItem( model.getPropertyCount() - 1 );
     }
 
-    private static void setCompositePropertyFromMap(CompositeProperty model, Map<?, ?> hMap)
+    private static void setCompositePropertyFromMap(CompositeProperty model, Map<?, ?> hMap, boolean strict)
     {
         for(int i = 0; i < model.getPropertyCount(); i++)
         {
             Property property = model.getPropertyAt( i );
             if(!hMap.containsKey( property.getName() ))
                 continue;
-            setPropertyFromObject(property, hMap.get( property.getName() ) );
+            setPropertyFromObject(property, hMap.get( property.getName() ), strict );
         }
     }
 

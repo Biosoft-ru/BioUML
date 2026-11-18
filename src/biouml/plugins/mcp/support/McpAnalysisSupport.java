@@ -796,12 +796,15 @@ public final class McpAnalysisSupport
 			single.put( p.getName(), nested.get( p.getName() ) );
 			try
 			{
-				BeanAsMapUtil.readBeanFromHierarchicalMap( single, bean );
+				// strict: a value that is not one of a choice's names is an error, not a silently kept default
+				BeanAsMapUtil.readBeanFromHierarchicalMap( single, bean, true );
 			}
 			catch ( Exception e )
 			{
+				String[] allowed = allowedValues( p );
 				return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS,
-						"could not bind parameter '" + p.getName() + "'" + expectedShape( p ) + causeOf( e ) );
+						"could not bind parameter '" + p.getName() + "'" + expectedShape( p ) + causeOf( e )
+								+ ( allowed == null ? "" : "; allowed values: " + java.util.Arrays.asList( allowed ) ) );
 			}
 		}
 		return McpEnvelope.ok( null );

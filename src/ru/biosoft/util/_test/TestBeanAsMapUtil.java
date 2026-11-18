@@ -6,10 +6,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.developmentontheedge.beans.Option;
+
 import junit.framework.TestCase;
 import ru.biosoft.util.BeanAsMapUtil;
 import ru.biosoft.util._test.BeanUtilTest.TestNestedObject;
 import ru.biosoft.util._test.BeanUtilTest.TestObject;
+import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class TestBeanAsMapUtil extends TestCase
 {
@@ -122,5 +125,115 @@ public class TestBeanAsMapUtil extends TestCase
         assertTrue( bean.getNested1().isBoolProperty() );
         assertEquals( "qq", bean.getNested1().getStringProperty() );
         assertNull( bean.getNested2() );
+    }
+
+    /** An item chosen by name, like SiteAggregator: {@code createInstance} answers an unknown name with null. */
+    public static class Choice
+    {
+        private static final Choice[] ALL = {new Choice( "Count" ), new Choice( "Count in exons" ), new Choice( "Positions" )};
+        private final String name;
+        private Choice(String name)
+        {
+            this.name = name;
+        }
+        public static Choice createInstance(String name)
+        {
+            for( Choice c : ALL )
+                if( c.name.equals( name ) )
+                    return c;
+            return null;
+        }
+        @Override
+        public String toString()
+        {
+            return name;
+        }
+    }
+
+    /** A bean with an array of choices shown as one value, as MutationWeightGECalculator and TrackToGeneSet declare resultTypes. */
+    @SuppressWarnings ( "serial" )
+    public static class ChoiceBean extends Option
+    {
+        private Choice[] choices = {Choice.createInstance( "Count" )};
+        public Choice[] getChoices()
+        {
+            return choices;
+        }
+        public void setChoices(Choice[] choices)
+        {
+            Object oldValue = this.choices;
+            this.choices = choices;
+            firePropertyChange( "choices", oldValue, choices );
+        }
+    }
+
+    public static class ChoiceBeanBeanInfo extends BeanInfoEx2<ChoiceBean>
+    {
+        public ChoiceBeanBeanInfo()
+        {
+            super( ChoiceBean.class );
+        }
+        @Override
+        protected void initProperties() throws Exception
+        {
+            property( "choices" ).simple().hideChildren().add();
+        }
+    }
+
+    private static String choicesOf(Object value, boolean strict)
+    {
+        ChoiceBean bean = new ChoiceBean();
+        bean.setChoices( new Choice[] {Choice.createInstance( "Positions" )} );
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put( "choices", value );
+        BeanAsMapUtil.readBeanFromHierarchicalMap( map, bean, strict );
+        Choice[] choices = bean.getChoices();
+        return choices == null ? "null" : java.util.Arrays.toString( choices );
+    }
+
+    private static String choicesOf(Object value)
+    {
+        return choicesOf( value, true );
+    }
+
+    /** A JSON list (what an MCP client or a YAML workflow passes) binds to the array, not to null. */
+    public void testListBindsToSimpleArray()
+    {
+        assertEquals( "[Count]", choicesOf( java.util.Arrays.asList( "Count" ) ) );
+        assertEquals( "[Count in exons, Positions]", choicesOf( java.util.Arrays.asList( "Count in exons", "Positions" ) ) );
+        assertEquals( "[]", choicesOf( new ArrayList<>() ) );
+    }
+
+    public void testTextBindsToSimpleArray()
+    {
+        assertEquals( "[Count in exons]", choicesOf( "Count in exons" ) );
+        assertEquals( "[Count, Positions]", choicesOf( "[\"Count\",\"Positions\"]" ) );
+    }
+
+    private static final Object[] UNKNOWN_CHOICES = {"count", "Count,Positions", "[\"count\"]", java.util.Arrays.asList( "count" ),
+            java.util.Arrays.asList( "Count", "nope" )};
+
+    /** Strict binding (MCP): an unknown name is an error, not a silent null (or a null item) the analysis later fails on. */
+    public void testUnknownChoiceIsRejected()
+    {
+        for( Object value : UNKNOWN_CHOICES )
+        {
+            try
+            {
+                String bound = choicesOf( value, true );
+                fail( "unknown choice " + value + " was bound as " + bound );
+            }
+            catch( IllegalArgumentException e )
+            {
+                assertTrue( e.getMessage(), e.getMessage().contains( "Choice[]" ) );
+            }
+        }
+    }
+
+    /** Lenient binding (workflows): an unknown name is skipped, the property keeps its value and is never set to null. */
+    public void testUnknownChoiceIsSkippedWhenLenient()
+    {
+        for( Object value : UNKNOWN_CHOICES )
+            assertEquals( String.valueOf( value ), "[Positions]", choicesOf( value, false ) );
     }
 }
