@@ -6,10 +6,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.developmentontheedge.beans.Option;
+
 import junit.framework.TestCase;
 import ru.biosoft.util.BeanAsMapUtil;
 import ru.biosoft.util._test.BeanUtilTest.TestNestedObject;
 import ru.biosoft.util._test.BeanUtilTest.TestObject;
+import ru.biosoft.util.bean.BeanInfoEx2;
 
 public class TestBeanAsMapUtil extends TestCase
 {
@@ -122,5 +125,366 @@ public class TestBeanAsMapUtil extends TestCase
         assertTrue( bean.getNested1().isBoolProperty() );
         assertEquals( "qq", bean.getNested1().getStringProperty() );
         assertNull( bean.getNested2() );
+    }
+
+    /** An item chosen by name, like SiteAggregator: {@code createInstance} answers an unknown name with null. */
+    public static class Choice
+    {
+        private static final Choice[] ALL = {new Choice( "Count" ), new Choice( "Count in exons" ), new Choice( "Positions" )};
+        private final String name;
+        private Choice(String name)
+        {
+            this.name = name;
+        }
+        public static Choice createInstance(String name)
+        {
+            for( Choice c : ALL )
+                if( c.name.equals( name ) )
+                    return c;
+            return null;
+        }
+        @Override
+        public String toString()
+        {
+            return name;
+        }
+    }
+
+    /** A bean with an array of choices shown as one value, as MutationWeightGECalculator and TrackToGeneSet declare resultTypes. */
+    @SuppressWarnings ( "serial" )
+    public static class ChoiceBean extends Option
+    {
+        private Choice[] choices = {Choice.createInstance( "Count" )};
+        private int[] numbers = {7};
+        private int limit = 5;
+        public int getLimit()
+        {
+            return limit;
+        }
+        public void setLimit(int limit)
+        {
+            if( limit < 0 )
+                throw new IllegalArgumentException( "limit must be >= 0" );
+            Object oldValue = this.limit;
+            this.limit = limit;
+            firePropertyChange( "limit", oldValue, limit );
+        }
+        private String fixed = "fixed";
+        private String tag = "t";
+        public String getTag()
+        {
+            return tag;
+        }
+        /** Normalizes, and throws after changing the field: strict binding must report it all the same. */
+        public void setTag(String tag)
+        {
+            this.tag = tag.trim();
+            if( this.tag.isEmpty() )
+                throw new IllegalArgumentException( "tag must not be blank" );
+        }
+        public String getFixed()
+        {
+            return fixed;
+        }
+        public void setFixed(String fixed)
+        {
+            this.fixed = fixed;
+        }
+
+        public int[] getNumbers()
+        {
+            return numbers;
+        }
+        public void setNumbers(int[] numbers)
+        {
+            Object oldValue = this.numbers;
+            this.numbers = numbers;
+            firePropertyChange( "numbers", oldValue, numbers );
+        }
+        public Choice[] getChoices()
+        {
+            return choices;
+        }
+        public void setChoices(Choice[] choices)
+        {
+            Object oldValue = this.choices;
+            this.choices = choices;
+            firePropertyChange( "choices", oldValue, choices );
+        }
+    }
+
+    public static class ChoiceBeanBeanInfo extends BeanInfoEx2<ChoiceBean>
+    {
+        public ChoiceBeanBeanInfo()
+        {
+            super( ChoiceBean.class );
+        }
+        @Override
+        protected void initProperties() throws Exception
+        {
+            property( "choices" ).simple().hideChildren().add();
+            property( "numbers" ).simple().hideChildren().add();
+            add( "limit" );
+            add( "tag" );
+            property( "fixed" ).readOnly().add();
+        }
+    }
+
+    private static String choicesOf(Object value, boolean strict)
+    {
+        ChoiceBean bean = new ChoiceBean();
+        bean.setChoices( new Choice[] {Choice.createInstance( "Positions" )} );
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put( "choices", value );
+        BeanAsMapUtil.readBeanFromHierarchicalMap( map, bean, strict );
+        Choice[] choices = bean.getChoices();
+        return choices == null ? "null" : java.util.Arrays.toString( choices );
+    }
+
+    private static String choicesOf(Object value)
+    {
+        return choicesOf( value, true );
+    }
+
+    /** A JSON list (what an MCP client or a YAML workflow passes) binds to the array, not to null. */
+    public void testListBindsToSimpleArray()
+    {
+        assertEquals( "[Count]", choicesOf( java.util.Arrays.asList( "Count" ) ) );
+        assertEquals( "[Count in exons, Positions]", choicesOf( java.util.Arrays.asList( "Count in exons", "Positions" ) ) );
+        assertEquals( "[]", choicesOf( new ArrayList<>() ) );
+    }
+
+    public void testTextBindsToSimpleArray()
+    {
+        assertEquals( "[Count in exons]", choicesOf( "Count in exons" ) );
+        assertEquals( "[Count, Positions]", choicesOf( "[\"Count\",\"Positions\"]" ) );
+    }
+
+    /** Strict binding (MCP): a value that converts to nothing, or to an array with a missing item, is an error. */
+    public void testUnknownChoiceIsRejected()
+    {
+        Object[][] cases = {
+                {"count", "cannot convert count to Choice[]"},
+                {"Count,Positions", "cannot convert Count,Positions to Choice[]"},
+                {"[\"count\"]", "choices[0]: cannot convert \"count\" to Choice"},
+                {java.util.Arrays.asList( "count" ), "choices[0]: cannot convert \"count\" to Choice"},
+                {java.util.Arrays.asList( "Count", "nope", "Positions" ), "choices[1]: cannot convert \"nope\" to Choice"},
+                {java.util.Arrays.asList( "Count", null ), "choices[1]: cannot convert null to Choice"},
+                {java.util.Arrays.asList( (Object)null ), "choices[0]: cannot convert null to Choice"},
+                {java.util.Arrays.asList( "Count", 123 ), "choices[1]: cannot convert \"123\" to Choice"},
+                {java.util.Arrays.asList( java.util.Arrays.asList( "Count" ) ), "to Choice"}};
+        for( Object[] c : cases )
+        {
+            try
+            {
+                String bound = choicesOf( c[0], true );
+                fail( "unknown choice " + c[0] + " was bound as " + bound );
+            }
+            catch( IllegalArgumentException e )
+            {
+                assertTrue( c[0] + ": " + e.getMessage(), e.getMessage().contains( (String)c[1] ) );
+            }
+        }
+    }
+
+    /** An explicit null and an empty string clear the property in both modes; an empty list is an empty array. */
+    public void testNullAndEmptyClear()
+    {
+        for( boolean strict : new boolean[] {true, false} )
+        {
+            assertEquals( "null", choicesOf( null, strict ) );
+            assertEquals( "null", choicesOf( "", strict ) );
+            assertEquals( "[]", choicesOf( new ArrayList<>(), strict ) );
+        }
+    }
+
+    /** Lenient binding (workflows) is unchanged but for lists: an unknown name is bound as null, as it always was. */
+    public void testLenientBinding()
+    {
+        assertEquals( "[Count]", choicesOf( java.util.Arrays.asList( "Count" ), false ) );
+        assertEquals( "null", choicesOf( "count", false ) );
+    }
+
+    /** List items are passed as strings and parsed by the component type, so a list of numbers binds an int[]. */
+    public void testListBindsToSimplePrimitiveArray()
+    {
+        ChoiceBean bean = new ChoiceBean();
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put( "numbers", java.util.Arrays.asList( 1, 2 ) );
+        BeanAsMapUtil.readBeanFromHierarchicalMap( map, bean, true );
+        assertEquals( "[1, 2]", java.util.Arrays.toString( bean.getNumbers() ) );
+
+        map.put( "numbers", java.util.Arrays.asList( "x" ) );
+        try
+        {
+            BeanAsMapUtil.readBeanFromHierarchicalMap( map, bean, true );
+            fail( "[\"x\"] was bound as " + java.util.Arrays.toString( bean.getNumbers() ) );
+        }
+        catch( IllegalArgumentException e )
+        {
+            assertTrue( e.getMessage(), e.getMessage().contains( "int[]" ) );
+        }
+    }
+
+    private static ChoiceBean bind(String name, Object value, boolean strict)
+    {
+        ChoiceBean bean = new ChoiceBean();
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put( name, value );
+        BeanAsMapUtil.readBeanFromHierarchicalMap( map, bean, strict );
+        return bean;
+    }
+
+    private static void assertStrictError(String name, Object value, String expected)
+    {
+        try
+        {
+            bind( name, value, true );
+            fail( name + "=" + value + " was accepted" );
+        }
+        catch( IllegalArgumentException e )
+        {
+            assertTrue( name + "=" + value + ": " + e.getMessage(), e.getMessage().contains( expected ) );
+        }
+    }
+
+    /** Strict binding reports what lenient binding drops: a primitive cleared, a setter refusing, a read-only property. */
+    public void testStrictReportsWhatLenientDrops()
+    {
+        assertStrictError( "limit", "", "cannot convert" );
+        // getValueClass() is Integer, so an int given null fails only in the setter call
+        assertStrictError( "limit", null, "limit: cannot set null" );
+        // Property.setValue logs and swallows what the setter throws: strict binding calls the setter itself
+        assertStrictError( "limit", -1, "limit: -1 was refused: limit must be >= 0" );
+        assertStrictError( "tag", "  ", "tag:    was refused: tag must not be blank" );
+        assertEquals( "x", bind( "tag", " x ", true ).getTag() );
+        assertStrictError( "fixed", "other", "fixed is read-only" );
+        assertEquals( 3, bind( "limit", 3, true ).getLimit() );
+        assertEquals( 5, bind( "limit", 5, true ).getLimit() );
+        assertEquals( "fixed", bind( "fixed", "fixed", true ).getFixed() );
+
+        assertEquals( 5, bind( "limit", -1, false ).getLimit() );
+        assertEquals( "fixed", bind( "fixed", "other", false ).getFixed() );
+    }
+
+    /** A plain bean that fires no events itself: its changes reach listeners only through the model's own event. */
+    public static class QuietBean
+    {
+        private String label = "a";
+        private String note = "";
+        public String getNote()
+        {
+            return note;
+        }
+        /** Reports to the beans logger as the library itself does: a warning, or an error without throwing. */
+        public void setNote(String note)
+        {
+            if( note.startsWith( "warn" ) )
+                com.developmentontheedge.beans.log.Logger.getLogger().warn( "note: " + note );
+            if( note.startsWith( "error" ) )
+                com.developmentontheedge.beans.log.Logger.getLogger().error( "note: " + note, new IllegalStateException( note ) );
+            this.note = note;
+        }
+        public String getLabel()
+        {
+            return label;
+        }
+        public void setLabel(String label)
+        {
+            this.label = label;
+        }
+    }
+
+    public static class QuietBeanBeanInfo extends BeanInfoEx2<QuietBean>
+    {
+        public QuietBeanBeanInfo()
+        {
+            super( QuietBean.class );
+        }
+        @Override
+        protected void initProperties() throws Exception
+        {
+            add( "label" );
+            add( "note" );
+        }
+    }
+
+    /** Strict binding goes through Property.setValue as lenient binding does, so the model still fires its event. */
+    public void testStrictBindingFiresModelEvents()
+    {
+        for( boolean strict : new boolean[] {false, true} )
+        {
+            QuietBean bean = new QuietBean();
+            com.developmentontheedge.beans.model.ComponentModel model = com.developmentontheedge.beans.model.ComponentFactory.getModel( bean );
+            List<String> events = new ArrayList<>();
+            model.addPropertyChangeListener( e -> events.add( e.getPropertyName() + "=" + e.getNewValue() ) );
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put( "label", "b" );
+            BeanAsMapUtil.readBeanFromHierarchicalMap( map, bean, strict );
+            assertEquals( "b", bean.getLabel() );
+            assertEquals( "strict=" + strict, Collections.singletonList( "label=b" ), events );
+        }
+    }
+
+    /** A beans logger recording what reaches it. */
+    private static class RecordingLogger implements com.developmentontheedge.beans.log.BeanLogger
+    {
+        final List<String> lines = new ArrayList<>();
+        @Override
+        public void warn(String message)
+        {
+            lines.add( "warn " + message );
+        }
+        @Override
+        public void warn(String message, Throwable t)
+        {
+            lines.add( "warn " + message );
+        }
+        @Override
+        public void error(String message)
+        {
+            lines.add( "error " + message );
+        }
+        @Override
+        public void error(String message, Throwable t)
+        {
+            lines.add( "error " + message );
+        }
+    }
+
+    private static void bindNote(QuietBean bean, String note)
+    {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put( "note", note );
+        BeanAsMapUtil.readBeanFromHierarchicalMap( map, bean, true );
+    }
+
+    /**
+     * The capture is scoped to one assignment: the logger in use is restored also after a failure, warnings reach
+     * it, a logged error is the binding's failure and is not logged again, and the next binding is unaffected.
+     */
+    public void testStrictCaptureIsScopedToTheAssignment() throws Exception
+    {
+        RecordingLogger outer = new RecordingLogger();
+        QuietBean bean = new QuietBean();
+        com.developmentontheedge.beans.log.Logger.withLogger( outer, () -> {
+            bindNote( bean, "warn me" );
+            assertEquals( "warn me", bean.getNote() );
+            try
+            {
+                bindNote( bean, "error here" );
+                fail( "an error logged by the setter was accepted" );
+            }
+            catch( IllegalArgumentException e )
+            {
+                assertTrue( e.getMessage(), e.getMessage().contains( "note: cannot set error here" ) );
+                assertTrue( e.getCause() instanceof IllegalStateException );
+            }
+            assertSame( outer, com.developmentontheedge.beans.log.Logger.getLogger() );
+            bindNote( bean, "fine" );
+            assertEquals( "fine", bean.getNote() );
+            return null;
+        } );
+        assertEquals( Collections.singletonList( "warn note: warn me" ), outer.lines );
     }
 }

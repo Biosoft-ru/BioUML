@@ -155,6 +155,45 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		assertTrue( "describe must capture a default value", hasDefault );
 	}
 
+	/**
+	 * A list-valued choice parameter (resultTypes of 'Track to gene set', as of 'Mutations to genes with weights')
+	 * binds from the JSON list describe shows as its default; it used to be bound as null, which the one analysis
+	 * rejected in validation and the other failed on with a NullPointerException. An unknown name is an error
+	 * that lists the allowed values.
+	 */
+	@SuppressWarnings( "unchecked" )
+	public void testListValuedChoiceBinds()
+	{
+		List<String> only = java.util.Collections.singletonList( "resultTypes" );
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		params.put( "resultTypes", java.util.Arrays.asList( "Count in exons", "Count" ) );
+		McpEnvelope env = McpAnalysisSupport.describeMethod( "Track to gene set", params, null, only );
+		assertTrue( "describe should be ok, got " + env.getCode() + " " + env.getError(), env.isOk() );
+		Map<String, Object> p = ( (List<Map<String, Object>>) ( (Map<String, Object>) env.getData() ).get( "properties" ) ).get( 0 );
+		assertEquals( java.util.Arrays.asList( "Count in exons", "Count" ), p.get( "default" ) );
+
+		params.put( "resultTypes", java.util.Arrays.asList( "count" ) );
+		env = McpAnalysisSupport.describeMethod( "Track to gene set", params, null, only );
+		assertFalse( "an unknown name must not bind", env.isOk() );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, env.getCode() );
+		assertTrue( env.getError(), env.getError().contains( "allowed values" ) && env.getError().contains( "Count in exons" ) );
+
+		// biouml_analysis_run binds through the same bindParameters, on its own fresh bean: a bad item is named
+		params.put( "resultTypes", java.util.Arrays.asList( "Count", "count" ) );
+		env = McpAnalysisSupport.runAnalysis( "Track to gene set", params, null, true );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, env.getCode() );
+		assertTrue( env.getError(), env.getError().contains( "could not bind parameter 'resultTypes'" )
+				&& env.getError().contains( "resultTypes[1]: cannot convert \"count\"" ) && env.getError().contains( "allowed values" ) );
+
+		// and a valid list reaches the analysis through biouml_analysis_run (the stub declares resultTypes the same way)
+		Map<String, Object> run = params( 2 );
+		run.put( "resultTypes", java.util.Arrays.asList( "Count in exons", "Positions" ) );
+		McpTestAnalysis.lastResultTypes = null;
+		env = McpAnalysisSupport.runAnalysis( McpTestAnalysis.NAME, run, null, true );
+		assertTrue( "run should be ok, got " + env.getCode() + " " + env.getError(), env.isOk() );
+		assertEquals( "[Count in exons, Positions]", java.util.Arrays.toString( McpTestAnalysis.lastResultTypes ) );
+	}
+
 	@SuppressWarnings( "unchecked" )
 	public void testRunSync()
 	{
@@ -437,8 +476,8 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 		assertEquals( "Experiment", byName.get( "conditions/0/condition" ).get( "default" ) );
 		assertEquals( "Control", byName.get( "conditions/1/condition" ).get( "default" ) );
 
-		McpEnvelope filtered = McpAnalysisSupport.describeMethod( McpTestAnalysis.NAME, null, "EX" );
-		assertEquals( "EX", ( (Map<String, Object>) filtered.getData() ).get( "filter" ) );
+		McpEnvelope filtered = McpAnalysisSupport.describeMethod( McpTestAnalysis.NAME, null, "XAC" );
+		assertEquals( "XAC", ( (Map<String, Object>) filtered.getData() ).get( "filter" ) );
 		byName = properties( filtered );
 		assertEquals( "only the choices with matches", java.util.Collections.singleton( "mode" ), byName.keySet() );
 		Map<String, Object> mode = byName.get( "mode" );
