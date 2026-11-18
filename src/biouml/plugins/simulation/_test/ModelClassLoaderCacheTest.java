@@ -1,0 +1,528 @@
+package biouml.plugins.simulation._test;
+
+import biouml.plugins.simulation.SimulationEngine;
+
+import javax.tools.JavaCompiler;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.lang.reflect.Method;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
+/**
+ * Verifies the shared {@link URLClassLoader} cache used by {@link SimulationEngine#compileModel} to
+ * fix the per-run class loader leak.
+ *
+ * <p>A model is compiled into a <b>fresh private staging directory</b> and that staging directory is
+ * published, atomically, as an <b>immutable per-revision snapshot</b>. The cache is keyed by that
+ * snapshot directory, so each model revision (including any nested classes its generated code
+ * instantiates lazily) is isolated from later regenerations. The checks cover:
+ * <ul>
+ *   <li>the caching contract — an unchanged revision reuses one loader, a regenerated revision (new
+ *       compiled content) gets a fresh loader, distinct classes and distinct parents never share a
+ *       loader;
+ *   <li>actual class loading — a small model is really compiled and loaded, and after regeneration a
+ *       fresh loader exposes the new definition;
+ *   <li>the large-model case — a model with a <em>lazily loaded nested class</em> keeps seeing its
+ *       original nested class even when that nested class is loaded for the first time <em>after</em>
+ *       the model has been regenerated;
+ *   <li>the stale-class case — a nested class that disappears on regeneration is absent from the new
+ *       revision's snapshot even though {@code javac} left the old {@code .class} in the shared
+ *       output directory.
+ * </ul>
+ *
+ * <p>The cache helpers are package-private in {@code biouml.plugins.simulation}, so they are reached
+ * via reflection.
+ */
+public class ModelClassLoaderCacheTest extends TestCase
+{
+    private File tempDir;
+
+    public ModelClassLoaderCacheTest(String name)
+    {
+        super(name);
+    }
+
+    public static junit.framework.Test suite()
+    {
+        TestSuite suite = new TestSuite( ModelClassLoaderCacheTest.class.getName() );
+        suite.addTest( new ModelClassLoaderCacheTest( "testSameRevisionReusesLoader" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testChangedRevisionCreatesNewLoader" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testDifferentClassesUseDifferentLoaders" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testDifferentParentsUseDifferentLoaders" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testRegeneratedModelLoadsNewDefinition" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testLazyNestedClassLoadedAfterRegeneration" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testRemovedNestedClassAbsentFromNewSnapshot" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testCompileTruePopulatesRootForCompileFalse" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testBatchPublishPopulatesRootAndResolvesDependency" ) );
+        suite.addTest( new ModelClassLoaderCacheTest( "testRecompileRemovesStaleNestedClassFromRoot" ) );
+        return suite;
+    }
+
+    protected void setUp() throws Exception
+    {
+        // Start each test from an empty cache so tests are isolated from one another.
+        clearCache();
+        tempDir = Files.createTempDirectory( "mclcache" ).toFile();
+    }
+
+    protected void tearDown() throws Exception
+    {
+        // Clean up the temp tree and the shared static cache; a failure here is a real test
+        // misconfiguration and should surface, not be swallowed.
+        deleteRecursively( tempDir );
+        clearCache();
+    }
+
+    private static void clearCache() throws Exception
+    {
+        Method m = SimulationEngine.class.getDeclaredMethod( "clearModelClassLoaderCache" );
+        m.setAccessible( true );
+        m.invoke( null );
+    }
+
+    private static void deleteRecursively(File f)
+    {
+        if( f == null || !f.exists() )
+            return;
+        File[] children = f.listFiles();
+        if( children != null )
+            for( File c : children )
+                deleteRecursively( c );
+        f.delete();
+    }
+
+    // --- helpers to reach the package-private cache methods -------------------------------
+
+    /**
+     * Stages and compiles a model the same way {@link SimulationEngine#compileModel} does — the
+     * source is written to {@code outputDir/<className>.java} and compiled into a <b>fresh private
+     * staging directory</b> — and publishes it as the immutable per-revision snapshot via the
+     * package-private {@code modelRevisionDir(outputDir, stagingDir)}. Returns that snapshot
+     * directory.
+     */
+    private static File stageAndPublish(File outputDir, String className, String source) throws Exception
+    {
+        File srcFile = new File( outputDir, className + ".java" );
+        File staging = Files.createTempDirectory( outputDir.toPath(), "stage-" + className + "-" ).toFile();
+        writeAndCompile( srcFile, source, staging );
+        Method prep = SimulationEngine.class.getDeclaredMethod( "modelRevisionDir", File.class, File.class );
+        prep.setAccessible( true );
+        return (File)prep.invoke( null, outputDir, staging );
+    }
+
+    private static URLClassLoader loaderFor(File revisionDir, String className, ClassLoader parent) throws Exception
+    {
+        Method m = SimulationEngine.class.getDeclaredMethod( "modelClassLoader", File.class, String.class, ClassLoader.class );
+        m.setAccessible( true );
+        return (URLClassLoader)m.invoke( null, revisionDir, className, parent );
+    }
+
+    /**
+     * Stages a class the way the engine's compile path does: it compiles the (already-written) source
+     * file in the shared {@code outputDir} into a <em>fresh private staging directory</em> and
+     * publishes that as the immutable per-revision snapshot. Because the staging directory starts
+     * empty and is filled only by compiling the current source, any stale nested {@code .class} left
+     * in the shared directory by a prior in-place recompile is not carried into the new snapshot.
+     */
+    private static File stageExisting(File srcFile, File outputDir, String className) throws Exception
+    {
+        File staging = Files.createTempDirectory( outputDir.toPath(), "stage-" + className + "-" ).toFile();
+        compile( srcFile, staging );
+        Method prep = SimulationEngine.class.getDeclaredMethod( "modelRevisionDir", File.class, File.class );
+        prep.setAccessible( true );
+        return (File)prep.invoke( null, outputDir, staging );
+    }
+
+    /** Writes {@code src} with {@code code} and compiles it into {@code outDir} (created if needed). */
+    private static void writeAndCompile(File source, String code, File outDir) throws Exception
+    {
+        try( FileWriter w = new FileWriter( source ) )
+        {
+            w.write( code );
+        }
+        compile( source, outDir );
+    }
+
+    /** Compiles the (already-written) {@code source} file into {@code outDir} (created if needed). */
+    private static void compile(File source, File outDir) throws Exception
+    {
+        if( !outDir.exists() && !outDir.mkdirs() )
+            throw new IllegalStateException( "Can not create output dir " + outDir );
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        assertNotNull( "System Java compiler must be available", compiler );
+        boolean ok;
+        try( StandardJavaFileManager fm = compiler.getStandardFileManager( null, null, null ) )
+        {
+            javax.tools.JavaFileObject unit =
+                    fm.getJavaFileObjectsFromStrings( java.util.Collections.singletonList( source.getPath() ) ).iterator().next();
+            java.util.List<javax.tools.JavaFileObject> units = java.util.Collections.singletonList( unit );
+            ok = compiler.getTask( null, fm, null,
+                    java.util.Arrays.asList( "-d", outDir.getAbsolutePath() ), null, units ).call();
+        }
+        assertTrue( "Compilation of " + source + " into " + outDir + " must succeed", ok );
+    }
+
+    /** Compiles {@code source} into {@code outDir} with {@code classpath} on the compile classpath. */
+    private static void compileWithClasspath(File source, File outDir, File classpath) throws Exception
+    {
+        if( !outDir.exists() && !outDir.mkdirs() )
+            throw new IllegalStateException( "Can not create output dir " + outDir );
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        assertNotNull( "System Java compiler must be available", compiler );
+        boolean ok;
+        try( StandardJavaFileManager fm = compiler.getStandardFileManager( null, null, null ) )
+        {
+            javax.tools.JavaFileObject unit =
+                    fm.getJavaFileObjectsFromStrings( java.util.Collections.singletonList( source.getPath() ) ).iterator().next();
+            java.util.List<javax.tools.JavaFileObject> units = java.util.Collections.singletonList( unit );
+            ok = compiler.getTask( null, fm, null,
+                    java.util.Arrays.asList( "-d", outDir.getAbsolutePath(), "-classpath", classpath.getAbsolutePath() ),
+                    null, units ).call();
+        }
+        assertTrue( "Compilation of " + source + " into " + outDir + " must succeed", ok );
+    }
+
+    private static int value(Class<?> c) throws Exception
+    {
+        return ( (Number)c.getMethod( "value" ).invoke( c.newInstance() ) ).intValue();
+    }
+
+    // --- tests ---------------------------------------------------------------------------
+
+    public void testSameRevisionReusesLoader() throws Exception
+    {
+        String code = "public class Pz_a { public int value() { return 7; } }";
+
+        URLClassLoader first = loaderFor( stageAndPublish( tempDir, "Pz_a", code ), "Pz_a", getClass().getClassLoader() );
+        URLClassLoader second = loaderFor( stageAndPublish( tempDir, "Pz_a", code ), "Pz_a", getClass().getClassLoader() );
+
+        assertNotNull( first );
+        assertSame( "An unchanged revision must reuse the same cached loader", first, second );
+    }
+
+    public void testChangedRevisionCreatesNewLoader() throws Exception
+    {
+        URLClassLoader first = loaderFor( stageAndPublish( tempDir, "Pz_b",
+                "public class Pz_b { public int value() { return 1; } }" ), "Pz_b", getClass().getClassLoader() );
+
+        // Regenerate: recompile with different content so the class bytes (and thus the revision) change.
+        URLClassLoader second = loaderFor( stageAndPublish( tempDir, "Pz_b",
+                "public class Pz_b { public int value() { return 2; } }" ), "Pz_b", getClass().getClassLoader() );
+
+        assertNotNull( second );
+        assertNotSame( "A regenerated revision (new compiled content) must get a fresh loader", first, second );
+    }
+
+    public void testDifferentClassesUseDifferentLoaders() throws Exception
+    {
+        URLClassLoader a = loaderFor( stageAndPublish( tempDir, "Pz_c",
+                "public class Pz_c { public int value() { return 1; } }" ), "Pz_c", getClass().getClassLoader() );
+        URLClassLoader b = loaderFor( stageAndPublish( tempDir, "Pz_d",
+                "public class Pz_d { public int value() { return 1; } }" ), "Pz_d", getClass().getClassLoader() );
+
+        assertNotNull( a );
+        assertNotNull( b );
+        assertNotSame( "Distinct model classes in the same directory must not share a loader", a, b );
+    }
+
+    public void testDifferentParentsUseDifferentLoaders() throws Exception
+    {
+        File revision = stageAndPublish( tempDir, "Pz_e",
+                "public class Pz_e { public int value() { return 1; } }" );
+
+        // Two distinct parent loaders pointing at the same revision must not share a cached loader.
+        ClassLoader parentA = ModelClassLoaderCacheTest.class.getClassLoader();
+        ClassLoader parentB = new URLClassLoader( new java.net.URL[0], parentA );
+
+        URLClassLoader a = loaderFor( revision, "Pz_e", parentA );
+        URLClassLoader b = loaderFor( revision, "Pz_e", parentB );
+
+        assertNotNull( a );
+        assertNotNull( b );
+        assertNotSame( "The same revision loaded through different parents must not share a loader", a, b );
+    }
+
+    /**
+     * The core guarantee: really compile a model, load it, regenerate it with a different body,
+     * recompile, and confirm the cache hands out a fresh loader that exposes the <em>new</em> class
+     * (new identity and new behaviour) instead of a stale one.
+     */
+    public void testRegeneratedModelLoadsNewDefinition() throws Exception
+    {
+        URLClassLoader loaderA = loaderFor( stageAndPublish( tempDir, "RevProbe",
+                "public class RevProbe { public int value() { return 1; } }" ), "RevProbe", getClass().getClassLoader() );
+        Class<?> classA = loaderA.loadClass( "RevProbe" );
+        assertEquals( 1, value( classA ) );
+
+        // Regenerate: recompile with a different body, producing a different revision.
+        URLClassLoader loaderB = loaderFor( stageAndPublish( tempDir, "RevProbe",
+                "public class RevProbe { public int value() { return 2; } }" ), "RevProbe", getClass().getClassLoader() );
+        Class<?> classB = loaderB.loadClass( "RevProbe" );
+
+        assertNotSame( "A regenerated revision must be served by a different loader", loaderA, loaderB );
+        assertNotSame( "A regenerated revision must be a different Class object", classA, classB );
+        assertEquals( "The regenerated class must exhibit the new behaviour", 2, value( classB ) );
+        // And the original revision is unchanged.
+        assertEquals( 1, value( classA ) );
+    }
+
+    /**
+     * The large-model case, exercising the <em>actual</em> production failure: a model with a lazily
+     * instantiated nested class is loaded, the model is then regenerated, and only <em>afterwards</em>
+     * is the original revision's nested class loaded for the first time. Because each revision is
+     * loaded from its own immutable snapshot directory, the original revision must still see its own
+     * nested class, not the regenerated one.
+     */
+    public void testLazyNestedClassLoadedAfterRegeneration() throws Exception
+    {
+        final String codeA = "public class NestedModel {" +
+                "  public int value() { return new Helper().value(); }" +
+                "  class Helper { int value() { return 1; } }" +
+                "}";
+        final String codeB = "public class NestedModel {" +
+                "  public int value() { return new Helper().value(); }" +
+                "  class Helper { int value() { return 2; } }" +
+                "}";
+
+        // 1. Compile revision A (nested Helper returns 1).
+        URLClassLoader loaderA = loaderFor( stageAndPublish( tempDir, "NestedModel", codeA ),
+                "NestedModel", getClass().getClassLoader() );
+        Class<?> mainA = loaderA.loadClass( "NestedModel" );
+        // NOTE: ideally this test would deterministically assert that the lazily-instantiated nested
+        // class has not yet been resolved through loaderA at this point (proving that the nested class
+        // is genuinely loaded lazily, i.e. only when value() is first called). Doing so requires
+        // ClassLoader.findLoadedClass, which is protected+final and not open to the unnamed module in
+        // this test JVM, so the precondition is not asserted. The test remains a strong behavioural
+        // check: it invokes value() on revision A *after* revision B has been compiled, and the only
+        // way revision A could return 2 is if its lazily loaded nested class had been resolved from a
+        // directory republished by the later regeneration.
+        Object instA = mainA.newInstance();
+
+        // 2. Compile revision B (nested Helper returns 2), a separate fresh staging directory.
+        URLClassLoader loaderB = loaderFor( stageAndPublish( tempDir, "NestedModel", codeB ),
+                "NestedModel", getClass().getClassLoader() );
+        Class<?> mainB = loaderB.loadClass( "NestedModel" );
+        assertNotSame( "A regenerated revision must be a different Class object", mainA, mainB );
+        assertEquals( 2, ( (Number)mainB.getMethod( "value" ).invoke( mainB.newInstance() ) ).intValue() );
+
+        // 3. NOW load revision A's nested Helper for the first time (triggered by value()). It must
+        //    still report the original value because loader A is rooted at revision A's immutable
+        //    snapshot directory, not a directory that was later republished by revision B.
+        assertEquals( "A revision must not observe a later regeneration of its lazily loaded nested classes",
+                1, ( (Number)mainA.getMethod( "value" ).invoke( instA ) ).intValue() );
+    }
+
+    /**
+     * Regression test for the {@code compile == false} contract: after a model is compiled and its
+     * classes are published, the non-compiling load path must still be able to locate the compiled
+     * classes in the root of the shared output directory (where {@code copyClassesToRoot} places them).
+     * Without that, a model compiled with {@code compile == true} could not later be loaded with
+     * {@code compile == false}.
+     */
+    public void testCompileTruePopulatesRootForCompileFalse() throws Exception
+    {
+        File dir = Files.createTempDirectory( "mclroot" ).toFile();
+        deleteRecursively( tempDir );
+        tempDir = dir;
+
+        // Simulate the compile == true path: stage, publish, and copy the class into the root.
+        File src = new File( dir, "RootModel.java" );
+        File staging = Files.createTempDirectory( dir.toPath(), "stage-RootModel-" ).toFile();
+        writeAndCompile( src, "public class RootModel { public int value() { return 9; } }", staging );
+
+        // copyClassesToRoot is package-private; invoke it via reflection to exercise the real path.
+        Method copy = SimulationEngine.class.getDeclaredMethod( "copyClassesToRoot", File.class, File.class, String.class );
+        copy.setAccessible( true );
+        copy.invoke( null, staging, dir, "RootModel" );
+        deleteRecursively( staging );
+
+        assertTrue( "The compiled class must be present in the root of the shared output directory",
+                new File( dir, "RootModel.class" ).exists() );
+
+        // Now the compile == false path: stageExistingClasses must find the class in the root and
+        // produce a loadable snapshot.
+        Method stage = SimulationEngine.class.getDeclaredMethod( "stageExistingClasses", File.class, String.class, File.class );
+        stage.setAccessible( true );
+        File loadStaging = Files.createTempDirectory( dir.toPath(), "stage-load-" ).toFile();
+        stage.invoke( null, dir, "RootModel", loadStaging );
+        assertTrue( "The non-compiling path must locate the class via the shared output directory",
+                new File( loadStaging, "RootModel.class" ).exists() );
+        deleteRecursively( loadStaging );
+    }
+
+    /**
+     * Regression test for stale nested classes surviving in the <em>legacy root</em>: recompiling a
+     * model after removing a nested helper would otherwise leave the obsolete
+     * {@code Model$Helper.class} in the shared output directory (javac does not delete it, and the
+     * root copy only overwrites). Because {@code copyClassesToRoot} now removes the model's obsolete
+     * nested classes before copying the current set, and {@code loadFromExistingRoot} (the
+     * {@code compile == false} path) stages only the current root content, the obsolete helper must not
+     * appear in a snapshot produced by the non-compiling load path.
+     */
+    public void testRecompileRemovesStaleNestedClassFromRoot() throws Exception
+    {
+        File dir = Files.createTempDirectory( "mclstaleroot" ).toFile();
+        deleteRecursively( tempDir );
+        tempDir = dir;
+
+        File src = new File( dir, "StaleRoot.java" );
+
+        // 1. Revision A: a model with a nested Helper, published via the real compile==true sequence.
+        writeAndCompile( src,
+                "public class StaleRoot { int value() { return new Helper().value(); } class Helper { int value() { return 1; } } }",
+                dir );
+        File stagingA = Files.createTempDirectory( dir.toPath(), "stage-StaleRoot-A-" ).toFile();
+        compile( src, stagingA );
+        Method publish = SimulationEngine.class.getDeclaredMethod( "publishRevision", File.class, File.class, String.class );
+        publish.setAccessible( true );
+        publish.invoke( null, dir, stagingA, "StaleRoot" );
+
+        // The nested helper must be present in the legacy root after the first compilation.
+        assertTrue( "The nested helper must be in the legacy root after the first compilation",
+                new File( dir, "StaleRoot$Helper.class" ).exists() );
+
+        // 2. Revision B: recompile with the nested Helper removed, again via the real sequence.
+        writeAndCompile( src, "public class StaleRoot { int value() { return 2; } }", dir );
+        File stagingB = Files.createTempDirectory( dir.toPath(), "stage-StaleRoot-B-" ).toFile();
+        compile( src, stagingB );
+        publish.invoke( null, dir, stagingB, "StaleRoot" );
+
+        // 3. The obsolete nested helper must have been removed from the legacy root by the recompile.
+        assertFalse( "Recompiling must remove the obsolete nested helper from the legacy root",
+                new File( dir, "StaleRoot$Helper.class" ).exists() );
+        assertTrue( "The regenerated model class must be present in the legacy root",
+                new File( dir, "StaleRoot.class" ).exists() );
+
+        // 4. The compile==false load path must produce a snapshot WITHOUT the obsolete helper.
+        Method load = SimulationEngine.class.getDeclaredMethod( "loadFromExistingRoot", File.class, String.class );
+        load.setAccessible( true );
+        File snapshot = (File)load.invoke( null, dir, "StaleRoot" );
+        assertTrue( "The load snapshot must contain the model class",
+                new File( snapshot, "StaleRoot.class" ).exists() );
+        assertFalse( "The load snapshot must NOT contain the obsolete nested helper",
+                new File( snapshot, "StaleRoot$Helper.class" ).exists() );
+    }
+
+    /**
+     * Regression test for stale nested classes: {@code javac} does not delete a nested
+     * {@code Model$Helper.class} that disappears when the enclosing class is recompiled in the same
+     * output directory. The engine avoids the problem by compiling each revision's source into a
+     * <em>fresh</em> staging directory (which starts empty) and publishing that as an immutable
+     * snapshot. This test reproduces the danger — a stale nested class left in the shared output
+     * directory — and verifies that the engine's staging path produces a clean snapshot that does not
+     * include the obsolete nested class.
+     */
+    public void testRemovedNestedClassAbsentFromNewSnapshot() throws Exception
+    {
+        File dir = Files.createTempDirectory( "mclstale" ).toFile();
+        deleteRecursively( tempDir );
+        tempDir = dir;
+
+        // 1. Revision A: a model with a nested Helper, compiled in place into the shared dir.
+        File src = new File( dir, "SrcA.java" );
+        writeAndCompile( src,
+                "public class SrcA { int value() { return new Helper().value(); } class Helper { int value() { return 1; } } }",
+                dir );
+        assertTrue( "Revision A must produce the nested class in the shared dir",
+                new File( dir, "SrcA$Helper.class" ).exists() );
+
+        // 2. Regenerate: recompile the same source file in place with the nested Helper removed.
+        //    javac leaves the now-obsolete SrcA$Helper.class behind in the shared dir.
+        writeAndCompile( src, "public class SrcA { int value() { return 2; } }", dir );
+        assertTrue( "javac leaves the obsolete nested class in the shared output dir (expected)",
+                new File( dir, "SrcA$Helper.class" ).exists() );
+
+        // 3. The engine now stages the current source into a fresh staging dir and publishes it. The
+        //    stale SrcA$Helper.class in the shared dir must NOT be part of the new snapshot.
+        File revisionB = stageExisting( src, dir, "SrcA" );
+        assertTrue( "The regenerated model class must be present in the snapshot",
+                new File( revisionB, "SrcA.class" ).exists() );
+        assertFalse( "The obsolete nested class must be absent from the regenerated snapshot",
+                new File( revisionB, "SrcA$Helper.class" ).exists() );
+    }
+
+    /**
+     * Regression test for the batch compilation path: two top-level classes are compiled in one batch
+     * (one referencing the other). The batch publication sequence ({@code publishRevision}) must publish
+     * the complete output as a single shared snapshot AND populate the root of the shared output
+     * directory with both classes — even though the staging directory has been moved away by the
+     * publication. It must not drop the cross-class dependency (no NoClassDefFoundError at resolution).
+     */
+    public void testBatchPublishPopulatesRootAndResolvesDependency() throws Exception
+    {
+        File dir = Files.createTempDirectory( "mclbatch" ).toFile();
+        deleteRecursively( tempDir );
+        tempDir = dir;
+
+        // 1. Write two sources: DepModel uses RefModel.
+        File srcA = new File( dir, "DepModel.java" );
+        File srcB = new File( dir, "RefModel.java" );
+        try( FileWriter w = new FileWriter( srcB ) )
+        {
+            w.write( "public class RefModel { public int value() { return 41; } }" );
+        }
+        try( FileWriter w = new FileWriter( srcA ) )
+        {
+            w.write( "public class DepModel { public int value() { return new RefModel().value() + 1; } }" );
+        }
+
+        // 2. Compile both into one fresh staging directory (as the batch overload does). RefModel is
+        //    compiled first so DepModel (which references it) can resolve it from the staging dir.
+        File staging = Files.createTempDirectory( dir.toPath(), "stage-batch-" ).toFile();
+        compile( srcB, staging );
+        compileWithClasspath( srcA, staging, staging );
+
+        // 3. Publish the batch via the real publication + root-copy sequence (publishRevision).
+        Method publish = SimulationEngine.class.getDeclaredMethod( "publishRevision", File.class, File.class, String[].class );
+        publish.setAccessible( true );
+        File revisionDir = (File)publish.invoke( null, dir, staging, new String[] { "DepModel", "RefModel" } );
+
+        // 4. The complete batch output must have been published as one snapshot.
+        assertTrue( "The dependent class must be present in the snapshot",
+                new File( revisionDir, "DepModel.class" ).exists() );
+        assertTrue( "The referenced class must be present in the snapshot",
+                new File( revisionDir, "RefModel.class" ).exists() );
+
+        // 5. The regression: the root of the shared output dir must also contain both classes, even
+        //    though the staging directory was moved away by the publication.
+        assertTrue( "The dependent class must be copied to the root of the shared output directory",
+                new File( dir, "DepModel.class" ).exists() );
+        assertTrue( "The referenced class must be copied to the root of the shared output directory",
+                new File( dir, "RefModel.class" ).exists() );
+
+        // 6. Loading DepModel through a loader rooted at the snapshot must resolve its dependency on
+        //    RefModel (which lives in the same snapshot), proving the cross-class reference survives.
+        URLClassLoader cl = loaderFor( revisionDir, "DepModel", getClass().getClassLoader() );
+        Class<?> dep = cl.loadClass( "DepModel" );
+        assertEquals( "The cross-class dependency must resolve (RefModel.value() + 1)",
+                42, ( (Number)dep.getMethod( "value" ).invoke( dep.newInstance() ) ).intValue() );
+
+        // 7. The legacy compile==false path must also work for the batch's classes: loading a batch
+        //    member via loadFromExistingRoot (which stages the root) must produce a snapshot containing
+        //    that member's own classes, proving the root staging preserves the batch output. (Note: the
+        //    compile==false path stages a single top-level model's own classes, so a cross TOP-LEVEL-class
+        //    reference like DepModel->RefModel is not resolved by this per-class path — that is an
+        //    inherent property of the legacy path, not a regression. The cross-class dependency is
+        //    verified through the batch snapshot in step 6.)
+        Method load = SimulationEngine.class.getDeclaredMethod( "loadFromExistingRoot", File.class, String.class );
+        load.setAccessible( true );
+        File rootSnapshot = (File)load.invoke( null, dir, "RefModel" );
+        assertTrue( "The legacy root-staged snapshot must contain the staged class",
+                new File( rootSnapshot, "RefModel.class" ).exists() );
+        URLClassLoader cl2 = loaderFor( rootSnapshot, "RefModel", getClass().getClassLoader() );
+        Class<?> ref2 = cl2.loadClass( "RefModel" );
+        assertEquals( "The legacy root-staged snapshot must load the batch class correctly",
+                41, ( (Number)ref2.getMethod( "value" ).invoke( ref2.newInstance() ) ).intValue() );
+
+        // 8. The batch staging directory must be gone (consumed by the move; no leak).
+        assertFalse( "The batch staging directory must not remain after a successful publish",
+                staging.exists() );
+    }
+}

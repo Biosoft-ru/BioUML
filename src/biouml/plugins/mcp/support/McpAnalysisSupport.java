@@ -89,9 +89,21 @@ public final class McpAnalysisSupport
 	 * List all analysis methods grouped by their analyses group. This delegates to the platform's
 	 * own {@code analysis} provider ({@code list} action), which returns the flat
 	 * {@code group/name} strings; the result is re-shaped into
-	 * {@code {groups: {<group>: [{name, fullName}]}, total: N}} for discoverability.
+	 * {@code {groups: {<group>: [{name, fullName, summary}]}, total: N}} for discoverability.
 	 */
 	public static McpEnvelope listMethods()
+	{
+		return listMethods( null, null );
+	}
+
+	/**
+	 * The catalog of what can be run: analyses by group and workflows by folder, each with the one-line summary of
+	 * its guide (see {@link McpGuides}), and the research topics of {@link #guide}.
+	 *
+	 * @param query words that must all occur in the name, group or guide of a listed analysis or workflow; null for all
+	 * @param group list only this analyses group or workflow folder; null for all
+	 */
+	public static McpEnvelope listMethods( String query, String group )
 	{
 		McpEnvelope env = McpProviderSupport.invoke( "analysis", "list", new LinkedHashMap<String, Object>() );
 		if ( !env.isOk() )
@@ -99,6 +111,7 @@ public final class McpAnalysisSupport
 		// The provider returns values as a flat JSON array of "group/name" strings.
 		@SuppressWarnings( "unchecked" )
 		List<String> joined = (List<String>) env.getData();
+		String[] words = McpGuides.words( query );
 		Map<String, List<Map<String, Object>>> groups = new LinkedHashMap<String, List<Map<String, Object>>>();
 		int total = 0;
 		if ( joined != null )
@@ -106,25 +119,126 @@ public final class McpAnalysisSupport
 			for ( String entry : joined )
 			{
 				int slash = entry.indexOf( '/' );
-				String group = slash < 0 ? "" : entry.substring( 0, slash );
+				String groupName = slash < 0 ? "" : entry.substring( 0, slash );
 				String name = slash < 0 ? entry : entry.substring( slash + 1 );
+				if ( group != null && !group.isEmpty() && !group.equalsIgnoreCase( groupName ) )
+					continue;
+				McpGuides.Guide guide = McpGuides.analysis( name );
+				String summary = guide != null && guide.getSummary() != null ? guide.getSummary() : shortDescription( name );
+				if ( words.length > 0 && !McpGuides.matches( guide, ( entry + " " + ( summary == null ? "" : summary ) ).toLowerCase( java.util.Locale.ENGLISH ), words ) )
+					continue;
 				Map<String, Object> m = new LinkedHashMap<String, Object>();
 				m.put( "name", name );
-				m.put( "group", group );
+				m.put( "group", groupName );
 				m.put( "fullName", entry );
-				List<Map<String, Object>> list = groups.get( group );
-				if ( list == null )
-				{
-					list = new ArrayList<Map<String, Object>>();
-					groups.put( group, list );
-				}
-				list.add( m );
+				if ( summary != null )
+					m.put( "summary", summary );
+				groups.computeIfAbsent( groupName, k -> new ArrayList<Map<String, Object>>() ).add( m );
 				total++;
 			}
 		}
+		Map<String, List<Map<String, Object>>> workflows = new LinkedHashMap<String, List<Map<String, Object>>>();
+		int workflowCount = 0;
+		for ( McpWorkflowSupport.Entry workflow : McpWorkflowSupport.list() )
+		{
+			String folder = workflow.folder();
+			if ( group != null && !group.isEmpty() && !group.equalsIgnoreCase( folder ) )
+				continue;
+			McpGuides.Guide guide = McpGuides.workflow( workflow.relativePath );
+			if ( words.length > 0 && !McpGuides.matches( guide, workflow.relativePath.toLowerCase( java.util.Locale.ENGLISH ), words ) )
+				continue;
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "name", workflow.path.getName() );
+			m.put( "path", workflow.path.toString() );
+			if ( guide != null && guide.getSummary() != null )
+				m.put( "summary", guide.getSummary() );
+			workflows.computeIfAbsent( folder, k -> new ArrayList<Map<String, Object>>() ).add( m );
+			workflowCount++;
+		}
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
+		if ( query != null && !query.trim().isEmpty() )
+			result.put( "query", query.trim() );
 		result.put( "groups", groups );
 		result.put( "total", Integer.valueOf( total ) );
+		if ( workflowCount > 0 || !McpWorkflowSupport.list().isEmpty() )
+		{
+			result.put( "workflows", workflows );
+			result.put( "workflowCount", Integer.valueOf( workflowCount ) );
+		}
+		List<Map<String, Object>> topics = topicList();
+		if ( !topics.isEmpty() )
+		{
+			result.put( "topics", topics );
+			result.put( "note", LIST_NOTE );
+		}
+		return McpEnvelope.ok( result );
+	}
+
+	private static final String LIST_NOTE = "A workflow is a ready-made pipeline of analyses and usually the shortest way to a result: prefer one that fits over "
+			+ "chaining analyses by hand. Describe and run a workflow as an analysis, by its path. topics are research questions: "
+			+ "biouml_analysis_guide with a topic id tells which analyses and workflows answer it and in what order.";
+
+	/** The description an analysis declares, when it is text rather than the name of a help page; clipped. */
+	private static String shortDescription( String name )
+	{
+		try
+		{
+			ru.biosoft.analysiscore.AnalysisMethodInfo info = AnalysisMethodRegistry.getMethodInfo( name );
+			String description = info == null ? null : info.getDescription();
+			if ( description == null || description.trim().isEmpty() || description.trim().toLowerCase( java.util.Locale.ENGLISH ).matches( ".*\\.html?" ) )
+				return null;
+			return clipText( description.trim().replaceAll( "\\s+", " " ), 160 );
+		}
+		catch ( Exception e )
+		{
+			return null;
+		}
+	}
+
+	// ---------------------------------------------------------------- guide
+
+	private static List<Map<String, Object>> topicList()
+	{
+		List<Map<String, Object>> topics = new ArrayList<Map<String, Object>>();
+		for ( McpGuides.Guide topic : McpGuides.topics() )
+		{
+			Map<String, Object> m = new LinkedHashMap<String, Object>();
+			m.put( "id", topic.name );
+			m.put( "title", topic.title );
+			if ( topic.getSummary() != null )
+				m.put( "summary", topic.getSummary() );
+			topics.add( m );
+		}
+		return topics;
+	}
+
+	/**
+	 * Research guidance: without a topic, the research topics ({@code [{id, title, summary}]}); with one, its text —
+	 * which analyses and workflows answer the question, in what order, and how to read their results.
+	 */
+	public static McpEnvelope guide( String topic )
+	{
+		Map<String, Object> result = new LinkedHashMap<String, Object>();
+		if ( topic == null || topic.trim().isEmpty() )
+		{
+			result.put( "topics", topicList() );
+			result.put( "note", "Call again with topic set to an id. biouml_analysis_list (query) finds analyses and workflows by what they do; "
+					+ "biouml_analysis_describe returns the guide and the parameters of one." );
+			return McpEnvelope.ok( result );
+		}
+		McpGuides.Guide guide = McpGuides.topic( topic );
+		if ( guide == null )
+		{
+			List<String> ids = new ArrayList<String>();
+			for ( McpGuides.Guide t : McpGuides.topics() )
+				ids.add( t.name );
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no research topic '" + topic + "'; topics: " + ids );
+		}
+		result.put( "id", guide.name );
+		result.put( "title", guide.title );
+		if ( guide.getSummary() != null )
+			result.put( "summary", guide.getSummary() );
+		result.put( "text", guide.getBody() );
 		return McpEnvelope.ok( result );
 	}
 
@@ -140,6 +254,8 @@ public final class McpAnalysisSupport
 	{
 		return describeMethod( name, null, null );
 	}
+
+	private static final String NOT_FOUND = "no analysis method or workflow named (biouml_analysis_list lists them; a workflow is named by its path): ";
 
 	/** At most this many characters of an analysis' help page are returned. */
 	private static final int HELP_CHARS = 4000;
@@ -173,7 +289,12 @@ public final class McpAnalysisSupport
 			method = null;
 		}
 		if ( method == null )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no analysis method named: " + name );
+		{
+			DataElementPath workflow = McpWorkflowSupport.resolve( name );
+			if ( workflow != null )
+				return McpWorkflowSupport.describe( workflow, params, filter, only );
+			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, NOT_FOUND + name );
+		}
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
 		m.put( "name", name );
 		try
@@ -183,12 +304,20 @@ public final class McpAnalysisSupport
 			if ( help != null )
 			{
 				// the description names a help page: give its text instead of the resource path
-				m.put( "description", clipText( firstParagraph( help ), 300 ) );
-				if ( ( filter == null || filter.isEmpty() ) && ( only == null || only.isEmpty() ) )
+				String first = firstParagraph( help );
+				if ( first != null )
+					m.put( "description", clipText( first, 300 ) );
+				boolean onlyHeadings = help.replaceAll( "(?m)^## .*$", "" ).trim().isEmpty();
+				if ( !onlyHeadings && ( filter == null || filter.isEmpty() ) && ( only == null || only.isEmpty() ) )
 					m.put( "help", clipText( help, HELP_CHARS ) );
 			}
 			else
 				m.put( "description", description );
+			// an analysis that says nothing of itself, or only its name: what its guide says it is for
+			McpGuides.Guide about = McpGuides.analysis( name );
+			Object said = m.get( "description" );
+			if ( about != null && about.getSummary() != null && ( McpGuides.saysNothing( said == null ? null : said.toString(), name, name ) || isLabel( said.toString() ) ) )
+				m.put( "description", about.getSummary() );
 		}
 		catch ( Exception e )
 		{
@@ -196,6 +325,13 @@ public final class McpAnalysisSupport
 		}
 		if ( filter != null && !filter.isEmpty() )
 			m.put( "filter", filter );
+		else if ( only == null || only.isEmpty() )
+		{
+			// what the analysis is for and what follows it, in an agent's terms; left out of value lookups, like help
+			McpGuides.Guide guide = McpGuides.analysis( name );
+			if ( guide != null )
+				m.put( "guide", guide.toMap() );
+		}
 		// Parameter bean + schema
 		if ( method instanceof AnalysisMethodSupport )
 		{
@@ -213,6 +349,7 @@ public final class McpAnalysisSupport
 				List<Map<String, Object>> props = new ArrayList<Map<String, Object>>();
 				String lowerFilter = filter == null || filter.isEmpty() ? null : filter.toLowerCase( java.util.Locale.ENGLISH );
 				collectProperties( ComponentFactory.getModel( bean, ComponentFactory.Policy.DEFAULT, true ), "", props, lowerFilter, 0 );
+				McpGuides.describeParameters( McpGuides.analysis( name ), props );
 				if ( only != null && !only.isEmpty() )
 				{
 					props.removeIf( p -> only.stream().noneMatch( n -> p.get( "name" ).equals( n ) || ( (String) p.get( "name" ) ).startsWith( n + "/" ) ) );
@@ -279,7 +416,7 @@ public final class McpAnalysisSupport
 	 *
 	 * @param filter lower-cased text the listed allowed values must contain, or null for all of them
 	 */
-	private static void collectProperties( Property model, String prefix, List<Map<String, Object>> out, String filter, int depth )
+	static void collectProperties( Property model, String prefix, List<Map<String, Object>> out, String filter, int depth )
 	{
 		if ( model == null )
 			return;
@@ -352,13 +489,54 @@ public final class McpAnalysisSupport
 		return vc == null || !DataElementPath.class.isAssignableFrom( vc ) && ( vc.getPackage() == null || !vc.getPackage().getName().startsWith( "java." ) );
 	}
 
-	/** The first line of a help text that is not a heading. */
+	/** The first line of a help text after its headings, when it is prose; null when the text opens with a list or has only headings. */
 	private static String firstParagraph( String text )
 	{
 		for ( String line : text.split( "\n" ) )
 			if ( !line.startsWith( "## " ) && !line.trim().isEmpty() )
-				return line.trim();
-		return text;
+				return line.startsWith( "- " ) ? null : line.trim(); // a page that opens with a list has no introduction
+		return null;
+	}
+
+	/** Whether a declared description is a label of a few words ("Transfac 2.0 analysis") rather than a sentence. */
+	public static boolean isLabel( String description )
+	{
+		return description.trim().split( "\\s+" ).length <= 3;
+	}
+
+	private static final String GENERATED_PARAMETERS = "<h3>Parameters:</h3><ul type=\"circle\">";
+
+	/**
+	 * A help page without the parameter list the platform generates for it ("Data source – Data source"): the
+	 * parameters are described one by one in the schema, with what the guide adds. A list the page's author wrote
+	 * is kept.
+	 */
+	public static String withoutGeneratedParameters( String html )
+	{
+		int start = html.indexOf( GENERATED_PARAMETERS );
+		if ( start < 0 )
+			return html;
+		int at = start + GENERATED_PARAMETERS.length();
+		if ( html.startsWith( "<br>", start - 4 ) )
+			start -= 4;
+		for ( int depth = 1; depth > 0; )
+		{
+			int open = html.indexOf( "<ul", at );
+			int close = html.indexOf( "</ul>", at );
+			if ( close < 0 )
+				return html.substring( 0, start );
+			if ( open >= 0 && open < close )
+			{
+				depth++;
+				at = open + 3;
+			}
+			else
+			{
+				depth--;
+				at = close + 5;
+			}
+		}
+		return html.substring( 0, start ) + html.substring( at );
 	}
 
 	private static String clipText( String text, int max )
@@ -390,7 +568,7 @@ public final class McpAnalysisSupport
 			String html = info == null ? null : info.getDescriptionHTML();
 			if ( html == null || html.isEmpty() )
 				return null;
-			String text = McpIntroPages.htmlText( html );
+			String text = McpIntroPages.htmlText( withoutGeneratedParameters( html ) );
 			return text.isEmpty() ? null : text;
 		}
 		catch ( Exception e )
@@ -478,7 +656,14 @@ public final class McpAnalysisSupport
 			method = null;
 		}
 		if ( method == null )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no analysis method named: " + name );
+		{
+			DataElementPath workflow = McpWorkflowSupport.resolve( name );
+			if ( workflow == null )
+				return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, NOT_FOUND + name );
+			if ( sync )
+				return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "a workflow runs in the background only: call without sync and poll biouml_task" );
+			return McpWorkflowSupport.run( workflow, params );
+		}
 		AnalysisParameters bean = method.getParameters();
 		if ( bean == null )
 			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "analysis method has no parameters bean: " + name );

@@ -1,10 +1,17 @@
-name: Tests in main branch
+name: Tests
 
-# Trigger this workflow on pushes to the main branch or any pull requests
+# Trigger this workflow on pushes to, and pull requests into, the main, mcp and gxp_dev branches
 on:
   push:
     branches:
       - main
+      - mcp
+      - gxp_dev
+  pull_request:
+    branches:
+      - main
+      - mcp
+      - gxp_dev
 
 # Define the jobs that run in this workflow
 jobs:

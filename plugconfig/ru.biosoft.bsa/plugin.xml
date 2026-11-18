@@ -662,7 +662,7 @@
     <analysisClass class="ru.biosoft.bsa.analysis.CompareTFBSMutationsWithVCF"
                    group="Mutations"
                    name="Compare TFBS mutations advanced"
-                   description="Do VCF from mutations"
+                   description="Find transcription factors that have different proportions of site losses(gains) in two datasets; can also write a filtered track of the variations that influence the top site models."
                    />
   </extension>
   

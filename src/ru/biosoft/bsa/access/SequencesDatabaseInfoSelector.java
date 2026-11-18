@@ -82,6 +82,8 @@ public class SequencesDatabaseInfoSelector extends GenericComboBoxEditor
     {
         init();
         List<SequencesDatabaseInfo> result = new ArrayList<>();
+        if( databases == null )
+            return new SequencesDatabaseInfo[0]; // no "databases" collection in the repository: init() left the arrays unset
         for( int i = 0; i < databases.length; i++ )
         {
             SequencesDatabaseInfo db = databases[i];

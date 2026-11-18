@@ -33,7 +33,7 @@ public final class McpLiteCatalog
 		GROUPS.put( "perspective", "Task-oriented entry points (e.g. GTRD, Microbiome): what each offers, how its work is done with these tools, and the web UI's help pages. A good place to start." );
 		GROUPS.put( "project", "The user's projects: list, create, delete, size." );
 		GROUPS.put( "repo", "The repository: browse, search, describe, create, copy and remove elements, import and export files, read and write documents, run scripts and context-menu actions." );
-		GROUPS.put( "analysis", "Analysis methods: list, describe their parameters, run, repeat, and read results (tables, tracks, folders, simulation results)." );
+		GROUPS.put( "analysis", "Analysis methods and workflows (ready-made pipelines): research guidance from a question to the analyses that answer it, the catalog with a summary of each, their guides and parameters, run, repeat, and read results (tables, tracks, folders, simulation results)." );
 		GROUPS.put( "task", "Background tasks of analyses: list, status, cancel." );
 		GROUPS.put( "diagram", "Diagrams and their models: create, describe, add nodes, edges, reactions, equations and events, set parameters and formulas, move, align and remove elements, sub-models and clones, render as an image, DML files." );
 		GROUPS.put( "simulation", "Simulate a diagram's model: solvers, start a job, poll it, then plot, read or save the result." );

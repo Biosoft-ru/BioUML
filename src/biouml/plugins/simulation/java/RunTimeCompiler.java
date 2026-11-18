@@ -33,6 +33,19 @@ public class RunTimeCompiler
     }
 
     /**
+     * Compiles the given sources into a dedicated {@code outDir} (separate from the source
+     * directory), so the output is a clean set of class files with no leftover files from earlier
+     * compilations sharing the source directory.
+     */
+    public RunTimeCompiler(String classpath, String srcDir, String outDir, String[] files)
+    {
+        this.classpath = classpath;
+        this.srcDir = srcDir;
+        this.outDir = outDir;
+        this.files = files;
+    }
+
+    /**
      * Use introspection to not include javac into build classpath.
      */
     public boolean execute()

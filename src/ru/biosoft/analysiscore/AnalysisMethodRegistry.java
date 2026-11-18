@@ -415,6 +415,9 @@ public class AnalysisMethodRegistry extends VisiblePlugin<DataCollection<Analysi
     {
         if(!SecurityManager.isTestMode())
             throw new SecurityException();
+        // Load the real registry (analyses/Methods) first: a stand-in created here would become the
+        // instance for the rest of the JVM, and every method path would then start with "null/".
+        init();
         if(instance == null)
             new AnalysisMethodRegistry(null, new Properties());
         instance.doAddTestAnalysis(analysisName, analysisClass);

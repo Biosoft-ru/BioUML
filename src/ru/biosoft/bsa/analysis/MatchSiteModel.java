@@ -84,22 +84,22 @@ public class MatchSiteModel extends WeightMatrixModel
         return ( getScore(sequence, position, 0, getLength()) - minScore ) / ( maxScore - minScore );
     }
 
-    private ThreadLocal<Double> coreScore = new ThreadLocal<>();
-
     private double getCoreScore(Sequence sequence, int position)
     {
         if( maxCoreScore - minCoreScore == 0 )
             return 0;
-        double coreScore = ( getScore(sequence, position, coreStart, coreLength) - minCoreScore ) / ( maxCoreScore - minCoreScore );
-        this.coreScore.set(coreScore);
-        return coreScore;
+        return ( getScore(sequence, position, coreStart, coreLength) - minCoreScore ) / ( maxCoreScore - minCoreScore );
     }
 
     @Override
     public Site constructSite(Sequence sequence, int position, double score)
     {
         Site s = super.constructSite(sequence, position, score);
-        s.getProperties().add(new DynamicProperty(CORE_SCORE_PD, Double.class, coreScore.get()));
+        // The core score is recomputed here rather than kept from getScore: getScore runs for every position of the
+        // sequence, constructSite only for the few that pass the cutoff, and storing it in a ThreadLocal<Double> boxed
+        // a Double and did a ThreadLocal lookup per position (the hottest frame of a site search). Same arithmetic,
+        // same value.
+        s.getProperties().add(new DynamicProperty(CORE_SCORE_PD, Double.class, getCoreScore(sequence, position)));
         return s;
     }
 
