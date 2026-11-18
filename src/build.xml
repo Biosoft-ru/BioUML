@@ -1150,7 +1150,17 @@
             </else>
         </if>
 
-        <copy file="${TOPDIR}/preferences_server.xml" tofile="${SERVER_PATH}/preferences.xml" />
+        <!-- preferences.xml is the server's own configuration (launchers, threadsNumber, server links, ...):
+             the template only starts a new server. A plain copy replaced it whenever the template was newer. -->
+        <if>
+            <available file="${SERVER_PATH}/preferences.xml" />
+            <then>
+                <echo message="Keeping ${SERVER_PATH}/preferences.xml (preferences_server.xml is only copied to a new server)." />
+            </then>
+            <else>
+                <copy file="${TOPDIR}/preferences_server.xml" tofile="${SERVER_PATH}/preferences.xml" />
+            </else>
+        </if>
 
         <copy file="${TOPDIR}/biouml.policy" tofile="${SERVER_PATH}/biouml.policy" />
 
