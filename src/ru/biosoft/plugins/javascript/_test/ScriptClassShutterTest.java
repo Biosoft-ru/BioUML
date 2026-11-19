@@ -29,7 +29,11 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
                 "java.awt.image.BufferedImage", "ru.biosoft.access.core.DataElementPath", "ru.biosoft.table.TableDataCollectionUtils",
                 "ru.biosoft.table.RowDataElement", "biouml.model.util.DiagramImageGenerator", "biouml.plugins.cma.CMAUtils",
                 "ru.biosoft.access.security.ProtectedDataCollection", "java.awt.Point", "ru.biosoft.util.LazyStringBuilder",
-                "biouml.plugins.sbml.SbmlEModel", "[Ljava.lang.String;", "[D"} )
+                "biouml.plugins.sbml.SbmlEModel", "[Ljava.lang.String;", "[D",
+                // seen in the audit log of Genome Enhancer runs
+                "ru.biosoft.bsa.MapAsVector", "ru.biosoft.bsa.project.ProjectAsLists", "biouml.plugins.ensembl.tracks.ExtendedGeneTrack",
+                "biouml.plugins.cma.FullModelTrack", "biouml.plugins.cma.CMAUtils", "ru.biosoft.graphics.CompositeView",
+                "ru.biosoft.graphics.access.ChartDataElement", "com.developmentontheedge.beans.PropertiesDPS"} )
             assertTrue( name, s.visibleToScripts( name ) );
     }
 
@@ -42,7 +46,10 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
                 "java.util.ServiceLoader", "ru.biosoft.access.core.CollectionFactory", "ru.biosoft.access.sql.SqlUtil",
                 "ru.biosoft.access.security.SecurityManager", "ru.biosoft.access.script.ScriptTypeRegistry",
                 "ru.biosoft.plugins.javascript.JScriptContext", "ru.biosoft.plugins.javascript.ScriptClassShutter",
-                "ru.biosoft.util.ApplicationUtils", "ru.biosoft.util.FileItem", "[Ljava.io.File;"} )
+                "ru.biosoft.util.ApplicationUtils", "ru.biosoft.util.FileItem", "[Ljava.io.File;",
+                // also seen in the audit log, and kept hidden: files, properties files, server preferences, the registry
+                "ru.biosoft.util.ExProperties", "com.developmentontheedge.beans.Preferences", "ru.biosoft.access.CollectionFactoryUtils",
+                "ru.biosoft.bsa.importer.SomeImporter", "ru.biosoft.bsa.exporter.SomeExporter"} )
             assertFalse( name, s.visibleToScripts( name ) );
     }
 
@@ -89,12 +96,17 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
     /** What a script evaluated through JScriptContext on a fresh thread (a new Rhino context) returns. */
     private static String evaluate(String script) throws InterruptedException
     {
+        return onFreshThread( () -> JScriptContext.evaluateString( script ) );
+    }
+
+    private static String onFreshThread(java.util.concurrent.Callable<String> action) throws InterruptedException
+    {
         AtomicReference<String> result = new AtomicReference<>();
         AtomicReference<Throwable> failure = new AtomicReference<>();
         Thread thread = new Thread( () -> {
             try
             {
-                result.set( JScriptContext.evaluateString( script ) );
+                result.set( action.call() );
             }
             catch( Throwable t )
             {
@@ -125,5 +137,33 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
 
         ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.OFF ) );
         assertEquals( "visible: x", evaluate( PROBE ) );
+    }
+
+    /** A script's variables as a workflow script node binds them, then the script; on a fresh thread. */
+    private static String withVariables(String script) throws InterruptedException
+    {
+        return onFreshThread( () -> {
+            org.mozilla.javascript.Context context = JScriptContext.getContext();
+            org.mozilla.javascript.ScriptableObject scope = JScriptContext.getScope();
+            java.util.Map<String, Object> variables = new java.util.LinkedHashMap<>();
+            variables.put( "importPath", new ru.biosoft.util.FileItem( "x" ) );
+            variables.put( "name", "abc" );
+            variables.put( "path", ru.biosoft.access.core.DataElementPath.create( "a/b" ) );
+            ru.biosoft.plugins.javascript.JavaScriptUtils.defineVariables( scope, variables );
+            return JScriptContext.evaluateString( context, scope, script, null );
+        } );
+    }
+
+    /**
+     * A workflow script node gets every workflow variable, the system ones included (importPath is a file): in enforce
+     * mode a hidden one is left out, so a script that does not use it still runs. In audit mode it is bound as before.
+     */
+    public void testHiddenVariablesAreLeftOut() throws Exception
+    {
+        String script = "typeof importPath + ',' + name + ',' + path";
+        ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.ENFORCE ) );
+        assertEquals( "undefined,abc,a/b", withVariables( script ) );
+        ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.AUDIT ) );
+        assertEquals( "object,abc,a/b", withVariables( script ) );
     }
 }

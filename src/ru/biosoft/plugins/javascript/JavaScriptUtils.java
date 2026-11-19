@@ -19,6 +19,8 @@ import com.developmentontheedge.beans.model.Property;
 
 public class JavaScriptUtils
 {
+    private static final java.util.logging.Logger log = java.util.logging.Logger.getLogger( JavaScriptUtils.class.getName() );
+
     public static final String ID_ATTR = "ID";
 
     private static final Pattern NON_WORD_PATTERN = Pattern.compile("[\\W]+");
@@ -60,6 +62,14 @@ public class JavaScriptUtils
         scope.defineProperty( "$", buck, ScriptableObject.DONTENUM );
         for( Entry<String, Object> var : variables.entrySet() )
         {
+            if( ScriptClassShutter.hides( var.getValue() ) )
+            {
+                // e.g. a workflow's importPath (a file) or the server preferences: wrapping it would fail the script,
+                // used or not; left out, only a script that uses it fails ("not defined")
+                log.fine( "JavaScript variable " + var.getKey() + " not defined: class " + var.getValue().getClass().getName()
+                        + " is not visible to scripts" );
+                continue;
+            }
             Object val = var.getValue() == null ? "" : Context.toObject(var.getValue(), scope);
             scope.put(JavaScriptUtils.getValidName(var.getKey()), scope, val);
             buck.put(var.getKey(), buck, val);
