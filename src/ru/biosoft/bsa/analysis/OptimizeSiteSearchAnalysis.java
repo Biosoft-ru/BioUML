@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
@@ -433,8 +432,10 @@ public class OptimizeSiteSearchAnalysis extends AnalysisMethodSupport<OptimizeSi
             if( this.parameters.getOptimizationType().equals( OptimizeSiteSearchAnalysisParameters.OPTIMIZE_BOTH )
                     || this.parameters.getOptimizationType().equals( OptimizeSiteSearchAnalysisParameters.OPTIMIZE_CUTOFF ) )
             {
+                // each distinct weight once: a repeated cutoff has the same counts and p-value, and only a lower p-value
+                // replaces the best, so the first of the repeats was the one kept anyway
                 modelInfo.scores = StreamEx.of( modelSites ).nonNull().flatMap( List::stream ).mapToInt( info -> info.weight ).sorted()
-                        .toArray();
+                        .distinct().toArray();
             }
             else
             {
@@ -446,7 +447,8 @@ public class OptimizeSiteSearchAnalysis extends AnalysisMethodSupport<OptimizeSi
         for( int trackNum = 0; trackNum < 2; trackNum++ )
         {
             // a site counts at every cutoff not above its weight, that is at cutoffs 0 .. upperBound-1: tally the upper
-            // bounds, then sum them up per cutoff (the same counts as a loop over the cutoffs per site, in linear time)
+            // bounds (a binary search each), then sum them up per cutoff, in place: the same counts as a loop over the
+            // cutoffs per site, in O(sites log cutoffs + cutoffs) instead of O(sites * cutoffs)
             int[] hitsByBound = new int[scores.length + 1];
             if( modelSites[trackNum] != null )
             {
@@ -469,7 +471,7 @@ public class OptimizeSiteSearchAnalysis extends AnalysisMethodSupport<OptimizeSi
                         hitsByBound[upperBound( scores, info.weight )]++;
                 }
             }
-            counts[trackNum] = countsAtCutoffs( hitsByBound );
+            counts[trackNum] = toCountsAtCutoffs( hitsByBound );
         }
         for( int scoreNum = 0; scoreNum < scores.length; scoreNum++ )
         {
@@ -506,21 +508,52 @@ public class OptimizeSiteSearchAnalysis extends AnalysisMethodSupport<OptimizeSi
     }
 
     /**
-     * Sites per cutoff from sites per upper bound: a site of upper bound u counts at cutoffs 0 .. u-1, so the count at
-     * cutoff k is the number of sites whose upper bound is above k.
-     * @param hitsByBound sites per upper bound, 0 .. number of cutoffs
-     * @return sites per cutoff
+     * Sites per cutoff from sites per upper bound, in place: a site of upper bound u counts at cutoffs 0 .. u-1, so the
+     * count at cutoff k is the number of sites whose upper bound is above k.
+     * @param hitsByBound sites per upper bound, 0 .. number of cutoffs; overwritten
+     * @return the same array: at 0 .. number of cutoffs - 1, the sites per cutoff (the last element is unused)
      */
-    public static int[] countsAtCutoffs(int[] hitsByBound)
+    public static int[] toCountsAtCutoffs(int[] hitsByBound)
     {
-        int[] counts = new int[hitsByBound.length - 1];
-        int above = 0;
-        for( int k = counts.length - 1; k >= 0; k-- )
+        if( hitsByBound.length == 0 )
+            return hitsByBound;
+        // hitsByBound[k + 1] is overwritten one step before it is read: keep it as 'next'
+        int above = 0, next = hitsByBound[hitsByBound.length - 1];
+        for( int k = hitsByBound.length - 2; k >= 0; k-- )
         {
-            above += hitsByBound[k + 1];
-            counts[k] = above;
+            above += next;
+            next = hitsByBound[k];
+            hitsByBound[k] = above;
         }
-        return counts;
+        hitsByBound[hitsByBound.length - 1] = 0;
+        return hitsByBound;
+    }
+
+    /** Progress of work done in parallel, reported in order and forward only, from 'from' to 'to' percent. */
+    private class Progress
+    {
+        private final int from, to;
+        private final long total;
+        private long done;
+        private int reported = -1;
+
+        Progress(int from, int to, long total)
+        {
+            this.from = from;
+            this.to = to;
+            this.total = Math.max( 1, total );
+        }
+
+        synchronized void add(int count)
+        {
+            done += count;
+            int percent = (int) ( from + ( to - from ) * Math.min( done, total ) / total );
+            if( percent > reported )
+            {
+                reported = percent;
+                jobControl.setPreparedness( percent );
+            }
+        }
     }
 
     @SuppressWarnings ( "unchecked" )
@@ -560,6 +593,7 @@ public class OptimizeSiteSearchAnalysis extends AnalysisMethodSupport<OptimizeSi
         log.info("Optimizing...");
         jobControl.setPreparedness(10);
         List<Interval> intervalsList = getIntervals(trackInfo[YES]);
+        Progress progress = new Progress( 10, 70, (long)modelsArray.length * intervalsList.size() );
         for(int j=0; j<intervalsList.size(); j++)
         {
             Interval interval = intervalsList.get(j);
@@ -597,15 +631,17 @@ public class OptimizeSiteSearchAnalysis extends AnalysisMethodSupport<OptimizeSi
             if( j == 0 )
                 for( SiteModel model : modelsArray )
                     modelsInfo.computeIfAbsent( model.getName(), name -> new SiteModelInfo( parameters.getPvalueCutoff() ) );
-            final int intervalNum = j;
-            AtomicInteger done = new AtomicInteger();
+            // Not given the jobControl: iterate would set the progress itself, 0-100% of this interval. A cancel request
+            // stops the iteration instead (an element returns false: no more elements start, and iterate waits for the
+            // running ones), and the progress goes through progress.add, which reports it forward only.
             TaskPool.getInstance().iterate( modelsByName, sameName -> {
+                if( jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST )
+                    return false;
                 for( SiteModel model : sameName )
                     optimizeModel( model, sites, modelsInfo.get( model.getName() ), intervalTracks, totalLength, interval );
-                int progress = intervalNum * modelsArray.length + done.addAndGet( sameName.size() );
-                jobControl.setPreparedness( 60 * progress / modelsArray.length / intervalsList.size() + 10 );
+                progress.add( sameName.size() );
                 return true;
-            }, jobControl );
+            } );
             if(jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST) return null;
         }
         for(trackNum = 0; trackNum < 2; trackNum++)
