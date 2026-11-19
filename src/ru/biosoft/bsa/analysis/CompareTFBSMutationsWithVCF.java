@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import com.developmentontheedge.beans.DynamicProperty;
@@ -89,16 +90,16 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
         Track yesTrack = parameters.getYesVCFTrack().getDataElement( Track.class );
         Scores yesScores = computeMaxGainLossDeltas( yesTrack, chromosomes, siteModels, maxModelLength );
         jobControl.popProgress();
-        if( jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST )
-            return null;
+        if( yesScores == null )
+            return null; // cancelled
 
         log.info( "Computing site gain/loss scores for control track" );
         jobControl.pushProgress( 25, 50 );
         Track noTrack = parameters.getNoVCFTrack().getDataElement( Track.class );
         Scores noScores = computeMaxGainLossDeltas( noTrack, chromosomes, siteModels, maxModelLength );
         jobControl.popProgress();
-        if( jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST )
-            return null;
+        if( noScores == null )
+            return null; // cancelled
 
         log.info( "Finding site loss over/under representation" );
         jobControl.pushProgress( 50, 75 );
@@ -165,7 +166,8 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
             }
             DataElementPath trackPath = parameters.getFilteredVCFTrack();
             SqlTrack filteredYesTrack = SqlTrack.createTrack( trackPath, yesTrack, yesTrack.getClass() );
-            filterVCF( yesTrack, chromosomes, siteModels, maxModelLength, model2index, noScores, filteredYesTrack );
+            if( !filterVCF( yesTrack, chromosomes, siteModels, maxModelLength, model2index, noScores, filteredYesTrack ) )
+                return null; // cancelled
             filteredYesTrack.finalizeAddition();
             CollectionFactoryUtils.save( filteredYesTrack );
             results.add( filteredYesTrack );
@@ -197,6 +199,7 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
             gains = new float[siteModelCount][siteCount];
         }
     }
+    /** @return the scores, or null if cancelled */
     private Scores computeMaxGainLossDeltas(Track track, Map<String, Sequence> chromosomes, SiteModel[] siteModels, int maxModelLength)
             throws Exception
     {
@@ -255,7 +258,8 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
         }
 
         Scores result = new Scores( siteModels.length, siteCount );
-        computeDeltas( variationsByChr, chromosomes, siteModels, maxModelLength, result.losses, result.gains, jobControl );
+        if( !computeDeltas( variationsByChr, chromosomes, siteModels, maxModelLength, result.losses, result.gains, jobControl ) )
+            return null; // cancelled: the scores are incomplete
         return result;
     }
 
@@ -295,6 +299,12 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
     /**
      * Runs the body for every variation in parallel (TaskPool). Each variation is independent and writes only its own
      * index of the results, so they do not depend on the threads. Stops at a cancel request.
+     *
+     * <p>The site models are shared by the threads, as in SiteSearchAnalysis, which scores with them in parallel too.
+     * Their scoring is safe for that: getScore, getMinScore, getLength and getAlphabet read the model; the state of a
+     * call is per thread (WeightMatrixModel: lazily built weights under double-checked locking, its letter cache in a
+     * ThreadLocal; IPSSiteModel, LogIPSSiteModel: ThreadLocal), and MatchSiteModel and the log/log-odds/custom weight
+     * models compute from final data. A new model class used here must keep that.</p>
      * @param jobControl gets the progress, 0-100%, forward only; may be null
      * @return false if cancelled
      */
@@ -327,13 +337,16 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
         return jobControl == null || jobControl.getStatus() != JobControl.TERMINATED_BY_REQUEST;
     }
 
-    /** Progress of work done in parallel: reported in order and forward only. */
+    /**
+     * Progress of work done in parallel, forward only. Counting is lock-free; only a new percent is published, in order,
+     * under the lock (at most 100 times).
+     */
     private static class Progress
     {
         private final JobControl jobControl;
         private final long total;
-        private long done;
-        private int reported = -1;
+        private final AtomicLong done = new AtomicLong();
+        private volatile int reported = -1;
 
         Progress(JobControl jobControl, long total)
         {
@@ -341,14 +354,18 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
             this.total = Math.max( 1, total );
         }
 
-        synchronized void add()
+        void add()
         {
-            done++;
-            int percent = (int) ( done * 100 / total );
-            if( jobControl != null && percent > reported )
+            int percent = (int) ( done.incrementAndGet() * 100 / total );
+            if( jobControl == null || percent <= reported )
+                return;
+            synchronized( this )
             {
-                reported = percent;
-                jobControl.setPreparedness( percent );
+                if( percent > reported )
+                {
+                    reported = percent;
+                    jobControl.setPreparedness( percent );
+                }
             }
         }
     }
@@ -372,7 +389,8 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
             }
         }, jobControl );
     }
-    private void filterVCF(Track track, Map<String, Sequence> chromosomes, SiteModel[] siteModels, int maxModelLength,
+    /** @return false if cancelled: then nothing was written */
+    private boolean filterVCF(Track track, Map<String, Sequence> chromosomes, SiteModel[] siteModels, int maxModelLength,
             Map<String, Integer> siteModelToIndex, Scores bgScores, SqlTrack resultTrack)
             throws Exception
     {
@@ -382,7 +400,6 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
 
         SiteModel[] siteModelsTop = StreamEx.of( siteModels ).filter( sm -> siteModelToIndex.containsKey( sm.getName() ) )
                 .toArray( SiteModel[]::new );
-        int siteCount = 0;
         Set<String> missingChromosomes = new HashSet<>();
         Map<String, List<Variation>> variationsByChr = new HashMap<>();
         for( Site s : sites )
@@ -411,7 +428,6 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
                 .computeIfAbsent( chrName, k->new ArrayList<>() )
                 .add( var );
 
-            siteCount++;
         }
 
         // the weights are computed in parallel, then the sites are written in the former order
@@ -421,62 +437,57 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
             float[] gains = new float[siteModelsTop.length];
             float[] losses = new float[siteModelsTop.length];
             computeMaxGainLossDeltasForSite( v.var, v.chromosome, v.accessor, siteModelsTop, maxModelLength, losses, gains );
+            int igain = 0, iloss = 0;
+            for( int j = 1; j < siteModelsTop.length; j++ )
             {
-                int igain = 0, iloss = 0;
-                for( int j = 1; j < siteModelsTop.length; j++ )
-                {
-                    if( gains[j] > gains[igain] )
-                        igain = j;
-                    if( losses[j] > losses[iloss] )
-                        iloss = j;
-                }
-                float[] values;
-                float cur;
-                if( gains[igain] > losses[iloss] )
-                {
-                    cur = gains[igain];
-                    SiteModel sm = siteModelsTop[igain];
-                    int smi = siteModelToIndex.get( sm.getName() );
-                    values = bgScores.gains[smi];
-                    //count in bg gains
-                }
-                else
-                {
-                    cur = losses[iloss];
-                    //count in bg losses
-                    SiteModel sm = siteModelsTop[iloss];
-                    int smi = siteModelToIndex.get( sm.getName() );
-                    values = bgScores.losses[smi];
-                }
-                int numGreater = 0;
-                for( int j = 0; j < values.length; j++ )
-                    if( values[j] >= cur )
-                        numGreater++;
-                weights[v.index] = numGreater > 0 ? -Math.log10( (double)numGreater / values.length )
-                        : -Math.log10( 1.0 / ( 2.0 * values.length ) );
+                if( gains[j] > gains[igain] )
+                    igain = j;
+                if( losses[j] > losses[iloss] )
+                    iloss = j;
             }
+            float[] values;
+            float cur;
+            if( gains[igain] > losses[iloss] )
+            {
+                cur = gains[igain];
+                SiteModel sm = siteModelsTop[igain];
+                int smi = siteModelToIndex.get( sm.getName() );
+                values = bgScores.gains[smi];
+                //count in bg gains
+            }
+            else
+            {
+                cur = losses[iloss];
+                //count in bg losses
+                SiteModel sm = siteModelsTop[iloss];
+                int smi = siteModelToIndex.get( sm.getName() );
+                values = bgScores.losses[smi];
+            }
+            int numGreater = 0;
+            for( int j = 0; j < values.length; j++ )
+                if( values[j] >= cur )
+                    numGreater++;
+            weights[v.index] = numGreater > 0 ? -Math.log10( (double)numGreater / values.length )
+                    : -Math.log10( 1.0 / ( 2.0 * values.length ) );
         }, jobControl ) )
-            return;
+            return false;
         for( ScoredVariation v : variations )
         {
-            Variation var = v.var;
-            double weight = weights[v.index];
+            try
             {
-                try
+                Site site = sites.get( v.var.id );
+                if( site != null )
                 {
-                    Site site = sites.get( var.id );
-                    if( site != null )
-                    {
-                        Site si = ( (SiteImpl)site ).clone( resultTrack );
-                        si.getProperties().add( new DynamicProperty( CHANGING_PROPERTY, Float.class, weight ) );
-                        resultTrack.addSite( si );
-                    }
-                }
-                catch( Exception e1 )
-                {
+                    Site si = ( (SiteImpl)site ).clone( resultTrack );
+                    si.getProperties().add( new DynamicProperty( CHANGING_PROPERTY, Float.class, weights[v.index] ) );
+                    resultTrack.addSite( si );
                 }
             }
+            catch( Exception e1 )
+            {
+            }
         }
+        return true;
     }
 
     private Map<String, List<Variation>> subSample(Map<String, List<Variation>> variations, int maxSize)
