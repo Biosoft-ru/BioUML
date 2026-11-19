@@ -289,7 +289,7 @@ public class AsyncProfilerWrapper {
         command.add("-f");
         command.add(outputPath);
         command.add("-e");
-        command.add("cpu");
+        command.add(config.getProfilerEvent());
         command.add("-o");
         command.add(outputFormat);
 
