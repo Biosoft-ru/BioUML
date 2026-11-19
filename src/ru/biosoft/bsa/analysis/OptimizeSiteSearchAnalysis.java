@@ -14,11 +14,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -46,6 +48,7 @@ import ru.biosoft.bsa.SiteModel;
 import ru.biosoft.bsa.SqlTrack;
 import ru.biosoft.bsa.Track;
 import ru.biosoft.bsa.WritableTrack;
+import ru.biosoft.access.task.TaskPool;
 import ru.biosoft.bsa.transformer.SiteModelTransformer;
 import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.table.ColumnModel;
@@ -418,6 +421,141 @@ public class OptimizeSiteSearchAnalysis extends AnalysisMethodSupport<OptimizeSi
         return curPromoter.from <= info.from && curPromoter.to >= info.to && curPromoter.sequence.equals(info.sequence);
     }
     
+    /** One model on one interval: count its sites on the promoters at each cutoff and keep the best p-value. */
+    private void optimizeModel(SiteModel model, Map<SiteModel, List<SiteInfo>>[] sites, SiteModelInfo modelInfo,
+            List<SiteInfo>[] intervalTracks, int[] totalLength, Interval interval)
+    {
+        @SuppressWarnings ( "unchecked" )
+        List<SiteInfo>[] modelSites = new List[] {sites[YES].get( model ), sites[NO].get( model )};
+        if( modelInfo.scores == null )
+        {
+            if( this.parameters.getOptimizationType().equals( OptimizeSiteSearchAnalysisParameters.OPTIMIZE_BOTH )
+                    || this.parameters.getOptimizationType().equals( OptimizeSiteSearchAnalysisParameters.OPTIMIZE_CUTOFF ) )
+            {
+                // each distinct weight once: a repeated cutoff has the same counts and p-value, and only a lower p-value
+                // replaces the best, so the first of the repeats was the one kept anyway
+                modelInfo.scores = StreamEx.of( modelSites ).nonNull().flatMap( List::stream ).mapToInt( info -> info.weight ).sorted()
+                        .distinct().toArray();
+            }
+            else
+            {
+                modelInfo.scores = new int[] {0};
+            }
+        }
+        int[] scores = modelInfo.scores;
+        int[][] counts = new int[2][];
+        for( int trackNum = 0; trackNum < 2; trackNum++ )
+        {
+            // a site counts at every cutoff not above its weight, that is at cutoffs 0 .. upperBound-1: tally the upper
+            // bounds (a binary search each), then sum them up per cutoff, in place: the same counts as a loop over the
+            // cutoffs per site, in O(sites log cutoffs + cutoffs) instead of O(sites * cutoffs)
+            int[] hitsByBound = new int[scores.length + 1];
+            if( modelSites[trackNum] != null )
+            {
+                Iterator<SiteInfo> promoterIterator = intervalTracks[trackNum].iterator();
+                SiteInfo curPromoter = null;
+                for( SiteInfo info : modelSites[trackNum] )
+                {
+                    while( curPromoter == null || isSiteAfterPromoter( curPromoter, info ) )
+                    {
+                        if( !promoterIterator.hasNext() )
+                        {
+                            curPromoter = null;
+                            break;
+                        }
+                        curPromoter = promoterIterator.next();
+                    }
+                    if( curPromoter == null )
+                        break;
+                    if( isSiteOnPromoter( curPromoter, info ) )
+                        hitsByBound[upperBound( scores, info.weight )]++;
+                }
+            }
+            counts[trackNum] = toCountsAtCutoffs( hitsByBound );
+        }
+        for( int scoreNum = 0; scoreNum < scores.length; scoreNum++ )
+        {
+            int yes = counts[YES][scoreNum], no = counts[NO][scoreNum];
+            if( yes == 0 && no == 0 )
+                continue;
+            double[] prob = Stat.cumulativeBinomialFast( yes + no, yes, (float)totalLength[YES] / ( totalLength[YES] + totalLength[NO] ) );
+            double pvalue = Math.min( prob[0], prob[1] );
+            if( pvalue < modelInfo.bestPvalue )
+            {
+                modelInfo.bestCutoff = scores[scoreNum];
+                modelInfo.bestPvalue = pvalue;
+                modelInfo.bestInterval = interval;
+                modelInfo.promoters = intervalTracks;
+                modelInfo.counts = new int[] {yes, no};
+                modelInfo.totals = totalLength;
+            }
+        }
+    }
+
+    /** The number of values in the ascending array not greater than value: the first index whose value is greater. */
+    public static int upperBound(int[] sorted, int value)
+    {
+        int low = 0, high = sorted.length;
+        while( low < high )
+        {
+            int mid = ( low + high ) >>> 1;
+            if( sorted[mid] <= value )
+                low = mid + 1;
+            else
+                high = mid;
+        }
+        return low;
+    }
+
+    /**
+     * Sites per cutoff from sites per upper bound, in place: a site of upper bound u counts at cutoffs 0 .. u-1, so the
+     * count at cutoff k is the number of sites whose upper bound is above k.
+     * @param hitsByBound sites per upper bound, 0 .. number of cutoffs; overwritten
+     * @return the same array: at 0 .. number of cutoffs - 1, the sites per cutoff (the last element is unused)
+     */
+    public static int[] toCountsAtCutoffs(int[] hitsByBound)
+    {
+        if( hitsByBound.length == 0 )
+            return hitsByBound;
+        // hitsByBound[k + 1] is overwritten one step before it is read: keep it as 'next'
+        int above = 0, next = hitsByBound[hitsByBound.length - 1];
+        for( int k = hitsByBound.length - 2; k >= 0; k-- )
+        {
+            above += next;
+            next = hitsByBound[k];
+            hitsByBound[k] = above;
+        }
+        hitsByBound[hitsByBound.length - 1] = 0;
+        return hitsByBound;
+    }
+
+    /** Progress of work done in parallel, reported in order and forward only, from 'from' to 'to' percent. */
+    private class Progress
+    {
+        private final int from, to;
+        private final long total;
+        private long done;
+        private int reported = -1;
+
+        Progress(int from, int to, long total)
+        {
+            this.from = from;
+            this.to = to;
+            this.total = Math.max( 1, total );
+        }
+
+        synchronized void add(int count)
+        {
+            done += count;
+            int percent = (int) ( from + ( to - from ) * Math.min( done, total ) / total );
+            if( percent > reported )
+            {
+                reported = percent;
+                jobControl.setPreparedness( percent );
+            }
+        }
+    }
+
     @SuppressWarnings ( "unchecked" )
     @Override
     public Object justAnalyzeAndPut() throws Exception
@@ -450,9 +588,12 @@ public class OptimizeSiteSearchAnalysis extends AnalysisMethodSupport<OptimizeSi
         if(jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST) return null;
         
         SiteModel[] modelsArray = models.toArray(new SiteModel[models.size()]);
+        List<List<SiteModel>> modelsByName = new ArrayList<>( StreamEx.of( modelsArray )
+                .groupingBy( SiteModel::getName, LinkedHashMap::new, Collectors.toList() ).values() );
         log.info("Optimizing...");
         jobControl.setPreparedness(10);
         List<Interval> intervalsList = getIntervals(trackInfo[YES]);
+        Progress progress = new Progress( 10, 70, (long)modelsArray.length * intervalsList.size() );
         for(int j=0; j<intervalsList.size(); j++)
         {
             Interval interval = intervalsList.get(j);
@@ -483,75 +624,27 @@ public class OptimizeSiteSearchAnalysis extends AnalysisMethodSupport<OptimizeSi
                 Collections.sort(intervalTracks[trackNum]);
             }
             
-            for(int i=0; i<modelsArray.length; i++)
-            {
-                SiteModel model = modelsArray[i];
-                List<SiteInfo>[] modelSites = new List[]{sites[YES].get(model),sites[NO].get(model)};
-                if(!modelsInfo.containsKey(model.getName()))
+            // the models are independent: each one reads its sites and this interval's promoters, and updates only its
+            // own SiteModelInfo, seeing the intervals in the same order as before, so the result does not depend on the
+            // threads. Models of the same name share a SiteModelInfo: they run in one task, in their former order. The
+            // SiteModelInfo of every name exists before (modelsInfo is not changed in parallel).
+            if( j == 0 )
+                for( SiteModel model : modelsArray )
+                    modelsInfo.computeIfAbsent( model.getName(), name -> new SiteModelInfo( parameters.getPvalueCutoff() ) );
+            // Not given the jobControl: iterate would set the progress itself, 0-100% of this interval. A cancel request
+            // stops the iteration instead (an element returns false: no more elements start, and iterate waits for the
+            // running ones), and the progress goes through progress.add, which reports it forward only.
+            TaskPool.getInstance().iterate( modelsByName, sameName -> {
+                for( SiteModel model : sameName )
                 {
-                    SiteModelInfo modelInfo = new SiteModelInfo(parameters.getPvalueCutoff());
-                    modelsInfo.put(model.getName(), modelInfo);
-                    int[] scoresArray;
-                    if(this.parameters.getOptimizationType().equals(OptimizeSiteSearchAnalysisParameters.OPTIMIZE_BOTH)
-                            || this.parameters.getOptimizationType().equals(OptimizeSiteSearchAnalysisParameters.OPTIMIZE_CUTOFF))
-                    {
-                        scoresArray = StreamEx.of( modelSites ).nonNull().flatMap( List::stream ).mapToInt( info -> info.weight ).sorted()
-                                .toArray();
-                    } else
-                    {
-                        scoresArray = new int[] {0};
-                    }
-                    modelInfo.scores = scoresArray;
+                    if( jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST )
+                        return false;
+                    optimizeModel( model, sites, modelsInfo.get( model.getName() ), intervalTracks, totalLength, interval );
                 }
-                SiteModelInfo modelInfo = modelsInfo.get(model.getName());
-                
-                int[] counts = new int[modelInfo.scores.length*2];
-        
-                for(trackNum = 0; trackNum < 2; trackNum ++)
-                {
-                    if(modelSites[trackNum] != null)
-                    {
-                        Iterator<SiteInfo> promoterIterator = intervalTracks[trackNum].iterator();
-                        SiteInfo curPromoter = null;
-                        for(SiteInfo info: modelSites[trackNum])
-                        {
-                            while(curPromoter == null || isSiteAfterPromoter(curPromoter, info))
-                            {
-                                if( !promoterIterator.hasNext() )
-                                {
-                                    curPromoter = null;
-                                    break;
-                                }
-                                curPromoter = promoterIterator.next();
-                            }
-                            if(curPromoter == null) break;
-                            if(isSiteOnPromoter(curPromoter, info))
-                            {
-                                for(int scoreNum = 0; scoreNum < modelInfo.scores.length && info.weight>=modelInfo.scores[scoreNum]; scoreNum++)
-                                    counts[scoreNum*2+trackNum]++;
-                            }
-                        }
-                    }
-                }
-                for(int scoreNum = 0; scoreNum < modelInfo.scores.length; scoreNum++)
-                {
-                    if(counts[scoreNum*2+YES]==0 && counts[scoreNum*2+NO]==0) continue;
-                    double[] prob = Stat.cumulativeBinomialFast(counts[scoreNum*2+YES] + counts[scoreNum*2+NO], counts[scoreNum*2+YES], (float)totalLength[YES]
-                            / ( totalLength[YES] + totalLength[NO] ));
-                    double pvalue = Math.min(prob[0], prob[1]);
-                    if(pvalue < modelInfo.bestPvalue)
-                    {
-                        modelInfo.bestCutoff = modelInfo.scores[scoreNum];
-                        modelInfo.bestPvalue = pvalue;
-                        modelInfo.bestInterval = interval;
-                        modelInfo.promoters = intervalTracks;
-                        modelInfo.counts = new int[]{counts[scoreNum*2+YES], counts[scoreNum*2+NO]};
-                        modelInfo.totals = totalLength;
-                    }
-                }
-                jobControl.setPreparedness(60*(i+j*modelsArray.length)/modelsArray.length/intervalsList.size()+10);
-                if(jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST) return null;
-            }
+                progress.add( sameName.size() );
+                return true;
+            } );
+            if(jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST) return null;
         }
         for(trackNum = 0; trackNum < 2; trackNum++)
         {
