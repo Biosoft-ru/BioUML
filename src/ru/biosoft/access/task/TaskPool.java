@@ -20,6 +20,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -110,16 +111,20 @@ public class TaskPool
         //  - a worker has run it (afterExecute; a future cancelled in the queue is run as a no-op if a worker takes it),
         //  - it is taken out of the queue (remove: by PoolFuture.cancel, or by execute when the pool is shut down),
         //  - the executor refused it (the catch in execute).
-        // A shutdown both removes and refuses a task, hence the once-only flag. A command submitted twice is two
-        // submissions, each counted on its own. The wrapper only delegates run(): an exception of a plain Runnable
+        // A shutdown both removes and refuses a task, hence the once-only flag. A plain Runnable submitted twice is two
+        // submissions, each counted on its own; a PoolFuture is submitted once (a second execute is refused), so its
+        // cancel has one submission to remove. The wrapper only delegates run(): an exception of a plain Runnable
         // still reaches afterExecute and the worker as without it.
+        // A future cancelled while execute queues it: its cancel may try the remove before the submission is in the
+        // queue, so execute removes it itself once it is queued. Either remove may find it; the queue lets one succeed.
 
         @Override
         public void execute(Runnable command)
         {
             Submission submission = new Submission( command );
-            if( command instanceof PoolFuture )
-                ( (PoolFuture<?>)command ).submission = submission;
+            PoolFuture<?> future = command instanceof PoolFuture ? (PoolFuture<?>)command : null;
+            if( future != null && !future.submission.compareAndSet( null, submission ) )
+                throw new IllegalStateException( "A task future is submitted once: " + command );
             changeWork( 1, 0 );
             try
             {
@@ -130,6 +135,8 @@ public class TaskPool
                 submission.countOut();
                 throw e;
             }
+            if( future != null && future.isCancelled() && super.remove( submission ) )
+                submission.countOut();
         }
 
         @Override
@@ -140,25 +147,42 @@ public class TaskPool
                 ( (Submission)r ).countOut();
         }
 
-        /** Takes the submission of a command out of the queue: the Submission itself, or the one of a command. */
+        /**
+         * Takes a submission out of the queue: a Submission itself, the one of a PoolFuture, or one of a plain command
+         * (found by identity; of several submissions of the same command, any one). Returns false when none is queued:
+         * one that a worker takes meanwhile is no longer queued, and the lookup goes on with the others.
+         */
         @Override
         public boolean remove(Runnable task)
         {
-            Runnable queued = task;
-            if( task instanceof PoolFuture && ( (PoolFuture<?>)task ).submission != null )
-                queued = ( (PoolFuture<?>)task ).submission;
-            else if( ! ( task instanceof Submission ) )
+            if( task instanceof Submission )
+                return removeQueued( (Submission)task );
+            if( task instanceof PoolFuture )
             {
+                Submission submission = ( (PoolFuture<?>)task ).submission.get();
+                return submission != null && removeQueued( submission );
+            }
+            while( true )
+            {
+                Submission match = null;
                 for( Runnable r : getQueue() )
                     if( r instanceof Submission && ( (Submission)r ).command == task )
                     {
-                        queued = r;
+                        match = (Submission)r;
                         break;
                     }
+                if( match == null )
+                    return false;
+                if( removeQueued( match ) )
+                    return true;
             }
-            boolean removed = super.remove( queued );
-            if( removed && queued instanceof Submission )
-                ( (Submission)queued ).countOut();
+        }
+
+        private boolean removeQueued(Submission submission)
+        {
+            boolean removed = super.remove( submission );
+            if( removed )
+                submission.countOut();
             return removed;
         }
 
@@ -202,8 +226,8 @@ public class TaskPool
         /** A future of this pool that, cancelled while queued, leaves the queue at once: it is no work any more. */
         private class PoolFuture<T> extends FutureTask<T>
         {
-            /** Its last submission (execute sets it before queuing). */
-            volatile Submission submission;
+            /** Its submission, set once by execute before queuing. */
+            final AtomicReference<Submission> submission = new AtomicReference<>();
 
             PoolFuture(Callable<T> callable)
             {
