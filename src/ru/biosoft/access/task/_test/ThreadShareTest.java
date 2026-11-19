@@ -8,6 +8,10 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import com.developmentontheedge.application.Application;
 import com.developmentontheedge.beans.DynamicProperty;
@@ -23,7 +27,9 @@ import ru.biosoft.access.task.ThreadShare;
  * The thread budget shared among the users with work ({@link ThreadShare}), as {@link TaskPool} applies it.
  *
  * <p>Pools are per user and live as long as the JVM, so each test uses users of its own and waits, at its end, until
- * their tasks are done: a pool without work does not count, so pools left by other tests do not change the shares.</p>
+ * their tasks are done: a pool without work does not count, so pools left by other tests do not change the shares.
+ * Every blocking task has its own release latch, so a test can end one user's task and keep another's running. A
+ * SEVERE "Invalid task accounting" from TaskPool (a task counted out twice, say) fails the test.</p>
  */
 public class ThreadShareTest extends AbstractBioUMLTest
 {
@@ -33,9 +39,30 @@ public class ThreadShareTest extends AbstractBioUMLTest
     private Preferences preferences;
     /** A prefix for this test's user names. */
     private String prefix;
-    /** Releases every blocking task this test submitted. */
-    private CountDownLatch release;
-    private final List<RunnableTask> submitted = new ArrayList<>();
+    private final List<StoppableTask> submitted = new ArrayList<>();
+    private final List<String> accountingErrors = new ArrayList<>();
+    private final Handler accountingLog = new Handler()
+    {
+        @Override
+        public void publish(LogRecord record)
+        {
+            if( record.getLevel() == Level.SEVERE )
+                synchronized( accountingErrors )
+                {
+                    accountingErrors.add( record.getMessage() );
+                }
+        }
+
+        @Override
+        public void flush()
+        {
+        }
+
+        @Override
+        public void close()
+        {
+        }
+    };
 
     @Override
     protected void setUp() throws Exception
@@ -46,14 +73,15 @@ public class ThreadShareTest extends AbstractBioUMLTest
         Application.setPreferences( preferences );
         set( "threadsNumber", 8 );
         prefix = "threadShare" + runs.incrementAndGet() + "-";
-        release = new CountDownLatch( 1 );
+        Logger.getLogger( TaskPool.class.getName() ).addHandler( accountingLog );
     }
 
     @Override
     protected void tearDown() throws Exception
     {
-        release.countDown();
-        for( RunnableTask task : submitted )
+        for( StoppableTask task : submitted )
+            task.release.countDown();
+        for( StoppableTask task : submitted )
         {
             try
             {
@@ -64,10 +92,12 @@ public class ThreadShareTest extends AbstractBioUMLTest
                 // a cancelled task
             }
         }
+        Logger.getLogger( TaskPool.class.getName() ).removeHandler( accountingLog );
         Application.setPreferences( saved );
         // pools keep their last size: apply the restored preferences
         TaskPool.getInstance().getAvailableThreadsCount();
         super.tearDown();
+        assertEquals( "task accounting errors", "[]", accountingErrors.toString() );
     }
 
     private void set(String name, int value)
@@ -86,10 +116,11 @@ public class ThreadShareTest extends AbstractBioUMLTest
         return as( user, () -> TaskPool.getInstance().getMaximumThreadsCount() );
     }
 
-    /** A task of the user that counts down started when it runs, then blocks until the test ends. */
+    /** A task of the user that counts down started when it runs, then blocks until its release (or the test's end). */
     private StoppableTask submitBlocking(String user, CountDownLatch started)
     {
-        StoppableTask task = new StoppableTask( user, () -> {
+        CountDownLatch release = new CountDownLatch( 1 );
+        StoppableTask task = new StoppableTask( user, release, () -> {
             started.countDown();
             try
             {
@@ -113,9 +144,12 @@ public class ThreadShareTest extends AbstractBioUMLTest
 
     private static class StoppableTask extends RunnableTask
     {
-        StoppableTask(String name, Runnable runnable)
+        final CountDownLatch release;
+
+        StoppableTask(String name, CountDownLatch release, Runnable runnable)
         {
             super( name, runnable );
+            this.release = release;
         }
 
         @Override
@@ -206,12 +240,15 @@ public class ThreadShareTest extends AbstractBioUMLTest
         assertEquals( "two users with work: half of the budget each", 4, maxThreads( "a" ) );
         assertEquals( 4, maxThreads( "b" ) );
 
-        // b is done: the work count of b drops after its thread finishes the task
-        CountDownLatch releaseB = release;
-        release = new CountDownLatch( 1 );
-        releaseB.countDown();
+        // only b is done (a's task keeps running): the work count of b drops after its thread finishes the task
+        b.release.countDown();
         b.join();
         awaitMaxThreads( "the other user is done: the whole budget again", "a", 8 );
+        // and a third user with work gets half of it again, so a is still counted
+        CountDownLatch startedC = new CountDownLatch( 1 );
+        submitBlocking( "c", startedC );
+        assertTrue( startedC.await( 10, TimeUnit.SECONDS ) );
+        assertEquals( "a still has work", 4, maxThreads( "a" ) );
     }
 
     /** Looking a pool up (how many threads could I use?) is not work: it takes no threads from the users with work. */
@@ -284,24 +321,32 @@ public class ThreadShareTest extends AbstractBioUMLTest
             assertEquals( user, 1, maxThreads( user ) );
     }
 
-    /** A task cancelled while queued stops counting as work once its pool drops it. */
+    /**
+     * A task cancelled while queued leaves the queue at once and is counted out once: while the user's running tasks
+     * still block, and again when they end (which the accounting check of tearDown would report if counted twice).
+     */
     public void testCancelledQueuedTaskIsNoWork() throws Exception
     {
         set( ThreadShare.BUDGET_PREFERENCE, 2 );
         CountDownLatch started = new CountDownLatch( 2 );
-        submitBlocking( "a", started );
-        submitBlocking( "a", started );
+        StoppableTask a1 = submitBlocking( "a", started );
+        StoppableTask a2 = submitBlocking( "a", started );
         assertTrue( started.await( 10, TimeUnit.SECONDS ) );
-        StoppableTask queued = submitBlocking( "a", new CountDownLatch( 1 ) );
+        CountDownLatch queuedStarted = new CountDownLatch( 1 );
+        StoppableTask queued = submitBlocking( "a", queuedStarted );
         queued.stop();
-        // a's two running tasks end; its cancelled one is taken from the queue and dropped
-        CountDownLatch releaseA = release;
-        release = new CountDownLatch( 1 );
-        releaseA.countDown();
+        // a's running tasks still block: a keeps its share, the cancelled task changes nothing
+        assertEquals( 2, maxThreads( "a" ) );
 
+        // a running task cancelled is counted out when its thread finishes it, not twice
+        a2.stop();
+        a1.release.countDown();
+        a2.release.countDown();
+        a1.join();
         CountDownLatch startedB = new CountDownLatch( 1 );
         submitBlocking( "b", startedB );
         assertTrue( startedB.await( 10, TimeUnit.SECONDS ) );
         awaitMaxThreads( "a has no work left: b gets the whole budget", "b", 2 );
+        assertEquals( "the cancelled task never ran", 1, queuedStarted.getCount() );
     }
 }
