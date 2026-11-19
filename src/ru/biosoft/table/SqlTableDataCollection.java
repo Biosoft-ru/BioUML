@@ -1303,15 +1303,21 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
             if( length == -1 )
                 continue;
 
-            String sqlType = resultTable.getSQLType( length );
-            resultTable.columnLengths.put( columnName, SqlDataInfo.getColumnContentLength( sqlType ) );
+            String type = col.getType().name();
+            String sqlType = resultTable.getSQLType( type );
+            if( !type.equals( "Float" ) && !type.equals( "Integer" ) )
+            {
+                sqlType = resultTable.getSQLType( length );
+                resultTable.columnLengths.put( columnName, SqlDataInfo.getColumnContentLength( sqlType ) );
+            }
             SqlUtil.execute( resultTable.getConnection(),
                     resultTable.query( "ALTER TABLE $table$ MODIFY COLUMN $column$ $type$ DEFAULT NULL" )
                             .name( "column", resultTable.getSQLColumnName( columnName ) )
                             .raw( "type", sqlType )
             );
         }
-
+        resultTable.size = -1;
+        resultTable.names = null;
         return resultTable;
     }
 }
