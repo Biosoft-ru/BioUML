@@ -167,14 +167,31 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
             }
             DataElementPath trackPath = parameters.getFilteredVCFTrack();
             SqlTrack filteredYesTrack = SqlTrack.createTrack( trackPath, yesTrack, yesTrack.getClass() );
-            if( !filterVCF( yesTrack, chromosomes, siteModels, maxModelLength, model2index, noScores, filteredYesTrack ) )
+            boolean completed = false;
+            try
             {
-                // cancelled: remove the track not finished, as ProcessTrack and FilterTrackAnalysis do
-                filteredYesTrack.getOrigin().remove( filteredYesTrack.getName() );
-                return null;
+                if( !filterVCF( yesTrack, chromosomes, siteModels, maxModelLength, model2index, noScores, filteredYesTrack ) )
+                    return null; // cancelled
+                filteredYesTrack.finalizeAddition();
+                CollectionFactoryUtils.save( filteredYesTrack );
+                completed = true;
             }
-            filteredYesTrack.finalizeAddition();
-            CollectionFactoryUtils.save( filteredYesTrack );
+            finally
+            {
+                // cancelled or failed: remove the track not finished, as ProcessTrack and FilterTrackAnalysis do on cancel
+                if( !completed )
+                {
+                    try
+                    {
+                        filteredYesTrack.getOrigin().remove( filteredYesTrack.getName() );
+                    }
+                    catch( Exception e )
+                    {
+                        // keep the exception that brought us here, if any
+                        log.log( Level.WARNING, "Cannot remove the unfinished track " + trackPath, e );
+                    }
+                }
+            }
             results.add( filteredYesTrack );
         }
         return results.toArray( new Object[0] );
