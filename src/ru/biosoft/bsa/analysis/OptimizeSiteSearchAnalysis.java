@@ -635,10 +635,12 @@ public class OptimizeSiteSearchAnalysis extends AnalysisMethodSupport<OptimizeSi
             // stops the iteration instead (an element returns false: no more elements start, and iterate waits for the
             // running ones), and the progress goes through progress.add, which reports it forward only.
             TaskPool.getInstance().iterate( modelsByName, sameName -> {
-                if( jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST )
-                    return false;
                 for( SiteModel model : sameName )
+                {
+                    if( jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST )
+                        return false;
                     optimizeModel( model, sites, modelsInfo.get( model.getName() ), intervalTracks, totalLength, interval );
+                }
                 progress.add( sameName.size() );
                 return true;
             } );
