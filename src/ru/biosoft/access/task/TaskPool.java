@@ -40,15 +40,24 @@ public class TaskPool
     
 
     private static final Logger log = Logger.getLogger( TaskPool.class.getName() );
-    /** The threads per user of the last rebalance, to log only a change. */
-    private static volatile int lastShare = -1;
+
+    /**
+     * Guards every pool's work count and share, so that a change in who has work and the shares it gives are one step:
+     * no rebalance computed from an older count can overwrite a newer one.
+     */
+    private static final Object shareLock = new Object();
+    /** Budget, users with work and share of the last rebalance, to log a change only; guarded by shareLock. */
+    private static String lastState = "";
 
     protected static class ThreadPool extends ThreadPoolExecutor
     {
+        // guarded by shareLock
         /** This user's share of threads ({@link ThreadShare}). */
         private int share;
-        /** Threads added while tasks of this pool wait ({@link TaskPool#markCurrentThreadInactive}): kept on a resize. */
-        private volatile int waitingThreads;
+        /** Tasks submitted to this pool and not done yet: queued or running. */
+        private int pending;
+        /** Of these, the running ones that wait ({@link TaskPool#markCurrentThreadInactive}): each has a thread more. */
+        private int waiting;
 
         public ThreadPool(int threadsNumber)
         {
@@ -58,22 +67,61 @@ public class TaskPool
             share = threadsNumber;
         }
 
-        /**
-         * Set this user's share. A smaller pool interrupts no running task: each finishes its current item, and the
-         * iterations that requeue every {@link TaskPool#ITERATE_SWITCH_MILLIS} then run on fewer threads.
-         */
-        public synchronized void setShare(int share)
+        /** Whether this user has work: a queued task, or a running one that is not waiting. Under shareLock. */
+        boolean hasWork()
         {
-            if( share == this.share )
-                return;
-            this.share = share;
-            updatePoolSize( Math.max( 1, share + waitingThreads ) );
+            return pending > waiting;
         }
 
-        /** Whether this user has work: a running task that is not just waiting, or a queued one. */
-        public boolean hasWork()
+        /** Under shareLock. A smaller pool interrupts no running task (see {@link ThreadShare}). */
+        void setShare(int share)
         {
-            return getActiveCount() > waitingThreads || !getQueue().isEmpty();
+            this.share = share;
+            updatePoolSize( Math.max( 1, share + waiting ) );
+        }
+
+        // the work count changes before the task is queued and after it is done (afterExecute also runs for a task
+        // cancelled while queued), so a task in the queue is always counted
+
+        @Override
+        public void execute(Runnable command)
+        {
+            changeWork( 1, 0 );
+            try
+            {
+                super.execute( command );
+            }
+            catch( RuntimeException | Error e )
+            {
+                changeWork( -1, 0 );
+                throw e;
+            }
+        }
+
+        @Override
+        protected void afterExecute(Runnable r, Throwable t)
+        {
+            super.afterExecute( r, t );
+            changeWork( -1, 0 );
+        }
+
+        @Override
+        public boolean remove(Runnable task)
+        {
+            boolean removed = super.remove( task );
+            if( removed )
+                changeWork( -1, 0 );
+            return removed;
+        }
+
+        private void changeWork(int pendingDelta, int waitingDelta)
+        {
+            synchronized( shareLock )
+            {
+                pending = Math.max( 0, pending + pendingDelta );
+                waiting = Math.max( 0, waiting + waitingDelta );
+                rebalanceLocked();
+            }
         }
 
         public void updatePoolSize(int threadsNumber)
@@ -88,12 +136,11 @@ public class TaskPool
                 setMaximumPoolSize(threadsNumber);
             }
         }
-        
+
         /** A task of this pool starts (+1) or stops (-1) waiting: the pool grows or shrinks by one thread around its share. */
-        public synchronized void changePoolSize(int delta)
+        public void changePoolSize(int delta)
         {
-            waitingThreads = Math.max( 0, waitingThreads + delta );
-            updatePoolSize( Math.max( 1, share + waitingThreads ) );
+            changeWork( 0, delta );
         }
 
         public void submit(Task task)
@@ -104,7 +151,7 @@ public class TaskPool
                 task.run();
             } else
             {
-                Future<?> future = submit(new TaskLaunch(task, SecurityManager.getSession()));
+                Future<?> future = submit(new TaskLaunch(task, SecurityManager.getSession(), this));
                 if(task instanceof AbstractTask)
                 {
                     ((AbstractTask)task).setFuture(future);
@@ -127,11 +174,13 @@ public class TaskPool
     {
         private final Task task;
         private final String sessionId;
+        private final ThreadPool pool;
 
-        public TaskLaunch(Task task, String sessionId)
+        public TaskLaunch(Task task, String sessionId, ThreadPool pool)
         {
             this.task = task;
             this.sessionId = sessionId;
+            this.pool = pool;
         }
 
         @Override
@@ -139,6 +188,7 @@ public class TaskPool
         {
             SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sessionId );
             threadTask.set(task);
+            threadPool.set( pool );
             inactive.set( false );
             Thread.currentThread().setName("Task: "+task);
             try
@@ -149,12 +199,11 @@ public class TaskPool
             {
                 if(inactive.get())
                 {
-                    getInstance().getUserPool().changePoolSize( -1 );
+                    pool.changePoolSize( -1 );
                     inactive.set( false );
                 }
                 threadTask.set(null);
-                // a task ended: the user may have no work left, and the others more threads
-                rebalance( null );
+                threadPool.remove();
                 SecurityManager.removeThreadFromSessionRecord();
             }
             Thread.currentThread().setName("Idle (user: "+SecurityManager.getSessionUser()+")");
@@ -177,18 +226,20 @@ public class TaskPool
             if(oldValue != null)
                 executor = oldValue;
         }
-        // the pool is looked up to submit work to it (or to see how much it could take): counts as a user with work
-        rebalance( executor );
+        // a lookup is not work (only a submitted task is), but it applies a changed budget
+        synchronized( shareLock )
+        {
+            rebalanceLocked();
+        }
         return executor;
     }
 
     /**
      * Give every user's pool its share of the thread budget ({@link ThreadShare}); without a budget, threadsNumber.
-     * Cheap (one pass over the users' pools, a resize only when the share changed), so it runs whenever a pool is
-     * looked up and whenever a task ends.
-     * @param submitting a pool about to get work, counted as busy; or null
+     * A pool without work gets the share it would have with work, so that its first tasks do not start on more.
+     * Runs under shareLock at every change of a pool's work: one pass over the users' pools.
      */
-    static void rebalance(ThreadPool submitting)
+    private static void rebalanceLocked()
     {
         int max = SecurityManager.getMaximumThreadsNumber();
         int budget = ThreadShare.budget();
@@ -196,18 +247,20 @@ public class TaskPool
         if( budget > 0 )
         {
             for( ThreadPool pool : userThreads.values() )
-                if( pool == submitting || pool.hasWork() )
+                if( pool.hasWork() )
                     users++;
         }
-        int share = ThreadShare.perUser( budget, users, ThreadShare.minPerUser(), max );
+        int share = ThreadShare.perUser( budget, users, max );
+        int idleShare = ThreadShare.perUser( budget, users + 1, max );
         for( ThreadPool pool : userThreads.values() )
-            pool.setShare( share );
-        if( share != lastShare )
+            pool.setShare( pool.hasWork() ? share : idleShare );
+        String state = budget + "/" + users + "/" + share + "/" + max;
+        if( !state.equals( lastState ) )
         {
-            lastShare = share;
             if( budget > 0 )
                 log.info( "Task threads per user: " + share + " (budget " + budget + ", " + users + " user(s) with work, max "
                         + max + ")" );
+            lastState = state;
         }
     }
 
@@ -221,6 +274,12 @@ public class TaskPool
         return getAvailableThreadsCount() > 0;
     }
 
+    /** The current user's pool size: the user's share of threads, and one more for each of the user's waiting tasks. */
+    public int getMaximumThreadsCount()
+    {
+        return getUserPool().getMaximumPoolSize();
+    }
+
     public void submit(Task task)
     {
         if(!task.canSubmit()) return;
@@ -229,8 +288,8 @@ public class TaskPool
             task.run();
         } else
         {
-            ThreadPoolExecutor userPool = getUserPool();
-            Future<?> future = userPool.submit(new TaskLaunch(task, SecurityManager.getSession()));
+            ThreadPool userPool = getUserPool();
+            Future<?> future = userPool.submit(new TaskLaunch(task, SecurityManager.getSession(), userPool));
             if(task instanceof AbstractTask)
             {
                 ((AbstractTask)task).setFuture(future);
@@ -240,10 +299,10 @@ public class TaskPool
 
     public void submitAll(Collection<Task> tasks)
     {
-        ThreadPoolExecutor userPool = getUserPool();
+        ThreadPool userPool = getUserPool();
         for(Task task: tasks)
         {
-            Future<?> future = userPool.submit(new TaskLaunch(task, SecurityManager.getSession()));
+            Future<?> future = userPool.submit(new TaskLaunch(task, SecurityManager.getSession(), userPool));
             if(task instanceof AbstractTask)
             {
                 ((AbstractTask)task).setFuture(future);
@@ -407,6 +466,8 @@ public class TaskPool
      * will execute other tasks of the user until this thread become active again.
      */
     private static ThreadLocal<Boolean> inactive = new ThreadLocal<>();
+    /** The pool whose task runs in this thread: the one that gets the extra thread. */
+    private static ThreadLocal<ThreadPool> threadPool = new ThreadLocal<>();
     
     public void markCurrentThreadInactive()
     {
@@ -417,7 +478,7 @@ public class TaskPool
             return;//ignore already inactive
         
         inactive.set( true );
-        getUserPool().changePoolSize( 1 );
+        threadPool.get().changePoolSize( 1 );
     }
     
     public void markCurrentThreadActive()
@@ -428,7 +489,7 @@ public class TaskPool
         if(!inactiveFlag)
             return;//ignore already active
         inactive.set( false );
-        getUserPool().changePoolSize( -1 );
+        threadPool.get().changePoolSize( -1 );
     }
     
 
