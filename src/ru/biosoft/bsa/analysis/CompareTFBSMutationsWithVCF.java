@@ -168,7 +168,11 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
             DataElementPath trackPath = parameters.getFilteredVCFTrack();
             SqlTrack filteredYesTrack = SqlTrack.createTrack( trackPath, yesTrack, yesTrack.getClass() );
             if( !filterVCF( yesTrack, chromosomes, siteModels, maxModelLength, model2index, noScores, filteredYesTrack ) )
-                return null; // cancelled
+            {
+                // cancelled: remove the track not finished, as ProcessTrack and FilterTrackAnalysis do
+                filteredYesTrack.getOrigin().remove( filteredYesTrack.getName() );
+                return null;
+            }
             filteredYesTrack.finalizeAddition();
             CollectionFactoryUtils.save( filteredYesTrack );
             results.add( filteredYesTrack );
@@ -472,7 +476,7 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
                     : -Math.log10( 1.0 / ( 2.0 * values.length ) );
         }, jobControl ) )
             return false;
-        int failed = 0;
+        int failed = 0, notFound = 0;
         Exception firstFailure = null;
         String firstFailed = null;
         for( ScoredVariation v : variations )
@@ -488,6 +492,8 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
                     si.getProperties().add( new DynamicProperty( CHANGING_PROPERTY, Float.class, weights[v.index] ) );
                     resultTrack.addSite( si );
                 }
+                else
+                    notFound++;
             }
             catch( Exception e )
             {
@@ -499,8 +505,10 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
                 }
             }
         }
+        if( notFound > 0 )
+            log.warning( notFound + " variation(s) were not found in the input track and are not in the filtered track" );
         if( failed > 0 )
-            log.log( Level.WARNING, failed + " site(s) were not written to the filtered track; the first, " + firstFailed + ":",
+            log.log( Level.WARNING, failed + " site(s) could not be written to the filtered track; the first, " + firstFailed + ":",
                     firstFailure );
         return jobControl.getStatus() != JobControl.TERMINATED_BY_REQUEST;
     }

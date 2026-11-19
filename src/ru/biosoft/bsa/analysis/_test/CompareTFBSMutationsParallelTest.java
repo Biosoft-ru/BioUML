@@ -236,23 +236,37 @@ public class CompareTFBSMutationsParallelTest extends AbstractBioUMLTest
 
     /**
      * The reference region as the accessor copies it is the region the former loop made with new CachedSequenceRegion:
-     * same start, length and letters, and so the reverse complement, also where the region is cut at a chromosome end.
+     * same start, length and letters, and so the reverse complement. The regions are cut to the chromosome as the
+     * analysis cuts them (a variation's interval grown by the longest model, intersected with the chromosome), many of
+     * them at its ends, and the chromosomes start at 1 and elsewhere.
      */
     public void testAccessorCopyIsTheFormerRegion()
     {
         Random random = new Random( 11 );
-        String dna = randomDna( random, 3000 );
-        Sequence chromosome = new LinearSequence( "chr1", dna, Nucleotide5LetterAlphabet.getInstance() );
-        ru.biosoft.bsa.analysis.SequenceAccessor accessor = new ru.biosoft.bsa.analysis.SequenceAccessor( chromosome );
-        for( int i = 0; i < 300; i++ )
+        int clipped = 0;
+        for( int start : new int[] {1, 1000001} )
         {
-            int length = 1 + random.nextInt( 60 );
-            int from = chromosome.getStart() + random.nextInt( chromosome.getLength() - length + 1 );
-            CachedSequenceRegion former = new CachedSequenceRegion( chromosome, from, length, false );
-            CachedSequenceRegion copied = accessor.getSubSequence( from, length, false );
-            assertRegionsEqual( from + "+" + length, former, copied );
-            assertRegionsEqual( from + "+" + length + " RC", former.getReverseComplement(), copied.getReverseComplement() );
+            String dna = randomDna( random, 3000 );
+            Sequence chromosome = new LinearSequence( "chr1", start, dna.getBytes(), Nucleotide5LetterAlphabet.getInstance() );
+            ru.biosoft.bsa.analysis.SequenceAccessor accessor = new ru.biosoft.bsa.analysis.SequenceAccessor( chromosome );
+            for( int i = 0; i < 300; i++ )
+            {
+                // a variation anywhere, a third of them within the growth of an end
+                int grow = 1 + random.nextInt( 30 );
+                int at = i % 3 == 0 ? random.nextInt( grow ) : i % 3 == 1 ? dna.length() - 1 - random.nextInt( grow ) : random.nextInt( dna.length() );
+                int from = chromosome.getStart() + at;
+                ru.biosoft.bsa.Interval interval = new ru.biosoft.bsa.Interval( from, from ).grow( grow ).intersect( chromosome.getInterval() );
+                assertNotNull( interval );
+                if( interval.getLength() < 2 * grow + 1 )
+                    clipped++;
+                CachedSequenceRegion former = new CachedSequenceRegion( chromosome, interval.getFrom(), interval.getLength(), false );
+                CachedSequenceRegion copied = accessor.getSubSequence( interval.getFrom(), interval.getLength(), false );
+                String message = start + ":" + interval;
+                assertRegionsEqual( message, former, copied );
+                assertRegionsEqual( message + " RC", former.getReverseComplement(), copied.getReverseComplement() );
+            }
         }
+        assertTrue( "no region was cut at a chromosome end: " + clipped, clipped > 100 );
     }
 
     private static void assertRegionsEqual(String message, Sequence expected, Sequence actual)
@@ -285,11 +299,12 @@ public class CompareTFBSMutationsParallelTest extends AbstractBioUMLTest
                 try
                 {
                     // returns at once when two threads are in this method of this instance; false: no second came
-                    if( !inside.await( 20, java.util.concurrent.TimeUnit.SECONDS ) )
+                    if( !inside.await( 5, java.util.concurrent.TimeUnit.SECONDS ) )
                         met = false;
                 }
                 catch( InterruptedException e )
                 {
+                    met = false;
                     Thread.currentThread().interrupt();
                 }
             }
