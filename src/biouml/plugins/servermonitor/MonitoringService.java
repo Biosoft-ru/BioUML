@@ -1153,7 +1153,9 @@ public class MonitoringService {
             writer.write("  \"triggeredTask\": \"" + escapeJson(triggeredTask) + "\",\n");
             writer.write("  \"startTime\": " + result.getStartTime() + ",\n");
             writer.write("  \"endTime\": " + result.getEndTime() + ",\n");
-            writer.write("  \"duration\": " + result.getDuration() + "\n");
+            writer.write("  \"duration\": " + result.getDuration() + ",\n");
+            // cpu samples running threads only; wall also the waiting ones: the stacks read differently
+            writer.write("  \"event\": \"" + escapeJson(config.getProfilerEvent()) + "\"\n");
             writer.write("}");
             log.fine("Saved profile metadata: " + metaFile.getAbsolutePath());
         } catch (IOException e) {
