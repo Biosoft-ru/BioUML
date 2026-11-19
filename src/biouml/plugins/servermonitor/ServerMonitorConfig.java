@@ -41,6 +41,8 @@ public class ServerMonitorConfig {
 
     // --- Extra output formats ---
     public static final String EXTRA_FORMATS = "extraFormats";
+    /** async-profiler event: cpu (running threads only) or wall (all threads, waiting ones included). */
+    public static final String PROFILER_EVENT = "profilerEvent";
 
     // --- Sub-process (external script) monitoring ---
     public static final String SUB_PROCESS_ENABLED = "subProcessEnabled";
@@ -59,6 +61,9 @@ public class ServerMonitorConfig {
     public static final int DEFAULT_MAX_PROFILE_AGE = 604800;         // 7 days
     public static final String DEFAULT_LOG_LEVEL = "INFO";
     public static final String DEFAULT_EXTRA_FORMATS = "";
+    public static final String DEFAULT_PROFILER_EVENT = "cpu";
+    /** The events profilerEvent accepts; it reaches the profiler's command line, so nothing else is passed. */
+    public static final java.util.List<String> PROFILER_EVENTS = java.util.Arrays.asList( "cpu", "wall" );
 
     /**
      * Default threshold (seconds) at which a long-running external
@@ -86,6 +91,7 @@ public class ServerMonitorConfig {
     private int maxProfileAge = DEFAULT_MAX_PROFILE_AGE;
     private String logLevel = DEFAULT_LOG_LEVEL;
     private String extraFormats = DEFAULT_EXTRA_FORMATS;
+    private String profilerEvent = DEFAULT_PROFILER_EVENT;
     private boolean subProcessEnabled = true;
     private int subProcessThreshold = DEFAULT_SUB_PROCESS_THRESHOLD;
     private int subProcessMinAge = DEFAULT_SUB_PROCESS_MIN_AGE;
@@ -186,6 +192,8 @@ public class ServerMonitorConfig {
                     config.logLevel = toString(value, DEFAULT_LOG_LEVEL);
                 } else if (EXTRA_FORMATS.equals(key)) {
                     config.extraFormats = toString(value, DEFAULT_EXTRA_FORMATS);
+                } else if (PROFILER_EVENT.equals(key)) {
+                    config.profilerEvent = toEvent(value);
                 } else if (SUB_PROCESS_ENABLED.equals(key)) {
                     config.subProcessEnabled = toBool(value, true);
                 } else if (SUB_PROCESS_THRESHOLD.equals(key)) {
@@ -230,6 +238,7 @@ public class ServerMonitorConfig {
             config.maxProfileAge = getIntProp(props, MAX_PROFILE_AGE, DEFAULT_MAX_PROFILE_AGE);
             config.logLevel = getStringProp(props, LOG_LEVEL, DEFAULT_LOG_LEVEL);
             config.extraFormats = getStringProp(props, EXTRA_FORMATS, DEFAULT_EXTRA_FORMATS);
+            config.profilerEvent = toEvent(getStringProp(props, PROFILER_EVENT, DEFAULT_PROFILER_EVENT));
             config.subProcessEnabled = getBoolProp(props, SUB_PROCESS_ENABLED, true);
             config.subProcessThreshold = getIntProp(props, SUB_PROCESS_THRESHOLD, DEFAULT_SUB_PROCESS_THRESHOLD);
             config.subProcessMinAge = getIntProp(props, SUB_PROCESS_MIN_AGE, DEFAULT_SUB_PROCESS_MIN_AGE);
@@ -258,6 +267,7 @@ public class ServerMonitorConfig {
             case MAX_PROFILE_AGE: return String.valueOf(maxProfileAge);
             case LOG_LEVEL: return logLevel;
             case EXTRA_FORMATS: return extraFormats;
+            case PROFILER_EVENT: return profilerEvent;
             case SUB_PROCESS_ENABLED: return String.valueOf(subProcessEnabled);
             case SUB_PROCESS_THRESHOLD: return String.valueOf(subProcessThreshold);
             case SUB_PROCESS_MIN_AGE: return String.valueOf(subProcessMinAge);
@@ -306,6 +316,9 @@ public class ServerMonitorConfig {
                 break;
             case EXTRA_FORMATS:
                 extraFormats = toString(value, DEFAULT_EXTRA_FORMATS);
+                break;
+            case PROFILER_EVENT:
+                profilerEvent = toEvent(value);
                 break;
             case SUB_PROCESS_ENABLED:
                 subProcessEnabled = toBool(value, true);
@@ -359,6 +372,22 @@ public class ServerMonitorConfig {
 
     public String getLogLevel() {
         return logLevel;
+    }
+
+    /** The async-profiler event, one of {@link #PROFILER_EVENTS}. */
+    public String getProfilerEvent() {
+        return profilerEvent;
+    }
+
+    /** An accepted event (case-insensitive); anything else is logged and gives the default, cpu. */
+    static String toEvent(Object value) {
+        String event = value == null ? "" : value.toString().trim().toLowerCase(java.util.Locale.ROOT);
+        if (PROFILER_EVENTS.contains(event))
+            return event;
+        if (!event.isEmpty())
+            log.warning("Unknown " + PROFILER_EVENT + " '" + value + "', expected one of " + PROFILER_EVENTS + "; using "
+                    + DEFAULT_PROFILER_EVENT);
+        return DEFAULT_PROFILER_EVENT;
     }
 
     public String getExtraFormats() {
@@ -441,6 +470,7 @@ public class ServerMonitorConfig {
                 ", maxProfileAge=" + maxProfileAge +
                 ", logLevel='" + logLevel + '\'' +
                 ", extraFormats='" + extraFormats + '\'' +
+                ", profilerEvent='" + profilerEvent + '\'' +
                 ", subProcessEnabled=" + subProcessEnabled +
                 ", subProcessThreshold=" + subProcessThreshold +
                 ", subProcessMinAge=" + subProcessMinAge +

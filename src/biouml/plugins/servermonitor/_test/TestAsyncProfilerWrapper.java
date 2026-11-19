@@ -54,6 +54,7 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
         suite.addTest(new TestAsyncProfilerWrapper("testHungProcessTreeIsBoundedAndDestroyed"));
         suite.addTest(new TestAsyncProfilerWrapper("testNonZeroExitReportedAsFailure"));
         suite.addTest(new TestAsyncProfilerWrapper("testStopSkippedWhenNoSessionActive"));
+        suite.addTest(new TestAsyncProfilerWrapper("testEventIsPassedToProfiler"));
         return suite;
     }
 
@@ -76,6 +77,32 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
     // --------------------------------------------------------------- tests
 
     /** A fast, well-behaved profiler run must be reported as successful. */
+    /** The event the fake profiler was run with (recorded by its clean mode). */
+    private String eventPassed() throws java.io.IOException
+    {
+        return new String( Files.readAllBytes( new File( tmpDir, "event" ).toPath() ), "UTF-8" ).trim();
+    }
+
+    /** profilerEvent reaches the profiler's -e: cpu by default, wall when set, and nothing but an accepted event. */
+    public void testEventIsPassedToProfiler() throws Exception
+    {
+        AsyncProfilerWrapper wrapper = makeWrapperWithFake( "clean" );
+        assertTrue( wrapper.start( new long[0], "collapsed" ).isSuccess() );
+        assertEquals( "cpu", eventPassed() );
+
+        config.set( ServerMonitorConfig.PROFILER_EVENT, " Wall " );
+        assertEquals( "wall", config.getProfilerEvent() );
+        assertTrue( wrapper.start( new long[0], "collapsed" ).isSuccess() );
+        assertEquals( "wall", eventPassed() );
+
+        // the value reaches a command line: anything but an accepted event gives the default
+        config.set( ServerMonitorConfig.PROFILER_EVENT, "alloc --all" );
+        assertEquals( "cpu", config.getProfilerEvent() );
+        assertTrue( wrapper.start( new long[0], "collapsed" ).isSuccess() );
+        assertEquals( "cpu", eventPassed() );
+        assertEquals( "cpu", config.get( ServerMonitorConfig.PROFILER_EVENT ) );
+    }
+
     public void testCleanRunSucceeds()
     {
         AsyncProfilerWrapper wrapper = makeWrapperWithFake("clean");
@@ -281,8 +308,10 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
             + "fi\n"
             + "# a run: -d <N> -f <path> ...\n"
             + "F=\"\"\n"
+            + "E=\"\"\n"
             + "while [ $# -gt 0 ]; do\n"
             + "  if [ \"$1\" = \"-f\" ]; then shift; F=\"$1\"; fi\n"
+            + "  if [ \"$1\" = \"-e\" ]; then shift; E=\"$1\"; fi\n"
             + "  shift\n"
             + "done\n"
             + "sleep 0.2\n"
@@ -290,7 +319,7 @@ public class TestAsyncProfilerWrapper extends junit.framework.TestCase
             + "case \"" + mode + "\" in\n"
             + "  hung) exec sleep 600 ;;\n"
             + "  tree) echo $$ > \"$TREE_PID_FILE\"; sleep 600 & echo $! >> \"$TREE_PID_FILE\"; wait ;;\n"
-            + "  clean) [ -n \"$F\" ] && touch \"$F\"; exit 0 ;;\n"
+            + "  clean) echo \"$E\" > \"" + tmpDir.getAbsolutePath() + "/event\"; [ -n \"$F\" ] && touch \"$F\"; exit 0 ;;\n"
             + "  fail) exit 1 ;;\n"
             + "esac\n";
     }
