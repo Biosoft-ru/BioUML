@@ -36,10 +36,11 @@ import ru.biosoft.util.Cache;
 @ClassIcon ( "resources/functional-classification.gif" )
 public class FunctionalClassification extends FunctionalAnalysisSupport<FunctionalClassificationParameters>
 {
-    static final String HITS_COLUMN = "Hits";
-    static final String GROUP_SIZE_COLUMN = "Group size";
-    static final String NUMBER_OF_HITS_COLUMN = "Number of hits";
-    static final String ADJUSTED_P_VALUE_COLUMN = "Adjusted P-value";
+    public static final String P_VALUE_COLUMN = "P-value";
+    public static final String HITS_COLUMN = "Hits";
+    public static final String GROUP_SIZE_COLUMN = "Group size";
+    public static final String NUMBER_OF_HITS_COLUMN = "Number of hits";
+    public static final String ADJUSTED_P_VALUE_COLUMN = "Adjusted P-value";
 
     public FunctionalClassification(DataCollection<?> origin, String name)
     {
@@ -151,7 +152,7 @@ public class FunctionalClassification extends FunctionalAnalysisSupport<Function
             columnModel.addColumn(NUMBER_OF_HITS_COLUMN, Integer.class);
             columnModel.addColumn(GROUP_SIZE_COLUMN, Integer.class);
             columnModel.addColumn("Expected hits", Double.class);
-            columnModel.addColumn("P-value", Double.class);
+            columnModel.addColumn( P_VALUE_COLUMN, Double.class );
             columnModel.addColumn(ADJUSTED_P_VALUE_COLUMN, Double.class);
             columnModel.addColumn(HITS_COLUMN, StringSet.class).setHidden(true);
             columnModel.addColumn("Hit names", StringSet.class);
@@ -242,7 +243,7 @@ public class FunctionalClassification extends FunctionalAnalysisSupport<Function
                     row.getOrigin().put(row);
                 }
             }
-            TableDataCollectionUtils.setSortOrder(resTable, "P-value", true);
+            TableDataCollectionUtils.setSortOrder( resTable, P_VALUE_COLUMN, true );
             resTable.getInfo().setNodeImageLocation(getClass(), "resources/classify.gif");
             writeMetaData(resTable);
             return resTable;

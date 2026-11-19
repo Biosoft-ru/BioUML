@@ -17,7 +17,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -55,6 +54,7 @@ import ru.biosoft.util.TempFiles;
 @ClassIcon ( "resources/treemap.gif" )
 public class TreeMapAnalysis extends AnalysisMethodSupport<TreeMapAnalysisParameters>
 {
+    public static final String TREEMAP_SUMMARY_TABLE = "treemap summary table";
     private Connection connection = null;
     private Map<String, GroupInfo> groupInfo = null;
     private Map<String, Integer> total = null;
@@ -171,7 +171,7 @@ public class TreeMapAnalysis extends AnalysisMethodSupport<TreeMapAnalysisParame
     {
         jobControl.pushProgress( 2, 60 );
         TableDataCollection resTable = TableDataCollectionUtils
-                .createTableDataCollection( resultsFolder.getCompletePath().getChildPath( "treemap summary table" ) );
+                .createTableDataCollection( resultsFolder.getCompletePath().getChildPath( TREEMAP_SUMMARY_TABLE ) );
         ColumnModel columnModel = resTable.getColumnModel();
         columnModel.addColumn( "Title", String.class );
         columnModel.addColumn( "Ontology type", String.class );
