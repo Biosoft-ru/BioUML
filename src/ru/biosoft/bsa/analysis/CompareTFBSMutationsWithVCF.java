@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import com.developmentontheedge.beans.DynamicProperty;
@@ -23,6 +24,8 @@ import ru.biosoft.access.core.ClassIcon;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.access.task.ExceptionalConsumer;
+import ru.biosoft.access.task.TaskPool;
 import ru.biosoft.analysis.Stat;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
@@ -45,6 +48,8 @@ import ru.biosoft.bsa.analysis.maos.coord_mapping.CoordinateMapping;
 import ru.biosoft.bsa.analysis.maos.coord_mapping.InverseMapping;
 import ru.biosoft.bsa.analysis.maos.coord_mapping.MappingByVCF;
 import ru.biosoft.bsa.analysis.maos.coord_mapping.ReverseStrandMapping;
+import ru.biosoft.exception.ExceptionRegistry;
+import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.table.ColumnModel;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableDataCollection;
@@ -84,12 +89,16 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
         Track yesTrack = parameters.getYesVCFTrack().getDataElement( Track.class );
         Scores yesScores = computeMaxGainLossDeltas( yesTrack, chromosomes, siteModels, maxModelLength );
         jobControl.popProgress();
+        if( jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST )
+            return null;
 
         log.info( "Computing site gain/loss scores for control track" );
         jobControl.pushProgress( 25, 50 );
         Track noTrack = parameters.getNoVCFTrack().getDataElement( Track.class );
         Scores noScores = computeMaxGainLossDeltas( noTrack, chromosomes, siteModels, maxModelLength );
         jobControl.popProgress();
+        if( jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST )
+            return null;
 
         log.info( "Finding site loss over/under representation" );
         jobControl.pushProgress( 50, 75 );
@@ -189,6 +198,7 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
         }
     }
     private Scores computeMaxGainLossDeltas(Track track, Map<String, Sequence> chromosomes, SiteModel[] siteModels, int maxModelLength)
+            throws Exception
     {
         DataCollection<Site> sites = track.getAllSites();
 
@@ -245,31 +255,126 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
         }
 
         Scores result = new Scores( siteModels.length, siteCount );
-        float[] gains = new float[siteModels.length];
-        float[] losses = new float[siteModels.length];
+        computeDeltas( variationsByChr, chromosomes, siteModels, maxModelLength, result.losses, result.gains, jobControl );
+        return result;
+    }
 
-        int i = 0;
+    /** A variation to score, with its chromosome; index is its place in the former loop over the variations. */
+    private static class ScoredVariation
+    {
+        final int index;
+        final Variation var;
+        final Sequence chromosome;
+        final SequenceAccessor accessor;
+
+        ScoredVariation(int index, Variation var, Sequence chromosome, SequenceAccessor accessor)
+        {
+            this.index = index;
+            this.var = var;
+            this.chromosome = chromosome;
+            this.accessor = accessor;
+        }
+    }
+
+    /** The variations of the map, numbered in the map's order, each with its chromosome and the accessor to read it. */
+    private static List<ScoredVariation> numbered(Map<String, List<Variation>> variationsByChr, Map<String, Sequence> chromosomes)
+    {
+        List<ScoredVariation> result = new ArrayList<>();
         for( Map.Entry<String, List<Variation>> e : variationsByChr.entrySet() )
         {
-            String chrName = e.getKey();
-            Sequence seq = chromosomes.get( chrName );
+            Sequence chromosome = chromosomes.get( e.getKey() );
+            // a chromosome is read by several threads: its regions are copied through one synchronized accessor, as
+            // SiteSearchAnalysis does; the copies are private to the thread
+            SequenceAccessor accessor = new SequenceAccessor( chromosome );
             for( Variation var : e.getValue() )
-            {
-                jobControl.setPreparedness( (int) ( (double)i * 100 / siteCount ) );
-                computeMaxGainLossDeltasForSite( var, seq, siteModels, maxModelLength, losses, gains );
-                for( int j = 0; j < siteModels.length; j++ )
+                result.add( new ScoredVariation( result.size(), var, chromosome, accessor ) );
+        }
+        return result;
+    }
+
+    /**
+     * Runs the body for every variation in parallel (TaskPool). Each variation is independent and writes only its own
+     * index of the results, so they do not depend on the threads. Stops at a cancel request.
+     * @param jobControl gets the progress, 0-100%, forward only; may be null
+     * @return false if cancelled
+     */
+    private static boolean forEachVariation(List<ScoredVariation> variations, ExceptionalConsumer<ScoredVariation> body,
+            JobControl jobControl) throws Exception
+    {
+        Progress progress = new Progress( jobControl, variations.size() );
+        try
+        {
+            // not given the jobControl: iterate would report the progress from several threads, out of order
+            TaskPool.getInstance().iterate( variations, variation -> {
+                if( jobControl != null && jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST )
+                    return false;
+                try
                 {
-                    result.losses[j][i] = losses[j];
-                    result.gains[j][i] = gains[j];
+                    body.accept( variation );
                 }
-                i++;
-            }
+                catch( Throwable t )
+                {
+                    throw ExceptionRegistry.translateException( t );
+                }
+                progress.add();
+                return true;
+            } );
+        }
+        catch( ExecutionException e )
+        {
+            throw ExceptionRegistry.translateException( e );
+        }
+        return jobControl == null || jobControl.getStatus() != JobControl.TERMINATED_BY_REQUEST;
+    }
+
+    /** Progress of work done in parallel: reported in order and forward only. */
+    private static class Progress
+    {
+        private final JobControl jobControl;
+        private final long total;
+        private long done;
+        private int reported = -1;
+
+        Progress(JobControl jobControl, long total)
+        {
+            this.jobControl = jobControl;
+            this.total = Math.max( 1, total );
         }
 
-        return result;
+        synchronized void add()
+        {
+            done++;
+            int percent = (int) ( done * 100 / total );
+            if( jobControl != null && percent > reported )
+            {
+                reported = percent;
+                jobControl.setPreparedness( percent );
+            }
+        }
+    }
+
+    /**
+     * The greatest site loss and gain of each model at each variation: losses[model][i] and gains[model][i], i in the
+     * order of the variations in the map (by chromosome, then as listed). Public for tests.
+     * @param jobControl gets the progress and may cancel; may be null
+     * @return false if cancelled (the scores are then incomplete)
+     */
+    public static boolean computeDeltas(Map<String, List<Variation>> variationsByChr, Map<String, Sequence> chromosomes,
+            SiteModel[] siteModels, int maxModelLength, float[][] losses, float[][] gains, JobControl jobControl) throws Exception
+    {
+        return forEachVariation( numbered( variationsByChr, chromosomes ), v -> {
+            float[] varLosses = new float[siteModels.length], varGains = new float[siteModels.length];
+            computeMaxGainLossDeltasForSite( v.var, v.chromosome, v.accessor, siteModels, maxModelLength, varLosses, varGains );
+            for( int j = 0; j < siteModels.length; j++ )
+            {
+                losses[j][v.index] = varLosses[j];
+                gains[j][v.index] = varGains[j];
+            }
+        }, jobControl );
     }
     private void filterVCF(Track track, Map<String, Sequence> chromosomes, SiteModel[] siteModels, int maxModelLength,
             Map<String, Integer> siteModelToIndex, Scores bgScores, SqlTrack resultTrack)
+            throws Exception
     {
         //TODO: here we run again computeMaxGainLossDeltasForSite
         //Think about caching variation-site-gain-loss data
@@ -309,18 +414,14 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
             siteCount++;
         }
 
-        float[] gains = new float[siteModelsTop.length];
-        float[] losses = new float[siteModelsTop.length];
-
-        int i = 0;
-        for(Map.Entry<String, List<Variation>> e : variationsByChr.entrySet())
-        {
-            String chrName = e.getKey();
-            Sequence seq = chromosomes.get( chrName );
-            for(Variation var : e.getValue())
+        // the weights are computed in parallel, then the sites are written in the former order
+        List<ScoredVariation> variations = numbered( variationsByChr, chromosomes );
+        double[] weights = new double[variations.size()];
+        if( !forEachVariation( variations, v -> {
+            float[] gains = new float[siteModelsTop.length];
+            float[] losses = new float[siteModelsTop.length];
+            computeMaxGainLossDeltasForSite( v.var, v.chromosome, v.accessor, siteModelsTop, maxModelLength, losses, gains );
             {
-                jobControl.setPreparedness( (int)((double)i * 100 / siteCount) );
-                computeMaxGainLossDeltasForSite( var, seq, siteModelsTop, maxModelLength, losses, gains );
                 int igain = 0, iloss = 0;
                 for( int j = 1; j < siteModelsTop.length; j++ )
                 {
@@ -351,8 +452,16 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
                 for( int j = 0; j < values.length; j++ )
                     if( values[j] >= cur )
                         numGreater++;
-                double weight = numGreater > 0 ? -Math.log10( (double)numGreater / values.length )
+                weights[v.index] = numGreater > 0 ? -Math.log10( (double)numGreater / values.length )
                         : -Math.log10( 1.0 / ( 2.0 * values.length ) );
+            }
+        }, jobControl ) )
+            return;
+        for( ScoredVariation v : variations )
+        {
+            Variation var = v.var;
+            double weight = weights[v.index];
+            {
                 try
                 {
                     Site site = sites.get( var.id );
@@ -366,7 +475,6 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
                 catch( Exception e1 )
                 {
                 }
-                i++;
             }
         }
     }
@@ -397,13 +505,14 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
     }
 
 
-    private void computeMaxGainLossDeltasForSite(Variation var, Sequence chrSeq, SiteModel[] siteModels, int maxModelLength, float[] resultLosses,
-            float[] resultGains)
+    private static void computeMaxGainLossDeltasForSite(Variation var, Sequence chrSeq, SequenceAccessor chrAccessor, SiteModel[] siteModels,
+            int maxModelLength, float[] resultLosses, float[] resultGains)
     {
         Interval interval = var.grow( maxModelLength ).intersect( chrSeq.getInterval() );
         if( interval == null )
             throw new RuntimeException( "Variation out of chromosome bounds: " + chrSeq.getName() + ":" + var );
-        CachedSequenceRegion reference = new CachedSequenceRegion( chrSeq, interval.getFrom(), interval.getLength(), false );
+        // copied through the accessor (synchronized): the chromosome is shared by the threads, the copy is not
+        CachedSequenceRegion reference = chrAccessor.getSubSequence( interval.getFrom(), interval.getLength(), false );
         CachedSequenceRegion referenceRC = reference.getReverseComplement();
 
         int relativeFrom = reference.translatePositionBack( var.getFrom() );
