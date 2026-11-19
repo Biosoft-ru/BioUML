@@ -27,7 +27,7 @@ public class OptimizeSiteSearchCountsTest extends TestCase
         int[] hitsByBound = new int[scores.length + 1];
         for( int weight : weights )
             hitsByBound[OptimizeSiteSearchAnalysis.upperBound( scores, weight )]++;
-        return OptimizeSiteSearchAnalysis.countsAtCutoffs( hitsByBound );
+        return Arrays.copyOf( OptimizeSiteSearchAnalysis.toCountsAtCutoffs( hitsByBound ), scores.length );
     }
 
     public void testUpperBound()
@@ -53,6 +53,9 @@ public class OptimizeSiteSearchCountsTest extends TestCase
             for( int i = 0; i < scores.length; i++ )
                 scores[i] = random.nextInt( 40 ) * 25;
             Arrays.sort( scores );
+            // with repeats (as the counting gets them in a test of the method alone) and distinct (as the analysis has them)
+            if( round % 2 == 1 )
+                scores = Arrays.stream( scores ).distinct().toArray();
             int[] weights = new int[random.nextInt( 200 )];
             for( int i = 0; i < weights.length; i++ )
                 weights[i] = random.nextInt( 45 ) * 25 - 50;
