@@ -23,20 +23,20 @@ import ru.biosoft.bsa.analysis.FrequencyMatrix;
 import ru.biosoft.bsa.analysis.IPSSiteModel;
 import ru.biosoft.bsa.analysis.MatchSiteModel;
 import ru.biosoft.bsa.analysis.WeightMatrixModel;
+import ru.biosoft.bsa.analysis.SequenceAccessor.CachedSequenceRegion;
 import ru.biosoft.bsa.analysis.maos.Variation;
 
 /**
- * The site gain/loss scores of {@link CompareTFBSMutationsWithVCF}, computed in parallel: bit-identical to the former
- * sequential loop (the same variations in the same order on one thread), and to scoring each variation alone, with
- * weight matrix, MATCH and IPS models (the IPS one keeps per-call state in ThreadLocals) used by several threads at once.
+ * The site gain/loss scores of {@link CompareTFBSMutationsWithVCF}, computed in parallel. Against the former
+ * sequential loop, two things changed: the loop (now TaskPool.iterate) and how the reference region is copied (now
+ * through a SequenceAccessor). The scores computed in parallel are bit-identical to those of one thread in the former
+ * order and to each variation scored alone, with weight matrix, MATCH and IPS models (the IPS one keeps per-call state
+ * in ThreadLocals); the accessor's copy is the former region exactly; and one model is entered by two threads at once.
  */
 public class CompareTFBSMutationsParallelTest extends AbstractBioUMLTest
 {
     private static final String LETTERS = "ACGT";
     private static final Set<Thread> scoringThreads = ConcurrentHashMap.newKeySet();
-    /** Calls to one recording model in progress at once, and the most seen: above 1, the model is shared concurrently. */
-    private static final java.util.concurrent.atomic.AtomicInteger active = new java.util.concurrent.atomic.AtomicInteger();
-    private static final java.util.concurrent.atomic.AtomicInteger maxActive = new java.util.concurrent.atomic.AtomicInteger();
 
     private Preferences saved;
 
@@ -47,7 +47,6 @@ public class CompareTFBSMutationsParallelTest extends AbstractBioUMLTest
         saved = Application.getPreferences();
         threads( 4 );
         scoringThreads.clear();
-        maxActive.set( 0 );
     }
 
     private static void threads(int n)
@@ -63,6 +62,8 @@ public class CompareTFBSMutationsParallelTest extends AbstractBioUMLTest
     protected void tearDown() throws Exception
     {
         Application.setPreferences( saved );
+        // and the pool back to the restored threadsNumber (it takes the size at its next lookup)
+        ru.biosoft.access.task.TaskPool.getInstance().getAvailableThreadsCount();
         super.tearDown();
     }
 
@@ -78,15 +79,7 @@ public class CompareTFBSMutationsParallelTest extends AbstractBioUMLTest
         public double getScore(Sequence sequence, int position)
         {
             scoringThreads.add( Thread.currentThread() );
-            maxActive.accumulateAndGet( active.incrementAndGet(), Math::max );
-            try
-            {
-                return super.getScore( sequence, position );
-            }
-            finally
-            {
-                active.decrementAndGet();
-            }
+            return super.getScore( sequence, position );
         }
     }
 
@@ -193,8 +186,6 @@ public class CompareTFBSMutationsParallelTest extends AbstractBioUMLTest
 
         float[][] losses = new float[models.length][total], gains = new float[models.length][total];
         assertTrue( CompareTFBSMutationsWithVCF.computeDeltas( variationsByChr, chromosomes, models, maxLength, losses, gains, null ) );
-        assertTrue( "scored on one thread only: " + scoringThreads.size(), scoringThreads.size() > 1 );
-        assertTrue( "a model was never scored by two threads at once", maxActive.get() > 1 );
 
         // the former sequential loop: one thread, the variations in the map's order
         threads( 1 );
@@ -241,5 +232,87 @@ public class CompareTFBSMutationsParallelTest extends AbstractBioUMLTest
             assertTrue( java.util.Arrays.equals( losses[m], losses2[m] ) );
             assertTrue( java.util.Arrays.equals( gains[m], gains2[m] ) );
         }
+    }
+
+    /**
+     * The reference region as the accessor copies it is the region the former loop made with new CachedSequenceRegion:
+     * same start, length and letters, and so the reverse complement, also where the region is cut at a chromosome end.
+     */
+    public void testAccessorCopyIsTheFormerRegion()
+    {
+        Random random = new Random( 11 );
+        String dna = randomDna( random, 3000 );
+        Sequence chromosome = new LinearSequence( "chr1", dna, Nucleotide5LetterAlphabet.getInstance() );
+        ru.biosoft.bsa.analysis.SequenceAccessor accessor = new ru.biosoft.bsa.analysis.SequenceAccessor( chromosome );
+        for( int i = 0; i < 300; i++ )
+        {
+            int length = 1 + random.nextInt( 60 );
+            int from = chromosome.getStart() + random.nextInt( chromosome.getLength() - length + 1 );
+            CachedSequenceRegion former = new CachedSequenceRegion( chromosome, from, length, false );
+            CachedSequenceRegion copied = accessor.getSubSequence( from, length, false );
+            assertRegionsEqual( from + "+" + length, former, copied );
+            assertRegionsEqual( from + "+" + length + " RC", former.getReverseComplement(), copied.getReverseComplement() );
+        }
+    }
+
+    private static void assertRegionsEqual(String message, Sequence expected, Sequence actual)
+    {
+        assertEquals( message, expected.getStart(), actual.getStart() );
+        assertEquals( message, expected.getLength(), actual.getLength() );
+        for( int pos = expected.getStart(); pos < expected.getStart() + expected.getLength(); pos++ )
+            assertEquals( message + " @" + pos, expected.getLetterAt( pos ), actual.getLetterAt( pos ) );
+    }
+
+    /** A model that holds its first caller in each thread until a second thread is inside the model too. */
+    private static class MeetingModel extends WeightMatrixModel
+    {
+        final java.util.concurrent.CountDownLatch inside = new java.util.concurrent.CountDownLatch( 2 );
+        final ThreadLocal<Boolean> entered = ThreadLocal.withInitial( () -> false );
+        volatile boolean met = true;
+
+        MeetingModel(FrequencyMatrix matrix)
+        {
+            super( "meeting", null, matrix, 0.0 );
+        }
+
+        @Override
+        public double getScore(Sequence sequence, int position)
+        {
+            if( !entered.get() )
+            {
+                entered.set( true );
+                inside.countDown();
+                try
+                {
+                    // returns at once when two threads are in this method of this instance; false: no second came
+                    if( !inside.await( 20, java.util.concurrent.TimeUnit.SECONDS ) )
+                        met = false;
+                }
+                catch( InterruptedException e )
+                {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            return super.getScore( sequence, position );
+        }
+    }
+
+    /**
+     * The variations are scored on several threads at once, with the same model instance: a latch inside the model
+     * makes the first thread wait for a second one (not a timing measurement: it passes once two threads score).
+     */
+    public void testOneModelIsScoredByTwoThreadsAtOnce() throws Exception
+    {
+        Random random = new Random( 3 );
+        MeetingModel model = new MeetingModel( matrix( random, "meeting", 6 ) );
+        String dna = randomDna( random, 2000 );
+        Map<String, Sequence> chromosomes = Collections.singletonMap( "chr1",
+                new LinearSequence( "chr1", dna, Nucleotide5LetterAlphabet.getInstance() ) );
+        Map<String, List<Variation>> variationsByChr = Collections.singletonMap( "chr1", variations( random, "chr1", dna, 50 ) );
+        float[][] losses = new float[1][50], gains = new float[1][50];
+        assertTrue( CompareTFBSMutationsWithVCF.computeDeltas( variationsByChr, chromosomes, new SiteModel[] {model}, model.getLength(),
+                losses, gains, null ) );
+        assertEquals( "two threads were never inside the model at once", 0, model.inside.getCount() );
+        assertTrue( model.met );
     }
 }

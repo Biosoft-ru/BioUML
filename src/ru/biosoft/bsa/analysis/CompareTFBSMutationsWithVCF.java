@@ -13,6 +13,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import com.developmentontheedge.beans.DynamicProperty;
@@ -471,8 +472,13 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
                     : -Math.log10( 1.0 / ( 2.0 * values.length ) );
         }, jobControl ) )
             return false;
+        int failed = 0;
+        Exception firstFailure = null;
+        String firstFailed = null;
         for( ScoredVariation v : variations )
         {
+            if( jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST )
+                return false; // the caller then neither finalizes nor saves the track
             try
             {
                 Site site = sites.get( v.var.id );
@@ -483,11 +489,20 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
                     resultTrack.addSite( si );
                 }
             }
-            catch( Exception e1 )
+            catch( Exception e )
             {
+                // a site that cannot be written is left out, as before, but no longer silently
+                if( failed++ == 0 )
+                {
+                    firstFailure = e;
+                    firstFailed = v.var.id;
+                }
             }
         }
-        return true;
+        if( failed > 0 )
+            log.log( Level.WARNING, failed + " site(s) were not written to the filtered track; the first, " + firstFailed + ":",
+                    firstFailure );
+        return jobControl.getStatus() != JobControl.TERMINATED_BY_REQUEST;
     }
 
     private Map<String, List<Variation>> subSample(Map<String, List<Variation>> variations, int maxSize)
