@@ -25,6 +25,7 @@ Edit `preferences.xml` (in the server root or its `conf/` directory) or use the 
 | periodicInterval | 1800 | Seconds between periodic profiling (0=disabled) |
 | periodicMode | random | Mode: random, sample, or all |
 | maxProfileAge | 604800 | Seconds before profiles are cleaned up (7 days) |
+| profilerEvent | cpu | async-profiler event: `cpu` samples running threads only; `wall` samples every thread, waiting ones included (I/O, database, locks), to see where a slow task waits. Any other value gives `cpu`. Recorded as `event` in each profile's `.json` sidecar |
 
 ## API Endpoints
 
@@ -215,6 +216,8 @@ format (the same structure as the `Global` and `GridOptions` blocks):
                   display-name="Profiler directory" short-description="Absolute directory for profile output"/>
         <property name="periodicInterval" type="java.lang.Integer" value="1800"
                   display-name="Periodic interval" short-description="Seconds between periodic profiling (0=disabled)"/>
+        <property name="profilerEvent" type="java.lang.String" value="cpu"
+                  display-name="Profiler event" short-description="cpu (running threads) or wall (all threads, waiting ones included)"/>
         <property name="periodicMode" type="java.lang.String" value="random"
                   display-name="Periodic mode" short-description="random, sample, or all"/>
     </dynamicPropertySet>
