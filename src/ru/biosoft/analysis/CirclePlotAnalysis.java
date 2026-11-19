@@ -101,7 +101,6 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
     {
         String sortColName = parameters.getOrderColumn();
         String descriptionColumn = parameters.getCategoryColumn();
-        String title = "Dotplot for " + parameters.getInputTable().getName();
         String sortTitlesStr = null;
         if( sortColName != null )
         {
@@ -123,6 +122,7 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
         script.append( "suppressPackageStartupMessages({\n"
                 + "  library(ggplot2)\n"
                 + "  library(dplyr)\n"
+                + "  library(scales)\n"
                 + "})\n"
                 + "# ---- 1. Read the results file ----\n"
                 + "gsea_res <- read.delim(\"" + inputFile.getAbsolutePath() + "\",\n"
@@ -150,6 +150,7 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
             xValue = "-log10(" + xValue + ")";
             xLabel = xColumn + " (-log10)";
         }
+        int labelSize = Math.max( 6, Math.min( 10, 120 / parameters.getNumTopCategories() ) );
         script.append( "# ---- 3. Draw the plot and assign it to a variable 'p' ----\n" 
                 + "p <- ggplot(gsea_res, aes(x = " + xValue + ", y = `" + descriptionColumn + "`)) +\n"
                 + "  geom_point(aes(size = `" + sizeColumn + "`, fill = `" + fillColor + "`),shape=21,color=\"black\",stroke=0.5) +\n" );
@@ -161,13 +162,14 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
                 + "    guide   = guide_colorbar(reverse = TRUE)) + \n" );
         }
         script.append( "scale_x_continuous(expand = expansion(mult = c(0.15, 0.15))) +\n" );
-        script.append( " scale_size_continuous(name = \"" + sizeColumn + "\", range = c(2, 8)) +\n" 
-        + "  labs(\n" + "    title = \"" + title + "\",\n" 
+        script.append( " scale_size_continuous(name = \"" + sizeColumn + "\", range = c(2, 8)) +\n"
+        + "  labs(\n" + "    title = NULL,\n"
                 + "    x     = \"" + xLabel + "\",\n"
-                + "    y     = NULL\n" + "  ) +\n" + "  theme_minimal(base_size = 10) +\n"
+                + "    y     = NULL\n" + "  ) +\n"
+                + "  scale_y_discrete(labels = scales::wrap_format(width = 40)) +\n"
+                + "  theme_minimal(base_size = " + labelSize + ") +\n"
                 + "  theme(\n"
-                + "    plot.title    = element_text(face = \"bold\", hjust = 0.5),\n" 
-                + "    axis.text.y   = element_text(size = 10),\n"
+                + "    axis.text.y   = element_text(size = " + labelSize + ", hjust = 1, vjust = 0.5),\n"
                 + "    panel.grid.minor = element_blank()\n" + "  )" );
 
         int dpi = parameters.getDpi();
