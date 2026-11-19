@@ -3,16 +3,24 @@ package ru.biosoft.access.task;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.mutable.MutableBoolean;
@@ -48,6 +56,12 @@ public class TaskPool
     private static final Object shareLock = new Object();
     /** Budget, users with work and share of the last rebalance, to log a change only; guarded by shareLock. */
     private static String lastState = "";
+    /**
+     * The pools with work; guarded by shareLock. A rebalance resizes these and the pool whose work changed, so its cost
+     * follows the users with work, not every user the server has seen. A pool without work gets its share when it is
+     * looked up and when it gets work.
+     */
+    private static final Set<ThreadPool> busyPools = Collections.newSetFromMap( new IdentityHashMap<>() );
 
     protected static class ThreadPool extends ThreadPoolExecutor
     {
@@ -73,15 +87,23 @@ public class TaskPool
             return pending > waiting;
         }
 
-        /** Under shareLock. A smaller pool interrupts no running task (see {@link ThreadShare}). */
+        /**
+         * Under shareLock. A smaller pool interrupts no running task (see {@link ThreadShare}).
+         *
+         * <p>Resizing under shareLock cannot deadlock with the executor: its callbacks (afterExecute) run under no lock of
+         * the executor but the worker's own, and a resize takes its main lock and only tries the workers' locks.</p>
+         */
         void setShare(int share)
         {
             this.share = share;
-            updatePoolSize( Math.max( 1, share + waiting ) );
+            int size = Math.max( 1, share + waiting );
+            if( getCorePoolSize() != size || getMaximumPoolSize() != size )
+                updatePoolSize( size );
         }
 
-        // the work count changes before the task is queued and after it is done (afterExecute also runs for a task
-        // cancelled while queued), so a task in the queue is always counted
+        // A task counts as work from before it is queued until it is done (afterExecute) or, cancelled while queued,
+        // taken out of the queue (PoolFuture.cancel -> remove). Only one of the two happens: the worker and the remove
+        // both take the task from the queue, and only one gets it.
 
         @Override
         public void execute(Runnable command)
@@ -114,14 +136,65 @@ public class TaskPool
             return removed;
         }
 
+        @Override
+        protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value)
+        {
+            return new PoolFuture<>( Executors.callable( runnable, value ) );
+        }
+
+        @Override
+        protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable)
+        {
+            return new PoolFuture<>( callable );
+        }
+
+        /** A future that, cancelled while queued, leaves the queue at once: it is no work any more. */
+        private class PoolFuture<T> extends FutureTask<T>
+        {
+            PoolFuture(Callable<T> callable)
+            {
+                super( callable );
+            }
+
+            @Override
+            public boolean cancel(boolean mayInterruptIfRunning)
+            {
+                boolean cancelled = super.cancel( mayInterruptIfRunning );
+                if( cancelled )
+                    remove( this );
+                return cancelled;
+            }
+        }
+
+        /**
+         * Under shareLock: count the change, then rebalance. A waiting task is a running one, so 0 <= waiting <= pending
+         * holds for every change the task lifecycle makes; a change that breaks it is a bug, logged and not applied, as
+         * throwing here would kill a worker thread (afterExecute) or fail a submission.
+         */
         private void changeWork(int pendingDelta, int waitingDelta)
         {
             synchronized( shareLock )
             {
-                pending = Math.max( 0, pending + pendingDelta );
-                waiting = Math.max( 0, waiting + waitingDelta );
-                rebalanceLocked();
+                int newPending = pending + pendingDelta, newWaiting = waiting + waitingDelta;
+                if( newPending < 0 || newWaiting < 0 || newWaiting > newPending )
+                    log.log( Level.SEVERE, "Invalid task accounting: pending " + pending + " " + signed( pendingDelta )
+                            + ", waiting " + waiting + " " + signed( waitingDelta ), new IllegalStateException() );
+                else
+                {
+                    pending = newPending;
+                    waiting = newWaiting;
+                }
+                if( hasWork() )
+                    busyPools.add( this );
+                else
+                    busyPools.remove( this );
+                rebalanceLocked( this );
             }
+        }
+
+        private static String signed(int delta)
+        {
+            return delta < 0 ? "- " + -delta : "+ " + delta;
         }
 
         public void updatePoolSize(int threadsNumber)
@@ -203,6 +276,8 @@ public class TaskPool
                     inactive.set( false );
                 }
                 threadTask.set(null);
+                // markCurrentThreadInactive and markCurrentThreadActive act only inside a TaskLaunch
+                inactive.remove();
                 threadPool.remove();
                 SecurityManager.removeThreadFromSessionRecord();
             }
@@ -226,10 +301,10 @@ public class TaskPool
             if(oldValue != null)
                 executor = oldValue;
         }
-        // a lookup is not work (only a submitted task is), but it applies a changed budget
+        // a lookup is not work (only a submitted task is), but gives the pool its share and applies a changed budget
         synchronized( shareLock )
         {
-            rebalanceLocked();
+            rebalanceLocked( executor );
         }
         return executor;
     }
@@ -237,23 +312,19 @@ public class TaskPool
     /**
      * Give every user's pool its share of the thread budget ({@link ThreadShare}); without a budget, threadsNumber.
      * A pool without work gets the share it would have with work, so that its first tasks do not start on more.
-     * Runs under shareLock at every change of a pool's work: one pass over the users' pools.
+     * Runs under shareLock at every change of a pool's work, and at every lookup.
+     * @param changed the pool whose work changed or that is looked up: resized also when it has no work
      */
-    private static void rebalanceLocked()
+    private static void rebalanceLocked(ThreadPool changed)
     {
         int max = SecurityManager.getMaximumThreadsNumber();
         int budget = ThreadShare.budget();
-        int users = 0;
-        if( budget > 0 )
-        {
-            for( ThreadPool pool : userThreads.values() )
-                if( pool.hasWork() )
-                    users++;
-        }
+        int users = budget > 0 ? busyPools.size() : 0;
         int share = ThreadShare.perUser( budget, users, max );
-        int idleShare = ThreadShare.perUser( budget, users + 1, max );
-        for( ThreadPool pool : userThreads.values() )
-            pool.setShare( pool.hasWork() ? share : idleShare );
+        for( ThreadPool pool : busyPools )
+            pool.setShare( share );
+        if( !changed.hasWork() )
+            changed.setShare( ThreadShare.perUser( budget, users + 1, max ) );
         String state = budget + "/" + users + "/" + share + "/" + max;
         if( !state.equals( lastState ) )
         {
@@ -477,8 +548,11 @@ public class TaskPool
         if(inactiveFlag)
             return;//ignore already inactive
         
+        ThreadPool pool = threadPool.get();
+        if( pool == null )
+            return;
         inactive.set( true );
-        threadPool.get().changePoolSize( 1 );
+        pool.changePoolSize( 1 );
     }
     
     public void markCurrentThreadActive()
@@ -488,8 +562,11 @@ public class TaskPool
             return;//Allow to call only from task thread
         if(!inactiveFlag)
             return;//ignore already active
+        ThreadPool pool = threadPool.get();
+        if( pool == null )
+            return;
         inactive.set( false );
-        threadPool.get().changePoolSize( -1 );
+        pool.changePoolSize( -1 );
     }
     
 
