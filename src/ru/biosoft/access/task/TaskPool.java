@@ -13,6 +13,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang.mutable.MutableBoolean;
 
@@ -38,13 +39,41 @@ public class TaskPool
     private static ConcurrentMap<String, ThreadPool> userThreads = new ConcurrentHashMap<>();
     
 
+    private static final Logger log = Logger.getLogger( TaskPool.class.getName() );
+    /** The threads per user of the last rebalance, to log only a change. */
+    private static volatile int lastShare = -1;
+
     protected static class ThreadPool extends ThreadPoolExecutor
     {
+        /** This user's share of threads ({@link ThreadShare}). */
+        private int share;
+        /** Threads added while tasks of this pool wait ({@link TaskPool#markCurrentThreadInactive}): kept on a resize. */
+        private volatile int waitingThreads;
+
         public ThreadPool(int threadsNumber)
         {
             super(threadsNumber, threadsNumber, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
                 new SessionThreadFactory(true));
             allowCoreThreadTimeOut(true);
+            share = threadsNumber;
+        }
+
+        /**
+         * Set this user's share. A smaller pool interrupts no running task: each finishes its current item, and the
+         * iterations that requeue every {@link TaskPool#ITERATE_SWITCH_MILLIS} then run on fewer threads.
+         */
+        public synchronized void setShare(int share)
+        {
+            if( share == this.share )
+                return;
+            this.share = share;
+            updatePoolSize( Math.max( 1, share + waitingThreads ) );
+        }
+
+        /** Whether this user has work: a running task that is not just waiting, or a queued one. */
+        public boolean hasWork()
+        {
+            return getActiveCount() > waitingThreads || !getQueue().isEmpty();
         }
 
         public void updatePoolSize(int threadsNumber)
@@ -60,10 +89,11 @@ public class TaskPool
             }
         }
         
+        /** A task of this pool starts (+1) or stops (-1) waiting: the pool grows or shrinks by one thread around its share. */
         public synchronized void changePoolSize(int delta)
         {
-            int curSize = getCorePoolSize();
-            updatePoolSize( curSize + delta );
+            waitingThreads = Math.max( 0, waitingThreads + delta );
+            updatePoolSize( Math.max( 1, share + waitingThreads ) );
         }
 
         public void submit(Task task)
@@ -123,6 +153,8 @@ public class TaskPool
                     inactive.set( false );
                 }
                 threadTask.set(null);
+                // a task ended: the user may have no work left, and the others more threads
+                rebalance( null );
                 SecurityManager.removeThreadFromSessionRecord();
             }
             Thread.currentThread().setName("Idle (user: "+SecurityManager.getSessionUser()+")");
@@ -137,15 +169,46 @@ public class TaskPool
     protected ThreadPool getUserPool()
     {
         String user = TextUtil2.nullToEmpty( SecurityManager.getSessionUser() );
-        int threadsNumber = SecurityManager.getMaximumThreadsNumber();
         ThreadPool executor = userThreads.get(user);
-        if(executor != null)
+        if(executor == null)
         {
-            return executor;
+            executor = new ThreadPool(SecurityManager.getMaximumThreadsNumber());
+            ThreadPool oldValue = userThreads.putIfAbsent(user, executor);
+            if(oldValue != null)
+                executor = oldValue;
         }
-        executor = new ThreadPool(threadsNumber);
-        ThreadPool oldValue = userThreads.putIfAbsent(user, executor);
-        return oldValue == null ? executor : oldValue;
+        // the pool is looked up to submit work to it (or to see how much it could take): counts as a user with work
+        rebalance( executor );
+        return executor;
+    }
+
+    /**
+     * Give every user's pool its share of the thread budget ({@link ThreadShare}); without a budget, threadsNumber.
+     * Cheap (one pass over the users' pools, a resize only when the share changed), so it runs whenever a pool is
+     * looked up and whenever a task ends.
+     * @param submitting a pool about to get work, counted as busy; or null
+     */
+    static void rebalance(ThreadPool submitting)
+    {
+        int max = SecurityManager.getMaximumThreadsNumber();
+        int budget = ThreadShare.budget();
+        int users = 0;
+        if( budget > 0 )
+        {
+            for( ThreadPool pool : userThreads.values() )
+                if( pool == submitting || pool.hasWork() )
+                    users++;
+        }
+        int share = ThreadShare.perUser( budget, users, ThreadShare.minPerUser(), max );
+        for( ThreadPool pool : userThreads.values() )
+            pool.setShare( share );
+        if( share != lastShare )
+        {
+            lastShare = share;
+            if( budget > 0 )
+                log.info( "Task threads per user: " + share + " (budget " + budget + ", " + users + " user(s) with work, max "
+                        + max + ")" );
+        }
     }
 
     public int getAvailableThreadsCount()
