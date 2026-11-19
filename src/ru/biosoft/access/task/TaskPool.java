@@ -18,6 +18,7 @@ import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -58,9 +59,12 @@ public class TaskPool
     private static String lastState = "";
     /**
      * The pools with work; guarded by shareLock. A rebalance resizes these and the pool whose work changed, so its cost
-     * follows the users with work, not every user the server has seen. A pool without work gets its share when it is
-     * looked up and when it gets work.
+     * follows the users with work, not every user the server has seen. The size of a pool without work is provisional:
+     * it is the share of the moment the pool was last looked up or last had work, and is brought up to date at its next
+     * lookup ({@link #getUserPool}) and at its first submission (execute rebalances before queuing the task).
      */
+    /** Task accounting changes refused as invalid since the start: a bug in the accounting, 0 when it is sound. */
+    private static final AtomicInteger accountingErrors = new AtomicInteger();
     private static final Set<ThreadPool> busyPools = Collections.newSetFromMap( new IdentityHashMap<>() );
 
     protected static class ThreadPool extends ThreadPoolExecutor
@@ -101,21 +105,27 @@ public class TaskPool
                 updatePoolSize( size );
         }
 
-        // A task counts as work from before it is queued until it is done (afterExecute) or, cancelled while queued,
-        // taken out of the queue (PoolFuture.cancel -> remove). Only one of the two happens: the worker and the remove
-        // both take the task from the queue, and only one gets it.
+        // Accounting, once per task: a task counts as work from before it is queued (execute) until one of
+        //  - a worker has run it (afterExecute; a task cancelled in the queue is run as a no-op if a worker takes it),
+        //  - it is taken out of the queue (remove: by PoolFuture.cancel, or by execute when the pool is shut down),
+        //  - the executor refused it (the catch in execute).
+        // More than one of these can see the same task (a shutdown removes it and then refuses it), so each counts the
+        // task out through PoolFuture.countOut, which lets only the first one through.
 
         @Override
         public void execute(Runnable command)
         {
+            // every task goes in as a PoolFuture (submit makes one; a plain Runnable is wrapped), the token it is counted by
+            PoolFuture<?> task = command instanceof PoolFuture && ( (PoolFuture<?>)command ).pool() == this ? (PoolFuture<?>)command
+                    : new PoolFuture<>( Executors.callable( command, null ) );
             changeWork( 1, 0 );
             try
             {
-                super.execute( command );
+                super.execute( task );
             }
             catch( RuntimeException | Error e )
             {
-                changeWork( -1, 0 );
+                task.countOut();
                 throw e;
             }
         }
@@ -124,15 +134,15 @@ public class TaskPool
         protected void afterExecute(Runnable r, Throwable t)
         {
             super.afterExecute( r, t );
-            changeWork( -1, 0 );
+            ( (PoolFuture<?>)r ).countOut();
         }
 
         @Override
         public boolean remove(Runnable task)
         {
             boolean removed = super.remove( task );
-            if( removed )
-                changeWork( -1, 0 );
+            if( removed && task instanceof PoolFuture )
+                ( (PoolFuture<?>)task ).countOut();
             return removed;
         }
 
@@ -148,12 +158,26 @@ public class TaskPool
             return new PoolFuture<>( callable );
         }
 
-        /** A future that, cancelled while queued, leaves the queue at once: it is no work any more. */
+        /** A task of this pool: counted out once; cancelled while queued, it leaves the queue at once. */
         private class PoolFuture<T> extends FutureTask<T>
         {
+            private final AtomicBoolean counted = new AtomicBoolean( true );
+
             PoolFuture(Callable<T> callable)
             {
                 super( callable );
+            }
+
+            ThreadPool pool()
+            {
+                return ThreadPool.this;
+            }
+
+            /** This task is no work of the pool any more; the first call only counts. */
+            void countOut()
+            {
+                if( counted.compareAndSet( true, false ) )
+                    changeWork( -1, 0 );
             }
 
             @Override
@@ -163,6 +187,15 @@ public class TaskPool
                 if( cancelled )
                     remove( this );
                 return cancelled;
+            }
+        }
+
+        /** Queued and running tasks of this pool (diagnostics, tests). */
+        int pendingCount()
+        {
+            synchronized( shareLock )
+            {
+                return pending;
             }
         }
 
@@ -177,8 +210,11 @@ public class TaskPool
             {
                 int newPending = pending + pendingDelta, newWaiting = waiting + waitingDelta;
                 if( newPending < 0 || newWaiting < 0 || newWaiting > newPending )
+                {
+                    accountingErrors.incrementAndGet();
                     log.log( Level.SEVERE, "Invalid task accounting: pending " + pending + " " + signed( pendingDelta )
                             + ", waiting " + waiting + " " + signed( waitingDelta ), new IllegalStateException() );
+                }
                 else
                 {
                     pending = newPending;
@@ -343,6 +379,18 @@ public class TaskPool
     public boolean hasAvailableThread()
     {
         return getAvailableThreadsCount() > 0;
+    }
+
+    /** Queued and running tasks of the current user (diagnostics). */
+    public int getPendingTasksCount()
+    {
+        return getUserPool().pendingCount();
+    }
+
+    /** Task accounting changes refused as invalid since the server started: 0 unless the accounting has a bug. */
+    public static int getAccountingErrors()
+    {
+        return accountingErrors.get();
     }
 
     /** The current user's pool size: the user's share of threads, and one more for each of the user's waiting tasks. */
@@ -535,6 +583,9 @@ public class TaskPool
      * Task thread can be marked as inactive before going to sleep/wait,
      * in which case @code {@link ThreadPool} will produce one extra thread that
      * will execute other tasks of the user until this thread become active again.
+     * Only a thread running a task of this pool (a TaskLaunch) can be marked; elsewhere both methods do nothing, as
+     * they always did. The callers (LocalProcessLauncher, SlurmProcessLauncher, geneXplain GenerateWorkflow) run in a
+     * task when the analysis runs in one.
      */
     private static ThreadLocal<Boolean> inactive = new ThreadLocal<>();
     /** The pool whose task runs in this thread: the one that gets the extra thread. */
