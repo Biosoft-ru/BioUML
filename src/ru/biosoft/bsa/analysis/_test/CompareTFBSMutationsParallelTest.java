@@ -135,20 +135,20 @@ public class CompareTFBSMutationsParallelTest extends AbstractBioUMLTest
     }
 
     /**
-     * SNVs, two-base substitutions, two-base deletions and one-base insertions, with the reference letters of the genome,
-     * at least 40 bases from the chromosome ends. Closer to an end, where the scored region is cut, the analysis fails
-     * (ArrayIndexOutOfBoundsException in maxSiteLoss, scoring the alternative sequence outside it), sequential or not:
-     * a separate bug, not covered here.
+     * SNVs, two-base substitutions, two-base deletions and one-base insertions, with the reference letters of the genome;
+     * the first ones at the chromosome ends, where the scored region is cut.
      */
     private static List<Variation> variations(Random random, String chr, String dna, int count)
     {
         List<Variation> result = new ArrayList<>();
+        int n = dna.length();
+        int[] ends = {1, 2, 3, 5, 8, n - 7, n - 4, n - 2, n - 1, n};
         for( int i = 0; i < count; i++ )
         {
             String id = chr + "_" + i;
             int kind = i % 10;
             int length = kind == 0 || kind == 1 ? 2 : kind == 2 ? 0 : 1;
-            int from = 40 + random.nextInt( dna.length() - 80 ); // 1-based
+            int from = i < 3 * ends.length ? ends[i % ends.length] : 40 + random.nextInt( dna.length() - 80 ); // 1-based
             if( from + length - 1 > dna.length() )
                 length = 1;
             String ref = dna.substring( from - 1, from - 1 + length );
@@ -329,5 +329,55 @@ public class CompareTFBSMutationsParallelTest extends AbstractBioUMLTest
                 losses, gains, null ) );
         assertEquals( "two threads were never inside the model at once", 0, model.inside.getCount() );
         assertTrue( model.met );
+    }
+
+    /**
+     * Insertions and deletions near a chromosome end, where the scored region is cut: a window crossing the indel used to
+     * map to windows reaching past the chromosome, and the analysis failed (ArrayIndexOutOfBoundsException). Every kind
+     * of variation at every position near both ends now gets finite scores.
+     *
+     * <p>On chromosomes starting at 1 only: on one starting elsewhere every variation fails, wherever it is, because
+     * Variation.applyVariations makes the alternative start at 1 while the reference region and the mappings use the
+     * chromosome's coordinates. A separate issue (genomes in use start their chromosomes at 1).</p>
+     */
+    public void testVariationsAtChromosomeEnds() throws Exception
+    {
+        Random random = new Random( 5 );
+        SiteModel[] models = {model( random, "m5", 5 ), model( random, "m9", 9 )};
+        int maxLength = 9;
+        for( int start : new int[] {1} )
+        {
+            String dna = randomDna( random, 200 );
+            Sequence chromosome = new LinearSequence( "chr1", start, dna.getBytes(), Nucleotide5LetterAlphabet.getInstance() );
+            List<Variation> variations = new ArrayList<>();
+            int n = dna.length();
+            for( int offset = 0; offset < 2 * maxLength; offset++ )
+                for( int at : new int[] {offset, n - 1 - offset} ) // 0-based in dna
+                {
+                    int from = start + at;
+                    String snv = dna.substring( at, at + 1 );
+                    variations.add( variation( "snv" + from, from, snv, otherLetters( random, snv ) ) );
+                    variations.add( variation( "ins" + from, from, "", "T" ) );
+                    variations.add( variation( "ins3" + from, from, "", "GAT" ) );
+                    if( at + 2 <= n )
+                    {
+                        String two = dna.substring( at, at + 2 );
+                        variations.add( variation( "del" + from, from, two, "" ) );
+                        variations.add( variation( "mnv" + from, from, two, otherLetters( random, two ) ) );
+                    }
+                    if( at + 4 <= n )
+                        variations.add( variation( "del4" + from, from, dna.substring( at, at + 4 ), "" ) );
+                }
+            float[][] losses = new float[models.length][variations.size()], gains = new float[models.length][variations.size()];
+            assertTrue( CompareTFBSMutationsWithVCF.computeDeltas( Collections.singletonMap( "chr1", variations ),
+                    Collections.singletonMap( "chr1", chromosome ), models, maxLength, losses, gains, null ) );
+            for( int m = 0; m < models.length; m++ )
+                for( int i = 0; i < variations.size(); i++ )
+                {
+                    String what = start + " " + variations.get( i ).id + " " + models[m].getName();
+                    assertTrue( what + " loss " + losses[m][i], Float.isFinite( losses[m][i] ) && losses[m][i] >= 0 );
+                    assertTrue( what + " gain " + gains[m][i], Float.isFinite( gains[m][i] ) && gains[m][i] >= 0 );
+                }
+        }
     }
 }
