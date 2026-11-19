@@ -70,8 +70,11 @@ public class ScriptClassShutter implements ClassShutter
             "ru.biosoft.plugins.javascript.", "ru.biosoft.plugins.jsreport.",
             // the model of an SBML diagram (diagram.getRole())
             "biouml.plugins.sbml.SbmlEModel",
-            // called by name in the Genome Enhancer scripts
-            "biouml.plugins.cma.CMAUtils" };
+            // tracks, genome browser projects and CMA results, diagram views and charts, element properties: seen in
+            // the audit log of Genome Enhancer runs on strange (MapAsVector, ProjectAsLists, ExtendedGeneTrack,
+            // FullModelTrack, CompositeView, ChartDataElement, PropertiesDPS)
+            "ru.biosoft.bsa.", "biouml.plugins.ensembl.tracks.", "biouml.plugins.cma.", "ru.biosoft.graphics.",
+            "com.developmentontheedge.beans.PropertiesDPS" };
 
     /** Never visible, even inside an allowed package: what reaches past the data API and its permission checks. */
     static final String[] DEFAULT_DENY = {
@@ -84,6 +87,8 @@ public class ScriptClassShutter implements ClassShutter
             "ru.biosoft.access.security.SecurityManager", "ru.biosoft.access.security.SessionCache",
             // direct database access and running other script types (R, Java, ...) from a script
             "ru.biosoft.access.sql.", "ru.biosoft.access.script.ScriptTypeRegistry",
+            // reading and writing files by path, and server connections, inside the track packages
+            "ru.biosoft.bsa.importer.", "ru.biosoft.bsa.exporter.", "ru.biosoft.bsa.server.",
             // the scripting engine itself
             "ru.biosoft.plugins.javascript.ScriptClassShutter", "ru.biosoft.plugins.javascript.JScriptContext" };
 
@@ -228,6 +233,20 @@ public class ScriptClassShutter implements ClassShutter
         getInstance().hostObjectClasses.add( type.getName() );
     }
 
+    /**
+     * Whether a value would be hidden from scripts: in enforce mode, its class is not on the list. Binding such a
+     * value into a scope fails the whole script, as Rhino checks a Java object's class when it wraps it; a caller
+     * that binds many values of which a script may use few (the variables of a workflow) leaves these out instead.
+     * Always false in audit and off mode, where everything stays visible.
+     */
+    public static boolean hides(Object value)
+    {
+        ScriptClassShutter shutter = getInstance();
+        if( value == null || shutter.mode != Mode.ENFORCE || value instanceof org.mozilla.javascript.Scriptable )
+            return false;
+        return !shutter.isAllowed( value.getClass().getName() );
+    }
+
     @Override
     public boolean visibleToScripts(String fullClassName)
     {
@@ -244,11 +263,14 @@ public class ScriptClassShutter implements ClassShutter
         return mode == Mode.AUDIT;
     }
 
-    /** Whether a name looks like a package (its last segment starts in lower case) rather than a class. */
+    /**
+     * Whether a name looks like one Rhino probes rather than a class: its last segment does not start in upper case
+     * (a package such as "ru.biosoft", or a member probe such as "java.lang.System.out.__noSuchMethod__").
+     */
     private static boolean isPackageName(String name)
     {
         String last = name.substring( name.lastIndexOf( '.' ) + 1 );
-        return !last.isEmpty() && Character.isLowerCase( last.charAt( 0 ) );
+        return last.isEmpty() || !Character.isUpperCase( last.charAt( 0 ) );
     }
 
     boolean isAllowed(String fullClassName)
