@@ -105,27 +105,29 @@ public class TaskPool
                 updatePoolSize( size );
         }
 
-        // Accounting, once per task: a task counts as work from before it is queued (execute) until one of
-        //  - a worker has run it (afterExecute; a task cancelled in the queue is run as a no-op if a worker takes it),
+        // Accounting, once per submission: every execute() counts one Submission in, and puts it in the queue in place
+        // of the command. It is counted out once, by the first of
+        //  - a worker has run it (afterExecute; a future cancelled in the queue is run as a no-op if a worker takes it),
         //  - it is taken out of the queue (remove: by PoolFuture.cancel, or by execute when the pool is shut down),
         //  - the executor refused it (the catch in execute).
-        // More than one of these can see the same task (a shutdown removes it and then refuses it), so each counts the
-        // task out through PoolFuture.countOut, which lets only the first one through.
+        // A shutdown both removes and refuses a task, hence the once-only flag. A command submitted twice is two
+        // submissions, each counted on its own. The wrapper only delegates run(): an exception of a plain Runnable
+        // still reaches afterExecute and the worker as without it.
 
         @Override
         public void execute(Runnable command)
         {
-            // every task goes in as a PoolFuture (submit makes one; a plain Runnable is wrapped), the token it is counted by
-            PoolFuture<?> task = command instanceof PoolFuture && ( (PoolFuture<?>)command ).pool() == this ? (PoolFuture<?>)command
-                    : new PoolFuture<>( Executors.callable( command, null ) );
+            Submission submission = new Submission( command );
+            if( command instanceof PoolFuture )
+                ( (PoolFuture<?>)command ).submission = submission;
             changeWork( 1, 0 );
             try
             {
-                super.execute( task );
+                super.execute( submission );
             }
             catch( RuntimeException | Error e )
             {
-                task.countOut();
+                submission.countOut();
                 throw e;
             }
         }
@@ -134,16 +136,55 @@ public class TaskPool
         protected void afterExecute(Runnable r, Throwable t)
         {
             super.afterExecute( r, t );
-            ( (PoolFuture<?>)r ).countOut();
+            if( r instanceof Submission )
+                ( (Submission)r ).countOut();
         }
 
+        /** Takes the submission of a command out of the queue: the Submission itself, or the one of a command. */
         @Override
         public boolean remove(Runnable task)
         {
-            boolean removed = super.remove( task );
-            if( removed && task instanceof PoolFuture )
-                ( (PoolFuture<?>)task ).countOut();
+            Runnable queued = task;
+            if( task instanceof PoolFuture && ( (PoolFuture<?>)task ).submission != null )
+                queued = ( (PoolFuture<?>)task ).submission;
+            else if( ! ( task instanceof Submission ) )
+            {
+                for( Runnable r : getQueue() )
+                    if( r instanceof Submission && ( (Submission)r ).command == task )
+                    {
+                        queued = r;
+                        break;
+                    }
+            }
+            boolean removed = super.remove( queued );
+            if( removed && queued instanceof Submission )
+                ( (Submission)queued ).countOut();
             return removed;
+        }
+
+        /** One execute() of a command: what the queue holds, and what is counted. */
+        private class Submission implements Runnable
+        {
+            final Runnable command;
+            private final AtomicBoolean counted = new AtomicBoolean( true );
+
+            Submission(Runnable command)
+            {
+                this.command = command;
+            }
+
+            @Override
+            public void run()
+            {
+                command.run();
+            }
+
+            /** This submission is no work of the pool any more; the first call only counts. */
+            void countOut()
+            {
+                if( counted.compareAndSet( true, false ) )
+                    changeWork( -1, 0 );
+            }
         }
 
         @Override
@@ -158,26 +199,15 @@ public class TaskPool
             return new PoolFuture<>( callable );
         }
 
-        /** A task of this pool: counted out once; cancelled while queued, it leaves the queue at once. */
+        /** A future of this pool that, cancelled while queued, leaves the queue at once: it is no work any more. */
         private class PoolFuture<T> extends FutureTask<T>
         {
-            private final AtomicBoolean counted = new AtomicBoolean( true );
+            /** Its last submission (execute sets it before queuing). */
+            volatile Submission submission;
 
             PoolFuture(Callable<T> callable)
             {
                 super( callable );
-            }
-
-            ThreadPool pool()
-            {
-                return ThreadPool.this;
-            }
-
-            /** This task is no work of the pool any more; the first call only counts. */
-            void countOut()
-            {
-                if( counted.compareAndSet( true, false ) )
-                    changeWork( -1, 0 );
             }
 
             @Override
