@@ -13,8 +13,9 @@ import com.developmentontheedge.application.Application;
 import com.developmentontheedge.beans.DynamicProperty;
 import com.developmentontheedge.beans.Preferences;
 
-import biouml.plugins.mcp.support.McpProviderSupport;
 import ru.biosoft.access._test.AbstractBioUMLTest;
+import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.access.security.TestSecurityProvider;
 import ru.biosoft.access.task.RunnableTask;
 import ru.biosoft.access.task.TaskPool;
 import ru.biosoft.access.task.ThreadShare;
@@ -80,9 +81,52 @@ public class ThreadShareTest extends AbstractBioUMLTest
         preferences.add( new DynamicProperty( name, Integer.class, value ) );
     }
 
+    /** Runs the action in a session of the user (logged in through the {@link TestSecurityProvider}). */
     private <T> T as(String user, Callable<T> action)
     {
-        return McpProviderSupport.withUserSession( prefix + user, () -> action.call() );
+        ensureSecurityProvider();
+        String session = SecurityManager.getSession();
+        boolean fresh = session == null || session.isEmpty() || SecurityManager.SYSTEM_SESSION.equals( session );
+        if( fresh )
+            SecurityManager.addThreadToSessionRecord( Thread.currentThread(), SecurityManager.generateSessionId() );
+        try
+        {
+            if( fresh )
+                SecurityManager.commonLogin( prefix + user, prefix + user, "127.0.0.1", null );
+            return action.call();
+        }
+        catch( RuntimeException e )
+        {
+            throw e;
+        }
+        catch( Exception e )
+        {
+            throw new RuntimeException( e );
+        }
+        finally
+        {
+            if( fresh )
+                SecurityManager.removeThreadFromSessionRecord();
+        }
+    }
+
+    /** A plain test JVM has no security provider: install the {@link TestSecurityProvider}. */
+    private static synchronized void ensureSecurityProvider()
+    {
+        if( SecurityManager.getSecurityProvider() != null )
+            return;
+        try
+        {
+            java.lang.reflect.Field field = SecurityManager.class.getDeclaredField( "securityProvider" );
+            field.setAccessible( true );
+            TestSecurityProvider provider = new TestSecurityProvider();
+            provider.init( new java.util.Properties() );
+            field.set( null, provider );
+        }
+        catch( ReflectiveOperationException e )
+        {
+            throw new RuntimeException( e );
+        }
     }
 
     private int pending(String user)
