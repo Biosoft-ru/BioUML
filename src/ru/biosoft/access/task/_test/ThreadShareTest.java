@@ -90,6 +90,11 @@ public class ThreadShareTest extends AbstractBioUMLTest
         return as( user, () -> TaskPool.getInstance().getPendingTasksCount() );
     }
 
+    private int available(String user)
+    {
+        return as( user, () -> TaskPool.getInstance().getAvailableThreadsCount() );
+    }
+
     private int maxThreads(String user)
     {
         return as( user, () -> TaskPool.getInstance().getMaximumThreadsCount() );
@@ -313,10 +318,13 @@ public class ThreadShareTest extends AbstractBioUMLTest
         assertTrue( started.await( 10, TimeUnit.SECONDS ) );
         CountDownLatch queuedStarted = new CountDownLatch( 1 );
         StoppableTask queued = submitBlocking( "a", queuedStarted );
+        // nothing moves now: the count is the running tasks (taking every thread) and the queued one
         assertEquals( 3, pending( "a" ) );
+        assertEquals( "every thread runs a task", 0, available( "a" ) );
         queued.stop();
-        // a's running tasks still block, and the cancelled task is no work at once
+        // a's running tasks still block, and the cancelled task is no work at once: only the running ones are left
         assertEquals( 2, pending( "a" ) );
+        assertEquals( 0, available( "a" ) );
         assertEquals( 2, maxThreads( "a" ) );
 
         // a running task cancelled is counted out when its thread finishes it, not twice
@@ -334,7 +342,9 @@ public class ThreadShareTest extends AbstractBioUMLTest
     /**
      * Submissions racing cancellations, from several threads, on a pool whose only thread is taken: some tasks are
      * cancelled in the queue, some after a worker took them, some before they could start. Every one is counted out
-     * once: no accounting error, and no work left when all are done.
+     * once: no accounting error, and no work left when all are done. A randomized complement to the ordered cases of
+     * {@link #testCancelledQueuedTaskIsNoWork} (queued, running) and {@link #testCancelAfterCompletion}; the moment a
+     * worker takes a task from the queue cannot be ordered from a test, so only this test reaches it.
      */
     public void testSubmitRacesCancel() throws Exception
     {
@@ -393,9 +403,16 @@ public class ThreadShareTest extends AbstractBioUMLTest
         } );
         canceller.start();
         for( Thread racer : racers )
+        {
             racer.join( 30_000 );
+            assertFalse( "a submitting thread did not finish", racer.isAlive() );
+        }
         canceller.join( 30_000 );
+        assertFalse( "the cancelling thread did not finish", canceller.isAlive() );
         assertNull( String.valueOf( failure.get() ), failure.get() );
+        // no submission is in progress now: cancel what is left (queued, running or done), then free the pool
+        for( StoppableTask task : quick )
+            task.stop();
         blocker.release.countDown();
         int left = pending( "a" );
         for( int i = 0; i < 100 && left != 0; i++ )
@@ -404,5 +421,26 @@ public class ThreadShareTest extends AbstractBioUMLTest
             left = pending( "a" );
         }
         assertEquals( "work left after all tasks are done or cancelled", 0, left );
+    }
+
+    /** Cancelling a task that is done changes nothing: it was counted out when it ended. */
+    public void testCancelAfterCompletion() throws Exception
+    {
+        set( ThreadShare.BUDGET_PREFERENCE, 2 );
+        CountDownLatch started = new CountDownLatch( 1 );
+        StoppableTask task = submitBlocking( "a", started );
+        assertTrue( started.await( 10, TimeUnit.SECONDS ) );
+        assertEquals( 1, pending( "a" ) );
+        task.release.countDown();
+        task.join();
+        int left = pending( "a" );
+        for( int i = 0; i < 100 && left != 0; i++ )
+        {
+            Thread.sleep( 50 );
+            left = pending( "a" );
+        }
+        assertEquals( 0, left );
+        task.stop();
+        assertEquals( 0, pending( "a" ) );
     }
 }
