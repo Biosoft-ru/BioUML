@@ -208,15 +208,21 @@ public class TestSqlTableColumnModelSave extends AbstractBioUMLTest
         table.getColumnModel().addColumn( "A", Integer.class );
         table.getColumnModel().addColumn( "B", Integer.class );
         root.failNext = 1;
+        ru.biosoft.exception.LoggedException reported = null;
         try
         {
             table.finalizeAddition();
-            fail( "the refused save was not reported" );
         }
-        catch( RuntimeException e )
+        catch( ru.biosoft.exception.LoggedException e )
         {
-            // reported
+            reported = e;
         }
+        assertNotNull( "the refused save was not reported", reported );
+        Throwable cause = reported;
+        while( cause != null && ! ( cause instanceof IllegalStateException ) )
+            cause = cause.getCause();
+        assertNotNull( "not the refused save: " + reported, cause );
+        assertEquals( "save refused by the test", cause.getMessage() );
         assertEquals( 0, root.saves.size() );
         table.finalizeAddition();
         assertEquals( 1, root.saves.size() );
@@ -289,5 +295,23 @@ public class TestSqlTableColumnModelSave extends AbstractBioUMLTest
         assertEquals( 2, table.getSize() );
         assertEquals( 1, table.get( "r1" ).getValues()[0] );
         assertEquals( 2, table.getColumnModel().getColumnCount() );
+    }
+
+    /**
+     * A column removed from a table with rows: the save stores the columns without it (SqlColumnModel.removeColumn
+     * drops the column from the model only after the database call that saves the table).
+     */
+    public void testRemovalFromATableWithRowsStoresTheFinalColumns() throws Exception
+    {
+        if( skipped() )
+            return;
+        SqlTableDataCollection table = newTable( "removed" );
+        for( String name : columns( 3 ) )
+            table.getColumnModel().addColumn( name, Integer.class );
+        TableDataCollectionUtils.addRow( table, "r1", new Object[] {1, 2, 3}, false );
+        root.saves.clear();
+        table.getColumnModel().removeColumn( 1 ); // C2
+        assertEquals( 1, root.saves.size() );
+        assertEquals( java.util.Arrays.asList( "C1", "C3" ), root.saves.get( 0 ) );
     }
 }

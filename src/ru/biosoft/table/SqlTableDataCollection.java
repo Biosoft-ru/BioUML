@@ -440,7 +440,10 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
         }
         else
         {
-            saveColumnModel();
+            // SqlColumnModel.removeColumn drops the column from the model after this call: store the model without it
+            JSONObject json = getColumnModel().toJSON();
+            json.getJSONArray( "columns" ).remove( columnPos );
+            saveColumnModel( json.toString() );
         }
         v_cache.clear();
         getIteratorRow = -1;
@@ -979,8 +982,7 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
         {
             try
             {
-                // the column model as it is now: the info written at a column change can be stale (removeColumn
-                // calls removeColumnFromDb before it drops the column from the model)
+                // the column model as it is now (the columns may have changed again since it was recorded)
                 getInfo().getProperties().setProperty( COLUMN_MODEL_PROPERTY, getColumnModel().toJSON().toString() );
                 getCompletePath().save( this );
             }
@@ -1020,7 +1022,13 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
      */
     private void saveColumnModel() throws Exception
     {
-        getInfo().getProperties().setProperty( COLUMN_MODEL_PROPERTY, getColumnModel().toJSON().toString() );
+        saveColumnModel( getColumnModel().toJSON().toString() );
+    }
+
+    /** @param columnModel the column model to store, as JSON (see saveColumnModel()) */
+    private void saveColumnModel(String columnModel) throws Exception
+    {
+        getInfo().getProperties().setProperty( COLUMN_MODEL_PROPERTY, columnModel );
         columnModelSavePending = true;
         if( size == 0 )
             return;
