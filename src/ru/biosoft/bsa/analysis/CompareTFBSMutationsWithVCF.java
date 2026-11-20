@@ -636,7 +636,8 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
         }
     }
 
-    private static final int[] NO_WINDOWS = new int[0];
+    /** The windows of a window mapped to no window (or only to windows outside the target). */
+    public static final int[] NO_WINDOWS = new int[0];
 
     /** An array-backed copy of the sequence with the same start, length, alphabet and letters. */
     private static Sequence flatten(Sequence sequence)
@@ -662,9 +663,6 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
     }
 
     /**
-     * For every window of the given length on the source sequence, the start positions of the windows it maps to.
-     */
-    /**
      * For each window of the source, the starts of the windows of the target it maps to.
      *
      * <p>Only windows lying wholly within the target are kept. A window that crosses an indel maps to candidate starts
@@ -674,7 +672,7 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
      * extend past the chromosome, so it is no site. A source window none of whose windows remains counts as one with no
      * mapped window: its site is lost.</p>
      */
-    private static int[][] mapWindows(Sequence source, CoordinateMapping mapping, Sequence target, int length)
+    public static int[][] mapWindows(Sequence source, CoordinateMapping mapping, Sequence target, int length) // public for tests
     {
         int start = source.getStart();
         int count = Math.max( 0, source.getLength() - length + 1 );
