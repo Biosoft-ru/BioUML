@@ -59,8 +59,11 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
     protected String tableId;
     private boolean initialized = false;
     protected int size = -1;
-    /** The column model changed in the info and the table is not saved since (see saveColumnModel). */
-    private volatile boolean columnModelSavePending;
+    /**
+     * The column model changed in the info and the table is not saved since (see saveColumnModel). Like the row
+     * buffer (inserter), not for concurrent changes of the columns of one table.
+     */
+    private boolean columnModelSavePending;
     protected List<String> names = null;
     protected Properties initProperties;
     protected int queryLength;
@@ -974,15 +977,19 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
         flushInsertedRows();
         if( columnModelSavePending )
         {
-            columnModelSavePending = false;
             try
             {
+                // the column model as it is now: the info written at a column change can be stale (removeColumn
+                // calls removeColumnFromDb before it drops the column from the model)
+                getInfo().getProperties().setProperty( COLUMN_MODEL_PROPERTY, getColumnModel().toJSON().toString() );
                 getCompletePath().save( this );
             }
             catch( Exception e )
             {
+                // still pending: the next finalizeAddition (or save of the table) tries again
                 throw ExceptionRegistry.translateException( e );
             }
+            columnModelSavePending = false;
         }
     }
 
@@ -1004,18 +1011,21 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
      * table costs a lock, a quota check, two size queries and the info written (FilterTable copying 30 columns: 30 saves).
      * The info is current at once, so any save of the table meanwhile stores it; and a table whose save never comes
      * still has its columns, which initColumnModel reads from the database table (with their types, not their
-     * descriptions).
+     * descriptions); analysis results are saved anyway when the analysis ends (AnalysisJobControl ->
+     * writeProperties), which stores the current info.
+     *
+     * <p>size == 0 means a table created here (createSQLTable) and given no row: the first row is added through
+     * prepareAddStatement, which calls finalizeAddition, so the save comes before the first row is written. A table
+     * opened from the repository starts at size -1 (unknown, not queried for this) and is saved at once, as before.</p>
      */
     private void saveColumnModel() throws Exception
     {
         getInfo().getProperties().setProperty( COLUMN_MODEL_PROPERTY, getColumnModel().toJSON().toString() );
+        columnModelSavePending = true;
         if( size == 0 )
-        {
-            columnModelSavePending = true;
             return;
-        }
+        getCompletePath().save( this ); // a failure leaves it pending, for finalizeAddition to try again
         columnModelSavePending = false;
-        getCompletePath().save( this );
     }
 
     protected String getOrderByClause()
