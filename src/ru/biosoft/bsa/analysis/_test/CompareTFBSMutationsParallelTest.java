@@ -388,8 +388,8 @@ public class CompareTFBSMutationsParallelTest extends AbstractBioUMLTest
     }
 
     /**
-     * mapWindows keeps of each window's mapped windows exactly those lying wholly within the target, and gives
-     * NO_WINDOWS when none remains: for indels near both ends of a region, where some mapped windows reach past it.
+     * mapWindows keeps of each window's mapped windows exactly those lying wholly within the target, and none when
+     * none remains: for indels near both ends of a region, where some mapped windows reach past it.
      */
     public void testMapWindowsKeepsTheWindowsWithinTheTarget()
     {
@@ -430,7 +430,7 @@ public class CompareTFBSMutationsParallelTest extends AbstractBioUMLTest
                     actual.add( pos );
                 assertEquals( var.id + "@" + from + " window " + s + " length " + length, expected, actual );
                 if( expected.isEmpty() )
-                    assertSame( CompareTFBSMutationsWithVCF.NO_WINDOWS, windows[k] );
+                    assertEquals( 0, windows[k].length );
                 if( all > expected.size() )
                 {
                     dropped++;
