@@ -98,6 +98,10 @@ public class LuceneFoldersListener extends DataCollectionListenerSupport
      * its contents. So an element that is not a collection, in a parent that is not a folder and lists no lucene-indexes,
      * gets none. (replaceToIndex also deleted a previous document of the element's path first; one could exist only if
      * the parent listed lucene-indexes when it was indexed, and the element added now replaces it in no way.)</p>
+     *
+     * <p>An addition is of a name new to its collection: a put over an existing name fires ELEMENT_CHANGED
+     * (AbstractDataCollection.doAddPostNotify), which this listener ignores, as it always did; so a replaced element
+     * never reached replaceToIndex, skipped or not.</p>
      */
     protected static boolean cannotBeIndexed(DataElement element, DataCollection<?> parent)
     {
