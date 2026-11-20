@@ -22,9 +22,17 @@ public class LuceneFoldersListener extends DataCollectionListenerSupport
     @Override
     public void elementAdded(DataCollectionEvent e) throws Exception
     {
-        if( cannotBeIndexed( e.getDataElement(), e.getOwner() ) )
+        // getDataElement fetches the element from its collection (owner.get): once, for the check and the indexing
+        DataElement element = e.getDataElement();
+        if( cannotBeIndexed( element, e.getOwner() ) )
             return;
-        Module module = Module.optModule( e.getDataElement() );
+        indexAdded( e, element );
+    }
+
+    /** Adds the element of the event to the index of its module (an IndexWriter opened and committed). */
+    protected void indexAdded(DataCollectionEvent e, DataElement element) throws Exception
+    {
+        Module module = Module.optModule( element );
         if(module == null)
         {
             return;
@@ -40,8 +48,8 @@ public class LuceneFoldersListener extends DataCollectionListenerSupport
     @Override
     public void elementRemoved(DataCollectionEvent e) throws Exception
     {
-        if( cannotBeIndexed( e.getOldElement(), e.getOwner() ) )
-            return;
+        // not skipped like an addition: whether a document of the element exists depends on the lucene-indexes the
+        // parent had when the element was indexed, not on the ones it has now
         Module module = Module.optModule( e.getOldElement() );
         if(module == null)
         {
@@ -81,15 +89,17 @@ public class LuceneFoldersListener extends DataCollectionListenerSupport
     }
 
     /**
-     * Whether the element has, and gets, no document of its own in the index, so that adding or removing it needs no
-     * index writer (each one opens a Lucene IndexWriter and commits: per row of a table, per node of a diagram).
+     * Whether adding the element creates no document in the index, so that the addition needs no index writer (each one
+     * opens a Lucene IndexWriter and commits: per row of a table, per node of a diagram).
      *
-     * <p>The index has a document for an element of a folder (its name), for an element of a collection that lists
-     * lucene-indexes, and for the contents of a collection added. So an element that is not a collection, in a parent
-     * that is not a folder and has no lucene-indexes, has none. (The old path also deleted a document of that element,
-     * which could exist only if the parent had lucene-indexes when the element was indexed.)</p>
+     * <p>Additions are indexed by LuceneQuerySystemImpl.addToIndex(String,...): an element of a folder (the primary
+     * collection type, as checked there) gets a document with its name; any other element goes to replaceToIndex(de,
+     * origin), which adds a document only if the origin lists lucene-indexes (non-blank); a collection added may index
+     * its contents. So an element that is not a collection, in a parent that is not a folder and lists no lucene-indexes,
+     * gets none. (replaceToIndex also deleted a previous document of the element's path first; one could exist only if
+     * the parent listed lucene-indexes when it was indexed, and the element added now replaces it in no way.)</p>
      */
-    public static boolean cannotBeIndexed(DataElement element, DataCollection<?> parent) // public for tests
+    protected static boolean cannotBeIndexed(DataElement element, DataCollection<?> parent)
     {
         if( element == null || parent == null || element instanceof DataCollection )
             return false;
