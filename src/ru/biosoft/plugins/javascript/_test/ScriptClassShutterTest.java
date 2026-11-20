@@ -33,7 +33,12 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
                 // seen in the audit log of Genome Enhancer runs
                 "ru.biosoft.bsa.MapAsVector", "ru.biosoft.bsa.project.ProjectAsLists", "biouml.plugins.ensembl.tracks.ExtendedGeneTrack",
                 "biouml.plugins.cma.FullModelTrack", "biouml.plugins.cma.CMAUtils", "ru.biosoft.graphics.CompositeView",
-                "ru.biosoft.graphics.access.ChartDataElement", "com.developmentontheedge.beans.PropertiesDPS"} )
+                "ru.biosoft.graphics.access.ChartDataElement", "com.developmentontheedge.beans.PropertiesDPS",
+                // and later: finding and running analyses and workflows
+                "com.developmentontheedge.beans.DynamicProperty", "ru.biosoft.analysiscore.AnalysisMethodRegistry",
+                "ru.biosoft.analysiscore.AnalysisMethodInfo", "com.genexplain.analyses.MEALR",
+                "biouml.plugins.research.workflow.engine.WorkflowEngine",
+                "biouml.plugins.research.workflow.items.WorkflowItemFactory"} )
             assertTrue( name, s.visibleToScripts( name ) );
     }
 
@@ -165,5 +170,70 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
         assertEquals( "undefined,abc,a/b", withVariables( script ) );
         ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.AUDIT ) );
         assertEquals( "object,abc,a/b", withVariables( script ) );
+    }
+
+    /** The log lines of the shutter while the action runs. */
+    private static java.util.List<String> logged(java.util.concurrent.Callable<?> action) throws Exception
+    {
+        java.util.List<String> messages = java.util.Collections.synchronizedList( new java.util.ArrayList<>() );
+        java.util.logging.Handler handler = new java.util.logging.Handler()
+        {
+            @Override
+            public void publish(java.util.logging.LogRecord record)
+            {
+                messages.add( record.getMessage() );
+            }
+
+            @Override
+            public void flush()
+            {
+            }
+
+            @Override
+            public void close()
+            {
+            }
+        };
+        java.util.logging.Logger logger = java.util.logging.Logger.getLogger( ScriptClassShutter.class.getName() );
+        logger.addHandler( handler );
+        try
+        {
+            action.call();
+        }
+        finally
+        {
+            logger.removeHandler( handler );
+        }
+        return messages;
+    }
+
+    /**
+     * A logged class names the script and line that asked, and the thread, so the audit log says which workflow node or
+     * script needs a class: interpreted (as workflow script nodes run) and compiled.
+     */
+    public void testLogNamesTheScript() throws Exception
+    {
+        for( int optimization : new int[] {-1, 0} )
+        {
+            ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.AUDIT ) );
+            java.util.List<String> messages = logged( () -> onFreshThread( () -> {
+                org.mozilla.javascript.Context context = JScriptContext.getContext();
+                context.setOptimizationLevel( optimization );
+                return JScriptContext.evaluateString( context, JScriptContext.getScope(),
+                        "var a = 1;\nvar f = new java.io.File('x');\n'' + f.getName()", "Find regulators node", null );
+            } ) );
+            String message = String.join( "\n", messages );
+            assertTrue( message, message.contains( "java.io.File" ) );
+            assertTrue( optimization + ": " + message, message.contains( "script Find regulators node:2, thread " ) );
+        }
+    }
+
+    /** Outside a script (e.g. while a workflow node's variables are bound) the log says so, and gives the thread. */
+    public void testLogOutsideAScript() throws Exception
+    {
+        ScriptClassShutter audit = shutter( ScriptClassShutter.Mode.AUDIT );
+        java.util.List<String> messages = logged( () -> audit.visibleToScripts( "java.io.File" ) );
+        assertEquals( 1, messages.size() );
+        assertTrue( messages.get( 0 ), messages.get( 0 ).contains( "no script running, thread " + Thread.currentThread().getName() ) );
     }
 }
