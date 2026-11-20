@@ -637,7 +637,7 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
     }
 
     /** The windows of a window mapped to no window (or only to windows outside the target). */
-    public static final int[] NO_WINDOWS = new int[0];
+    private static final int[] NO_WINDOWS = new int[0];
 
     /** An array-backed copy of the sequence with the same start, length, alphabet and letters. */
     private static Sequence flatten(Sequence sequence)
