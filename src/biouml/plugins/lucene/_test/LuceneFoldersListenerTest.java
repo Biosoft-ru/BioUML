@@ -8,6 +8,13 @@ import biouml.standard.diagram.PathwaySimulationDiagramType;
 import biouml.standard.type.Stub;
 import ru.biosoft.access.FolderVectorCollection;
 import ru.biosoft.access._test.AbstractBioUMLTest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import ru.biosoft.access.core.DataCollection;
+import ru.biosoft.access.core.DataCollectionEvent;
+import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementSupport;
 import ru.biosoft.access.core.VectorDataCollection;
 
@@ -21,7 +28,7 @@ public class LuceneFoldersListenerTest extends AbstractBioUMLTest
     /** The listener, recording the additions that reach the indexing instead of indexing them. */
     private static class RecordingListener extends LuceneFoldersListener
     {
-        final java.util.List<String> indexed = new java.util.ArrayList<>();
+        final List<String> indexed = new ArrayList<>();
 
         RecordingListener()
         {
@@ -29,12 +36,12 @@ public class LuceneFoldersListenerTest extends AbstractBioUMLTest
         }
 
         @Override
-        protected void indexAdded(ru.biosoft.access.core.DataCollectionEvent e, ru.biosoft.access.core.DataElement element)
+        protected void indexAdded(DataCollectionEvent e, DataElement element)
         {
-            indexed.add( e.getDataElementName() );
+            indexed.add( element.getName() ); // the element fetched by the listener, passed on
         }
 
-        static boolean rule(ru.biosoft.access.core.DataElement element, ru.biosoft.access.core.DataCollection<?> parent)
+        static boolean rule(DataElement element, DataCollection<?> parent)
         {
             return LuceneFoldersListener.cannotBeIndexed( element, parent );
         }
@@ -42,12 +49,10 @@ public class LuceneFoldersListenerTest extends AbstractBioUMLTest
 
     /** The element put into the collection (the event fetches it from there) and the event of its addition. */
     @SuppressWarnings ( {"unchecked", "rawtypes"} )
-    private static ru.biosoft.access.core.DataCollectionEvent added(ru.biosoft.access.core.DataCollection owner,
-            ru.biosoft.access.core.DataElement element) throws Exception
+    private static DataCollectionEvent added(DataCollection owner, DataElement element) throws Exception
     {
         owner.put( element );
-        return new ru.biosoft.access.core.DataCollectionEvent( owner, ru.biosoft.access.core.DataCollectionEvent.ELEMENT_ADDED, owner,
-                element.getName(), element, null );
+        return new DataCollectionEvent( owner, DataCollectionEvent.ELEMENT_ADDED, owner, element.getName(), element, null );
     }
 
     /** Through the listener: a row and a diagram node are not indexed; folder and indexed-collection elements are. */
@@ -67,7 +72,7 @@ public class LuceneFoldersListenerTest extends AbstractBioUMLTest
         listener.elementAdded( added( indexedCollection, new Element( "e1", indexedCollection ) ) );
         VectorDataCollection<VectorDataCollection<?>> parent = new VectorDataCollection<>( "parent" );
         listener.elementAdded( added( parent, new VectorDataCollection<>( "child", parent, null ) ) );
-        assertEquals( java.util.Arrays.asList( "result", "e1", "child" ), listener.indexed );
+        assertEquals( Arrays.asList( "result", "e1", "child" ), listener.indexed );
     }
 
     /**
@@ -79,15 +84,14 @@ public class LuceneFoldersListenerTest extends AbstractBioUMLTest
         RecordingListener listener = new RecordingListener();
         FolderVectorCollection folder = new FolderVectorCollection( "folder", null );
         VectorDataCollection<Element> table = new VectorDataCollection<>( "table", folder, null );
-        ru.biosoft.access.core.DataCollectionEvent rowAdded = added( table, new Element( "row1", table ) );
-        listener.elementChanged( new ru.biosoft.access.core.DataCollectionEvent( folder,
-                ru.biosoft.access.core.DataCollectionEvent.ELEMENT_CHANGED, folder, "table", rowAdded ) );
+        DataCollectionEvent rowAdded = added( table, new Element( "row1", table ) );
+        listener.elementChanged( new DataCollectionEvent( folder, DataCollectionEvent.ELEMENT_CHANGED, folder, "table", rowAdded ) );
         assertEquals( 0, listener.indexed.size() );
     }
 
     private static class Element extends DataElementSupport
     {
-        Element(String name, ru.biosoft.access.core.DataCollection<?> origin)
+        Element(String name, DataCollection<?> origin)
         {
             super( name, origin );
         }
