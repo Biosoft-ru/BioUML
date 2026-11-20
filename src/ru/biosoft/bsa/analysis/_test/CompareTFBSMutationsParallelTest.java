@@ -135,20 +135,20 @@ public class CompareTFBSMutationsParallelTest extends AbstractBioUMLTest
     }
 
     /**
-     * SNVs, two-base substitutions, two-base deletions and one-base insertions, with the reference letters of the genome,
-     * at least 40 bases from the chromosome ends. Closer to an end, where the scored region is cut, the analysis fails
-     * (ArrayIndexOutOfBoundsException in maxSiteLoss, scoring the alternative sequence outside it), sequential or not:
-     * a separate bug, not covered here.
+     * SNVs, two-base substitutions, two-base deletions and one-base insertions, with the reference letters of the genome;
+     * the first ones at the chromosome ends, where the scored region is cut.
      */
     private static List<Variation> variations(Random random, String chr, String dna, int count)
     {
         List<Variation> result = new ArrayList<>();
+        int n = dna.length();
+        int[] ends = {1, 2, 3, 5, 8, n - 7, n - 4, n - 2, n - 1, n};
         for( int i = 0; i < count; i++ )
         {
             String id = chr + "_" + i;
             int kind = i % 10;
             int length = kind == 0 || kind == 1 ? 2 : kind == 2 ? 0 : 1;
-            int from = 40 + random.nextInt( dna.length() - 80 ); // 1-based
+            int from = i < 3 * ends.length ? ends[i % ends.length] : 40 + random.nextInt( dna.length() - 80 ); // 1-based
             if( from + length - 1 > dna.length() )
                 length = 1;
             String ref = dna.substring( from - 1, from - 1 + length );
@@ -329,5 +329,169 @@ public class CompareTFBSMutationsParallelTest extends AbstractBioUMLTest
                 losses, gains, null ) );
         assertEquals( "two threads were never inside the model at once", 0, model.inside.getCount() );
         assertTrue( model.met );
+    }
+
+    /**
+     * Insertions and deletions near a chromosome end, where the scored region is cut: a window crossing the indel used to
+     * map to windows reaching past the chromosome, and the analysis failed (ArrayIndexOutOfBoundsException). Every kind
+     * of variation at every position near both ends now gets finite scores.
+     *
+     * <p>On chromosomes starting at 1 only: on one starting elsewhere every variation fails, wherever it is, because
+     * Variation.applyVariations makes the alternative start at 1 while the reference region and the mappings use the
+     * chromosome's coordinates. A separate issue (genomes in use start their chromosomes at 1).</p>
+     */
+    public void testVariationsAtChromosomeEnds() throws Exception
+    {
+        Random random = new Random( 5 );
+        SiteModel[] models = {model( random, "m5", 5 ), model( random, "m9", 9 )};
+        int maxLength = 9;
+        int start = 1;
+        {
+            String dna = randomDna( random, 200 );
+            Sequence chromosome = new LinearSequence( "chr1", start, dna.getBytes(), Nucleotide5LetterAlphabet.getInstance() );
+            List<Variation> variations = new ArrayList<>();
+            int n = dna.length();
+            for( int offset = 0; offset < 2 * maxLength; offset++ )
+                for( int at : new int[] {offset, n - 1 - offset} ) // 0-based in dna
+                {
+                    int from = start + at;
+                    String snv = dna.substring( at, at + 1 );
+                    variations.add( variation( "snv" + from, from, snv, otherLetters( random, snv ) ) );
+                    variations.add( variation( "ins" + from, from, "", "T" ) );
+                    variations.add( variation( "ins3" + from, from, "", "GAT" ) );
+                    if( at + 2 <= n )
+                    {
+                        String two = dna.substring( at, at + 2 );
+                        variations.add( variation( "del" + from, from, two, "" ) );
+                        variations.add( variation( "mnv" + from, from, two, otherLetters( random, two ) ) );
+                    }
+                    if( at + 4 <= n )
+                        variations.add( variation( "del4" + from, from, dna.substring( at, at + 4 ), "" ) );
+                }
+            // after the last base: a VCF row at the last position, X -> XT, becomes from = end + 1, to = end
+            variations.add( variation( "insAfterEnd", start + n, "", "T" ) );
+            float[][] losses = new float[models.length][variations.size()], gains = new float[models.length][variations.size()];
+            assertTrue( CompareTFBSMutationsWithVCF.computeDeltas( Collections.singletonMap( "chr1", variations ),
+                    Collections.singletonMap( "chr1", chromosome ), models, maxLength, losses, gains, null ) );
+            double sum = 0;
+            for( int m = 0; m < models.length; m++ )
+                for( int i = 0; i < variations.size(); i++ )
+                {
+                    String what = start + " " + variations.get( i ).id + " " + models[m].getName();
+                    assertTrue( what + " loss " + losses[m][i], Float.isFinite( losses[m][i] ) && losses[m][i] >= 0 );
+                    assertTrue( what + " gain " + gains[m][i], Float.isFinite( gains[m][i] ) && gains[m][i] >= 0 );
+                    sum += losses[m][i] + gains[m][i];
+                }
+            // dropping every window would give zeros only
+            assertTrue( "no loss or gain at all near the ends", sum > 0 );
+        }
+    }
+
+    /**
+     * mapWindows keeps of each window's mapped windows exactly those lying wholly within the target, and none when
+     * none remains: for indels near both ends of a region, where some mapped windows reach past it.
+     */
+    public void testMapWindowsKeepsTheWindowsWithinTheTarget()
+    {
+        Random random = new Random( 13 );
+        int partial = 0, dropped = 0, kept = 0;
+        for( int round = 0; round < 200; round++ )
+        {
+            String dna = randomDna( random, 12 + random.nextInt( 20 ) );
+            Sequence reference = new LinearSequence( "ref", dna, Nucleotide5LetterAlphabet.getInstance() );
+            int length = 2 + random.nextInt( 6 );
+            // a deletion or an insertion near either end of the region
+            int at = round % 2 == 0 ? random.nextInt( 3 ) : dna.length() - 1 - random.nextInt( 3 ); // 0-based
+            int from = at + 1;
+            Variation var;
+            if( round % 4 < 2 && at + 2 <= dna.length() )
+                var = variation( "del", from, dna.substring( at, at + 2 ), "" );
+            else
+                var = variation( "ins", from, "", "GA" );
+            Sequence alternative = Variation.applyVariations( reference, new Variation[] {var} );
+            ru.biosoft.bsa.analysis.maos.coord_mapping.CoordinateMapping ref2alt =
+                    new ru.biosoft.bsa.analysis.maos.coord_mapping.MappingByVCF( reference.getInterval(), new Variation[] {var} );
+
+            int[][] windows = CompareTFBSMutationsWithVCF.mapWindows( reference, ref2alt, alternative, length );
+            int lastStart = alternative.getStart() + alternative.getLength() - length;
+            for( int k = 0; k < windows.length; k++ )
+            {
+                int s = reference.getStart() + k;
+                List<Integer> expected = new ArrayList<>();
+                int all = 0;
+                for( int pos : ref2alt.mapInterval( new ru.biosoft.bsa.Interval( s, s + length - 1 ) ) )
+                {
+                    all++;
+                    if( pos >= alternative.getStart() && pos <= lastStart )
+                        expected.add( pos );
+                }
+                List<Integer> actual = new ArrayList<>();
+                for( int pos : windows[k] )
+                    actual.add( pos );
+                assertEquals( var.id + "@" + from + " window " + s + " length " + length, expected, actual );
+                if( expected.isEmpty() )
+                    assertEquals( 0, windows[k].length );
+                if( all > expected.size() )
+                {
+                    dropped++;
+                    if( !expected.isEmpty() )
+                        partial++;
+                }
+                kept += expected.size();
+            }
+        }
+        // the cases that matter happened: windows dropped, some of them while others of the same window were kept
+        assertTrue( "no window dropped", dropped > 0 );
+        assertTrue( "no window kept beside a dropped one", partial > 0 );
+        assertTrue( kept > 0 );
+    }
+
+    private static String reverseComplement(String dna)
+    {
+        StringBuilder sb = new StringBuilder();
+        for( int i = dna.length() - 1; i >= 0; i-- )
+            sb.append( "TGCA".charAt( LETTERS.indexOf( dna.charAt( i ) ) ) );
+        return sb.toString();
+    }
+
+    /** The greatest score of the windows of the first sequence minus the score of the same window of the second, or 0. */
+    private static float maxDelta(SiteModel model, String first, String second)
+    {
+        Sequence a = new LinearSequence( "a", first, Nucleotide5LetterAlphabet.getInstance() );
+        Sequence b = new LinearSequence( "b", second, Nucleotide5LetterAlphabet.getInstance() );
+        float result = 0;
+        for( int k = 0; k + model.getLength() <= first.length(); k++ )
+            result = Math.max( result, (float) ( model.getScore( a, a.getStart() + k ) - model.getScore( b, b.getStart() + k ) ) );
+        return result;
+    }
+
+    /**
+     * An SNV at a chromosome end, where the region is cut: its loss and gain are those computed directly, window by
+     * window on both strands of the cut region (an SNV maps each window to the same window).
+     */
+    public void testSnvAtChromosomeEndsHasTheExpectedScores() throws Exception
+    {
+        Random random = new Random( 17 );
+        SiteModel model = model( random, "m6", 6 );
+        int length = model.getLength();
+        String dna = randomDna( random, 100 );
+        Sequence chromosome = new LinearSequence( "chr1", dna, Nucleotide5LetterAlphabet.getInstance() );
+        int n = dna.length();
+        for( int at : new int[] {0, 1, 3, n - 4, n - 2, n - 1} ) // 0-based
+        {
+            String alt = otherLetters( random, dna.substring( at, at + 1 ) );
+            Variation var = variation( "snv" + ( at + 1 ), at + 1, dna.substring( at, at + 1 ), alt );
+            int from = Math.max( 0, at - length ), to = Math.min( n - 1, at + length ); // the region, 0-based inclusive
+            String ref = dna.substring( from, to + 1 );
+            String altRegion = ref.substring( 0, at - from ) + alt + ref.substring( at - from + 1 );
+            float loss = Math.max( maxDelta( model, ref, altRegion ), maxDelta( model, reverseComplement( ref ), reverseComplement( altRegion ) ) );
+            float gain = Math.max( maxDelta( model, altRegion, ref ), maxDelta( model, reverseComplement( altRegion ), reverseComplement( ref ) ) );
+
+            float[][] losses = new float[1][1], gains = new float[1][1];
+            assertTrue( CompareTFBSMutationsWithVCF.computeDeltas( Collections.singletonMap( "chr1", Collections.singletonList( var ) ),
+                    Collections.singletonMap( "chr1", chromosome ), new SiteModel[] {model}, length, losses, gains, null ) );
+            assertEquals( var.id + " loss", Float.floatToIntBits( loss ), Float.floatToIntBits( losses[0][0] ) );
+            assertEquals( var.id + " gain", Float.floatToIntBits( gain ), Float.floatToIntBits( gains[0][0] ) );
+        }
     }
 }

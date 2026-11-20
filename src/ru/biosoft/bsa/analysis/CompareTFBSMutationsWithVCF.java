@@ -618,10 +618,10 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
 
             if( ref2altWindows[length] == null )
             {
-                ref2altWindows[length] = mapWindows( reference, ref2alt, length );
-                ref2altRCWindows[length] = mapWindows( referenceRC, ref2altRC, length );
-                alt2refWindows[length] = mapWindows( alternative, alt2ref, length );
-                alt2refRCWindows[length] = mapWindows( alternativeRC, alt2refRC, length );
+                ref2altWindows[length] = mapWindows( reference, ref2alt, alternative, length );
+                ref2altRCWindows[length] = mapWindows( referenceRC, ref2altRC, alternativeRC, length );
+                alt2refWindows[length] = mapWindows( alternative, alt2ref, reference, length );
+                alt2refRCWindows[length] = mapWindows( alternativeRC, alt2refRC, referenceRC, length );
             }
 
             float loss = maxSiteLoss( refScores, refCount, alternative, altScores, altCount, ref2altWindows[length], model );
@@ -636,6 +636,7 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
         }
     }
 
+    /** The windows of a window mapped to no window (or only to windows outside the target). */
     private static final int[] NO_WINDOWS = new int[0];
 
     /** An array-backed copy of the sequence with the same start, length, alphabet and letters. */
@@ -662,26 +663,30 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
     }
 
     /**
-     * For every window of the given length on the source sequence, the start positions of the windows it maps to.
+     * For each window of the source, the starts of the windows of the target it maps to.
+     *
+     * <p>Only windows lying wholly within the target are kept. A window that crosses an indel maps to candidate starts
+     * shifted by the indel, and these can reach past the target. Away from the chromosome ends they never do: the scored
+     * region extends the longest model length on each side of the variation. Where the region is cut at a chromosome
+     * end, they do, and scoring them read past the sequence (ArrayIndexOutOfBoundsException). Such a window would
+     * extend past the chromosome, so it is no site. A source window none of whose windows remains counts as one with no
+     * mapped window: its site is lost.</p>
      */
-    private static int[][] mapWindows(Sequence source, CoordinateMapping mapping, int length)
+    public static int[][] mapWindows(Sequence source, CoordinateMapping mapping, Sequence target, int length) // public for tests
     {
         int start = source.getStart();
         int count = Math.max( 0, source.getLength() - length + 1 );
+        int targetFrom = target.getStart(), targetLastStart = target.getStart() + target.getLength() - length;
         int[][] result = new int[count][];
         for( int k = 0; k < count; k++ )
         {
             Collection<Integer> mapped = mapping.mapInterval( new Interval( start + k, start + k + length - 1 ) );
-            if( mapped.isEmpty() )
-            {
-                result[k] = NO_WINDOWS;
-                continue;
-            }
             int[] positions = new int[mapped.size()];
             int j = 0;
             for( Integer pos : mapped )
-                positions[j++] = pos;
-            result[k] = positions;
+                if( pos >= targetFrom && pos <= targetLastStart )
+                    positions[j++] = pos;
+            result[k] = j == 0 ? NO_WINDOWS : j == positions.length ? positions : Arrays.copyOf( positions, j );
         }
         return result;
     }
