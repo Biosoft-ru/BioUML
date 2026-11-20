@@ -59,6 +59,8 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
     protected String tableId;
     private boolean initialized = false;
     protected int size = -1;
+    /** The column model changed in the info and the table is not saved since (see saveColumnModel). */
+    private volatile boolean columnModelSavePending;
     protected List<String> names = null;
     protected Properties initProperties;
     protected int queryLength;
@@ -383,7 +385,7 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
     {
         if( !isInitialized() )
             return;
-        finalizeAddition();
+        flushInsertedRows();
         String type = col.getType().name();
         SqlUtil.execute(
                 getConnection(),
@@ -410,8 +412,7 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
         }
         else
         {
-            getInfo().getProperties().setProperty(COLUMN_MODEL_PROPERTY, getColumnModel().toJSON().toString());
-            getCompletePath().save(this);
+            saveColumnModel();
         }
         v_cache.clear();
         getIteratorRow = -1;
@@ -424,7 +425,7 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
     {
         if( !isInitialized() )
             return;
-        finalizeAddition();
+        flushInsertedRows();
         SqlUtil.execute(getConnection(), query("ALTER TABLE $table$ DROP COLUMN $column$").name("column", getSQLColumnName(columnPos)));
         String name = getColumnModel().getColumn(columnPos).getName();
         columnLengths.remove(name);
@@ -436,8 +437,7 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
         }
         else
         {
-            getInfo().getProperties().setProperty(COLUMN_MODEL_PROPERTY, getColumnModel().toJSON().toString());
-            getCompletePath().save(this);
+            saveColumnModel();
         }
         v_cache.clear();
         getIteratorRow = -1;
@@ -449,7 +449,7 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
     {
         if( !isInitialized() )
             return;
-        finalizeAddition();
+        flushInsertedRows();
         String type = col.getType().name();
         if( !oldName.equals(col.getName()) )
             columnLengths.remove(oldName);
@@ -491,8 +491,7 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
         }
         else
         {
-            getInfo().getProperties().setProperty(COLUMN_MODEL_PROPERTY, getColumnModel().toJSON().toString());
-            getCompletePath().save(this);
+            saveColumnModel();
         }
         if( !oldType.equals(type) )
         {
@@ -958,7 +957,7 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
             int length = values[i].toString().length();
             if( length > columnLengths.get(col.getName()) )
             {
-                finalizeAddition();
+                flushInsertedRows();
                 String sqlType = getSQLType(length);
                 columnLengths.put(col.getName(), SqlDataInfo.getColumnContentLength(sqlType));
                 SqlUtil.execute(
@@ -972,12 +971,51 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
     @Override
     public void finalizeAddition() throws BiosoftSQLException
     {
+        flushInsertedRows();
+        if( columnModelSavePending )
+        {
+            columnModelSavePending = false;
+            try
+            {
+                getCompletePath().save( this );
+            }
+            catch( Exception e )
+            {
+                throw ExceptionRegistry.translateException( e );
+            }
+        }
+    }
+
+    /** Writes the rows added and not yet written; the column operations use it, so that they do not save the table. */
+    protected void flushInsertedRows() throws BiosoftSQLException
+    {
         if( inserter != null )
         {
             inserter.flush();
             size = -1;
             names = null;
         }
+    }
+
+    /**
+     * Records the column model of a table without a column_info id in its info, and saves the table so that the info
+     * is stored. A table being built (no row yet) is saved once, at its finalizeAddition (or when its first row is added)
+     * instead of once per column: building a result table column by column saved it for every column, and a save of a
+     * table costs a lock, a quota check, two size queries and the info written (FilterTable copying 30 columns: 30 saves).
+     * The info is current at once, so any save of the table meanwhile stores it; and a table whose save never comes
+     * still has its columns, which initColumnModel reads from the database table (with their types, not their
+     * descriptions).
+     */
+    private void saveColumnModel() throws Exception
+    {
+        getInfo().getProperties().setProperty( COLUMN_MODEL_PROPERTY, getColumnModel().toJSON().toString() );
+        if( size == 0 )
+        {
+            columnModelSavePending = true;
+            return;
+        }
+        columnModelSavePending = false;
+        getCompletePath().save( this );
     }
 
     protected String getOrderByClause()
