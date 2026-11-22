@@ -388,14 +388,14 @@ public class McpServlet
 		{
 			OAuthTokenStore.AccessToken token = OAuthTokenStore.validate( authorization.substring( "Bearer ".length() ).trim() );
 			if ( token == null )
-				return unauthorized( "invalid or expired bearer token", hints );
+				return invalidBearer( "invalid or expired bearer token", hints );
 			try
 			{
 				SecurityManager.addThreadToSessionRecord( Thread.currentThread(), token.sessionId );
 			}
 			catch ( Exception e )
 			{
-				return unauthorized( "bearer token session unavailable", hints );
+				return invalidBearer( "bearer token session unavailable", hints );
 			}
 			return dispatch( method, path, body, token.user, start, lite, hints );
 		}
@@ -633,6 +633,14 @@ public class McpServlet
 					"Bearer resource_metadata=\"" + McpOAuthConfig.protectedResourceMetadataUrl( issuer ) + "\"" );
 		headers.put( "Status", "401" );
 		return new HandleResult( 401, body, headers );
+	}
+
+	private static HandleResult invalidBearer( String reason, IssuerHints hints )
+	{
+		HandleResult result = unauthorized( reason, hints );
+		result.headers.merge( "WWW-Authenticate", "Bearer error=\"invalid_token\"",
+				( challenge, error ) -> challenge + ", error=\"invalid_token\"" );
+		return result;
 	}
 
 	// =================================================================== CORS (browser clients)

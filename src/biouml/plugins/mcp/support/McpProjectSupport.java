@@ -297,9 +297,8 @@ public final class McpProjectSupport
 			String user = SecurityManager.getSessionUser();
 			if ( user == null || user.isEmpty() )
 				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "no authenticated user" );
-			String password = SecurityManager.getCurrentUserPermission() == null ? null
-					: SecurityManager.getCurrentUserPermission().getPassword();
-			Map<String, Object> userInfo = SecurityManager.getSecurityProvider().getUserInfo( user, password );
+			Map<String, Object> userInfo = SecurityManager.getSecurityProvider()
+					.getUserInfo( SecurityManager.getCurrentUserPermission() );
 			Map<String, Object> result = new LinkedHashMap<String, Object>();
 			result.put( "username", user );
 			if ( userInfo != null )

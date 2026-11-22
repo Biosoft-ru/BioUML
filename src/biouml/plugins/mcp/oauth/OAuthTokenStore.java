@@ -1,6 +1,7 @@
 package biouml.plugins.mcp.oauth;
 
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -8,24 +9,19 @@ import java.util.Base64;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.crypto.SecretKey;
+
 import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.access.security.biostore.RemoteSecurityProvider;
 
 /**
  * In-memory store for the BioUML MCP OAuth 2.1 authorization server: one-time authorization codes
  * (issued by {@code /authorize}, consumed by {@code /token}) and opaque bearer access tokens
  * (issued by {@code /token}, validated by the MCP endpoint on every request).
  *
- * <p><b>Single-JVM by design.</b> Both stores are in-memory {@link ConcurrentHashMap}s, so a
- * deployment must run one JVM per instance (biouml2test does). A multi-node deployment would need a
- * shared backend (e.g. the support database) — out of scope for v1.</p>
- *
- * <p><b>Token ↔ session coupling.</b> An access token does not store a user directly: it references
- * a BioUML session id whose {@code UserPermissions} were copied from the authorizing user's session
- * (via {@link SecurityManager#commonLoginViaOtherSession}). Every token use therefore re-checks
- * {@link SecurityManager#isSessionDead}, so a token can never outlive the platform session it was
- * minted from, and killing the session revokes the token without touching the store. Tokens also
- * carry their own expiry (1 hour, matching {@code UserPermissions.TIMEOUT}) so the store stays
- * bounded even if sessions outlive them.</p>
+ * <p>Consent and authorization codes are kept in memory. Client registrations are durable.
+ * With a deployment key, grants issued from BioStore password logins can recover their MCP
+ * session by reauthorizing with BioStore after a restart.</p>
  */
 public final class OAuthTokenStore
 {
@@ -44,14 +40,6 @@ public final class OAuthTokenStore
 	/** Authorization-code lifetime (10 min) — standard OAuth bound for the code → token exchange. */
 	public static final long AUTH_CODE_TTL_MS = 10L * 60L * 1000L;
 
-	/**
-	 * Lifetime of a dynamically-registered client (RFC 7591). Clients are in-memory and the
-	 * deployment is single-JVM, so a registration is useful for as long as this process lives; 24 h
-	 * bounds how long a leaked client_id stays valid and matches the "ephemeral, re-register on
-	 * connect" model MCP clients use.
-	 */
-	public static final long CLIENT_TTL_MS = 24L * 60L * 60L * 1000L;
-
 	/** Access-token prefix: a namespace sentinel so a token can never be misread as a Basic payload. */
 	public static final String TOKEN_PREFIX = "mcp_at_";
 
@@ -67,6 +55,13 @@ public final class OAuthTokenStore
 	/** How long a rendered consent page stays submittable. */
 	public static final long CONSENT_TTL_MS = 10L * 60L * 1000L;
 
+	private static final Object[] RECOVERY_LOCKS = new Object[64];
+	static
+	{
+		java.util.Arrays.setAll( RECOVERY_LOCKS, index -> new Object() );
+	}
+	private static final ConcurrentMap<String, SessionBinding> DURABLE_SESSIONS = new ConcurrentHashMap<>();
+	private record SessionBinding( String sessionId, long expiresAt ) {}
 	private static final SecureRandom RANDOM = new SecureRandom();
 	private static final ConcurrentMap<String, Consent> CONSENTS = new ConcurrentHashMap<String, Consent>();
 	private static final ConcurrentMap<String, AuthCode> CODES = new ConcurrentHashMap<String, AuthCode>();
@@ -86,30 +81,24 @@ public final class OAuthTokenStore
 	 */
 	public static final class RegisteredClient
 	{
-		/** The client_id (the value the client presents at {@code /authorize} and {@code /token}). */
 		public final String clientId;
-		/** The exact redirect URIs the client is allowed to use. */
 		public final java.util.List<String> redirectUris;
-		/** The human-readable client name (informational). */
 		public final String clientName;
-		/** {@code null} for a public client (PKCE auth); the secret for a confidential one. */
-		public final String clientSecret;
-		/** Epoch millis when this registration expires (DCR clients are single-JVM and ephemeral). */
-		public final long expiresAt;
+		final String secretHash;
 
 		RegisteredClient( String clientId, java.util.List<String> redirectUris, String clientName,
-				String clientSecret, long ttlMs )
+				String secretHash )
 		{
 			this.clientId = clientId;
-			this.redirectUris = redirectUris;
+			this.redirectUris = java.util.List.copyOf( redirectUris );
 			this.clientName = clientName;
-			this.clientSecret = clientSecret;
-			this.expiresAt = System.currentTimeMillis() + ttlMs;
+			this.secretHash = secretHash;
 		}
 
-		boolean expired()
+		boolean acceptsSecret( String secret )
 		{
-			return System.currentTimeMillis() > expiresAt;
+			return secretHash == null || ( secret != null && !secret.isEmpty()
+					&& pkceMatches( secretHash, hashClientSecret( secret ) ) );
 		}
 	}
 
@@ -165,11 +154,16 @@ public final class OAuthTokenStore
 
 		AccessToken( String value, String sessionId, String clientId, String user )
 		{
+			this( value, sessionId, clientId, user, System.currentTimeMillis() + ACCESS_TOKEN_TTL_MS );
+		}
+
+		AccessToken( String value, String sessionId, String clientId, String user, long expiresAt )
+		{
 			this.value = value;
 			this.sessionId = sessionId;
 			this.clientId = clientId;
 			this.user = user;
-			this.expiresAt = System.currentTimeMillis() + ACCESS_TOKEN_TTL_MS;
+			this.expiresAt = expiresAt;
 		}
 
 		boolean expired()
@@ -199,11 +193,16 @@ public final class OAuthTokenStore
 
 		RefreshToken( String value, String sessionId, String clientId, String user )
 		{
+			this( value, sessionId, clientId, user, System.currentTimeMillis() + REFRESH_TOKEN_TTL_MS );
+		}
+
+		RefreshToken( String value, String sessionId, String clientId, String user, long expiresAt )
+		{
 			this.value = value;
 			this.sessionId = sessionId;
 			this.clientId = clientId;
 			this.user = user;
-			this.expiresAt = System.currentTimeMillis() + REFRESH_TOKEN_TTL_MS;
+			this.expiresAt = expiresAt;
 		}
 
 		boolean expired()
@@ -312,53 +311,41 @@ public final class OAuthTokenStore
 
 	// ------------------------------------------------------------------ tokens
 
-	/**
-	 * Mint an access token bound to a fresh session (see the class javadoc for the session coupling).
-	 *
-	 * @param sessionId the fresh, already-populated session id the token maps to
-	 * @param clientId  the client the token is issued to
-	 * @param user      the authenticated username
-	 * @return the new token (never {@code null})
-	 */
-	/**
-	 * Mint an access token AND its paired refresh token, both bound to the same session (see the
-	 * class javadoc for the session coupling). The refresh token is what lets the client renew the
-	 * access token after it expires without re-authorizing (see {@link #consumeRefresh}).
-	 *
-	 * @param sessionId the fresh, already-populated session id the token maps to
-	 * @param clientId  the client the token is issued to
-	 * @param user      the authenticated username
-	 * @return the new access token (never {@code null}); its paired refresh token is retrievable via
-	 *         {@link #refreshTokenFor(String)} for the lifetime of this process.
-	 */
+	/** Issue an access token and a refresh token for an existing session. */
 	public static AccessToken issueToken( String sessionId, String clientId, String user )
 	{
-		String value = TOKEN_PREFIX + randomToken( 32 );
-		AccessToken token = new AccessToken( value, sessionId, clientId, user );
-		TOKENS.put( value, token );
-		// Pair a refresh token with the same binding so the client can renew later.
-		String rvalue = REFRESH_PREFIX + randomToken( 32 );
-		REFRESHES.put( rvalue, new RefreshToken( rvalue, sessionId, clientId, user ) );
-		return token;
+		return issueToken( sessionId, clientId, user, null, null );
 	}
 
-	/**
-	 * Mint a fresh access token paired with a SPECIFIC (already-existing) refresh token value — used
-	 * by the {@code refresh_token} grant so the client keeps the same refresh token across renewals
-	 * (no rotation) and we don't mint a redundant second refresh token.
-	 *
-	 * @param sessionId        the session the access token maps to
-	 * @param clientId         the client the token is issued to
-	 * @param user             the authenticated username
-	 * @param refreshValue     the existing refresh-token value to pair with the new access token
-	 * @return the new access token
-	 */
-	public static AccessToken reissue( String sessionId, String clientId, String user, String refreshValue )
+	static AccessToken issueToken( String sessionId, String clientId, String user, String bioStoreToken, SecretKey key )
 	{
-		String value = TOKEN_PREFIX + randomToken( 32 );
-		AccessToken token = new AccessToken( value, sessionId, clientId, user );
-		TOKENS.put( value, token );
-		return token;
+		AccessToken access = new AccessToken( TOKEN_PREFIX + randomToken( 32 ), sessionId, clientId, user );
+		RefreshToken refresh = new RefreshToken( REFRESH_PREFIX + randomToken( 32 ), sessionId, clientId, user );
+		if ( bioStoreToken != null )
+		{
+			OAuthGrantRepository.insert( access, refresh, bioStoreToken, key );
+			DURABLE_SESSIONS.put( OAuthGrantRepository.digest( refresh.value ), new SessionBinding( sessionId, refresh.expiresAt ) );
+		}
+		REFRESHES.put( refresh.value, refresh );
+		TOKENS.put( access.value, access );
+		return access;
+	}
+
+	static AccessToken reissue( RefreshToken refresh )
+	{
+		String hash = OAuthGrantRepository.digest( refresh.value );
+		synchronized ( recoveryLock( hash ) )
+		{
+			if ( REFRESHES.get( refresh.value ) != refresh || refresh.expired()
+					|| SecurityManager.isSessionDead( refresh.sessionId ) )
+				return null;
+			AccessToken access = new AccessToken( TOKEN_PREFIX + randomToken( 32 ), refresh.sessionId, refresh.clientId,
+					refresh.user, Math.min( refresh.expiresAt, System.currentTimeMillis() + ACCESS_TOKEN_TTL_MS ) );
+			if ( DURABLE_SESSIONS.containsKey( hash ) )
+				OAuthGrantRepository.insertAccess( refresh.value, access );
+			TOKENS.put( access.value, access );
+			return access;
+		}
 	}
 
 	/**
@@ -378,34 +365,98 @@ public final class OAuthTokenStore
 		return null;
 	}
 
-	/**
-	 * Consume a refresh token (the {@code refresh_token} grant). The token must exist, be unexpired,
-	 * and its session must still be alive (a dead session revokes it, same as the access token). On
-	 * success the refresh token is NOT removed (RFC 6749 §6 allows reuse within its lifetime) but its
-	 * session's expiry is slid forward so an actively-refreshing client keeps its session alive.
-	 *
-	 * @param value the refresh-token string
-	 * @return the refresh token's record, or {@code null} if unknown/expired/session-dead
-	 */
-	public static RefreshToken consumeRefresh( String value )
+	/** Resolve an unexpired refresh token for its registered client. */
+	static RefreshToken consumeRefresh( String value, String clientId, String secret )
 	{
-		if ( value == null || !value.startsWith( REFRESH_PREFIX ) )
+		if ( !validTokenFormat( value, REFRESH_PREFIX ) )
 			return null;
-		RefreshToken r = REFRESHES.get( value );
-		if ( r == null || r.expired() )
+		RefreshToken refresh = REFRESHES.get( value );
+		if ( refresh != null )
+		{
+			if ( refresh.expired() || !clientMatches( refresh.clientId, clientId, secret ) )
+				return null;
+			if ( SecurityManager.isSessionDead( refresh.sessionId ) )
+			{
+				revokeRefresh( value );
+				return null;
+			}
+			return refresh;
+		}
+		SecretKey key = OAuthGrantRepository.deploymentKey();
+		if ( key == null || !( SecurityManager.getSecurityProvider() instanceof RemoteSecurityProvider ) )
 			return null;
-		if ( SecurityManager.isSessionDead( r.sessionId ) )
+		OAuthGrantRepository.Grant grant = OAuthGrantRepository.find( value, true );
+		if ( grant == null || !clientMatches( grant.clientId(), clientId, secret ) )
 			return null;
-		return r;
+		synchronized ( recoveryLock( grant.refreshHash() ) )
+		{
+			String sessionId = restoreSession( grant, key );
+			if ( sessionId == null )
+				return null;
+			refresh = new RefreshToken( value, sessionId, grant.clientId(), grant.user(), grant.expiresAt() );
+			RefreshToken existing = REFRESHES.putIfAbsent( value, refresh );
+			return existing == null ? refresh : existing;
+		}
 	}
 
-	/**
-	 * Drop a refresh token (e.g. after its session dies) so the store stays bounded. Idempotent.
-	 */
-	public static void revokeRefresh( String value )
+	private static boolean clientMatches( String registeredId, String suppliedId, String secret )
 	{
-		if ( value != null )
+		if ( !suppliedId.isEmpty() && !registeredId.equals( suppliedId ) )
+			return false;
+		RegisteredClient client = findClient( registeredId );
+		return client == null ? McpOAuthConfig.clients().containsKey( registeredId )
+				: ( client.secretHash == null || !suppliedId.isEmpty() ) && client.acceptsSecret( secret );
+	}
+
+	static void revokeRefresh( String value )
+	{
+		RefreshToken refresh = REFRESHES.remove( value );
+		String refreshHash = OAuthGrantRepository.digest( value );
+		if ( refresh != null && DURABLE_SESSIONS.containsKey( refreshHash ) )
+			OAuthGrantRepository.revoke( refreshHash );
+	}
+
+	static void revokeGrant( String value, String clientId, String secret )
+	{
+		if ( !validTokenFormat( value, REFRESH_PREFIX ) )
+			return;
+		String refreshHash = OAuthGrantRepository.digest( value );
+		synchronized ( recoveryLock( refreshHash ) )
+		{
+			RefreshToken token = REFRESHES.get( value );
+			SessionBinding binding = DURABLE_SESSIONS.get( refreshHash );
+			long expiresAt;
+			if ( token != null )
+			{
+				if ( !clientMatches( token.clientId, clientId, secret ) )
+					return;
+				expiresAt = token.expiresAt;
+			}
+			else
+			{
+				if ( !canRecover() )
+					return;
+				OAuthGrantRepository.Grant grant = OAuthGrantRepository.find( value, true );
+				if ( grant == null || !clientMatches( grant.clientId(), clientId, secret ) )
+					return;
+				expiresAt = grant.expiresAt();
+			}
+			if ( binding != null || token == null )
+			{
+				OAuthGrantRepository.revoke( refreshHash );
+				DURABLE_SESSIONS.put( refreshHash, new SessionBinding( null, expiresAt ) );
+			}
 			REFRESHES.remove( value );
+			String sessionId = binding == null ? ( token == null ? null : token.sessionId ) : binding.sessionId;
+			if ( sessionId != null )
+				TOKENS.values().removeIf( access -> access.sessionId.equals( sessionId ) );
+		}
+	}
+
+	private static boolean canRecover()
+	{
+		return SecurityManager.getSecurityProvider() instanceof RemoteSecurityProvider
+				&& OAuthGrantRepository.deploymentKey() != null;
 	}
 
 	/**
@@ -416,23 +467,77 @@ public final class OAuthTokenStore
 	 */
 	public static AccessToken validate( String value )
 	{
-		if ( value == null || !value.startsWith( TOKEN_PREFIX ) )
+		if ( !validTokenFormat( value, TOKEN_PREFIX ) )
 			return null;
 		AccessToken token = TOKENS.get( value );
-		if ( token == null || token.expired() )
-			return null;
-		if ( SecurityManager.isSessionDead( token.sessionId ) )
+		if ( token == null )
 		{
-			// The session died; drop the token so the store stays bounded.
-			TOKENS.remove( value );
-			return null;
+			SecretKey key = OAuthGrantRepository.deploymentKey();
+			if ( key == null || !( SecurityManager.getSecurityProvider() instanceof RemoteSecurityProvider ) )
+				return null;
+			OAuthGrantRepository.Grant grant = OAuthGrantRepository.find( value, false );
+			if ( grant == null || grant.accessExpiresAt() <= System.currentTimeMillis()
+					|| ( findClient( grant.clientId() ) == null
+							&& !McpOAuthConfig.clients().containsKey( grant.clientId() ) ) )
+				return null;
+			synchronized ( recoveryLock( grant.refreshHash() ) )
+			{
+				String sessionId = restoreSession( grant, key );
+				if ( sessionId == null )
+					return null;
+				token = new AccessToken( value, sessionId, grant.clientId(), grant.user(), grant.accessExpiresAt() );
+				TOKENS.putIfAbsent( value, token );
+			}
 		}
-		// Sliding window: an actively-used token keeps its backing session alive for another
-		// UserPermissions.TIMEOUT from now (see SecurityManager.touchSessionExpiry). This is what
-		// lets a connected client that keeps polling stay authenticated, independent of the fixed
-		// 1-hour access-token lifetime (which the refresh_token grant renews).
+		if ( token.expired() || SecurityManager.isSessionDead( token.sessionId ) )
+			return null;
 		SecurityManager.touchSessionExpiry( token.sessionId );
 		return token;
+	}
+
+	private static boolean validTokenFormat( String value, String prefix )
+	{
+		return value != null && value.startsWith( prefix ) && value.length() == prefix.length() + 43
+				&& value.substring( prefix.length() ).matches( "[A-Za-z0-9_-]+" );
+	}
+
+	private static Object recoveryLock( String refreshHash )
+	{
+		return RECOVERY_LOCKS[Math.floorMod( refreshHash.hashCode(), RECOVERY_LOCKS.length )];
+	}
+
+	private static String restoreSession( OAuthGrantRepository.Grant grant, SecretKey key )
+	{
+		String refreshHash = grant.refreshHash();
+		SessionBinding binding = DURABLE_SESSIONS.get( refreshHash );
+		if ( binding != null )
+		{
+			if ( binding.sessionId == null )
+				return null;
+			if ( SecurityManager.isSessionDead( binding.sessionId ) )
+			{
+				OAuthGrantRepository.revoke( refreshHash );
+				return null;
+			}
+			return binding.sessionId;
+		}
+		try
+		{
+			String credential = OAuthGrantRepository.decrypt( grant, key );
+			String sessionId = SecurityManager.generateSessionId();
+			SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sessionId );
+			SecurityManager.commonLogin( grant.user(), null, null, credential );
+			DURABLE_SESSIONS.put( refreshHash, new SessionBinding( sessionId, grant.expiresAt() ) );
+			return sessionId;
+		}
+		catch ( GeneralSecurityException | SecurityException e )
+		{
+			return null;
+		}
+		finally
+		{
+			SecurityManager.removeThreadFromSessionRecord();
+		}
 	}
 
 	/**
@@ -504,23 +609,25 @@ public final class OAuthTokenStore
 	{
 		String clientId = "mcp_cl_" + randomToken( 24 );
 		RegisteredClient client = new RegisteredClient( clientId, redirectUris, clientName,
-				clientSecret, CLIENT_TTL_MS );
-		CLIENTS.put( clientId, client );
+				clientSecret == null ? null : hashClientSecret( clientSecret ) );
+		if ( SecurityManager.isTestMode() )
+			CLIENTS.put( clientId, client );
+		else
+			OAuthClientRepository.insert( client );
 		return client;
 	}
 
-	/**
-	 * Look up a registered client by id (live or, if the static allow-list has been consulted
-	 * first, already merged in by the caller). Returns {@code null} for an unknown or expired id.
-	 */
+	/** Look up a client registered by this server. */
 	public static RegisteredClient findClient( String clientId )
 	{
-		if ( clientId == null )
+		if ( clientId == null || !clientId.matches( "mcp_cl_[A-Za-z0-9_-]{32}" ) )
 			return null;
-		RegisteredClient client = CLIENTS.get( clientId );
-		if ( client == null || client.expired() )
-			return null;
-		return client;
+		return SecurityManager.isTestMode() ? CLIENTS.get( clientId ) : OAuthClientRepository.find( clientId );
+	}
+
+	private static String hashClientSecret( String secret )
+	{
+		return pkceChallenge( Base64.getEncoder().encodeToString( secret.getBytes( StandardCharsets.UTF_8 ) ) );
 	}
 
 	/**
@@ -551,6 +658,7 @@ public final class OAuthTokenStore
 	static void purgeExpired()
 	{
 		long now = System.currentTimeMillis();
+		DURABLE_SESSIONS.values().removeIf( binding -> binding.expiresAt <= now );
 		for ( Consent consent : CONSENTS.values() )
 			if ( consent.expiresAt < now )
 				CONSENTS.remove( consent.value );
@@ -575,5 +683,6 @@ public final class OAuthTokenStore
 		TOKENS.clear();
 		REFRESHES.clear();
 		CLIENTS.clear();
+		DURABLE_SESSIONS.clear();
 	}
 }

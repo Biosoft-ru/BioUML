@@ -71,6 +71,42 @@ public class RemoteSecurityProvider implements SecurityProvider
         return biostore;
     }
 
+    private static final class TokenPermissions extends UserPermissions
+    {
+        private final String loginToken;
+
+        TokenPermissions(String user, String[] products, Map<String, Long> limits, Map<String, Boolean> groups, String loginToken)
+        {
+            super(user, null, products, limits, groups);
+            this.loginToken = loginToken;
+        }
+    }
+
+    @Override
+    public UserPermissions reauthorize(UserPermissions permissions)
+    {
+        if( permissions instanceof TokenPermissions tokenPermissions )
+            return authorize(permissions.getUser(), null, null, tokenPermissions.loginToken);
+        return SecurityProvider.super.reauthorize(permissions);
+    }
+
+    /** Obtain a BioStore login token from a verified password login. */
+    public String issueSessionRenewalToken(String username, String password, String remoteAddress)
+    {
+        if( username.isEmpty() || username.indexOf('$') >= 0 || password == null || password.isEmpty()
+                || password.startsWith(":token:") )
+            return null;
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("username", username);
+        parameters.put("password", password);
+        if( remoteAddress != null && !remoteAddress.isEmpty() )
+            parameters.put("ip", remoteAddress);
+        JsonObject response = biostore.askServer(username, "login", parameters);
+        if( !TYPE_OK.equals(response.getString(ATTR_TYPE, "")) )
+            throw new SecurityException("BioStore denied session renewal authorization");
+        return response.getString("jwtoken", null);
+    }
+
     @Override
     public UserPermissions authorize(String username, String password, String remoteAddress, String jwToken) throws SecurityException
     {
@@ -103,7 +139,11 @@ public class RemoteSecurityProvider implements SecurityProvider
             if( status.equals(TYPE_OK) )
             {
                 String[] products = getProducts(response).toArray(String[]::new);
-                result = new UserPermissions( targetUser, password, products, getLimits( response ), getGroups( response ) );
+                Map<String, Long> limits = getLimits(response);
+                Map<String, Boolean> groups = getGroups(response);
+                result = jwToken != null && password == null
+                        ? new TokenPermissions(targetUser, products, limits, groups, jwToken)
+                        : new UserPermissions(targetUser, password, products, limits, groups);
                 initPermissions(result, response);
             }
             else
@@ -339,8 +379,22 @@ public class RemoteSecurityProvider implements SecurityProvider
     public Map<String, Object> getUserInfo(String username, String password)
     {
         Map<String, String> parameters = new HashMap<>();
-        parameters.put( "username", username );
-        parameters.put( "password", password );
+        parameters.put("username", username);
+        if( password != null )
+            parameters.put("password", password);
+        return getUserInfo(username, parameters);
+    }
+
+    @Override
+    public Map<String, Object> getUserInfo(UserPermissions permissions)
+    {
+        if( permissions instanceof TokenPermissions tokenPermissions )
+            return getUserInfo(permissions.getUser(), Map.of("jwtoken", tokenPermissions.loginToken));
+        return SecurityProvider.super.getUserInfo(permissions);
+    }
+
+    private Map<String, Object> getUserInfo(String username, Map<String, String> parameters)
+    {
         JsonObject response = biostore.askServer(username, "getUser", parameters);
         try
         {
