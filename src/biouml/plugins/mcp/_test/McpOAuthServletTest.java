@@ -739,6 +739,35 @@ public class McpOAuthServletTest extends TestCase
 		assertNotNull( "refreshed access token validates (same session alive)", OAuthTokenStore.validate( newAccess ) );
 	}
 
+	public void testConfidentialClientAuthenticatesAndRevokesGrant() throws Exception
+	{
+		String uri = "https://client.example/oauth/callback";
+		HandleResult registration = service( "/oauth/register", params( "mcpRawBody",
+				"{\"redirect_uris\":[\"" + uri + "\"],\"client_secret\":\"test-only-secret\"}" ) );
+		assertEquals( 201, registration.status );
+		String clientId = (String) json( registration.body ).get( "client_id" );
+		String header = "Basic " + java.util.Base64.getEncoder().encodeToString(
+				( clientId + ":test-only-secret" ).getBytes( java.nio.charset.StandardCharsets.UTF_8 ) );
+		String code = OAuthTokenStore.issueCode( clientId, uri, CHALLENGE, AUTH_SESSION, "alice" ).value;
+		assertEquals( 401, exchange( code, VERIFIER, clientId, uri ).status );
+
+		code = OAuthTokenStore.issueCode( clientId, uri, CHALLENGE, AUTH_SESSION, "alice" ).value;
+		HandleResult exchange = service( "/oauth/token", params( "grant_type", "authorization_code", "code", code,
+				"redirect_uri", uri, "code_verifier", VERIFIER, "Authorization", header ) );
+		assertEquals( 200, exchange.status );
+		Map<String, Object> issued = json( exchange.body );
+		String access = (String) issued.get( "access_token" );
+		String refresh = (String) issued.get( "refresh_token" );
+		assertNotNull( OAuthTokenStore.validate( access ) );
+
+		assertEquals( 200, service( "/oauth/revoke", params( "token", refresh, "client_id", clientId ) ).status );
+		assertNotNull( OAuthTokenStore.validate( access ) );
+		assertEquals( 200, service( "/oauth/revoke", params( "token", refresh, "Authorization", header ) ).status );
+		assertNull( OAuthTokenStore.validate( access ) );
+		assertEquals( 400, service( "/oauth/token", params( "grant_type", "refresh_token", "refresh_token",
+				refresh, "Authorization", header ) ).status );
+	}
+
 	/** An unknown / malformed refresh token is refused with invalid_grant (400). */
 	public void testRefreshWithUnknownTokenIs400() throws Exception
 	{

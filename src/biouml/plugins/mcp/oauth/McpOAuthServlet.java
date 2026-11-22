@@ -1,16 +1,22 @@
 package biouml.plugins.mcp.oauth;
 
 import java.io.OutputStream;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.crypto.SecretKey;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.access.security.UserPermissions;
+import ru.biosoft.access.security.biostore.RemoteSecurityProvider;
 
 /**
  * The BioUML MCP OAuth 2.1 authorization server.
@@ -39,14 +45,14 @@ import ru.biosoft.access.security.SecurityManager;
  * <li>{@code GET /biouml/oauth/.well-known/oauth-protected-resource} — RFC 9728 document pointing
  * at this authorization server.</li>
  * <li>{@code GET /biouml/oauth/.well-known/oauth-authorization-server} — RFC 8414 metadata
- * (endpoints + supported grant/response types; S256 PKCE; public clients only).</li>
+ * (endpoints, supported grant and response types, and S256 PKCE).</li>
  * <li>{@code GET|POST /biouml/oauth/authorize} — the user step. A request with a logged-in session
  * renders a consent page (client + redirect host, Allow/Deny); only submitting it issues a one-time
  * code and 302-redirects the client with {@code code} + {@code state}. Without a session it renders
  * the login form, whose successful submission is the consent.</li>
  * <li>{@code POST /biouml/oauth/token} — the token endpoint. {@code grant_type=authorization_code}
  * validates PKCE (S256), the exact {@code redirect_uri}/{@code client_id}, consumes the code, copies
- * the authorizing user's permissions into a fresh session, and returns an opaque bearer access token
+ * the user's authorization into a fresh session, and returns an opaque bearer access token
  * (1 h) <em>plus a refresh token (7 days)</em>. {@code grant_type=refresh_token} exchanges a still-
  * valid refresh token for a fresh access token bound to the same session (RFC 6749 §6) — this is how
  * a connected client stays authenticated across the 1-hour access-token window without re-authorizing.</li>
@@ -57,10 +63,7 @@ import ru.biosoft.access.security.SecurityManager;
  * a private-use scheme ({@link #checkRedirectUri}); a code is never issued without an explicit user
  * action on a non-frameable page (consent defense); PKCE S256 is mandatory; codes are one-time (replay defense); the {@code state}
  * parameter round-trips untouched (CSRF defense); access tokens are opaque {@link java.security.SecureRandom}
- * values, single-JVM (see {@link OAuthTokenStore}). Refresh tokens are long-lived (7 days) but bound
- * to the same platform session: if the session dies, the refresh token stops working too, and an
- * actively-refreshing client slides its session's idle expiry forward so it stays alive for as long
- * as it keeps refreshing within the 7-day window.</p>
+ * values. See {@link OAuthTokenStore} for the lifetimes and restart behavior.</p>
  */
 public class McpOAuthServlet
 {
@@ -165,6 +168,8 @@ public class McpOAuthServlet
 				return token( p );
 			if ( "register".equals( sub ) )
 				return register( p );
+			if ( "revoke".equals( sub ) )
+				return revoke( p );
 			return new HandleResult( 404, "application/json",
 					errorJson( "invalid_request", "unknown OAuth path" ) );
 		}
@@ -198,6 +203,7 @@ public class McpOAuthServlet
 			doc.put( "issuer", issuer );
 			doc.put( "authorization_endpoint", McpOAuthConfig.authorizationEndpoint( issuer ) );
 			doc.put( "token_endpoint", McpOAuthConfig.tokenEndpoint( issuer ) );
+			doc.put( "revocation_endpoint", issuer + "/revoke" );
 			// RFC 7591: advertise the registration endpoint so clients (Claude's "Register
 			// automatically") know they can self-register instead of needing a static client.
 			doc.put( "registration_endpoint", issuer + "/register" );
@@ -536,9 +542,12 @@ public class McpOAuthServlet
 					errorJson( "unsupported_grant_type", "only authorization_code and refresh_token are supported" ) );
 
 		String code = first( p.get( "code" ) );
-		String clientId = first( p.get( "client_id" ) );
 		String redirectUri = first( p.get( "redirect_uri" ) );
 		String verifier = first( p.get( "code_verifier" ) );
+		ClientCredentials credentials = clientCredentials( p );
+		if ( credentials == null )
+			return invalidClient();
+		String clientId = credentials.id;
 
 		OAuthTokenStore.AuthCode stored = OAuthTokenStore.consumeCode( code );
 		if ( stored == null )
@@ -547,6 +556,9 @@ public class McpOAuthServlet
 		if ( !stored.clientId.equals( clientId ) )
 			return new HandleResult( 400, "application/json",
 					errorJson( "invalid_grant", "client_id does not match the code" ) );
+		if ( McpOAuthConfig.checkClient( clientId, stored.redirectUri ) != null
+				|| !acceptsClientCredentials( credentials ) )
+			return invalidClient();
 		if ( !stored.redirectUri.equals( redirectUri ) )
 			return new HandleResult( 400, "application/json",
 					errorJson( "invalid_grant", "redirect_uri does not match the code" ) );
@@ -556,26 +568,40 @@ public class McpOAuthServlet
 			return new HandleResult( 400, "application/json",
 					errorJson( "invalid_grant", "code_verifier does not satisfy the code_challenge" ) );
 
-		// Copy the authorizing user's permissions into a fresh session: the token must outlive the
-		// web login that minted it (and never expose that login's JSESSIONID as a bearer credential).
-		String remote = first( p.get( "Remote-address" ) );
-		String newSession = SecurityManager.generateSessionId();
-		String user = null;
-		try
-		{
-			SecurityManager.addThreadToSessionRecord( Thread.currentThread(), newSession );
-			SecurityManager.commonLoginViaOtherSession( stored.authorizingSessionId, remote, false );
-			user = SecurityManager.getSessionUser();
-		}
-		catch ( Exception e )
-		{
-			log.log( Level.SEVERE, "Failed to copy session for OAuth token", e );
-		}
-		if ( user == null || user.isEmpty() )
-			return new HandleResult( 401, "application/json",
+		if ( SecurityManager.isSessionDead( stored.authorizingSessionId ) )
+			return new HandleResult( 400, "application/json",
 					errorJson( "invalid_grant", "the authorizing session is no longer valid" ) );
 
-		OAuthTokenStore.AccessToken token = OAuthTokenStore.issueToken( newSession, stored.clientId, user );
+		String remote = first( p.get( "Remote-address" ) );
+		SecretKey key = OAuthGrantRepository.deploymentKey();
+		String newSession = SecurityManager.generateSessionId();
+		String renewalCredential = null;
+		try
+		{
+			SecurityManager.addThreadToSessionRecord( Thread.currentThread(), stored.authorizingSessionId );
+			String user = SecurityManager.getSessionUser();
+			if ( user == null || user.isEmpty() || !user.equals( stored.user ) )
+				return new HandleResult( 400, "application/json",
+						errorJson( "invalid_grant", "the authorizing session is no longer valid" ) );
+			if ( key != null && SecurityManager.getSecurityProvider() instanceof RemoteSecurityProvider provider )
+			{
+				UserPermissions permission = SecurityManager.getCurrentUserPermission();
+				renewalCredential = provider.issueSessionRenewalToken( user, permission.getPassword(), remote );
+			}
+
+			SecurityManager.addThreadToSessionRecord( Thread.currentThread(), newSession );
+			if ( renewalCredential == null )
+				SecurityManager.commonLoginViaOtherSession( stored.authorizingSessionId, remote, false );
+			else
+				SecurityManager.commonLogin( user, null, remote, renewalCredential );
+		}
+		catch ( SecurityException e )
+		{
+			return new HandleResult( 400, "application/json",
+					errorJson( "invalid_grant", "the authorizing session is no longer valid" ) );
+		}
+		String user = stored.user;
+		OAuthTokenStore.AccessToken token = OAuthTokenStore.issueToken( newSession, stored.clientId, user, renewalCredential, key );
 		String refreshToken = OAuthTokenStore.refreshTokenFor( token.value );
 		log.info( "MCP OAuth token issued user=" + user + " client=" + stored.clientId );
 		Map<String, Object> body = new LinkedHashMap<String, Object>();
@@ -587,46 +613,94 @@ public class McpOAuthServlet
 			body.put( "refresh_token", refreshToken );
 			body.put( "refresh_expires_in", OAuthTokenStore.REFRESH_TOKEN_TTL_MS / 1000L );
 		}
-		return new HandleResult( 200, "application/json", mapper.writeValueAsString( body ) );
+		return tokenResponse( body );
 	}
 
-	/**
-	 * The {@code refresh_token} grant (RFC 6749 §6): exchange a still-valid refresh token for a fresh
-	 * access token bound to the same session. This is what lets a connected MCP client (e.g. Claude
-	 * Web's connector) stay authenticated across the 1-hour access-token window WITHOUT re-running
-	 * the authorization flow. The session's idle expiry is slid forward on each refresh (via
-	 * {@link SecurityManager#touchSessionExpiry}), so an actively-refreshing client keeps its session
-	 * alive for as long as it keeps refreshing within the 7-day refresh-token window.
-	 *
-	 * <p>Per the standard, a reused refresh token within its lifetime is valid (we do not rotate it).
-	 * An expired/unknown refresh token or a dead session yields {@code invalid_grant} (400).</p>
-	 */
+	/** Exchange a live grant for a new access token, recovering the MCP session if needed. */
 	private HandleResult refreshToken( Map<String, Object> p ) throws Exception
 	{
 		String refreshTokenValue = first( p.get( "refresh_token" ) );
-		String clientId = first( p.get( "client_id" ) );
-		OAuthTokenStore.RefreshToken stored = OAuthTokenStore.consumeRefresh( refreshTokenValue );
+		ClientCredentials credentials = clientCredentials( p );
+		if ( credentials == null )
+			return invalidClient();
+		OAuthTokenStore.RefreshToken stored = OAuthTokenStore.consumeRefresh( refreshTokenValue, credentials.id, credentials.secret );
 		if ( stored == null )
 			return new HandleResult( 400, "application/json",
-					errorJson( "invalid_grant", "unknown or expired refresh token (or its session has ended)" ) );
-		if ( !clientId.isEmpty() && !stored.clientId.equals( clientId ) )
+					errorJson( "invalid_grant", "invalid, expired, or revoked refresh grant" ) );
+		OAuthTokenStore.AccessToken token = OAuthTokenStore.reissue( stored );
+		if ( token == null )
 			return new HandleResult( 400, "application/json",
-					errorJson( "invalid_grant", "client_id does not match the refresh token" ) );
-
-		// Mint a fresh access token paired with the SAME refresh token value (no rotation: the client
-		// keeps using the refresh token it was handed).
-		OAuthTokenStore.AccessToken token = OAuthTokenStore.reissue( stored.sessionId, stored.clientId,
-				stored.user, stored.value );
-		// Sliding window: keep the session alive.
+					errorJson( "invalid_grant", "invalid, expired, or revoked refresh grant" ) );
 		SecurityManager.touchSessionExpiry( stored.sessionId );
 
 		log.info( "MCP OAuth token refreshed user=" + stored.user + " client=" + stored.clientId );
 		Map<String, Object> body = new LinkedHashMap<String, Object>();
 		body.put( "access_token", token.value );
 		body.put( "token_type", "Bearer" );
-		body.put( "expires_in", OAuthTokenStore.ACCESS_TOKEN_TTL_MS / 1000L );
+		body.put( "expires_in", Math.max( 0, ( token.expiresAt - System.currentTimeMillis() ) / 1000L ) );
 		body.put( "refresh_token", stored.value ); // echo the same refresh token (no rotation)
-		return new HandleResult( 200, "application/json", mapper.writeValueAsString( body ) );
+		return tokenResponse( body );
+	}
+
+	private HandleResult tokenResponse( Map<String, Object> body ) throws Exception
+	{
+		Map<String, String> headers = new LinkedHashMap<>();
+		headers.put( "Cache-Control", "no-store" );
+		headers.put( "Pragma", "no-cache" );
+		return new HandleResult( 200, "application/json", headers, mapper.writeValueAsString( body ) );
+	}
+
+	private HandleResult revoke( Map<String, Object> p )
+	{
+		ClientCredentials credentials = clientCredentials( p );
+		if ( credentials == null )
+			return invalidClient();
+		OAuthTokenStore.revokeGrant( first( p.get( "token" ) ), credentials.id, credentials.secret );
+		return new HandleResult( 200, "application/json", "" );
+	}
+
+	private record ClientCredentials( String id, String secret ) {}
+
+	private static ClientCredentials clientCredentials( Map<String, Object> params )
+	{
+		String id = first( params.get( "client_id" ) );
+		String authorization = first( params.get( "Authorization" ) );
+		if ( authorization.isEmpty() )
+			return new ClientCredentials( id, null );
+		if ( !authorization.regionMatches( true, 0, "Basic ", 0, 6 ) )
+			return null;
+		try
+		{
+			String decoded = new String( Base64.getDecoder().decode( authorization.substring( 6 ) ),
+					StandardCharsets.UTF_8 );
+			int separator = decoded.indexOf( ':' );
+			if ( separator <= 0 )
+				return null;
+			String basicId = URLDecoder.decode( decoded.substring( 0, separator ), StandardCharsets.UTF_8 );
+			if ( !id.isEmpty() && !id.equals( basicId ) )
+				return null;
+			return new ClientCredentials( basicId,
+					URLDecoder.decode( decoded.substring( separator + 1 ), StandardCharsets.UTF_8 ) );
+		}
+		catch ( IllegalArgumentException e )
+		{
+			return null;
+		}
+	}
+
+	private static boolean acceptsClientCredentials( ClientCredentials credentials )
+	{
+		OAuthTokenStore.RegisteredClient client = OAuthTokenStore.findClient( credentials.id );
+		return client == null ? McpOAuthConfig.clients().containsKey( credentials.id )
+				: client.acceptsSecret( credentials.secret );
+	}
+
+	private static HandleResult invalidClient()
+	{
+		HandleResult result = new HandleResult( 401, "application/json",
+				errorJson( "invalid_client", "OAuth client authentication failed" ) );
+		result.headers.put( "WWW-Authenticate", "Basic realm=\"BioUML OAuth\"" );
+		return result;
 	}
 
 	// ------------------------------------------------------------------ pages
