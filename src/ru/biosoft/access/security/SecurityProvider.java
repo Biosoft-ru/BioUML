@@ -15,12 +15,21 @@ public interface SecurityProvider
 {
     public void init(Properties properties);
     public UserPermissions authorize(String username, String password, String remoteAddress, String jwToken) throws SecurityException;
+    public default UserPermissions reauthorize(UserPermissions permissions) throws SecurityException
+    {
+        String password = permissions.getPassword();
+        return password == null ? null : authorize(permissions.getUser(), password, null, null);
+    }
     public int getPermissions(String dataCollectionName, UserPermissions userInfo);
     public int getGuestPermissions(String dataCollectionName);
     public boolean register(String username, String password, String email, Map<String, Object> props);
     public boolean deleteUser(String username);
     public boolean changePassword(String username, String oldPassword, String password);
     public Map<String, Object> getUserInfo(String username, String password);
+    public default Map<String, Object> getUserInfo(UserPermissions permissions)
+    {
+        return getUserInfo(permissions.getUser(), permissions.getPassword());
+    }
     public boolean updateUserInfo(String username, String password, Map<String, String> parameters);
     public void createGroup(String username, String groupName, boolean reuse) throws Exception;
     public boolean setGroupPermission(String username, String groupName, String collectionName, int permission);

@@ -350,11 +350,11 @@ public class SecurityManager
     public static boolean reloadCurrentUserPermissions()
     {
         UserPermissions current = getCurrentUserPermission();
-        if( current == null || current.getUser() == null || current.getUser().isEmpty() || current.getPassword() == null )
+        if( current == null || current.getUser() == null || current.getUser().isEmpty() )
             return false;
         try
         {
-            UserPermissions fresh = securityProvider.authorize( current.getUser(), current.getPassword(), null, null );
+            UserPermissions fresh = securityProvider.reauthorize( current );
             if( fresh == null )
                 return false;
             current.refreshFrom( fresh );
