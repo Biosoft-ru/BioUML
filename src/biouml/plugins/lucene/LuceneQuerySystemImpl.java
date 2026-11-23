@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -375,6 +376,35 @@ public class LuceneQuerySystemImpl extends DefaultQuerySystem implements LuceneQ
         {
             addToIndex( rde, cat, jobControl, !testHaveIndex() );
         }
+    }
+
+    /** Write the accumulated folder entries in one Lucene commit. */
+    synchronized void addFolderEntriesToIndex(Collection<DataElementPath> paths) throws Exception
+    {
+        // Repository writes may have removed entries while the batch was open.
+        Map<DataElementPath, DataCollection<?>> existing = new LinkedHashMap<>();
+        for( DataElementPath path : paths )
+        {
+            DataCollection<?> parent = path.optParentCollection();
+            if( DataCollectionUtils.checkPrimaryElementType(parent, FolderCollection.class) && parent.contains(path.getName()) )
+                existing.put(path, parent);
+        }
+        if( existing.isEmpty() )
+            return;
+
+        SecurityManager.runPrivileged(() -> {
+            IndexWriterConfig config = new IndexWriterConfig(analyzer)
+                    .setOpenMode(testHaveIndex() ? OpenMode.CREATE_OR_APPEND : OpenMode.CREATE)
+                    .setCommitOnClose(false);
+            try( Directory directory = FSDirectory.open(Paths.get(luceneDir));
+                    IndexWriter writer = new IndexWriter(directory, config) )
+            {
+                for( var entry : existing.entrySet() )
+                    replaceFolderElementIndex(entry.getValue(), entry.getKey().getName(), writer, null, false);
+                writer.commit();
+            }
+            return null;
+        });
     }
 
     protected void addToIndex(DataElement de, Logger cat, JobControl jobControl, boolean createNew) throws IOException, ParseException

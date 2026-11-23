@@ -2,6 +2,10 @@ package biouml.plugins.lucene._test;
 
 import biouml.model.Diagram;
 import biouml.model.Node;
+import biouml.model.Module;
+import biouml.model._test.DynamicModelTest.TestModuleType;
+import biouml.plugins.lucene.LuceneQuerySystemImpl;
+import com.developmentontheedge.application.ApplicationUtils;
 import biouml.plugins.lucene.LuceneFoldersListener;
 import biouml.plugins.lucene.LuceneQuerySystem;
 import biouml.standard.diagram.PathwaySimulationDiagramType;
@@ -11,6 +15,18 @@ import ru.biosoft.access._test.AbstractBioUMLTest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.store.FSDirectory;
+
+import ru.biosoft.access.core.CollectionFactory;
+import ru.biosoft.access.core.DataCollectionConfigConstants;
 
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionEvent;
@@ -87,6 +103,70 @@ public class LuceneFoldersListenerTest extends AbstractBioUMLTest
         DataCollectionEvent rowAdded = added( table, new Element( "row1", table ) );
         listener.elementChanged( new DataCollectionEvent( folder, DataCollectionEvent.ELEMENT_CHANGED, folder, "table", rowAdded ) );
         assertEquals( 0, listener.indexed.size() );
+    }
+
+    public void testFolderBatchCommitsOnceAndSkipsRemovedEntries() throws Exception
+    {
+        Path directory = Files.createTempDirectory("lucene-folder-batch");
+        String moduleName = "luceneFolderBatch";
+        Properties properties = new Properties();
+        properties.setProperty(DataCollectionConfigConstants.NAME_PROPERTY, moduleName);
+        properties.setProperty(DataCollectionConfigConstants.CONFIG_PATH_PROPERTY, directory.toString());
+        properties.setProperty(Module.TYPE_PROPERTY, TestModuleType.class.getName());
+        properties.setProperty(LuceneQuerySystem.LUCENE_INDEX_DIRECTORY, "index");
+        properties.put(DataCollectionConfigConstants.PRIMARY_COLLECTION, new VectorDataCollection<>(moduleName));
+        Module module = new Module(null, properties);
+        CollectionFactory.registerRoot(module);
+        try
+        {
+            LuceneQuerySystemImpl index = new LuceneQuerySystemImpl(module);
+            module.getInfo().setQuerySystem(index);
+            FolderVectorCollection results = new FolderVectorCollection("results", module);
+            module.put(results);
+            LuceneFoldersListener listener = new LuceneFoldersListener(index);
+
+            listener.elementAdded(added(results, new Element("before", results)));
+            try( var luceneDirectory = FSDirectory.open(directory.resolve("index"));
+                    var initial = DirectoryReader.open(luceneDirectory) )
+            {
+                long generation;
+                try( var batch = LuceneFoldersListener.batchFolderAdditions(results.getCompletePath().getChildPath("run")) )
+                {
+                    FolderVectorCollection run = new FolderVectorCollection("run", results);
+                    listener.elementAdded(added(results, run));
+                    listener.elementAdded(added(run, new Element("table", run)));
+                    listener.elementAdded(added(run, new Element("removed", run)));
+                    run.remove("removed");
+
+                    // An addition outside the scoped result tree is still indexed immediately.
+                    listener.elementAdded(added(results, new Element("outside", results)));
+                    try( var current = DirectoryReader.open(luceneDirectory) )
+                    {
+                        generation = current.getIndexCommit().getGeneration();
+                        assertEquals(initial.getIndexCommit().getGeneration() + 1, generation);
+                        assertEquals(2, current.numDocs());
+                    }
+                }
+                try( var current = DirectoryReader.open(luceneDirectory) )
+                {
+                    assertEquals(generation + 1, current.getIndexCommit().getGeneration());
+                    assertEquals(4, current.numDocs());
+                    IndexSearcher searcher = new IndexSearcher(current);
+                    for( String path : List.of("results/run", "results/run/table", "results/outside") )
+                    {
+                        assertEquals(1, searcher.count(new TermQuery(new Term(
+                                LuceneQuerySystem.DATA_ELEMENT_RELATIVE_NAME, moduleName + "/" + path))));
+                    }
+                    assertEquals(0, searcher.count(new TermQuery(new Term(
+                            LuceneQuerySystem.DATA_ELEMENT_RELATIVE_NAME, moduleName + "/results/run/removed"))));
+                }
+            }
+        }
+        finally
+        {
+            CollectionFactory.unregisterRoot(module);
+            ApplicationUtils.removeDir(directory.toFile());
+        }
     }
 
     private static class Element extends DataElementSupport

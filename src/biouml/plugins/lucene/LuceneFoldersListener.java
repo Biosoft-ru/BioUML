@@ -1,8 +1,15 @@
 package biouml.plugins.lucene;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionEvent;
 import ru.biosoft.access.core.DataElement;
+import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.DataCollectionListenerSupport;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.FolderCollection;
@@ -11,6 +18,65 @@ import biouml.model.Module;
 
 public class LuceneFoldersListener extends DataCollectionListenerSupport
 {
+    private static final ThreadLocal<FolderAdditionBatch> activeBatch = new ThreadLocal<>();
+
+    /**
+     * Defer indexing newly added folder entries at or below the given path until the batch closes.
+     * Open and close the scope on the thread performing the repository writes.
+     */
+    public static FolderAdditionBatch batchFolderAdditions(DataElementPath path)
+    {
+        return new FolderAdditionBatch(path);
+    }
+
+    public static final class FolderAdditionBatch implements AutoCloseable
+    {
+        private final DataElementPath path;
+        private final FolderAdditionBatch previous = activeBatch.get();
+        private final Map<LuceneQuerySystemImpl, Set<DataElementPath>> additions = new LinkedHashMap<>();
+
+        private FolderAdditionBatch(DataElementPath path)
+        {
+            this.path = path;
+            activeBatch.set(this);
+        }
+
+        @Override
+        public void close()
+        {
+            if( activeBatch.get() != this )
+                throw new IllegalStateException("Folder addition batches must close in reverse order");
+            if( previous == null )
+                activeBatch.remove();
+            else
+                activeBatch.set(previous);
+
+            additions.forEach((index, paths) -> {
+                try
+                {
+                    index.addFolderEntriesToIndex(paths);
+                }
+                catch( Exception e )
+                {
+                    LuceneQuerySystem.log.log(Level.WARNING, "Retrying folder additions after a failed index batch", e);
+                    for( DataElementPath path : paths )
+                    {
+                        try
+                        {
+                            if( path.exists() )
+                                index.addToIndex(path.getPathDifference(index.getCollection().getCompletePath()),
+                                        false, LuceneQuerySystem.log, null);
+                        }
+                        catch( Exception retryError )
+                        {
+                            LuceneQuerySystem.log.log(Level.SEVERE, "Unable to index folder addition " + path, retryError);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
     /**
      * Necessary constructor as it's called via reflection
      * @param luceneFacade unused
@@ -42,7 +108,20 @@ public class LuceneFoldersListener extends DataCollectionListenerSupport
         {
             return;
         }
-        luceneFacade.addToIndex(e.getDataElementPath().getPathDifference( module.getCompletePath() ), false, null, null);
+        DataElementPath path = e.getDataElementPath();
+        if( luceneFacade instanceof LuceneQuerySystemImpl index
+                && DataCollectionUtils.checkPrimaryElementType(e.getOwner(), FolderCollection.class) )
+        {
+            for( FolderAdditionBatch batch = activeBatch.get(); batch != null; batch = batch.previous )
+            {
+                if( path.equals(batch.path) || path.isDescendantOf(batch.path) )
+                {
+                    batch.additions.computeIfAbsent(index, key -> new LinkedHashSet<>()).add(path);
+                    return;
+                }
+            }
+        }
+        luceneFacade.addToIndex(path.getPathDifference( module.getCompletePath() ), false, null, null);
     }
 
     @Override
