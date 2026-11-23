@@ -607,6 +607,39 @@ public class McpAnalysisToolsTest extends AbstractBioUMLTest
 				String.valueOf( info.getLogInfo() ).contains( "line from another analysis" ) );
 	}
 
+	public void testTaskLogPagesAndOwnership() throws Exception
+	{
+		McpEnvelope run = McpAnalysisSupport.runAnalysisAs( McpConstants.TASK_USER, McpTestAnalysis.NAME, params( 1 ), null, false );
+		assertTrue( run.isOk() );
+		String taskId = (String) ( (Map<?, ?>) run.getData() ).get( "taskId" );
+		ru.biosoft.tasks.TaskInfo info = ru.biosoft.tasks.TaskManager.getInstance().getTask( taskId );
+		info.setLogInfo( "INFO: step took 12 ms\r\nINFO: step took 14 ms\r\n\r\nINFO: done\r\n" );
+
+		McpToolCatalog catalog = new McpToolCatalog();
+		AnalysisTools.registerAll( catalog );
+		McpToolCatalog.Tool tool = catalog.find( "biouml_task" );
+		McpEnvelope first = tool.handler.handle( null, Map.of( "op", "log", "taskId", taskId, "limit", 2 ) );
+		assertTrue( first.getError(), first.isOk() );
+		Map<?, ?> page = (Map<?, ?>) first.getData();
+		assertEquals( taskId, page.get( "taskId" ) );
+		assertEquals( 0, page.get( "offset" ) );
+		assertEquals( List.of( "INFO: step took 12 ms", "INFO: step took 14 ms" ), page.get( "lines" ) );
+		assertEquals( 2, page.get( "nextOffset" ) );
+
+		McpEnvelope second = tool.handler.handle( null, Map.of( "op", "log", "taskId", taskId, "offset", page.get( "nextOffset" ) ) );
+		assertTrue( second.getError(), second.isOk() );
+		Map<?, ?> last = (Map<?, ?>) second.getData();
+		assertEquals( List.of( "", "INFO: done" ), last.get( "lines" ) );
+		assertTrue( last.containsKey( "nextOffset" ) );
+		assertNull( last.get( "nextOffset" ) );
+
+		McpEnvelope foreign = McpProviderSupport.withUserSession( "someone-else",
+				() -> tool.handler.handle( null, Map.of( "op", "log", "taskId", taskId ) ) );
+		assertEquals( McpConstants.CODE_NOT_FOUND, foreign.getCode() );
+		McpEnvelope invalid = tool.handler.handle( null, Map.of( "op", "log", "taskId", taskId, "offset", -1 ) );
+		assertEquals( McpConstants.CODE_INVALID_PARAMS, invalid.getCode() );
+	}
+
 	@SuppressWarnings( "unchecked" )
 	private static boolean listed( McpEnvelope list, String taskId )
 	{

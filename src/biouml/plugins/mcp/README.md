@@ -193,7 +193,7 @@ a multi-node deployment needs a shared store.
 ## Tool reference
 
 Related operations are one tool with an `op` argument: e.g. `biouml_diagram_edit` with `op` `move`,
-`shift`, `resize`, `rename`, `remove` or an align/distribute op; `biouml_task` with `list`, `status` or
+`shift`, `resize`, `rename`, `remove` or an align/distribute op; `biouml_task` with `list`, `status`, `log` or
 `cancel`. The input schema lists each tool's ops as the enum of `op`. The tools these ops replaced
 (`biouml_diagram_move_element`, `biouml_task_status`, …) are not listed any more but stay callable by
 their old names with their old arguments, so existing agents and scripts keep working.
@@ -242,7 +242,7 @@ Every tool also stays callable by its own name in lite mode.
 | `biouml_analysis_run` | ASYNC — Run an analysis or a workflow (name: an analysis name, or the path of a workflow; a workflow always runs in the background and returns {taskId, outputs}). By default (sync=false, the default) this returns IMMEDIATELY with {taskId, status}; the analysis runs in the background and is NOT done when this call returns. To finish: (1) call this to get the taskId, (2) poll biouml_task with op status using increasing delays (15s, 30s, 1min, 2min, 5min, 10min, then every 30min for long analyses) until its status is 'done'/'error', (3) then read the results. Set sync=true to instead run inline and wait for the result in one call (only for quick analyses). params is a map of bean-property values: nested keys use '/' separators (or pass a JSON object), array items are addressed by index ('conditions/0/condition') or passed as a JSON list ('conditions': [{'condition': '...'}]); path-typed properties take repository path strings. Choice parameters list their accepted values in biouml_analysis_describe (allowedValues). |
 | `biouml_analysis_repeat` | Re-run a completed analysis from its stored output collection (reads the stored analysisName + parameters and runs again). |
 | `biouml_analysis_get_result` | Read an analysis output: for a table, column names/types, rows (from offset, default 0; at most limit, default 50, max 500; truncated tells whether more follow) and their row ids (rowIds, aligned with rows — the table's key, e.g. a gene or drug id); columns (optional) names the columns to return, in that order — wide tables such as drug lists with synonyms are much smaller with only the columns needed; for a track (e.g. an imported VCF), its sites the same way: rowIds are the site ids, columns chromosome, from, to, strand, type and the site properties (a VCF's RefAllele, AltAllele, genotype fields such as Format_GT_<sample>, ...); for a folder, its children; for a simulation result (e.g. the output of 'Simulation analysis'), the time series ({vars, times, values}, plus Q1/Q2/Q3 for stochastic results). |
-| `biouml_task` | Background tasks, e.g. of biouml_analysis_run. op list: active and recent tasks (id, type, status). op status: ASYNC poll — the status of task taskId (queued/running/paused/done/error/cancelled; status is the numeric job status, state its name), progress (0-100) and result paths; call it repeatedly, with a short delay, until the status is 'done' or 'error'. It also returns the log's warnings and errors grouped by message ignoring numbers (problems: the latest 20 distinct ones with their counts; problemCount: all problem lines; problemKinds: all distinct messages), e.g. skipped workflow steps, and the log's last lines (logTail; lines that differ only in numbers, such as progress lines, are shown once with [×N]). op cancel: cancel a queued or running task. |
+| `biouml_task` | Background tasks, e.g. of biouml_analysis_run. op list: active and recent tasks (id, type, status). op status: ASYNC poll — the status of task taskId (queued/running/paused/done/error/cancelled; status is the numeric job status, state its name), progress (0-100) and result paths; call it repeatedly, with a short delay, until the status is 'done' or 'error'. It also returns the log's warnings and errors grouped by message ignoring numbers (problems: the latest 20 distinct ones with their counts; problemCount: all problem lines; problemKinds: all distinct messages), e.g. skipped workflow steps, and the log's last lines (logTail; lines that differ only in numbers, such as progress lines, are shown once with [×N]). op log: page through the retained Progress log for taskId in order, including repeated lines and their timing text. op cancel: cancel a queued or running task. |
 | `biouml_diagram_create` | Create a new, empty diagram in a target collection. type is 'math' (default), 'pathway', or the class name (full or simple) of a diagram type a plugin declares, e.g. 'AnnotationDiagramType' for a Genome Enhancer annotation diagram; an unknown type is refused with the list of registered ones. The diagram type decides what a new diagram already holds; its toolbar actions (biouml_diagram_action) add more, e.g. the categories of an annotation diagram. Returns the new diagram's path and type. |
 | `biouml_diagram_describe` | Describe a diagram: element count, per-element summaries for every element including those nested in compartments (id, path, name, kind, position, node type; the variable of a species; the formula of a reaction or equation; source/target/role of an edge) and — when a dynamic model is present — its variables and equation count. reload=true first drops the copy the server keeps in memory for this session and re-reads the diagram from storage, i.e. describes what is actually saved (unsaved changes made by a script are lost). |
 | `biouml_diagram_node_types` | List the node types that biouml_diagram_add_node accepts. |
@@ -392,6 +392,17 @@ deployed:
 // 5. Read the result (table columns + first rows, or a folder's children).
 {"method":"tools/call","params":{"name":"biouml_analysis_get_result","arguments":{"path":"<resultPath>"}}}
 ```
+
+Read a completed task’s Progress log with the task owner’s account.
+
+```json
+{"method":"tools/call","params":{"name":"biouml_task","arguments":{"op":"log","taskId":"<taskId>","limit":100}}}
+```
+
+Each response contains `taskId`, the zero-based line `offset` (default 0), `lines`,
+and `nextOffset`. Pass `nextOffset` as `offset` for the next page. A null
+`nextOffset` marks the end of the currently retained log. The default page size
+is 100 lines and the maximum is 500. Read after completion for a stable log.
 
 ## Example: build a diagram and simulate it
 

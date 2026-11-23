@@ -2,8 +2,11 @@ package biouml.plugins.mcp.tools.analysis;
 
 import java.util.Map;
 
+import biouml.plugins.mcp.McpConstants;
 import biouml.plugins.mcp.server.McpToolCatalog;
 import biouml.plugins.mcp.support.McpAnalysisSupport;
+import biouml.plugins.mcp.support.McpArgs;
+import biouml.plugins.mcp.support.McpEnvelope;
 
 /**
  * Phase-3 analysis + task MCP tools. Registered into a {@link McpToolCatalog}.
@@ -49,6 +52,24 @@ public final class AnalysisTools
 				"{\"type\":\"object\",\"properties\":{\"taskId\":{\"type\":\"string\"}},\"required\":[\"taskId\"]}",
 				( ex, args ) -> McpAnalysisSupport.taskStatus( str( args, "taskId" ) ) );
 
+		catalog.registerHidden( "biouml_task_log",
+				"{\"type\":\"object\",\"properties\":{\"taskId\":{\"type\":\"string\",\"description\":\"required for status, log and cancel\"},\"offset\":{\"type\":\"integer\",\"minimum\":0,\"description\":\"log only, zero-based line offset (default 0)\"},\"limit\":{\"type\":\"integer\",\"minimum\":1,\"maximum\":500,\"description\":\"log only, lines per page (default 100)\"}},\"required\":[\"taskId\"]}",
+				( ex, args ) -> {
+					McpEnvelope invalid = McpArgs.requiredString( args, "taskId" );
+					if ( invalid != null )
+						return invalid;
+					try
+					{
+						int offset = Integer.parseInt( String.valueOf( args.getOrDefault( "offset", 0 ) ) );
+						int limit = Integer.parseInt( String.valueOf( args.getOrDefault( "limit", 100 ) ) );
+						return McpAnalysisSupport.taskLog( str( args, "taskId" ), offset, limit );
+					}
+					catch ( NumberFormatException e )
+					{
+						return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "offset and limit must be integers" );
+					}
+				} );
+
 		catalog.registerHidden( "biouml_task_cancel",
 				"{\"type\":\"object\",\"properties\":{\"taskId\":{\"type\":\"string\"}},\"required\":[\"taskId\"]}",
 				( ex, args ) -> McpAnalysisSupport.cancelTask( str( args, "taskId" ) ) );
@@ -71,11 +92,12 @@ public final class AnalysisTools
 				( ex, args ) -> McpAnalysisSupport.getAnalysisResult( str( args, "path" ), integer( args, "offset" ), integer( args, "limit" ), strings( args, "columns" ) ) );
 
 		catalog.registerOps( "biouml_task",
-				"Background tasks, e.g. of biouml_analysis_run. op list: active and recent tasks (id, type, status). op status: ASYNC poll — the status of task taskId (queued/running/paused/done/error/cancelled; status is the numeric job status, state its name), progress (0-100) and result paths. Poll with increasing delays: check after 15s, then 30s, 60s, 120s, 300s, 600s, then every 30 minutes until done (long analyses can take hours). It also returns the log's warnings and errors grouped by message ignoring numbers (problems: the latest 20 distinct ones with their counts; problemCount: all problem lines; problemKinds: all distinct messages), e.g. skipped workflow steps, and the log's last lines (logTail; lines that differ only in numbers, such as progress lines, are shown once with [×N]). op cancel: cancel a queued or running task.",
-				"{\"type\":\"object\",\"properties\":{\"taskId\":{\"type\":\"string\"}}}",
+				"Background tasks, e.g. of biouml_analysis_run. op list: active and recent tasks (id, type, status). op status: ASYNC poll — the status of task taskId (queued/running/paused/done/error/cancelled; status is the numeric job status, state its name), progress (0-100) and result paths. Poll with increasing delays: check after 15s, then 30s, 60s, 120s, 300s, 600s, then every 30 minutes until done (long analyses can take hours). It also returns the log's warnings and errors grouped by message ignoring numbers (problems: the latest 20 distinct ones with their counts; problemCount: all problem lines; problemKinds: all distinct messages), e.g. skipped workflow steps, and the log's last lines (logTail; lines that differ only in numbers, such as progress lines, are shown once with [×N]). op log: read the retained Progress log for taskId in order, preserving repeated lines and timings. Use nextOffset as offset until nextOffset is null. op cancel: cancel a queued or running task.",
+				"{\"type\":\"object\",\"properties\":{\"taskId\":{\"type\":\"string\",\"description\":\"required for status, log and cancel\"},\"offset\":{\"type\":\"integer\",\"minimum\":0,\"description\":\"log only, zero-based line offset (default 0)\"},\"limit\":{\"type\":\"integer\",\"minimum\":1,\"maximum\":500,\"description\":\"log only, lines per page (default 100)\"}}}",
 				null,
 				McpToolCatalog.op( "list", "biouml_task_list" ),
 				McpToolCatalog.op( "status", "biouml_task_status" ),
+				McpToolCatalog.op( "log", "biouml_task_log" ),
 				McpToolCatalog.op( "cancel", "biouml_task_cancel" ) );
 	}
 
