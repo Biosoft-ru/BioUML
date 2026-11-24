@@ -5,6 +5,7 @@ import java.awt.Color;
 import ru.biosoft.access.Entry;
 import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.access.core.CollectionFactory;
+import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.bsa.AnnotatedSequence;
 import ru.biosoft.bsa.Track;
@@ -24,18 +25,31 @@ public class ProjectTransformerTest extends AbstractBioUMLTest
 {
     public void testSimple() throws Exception
     {
-        // createRepository returns an already registered root of the same name: a "databases" root
-        // left by an earlier test (several test repositories use that name) would be used instead
-        CollectionFactory.unregisterAllRoot();
-        CollectionFactory.createRepository( "../data/test/ru/biosoft/bsa" );
-        ProjectTransformer transformer = new ProjectTransformer();
-        assertNotNull("Can not create project transformer", transformer);
-        Project project = getTestProject();
-        Entry entry = transformer.transformOutput(project);
-        assertNotNull("Can not transform Project to Entry", entry);
-        Project project2 = transformer.transformInput(entry);
-        assertNotNull("Can not transform Entry to Project", project2);
-        compare(project, project2);
+        // createRepository reuses any registered root with this name.
+        DataCollection<?> previousRoot = CollectionFactory.getDataCollection( "databases" );
+        if( previousRoot != null )
+            CollectionFactory.unregisterRoot( previousRoot );
+
+        DataCollection<?> fixture = null;
+        try
+        {
+            fixture = CollectionFactory.createRepository( "../data/test/ru/biosoft/bsa" );
+            ProjectTransformer transformer = new ProjectTransformer();
+            assertNotNull("Can not create project transformer", transformer);
+            Project project = getTestProject();
+            Entry entry = transformer.transformOutput(project);
+            assertNotNull("Can not transform Project to Entry", entry);
+            Project project2 = transformer.transformInput(entry);
+            assertNotNull("Can not transform Entry to Project", project2);
+            compare(project, project2);
+        }
+        finally
+        {
+            if( fixture != null )
+                CollectionFactory.unregisterRoot( fixture );
+            if( previousRoot != null )
+                CollectionFactory.registerRoot( previousRoot );
+        }
     }
     
     protected Project getTestProject()
