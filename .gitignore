@@ -38,6 +38,5 @@ data/test/biouml/plugins/brain/tables/test_1
 data_resources/profiler_analysis/*
 
 # Secrets
-.env
-.env-*
+.env*
 .mcp.json

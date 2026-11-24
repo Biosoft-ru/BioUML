@@ -896,6 +896,39 @@ public final class McpAnalysisSupport
 		return info != null && info.getUser() != null && user != null && info.getUser().equalsIgnoreCase( user );
 	}
 
+	/** Read the retained Progress log, including repeated lines and timings. */
+	public static McpEnvelope taskLog( String taskId, int offset, int limit )
+	{
+		if ( taskId == null || taskId.isBlank() )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "taskId is required" );
+		if ( offset < 0 || limit < 1 || limit > 500 )
+			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "offset must be nonnegative and limit must be between 1 and 500" );
+
+		try
+		{
+			return McpProviderSupport.withUserSession( McpConstants.TASK_USER, () -> {
+				TaskInfo info = TaskManager.getInstance().getTask( taskId );
+				String user = ru.biosoft.access.security.SecurityManager.getSessionUser();
+				if ( info == null || user == null || !user.equals( info.getUser() ) )
+					return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "no task named: " + taskId );
+
+				String log = info.getLogInfo();
+				List<String> page = log == null ? List.of() : log.lines().skip( offset ).limit( limit + 1 ).toList();
+				boolean hasMore = page.size() > limit;
+				Map<String, Object> result = new LinkedHashMap<String, Object>();
+				result.put( "taskId", taskId );
+				result.put( "offset", offset );
+				result.put( "lines", hasMore ? page.subList( 0, limit ) : page );
+				result.put( "nextOffset", hasMore ? Integer.valueOf( offset + limit ) : null );
+				return McpEnvelope.ok( result );
+			} );
+		}
+		catch ( RuntimeException e )
+		{
+			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "could not read task log: " + e.getMessage() );
+		}
+	}
+
 	/**
 	 * Report a task's status. Delegates to the platform's {@code tasks} provider ({@code status}
 	 * action), which returns {@code {status: <int>, percent: 0-100, values: [textStatus]}}. The

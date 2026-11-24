@@ -119,6 +119,26 @@ curl -s -X POST "http://localhost:8080/bioumlweb/mcp" \
   -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"biouml_repo_collections","arguments":{}}}'
 ```
 
+## OAuth across server restarts
+
+Dynamically registered OAuth clients are stored in the BioUML support database. Keep this database
+and the public OAuth issuer URL stable across deployments so ChatGPT can reuse its registration.
+The server creates the MCP OAuth tables on first use. Its database account needs CREATE permission
+for setup and read/write access to those tables.
+
+For silent session recovery with the BioStore security provider, set `BIOUML_MCP_OAUTH_KEY` in the
+server environment before users authorize. Supply a Base64-encoded 32-byte random key from the
+deployment's secret store and keep the same key across restarts. Use a distinct key per deployment.
+New OAuth grants from BioStore password logins store the encrypted BioStore login token and hashes
+of MCP access and refresh tokens. BioStore verifies the login token and reloads permissions when
+BioUML recreates the grant's MCP session. The existing seven-day refresh lifetime still applies.
+Refreshing extends access within that lifetime. Refresh-token revocation is available at
+`/biouml/oauth/revoke`.
+
+Deployments without the key preserve OAuth client registrations and can reauthorize the same
+plugin. Connections issued before persistence was enabled must authorize again. If the original
+registration has already disappeared, the client may need to register again once.
+
 ## Tool reference
 
 Related operations are one tool with an `op` argument: e.g. `biouml_diagram_edit` with `op` `move`,

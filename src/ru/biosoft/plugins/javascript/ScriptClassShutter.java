@@ -74,7 +74,12 @@ public class ScriptClassShutter implements ClassShutter
             // the audit log of Genome Enhancer runs on strange (MapAsVector, ProjectAsLists, ExtendedGeneTrack,
             // FullModelTrack, CompositeView, ChartDataElement, PropertiesDPS)
             "ru.biosoft.bsa.", "biouml.plugins.ensembl.tracks.", "biouml.plugins.cma.", "ru.biosoft.graphics.",
-            "com.developmentontheedge.beans.PropertiesDPS" };
+            "com.developmentontheedge.beans.PropertiesDPS",
+            // seen later in that audit log: scripts that find and run analyses and workflows (as the user can in the UI,
+            // with the user's permissions), and the property holder of the beans
+            "com.developmentontheedge.beans.DynamicProperty", "ru.biosoft.analysiscore.AnalysisMethodRegistry",
+            "ru.biosoft.analysiscore.AnalysisMethodInfo", "com.genexplain.analyses.MEALR",
+            "biouml.plugins.research.workflow.engine.WorkflowEngine", "biouml.plugins.research.workflow.items.WorkflowItemFactory" };
 
     /** Never visible, even inside an allowed package: what reaches past the data API and its permission checks. */
     static final String[] DEFAULT_DENY = {
@@ -256,11 +261,45 @@ public class ScriptClassShutter implements ClassShutter
         if( !isPackageName( fullClassName ) && reported.add( fullClassName ) )
         {
             if( mode == Mode.AUDIT )
-                log.warning( "JavaScript used Java class " + fullClassName + ", which the class list does not allow (audit mode: allowed)" );
+                log.warning( "JavaScript used Java class " + fullClassName + ", which the class list does not allow (audit mode: allowed; "
+                        + callerDescription() + ")" );
             else
-                log.warning( "JavaScript was denied Java class " + fullClassName );
+                log.warning( "JavaScript was denied Java class " + fullClassName + " (" + callerDescription() + ")" );
         }
         return mode == Mode.AUDIT;
+    }
+
+    /**
+     * Which script asks, for the log: its source name and line, and the thread (a task runs in a thread named
+     * "Task: ..."). The position is read from the script stack Rhino records in every RhinoException it creates (the
+     * exception is not thrown); there is none when no script is running, e.g. while a workflow node's variables are
+     * bound before its script starts.
+     */
+    static String callerDescription()
+    {
+        String position = null;
+        try
+        {
+            for( String line : new org.mozilla.javascript.EvaluatorException( "" ).getScriptStackTrace().split( "\n" ) )
+            {
+                line = line.trim();
+                if( line.startsWith( "at " ) )
+                {
+                    position = line.substring( 3 ).trim();
+                    break;
+                }
+            }
+        }
+        catch( RuntimeException e )
+        {
+            // no position, the thread still says something
+        }
+        String thread = "thread " + Thread.currentThread().getName();
+        if( position == null || position.isEmpty() )
+            return "no script running, " + thread;
+        if( position.startsWith( ":" ) )
+            position = "unnamed script" + position;
+        return "script " + position + ", " + thread;
     }
 
     /**

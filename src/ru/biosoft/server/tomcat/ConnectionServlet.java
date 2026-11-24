@@ -278,6 +278,7 @@ public abstract class ConnectionServlet extends HttpServlet
         // direct access to the request headers or the raw stream through the `service(...)` overloads, so
         // surface both here: the header under its own key, and the JSON body (which Tomcat's form parsing
         // would otherwise discard) under `mcpRawBody`. Neither key is read by the other extension servlets.
+        params.remove( "Authorization" );
         String authorization = req.getHeader( "Authorization" );
         if( authorization != null )
             params.put( "Authorization", new String[] { authorization } );
