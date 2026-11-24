@@ -26,7 +26,6 @@ import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.jobcontrol.FunctionJobControl;
 import ru.biosoft.jobcontrol.SubFunctionJobControl;
-import ru.biosoft.table.ColumnModel;
 import ru.biosoft.table.TableDataCollection;
 import ru.biosoft.table.columnbeans.Column;
 import ru.biosoft.table.columnbeans.ColumnNameSelector;
@@ -53,12 +52,12 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
         columns.add( parameters.getValuesColumn() );
         columns.add( parameters.getCategoryColumn() );
         columns.add( parameters.getCircleSizeColumn() );
-        TableDataCollection inputTable = parameters.getInputTable().getDataElement( TableDataCollection.class );
-        ColumnModel cm = inputTable.getColumnModel();
         if( parameters.getCircleColorColumn() != null )
             columns.add( parameters.getCircleColorColumn() );
         if( parameters.getOrderColumn() != null )
             columns.add( parameters.getOrderColumn() );
+        if( parameters.getMarkColumn() != null )
+            columns.add( parameters.getMarkColumn() );
         
         File inputFile = exportTable( parameters.getInputTable(), columns.toArray( new String[] {} ), new SubFunctionJobControl( jobControl ) );
 
@@ -151,9 +150,30 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
             xLabel = xColumn + " (-log10)";
         }
         int labelSize = Math.max( 6, Math.min( 10, 120 / parameters.getNumTopCategories() ) );
-        script.append( "# ---- 3. Draw the plot and assign it to a variable 'p' ----\n" 
-                + "p <- ggplot(gsea_res, aes(x = " + xValue + ", y = `" + descriptionColumn + "`)) +\n"
-                + "  geom_point(aes(size = `" + sizeColumn + "`, fill = `" + fillColor + "`),shape=21,color=\"black\",stroke=0.5) +\n" );
+        script.append( "# ---- 3. Draw the plot and assign it to a variable 'p' ----\n" );
+        String colorExpr = "\"black\"";
+        String strokeExpr = "0.5";
+        String colorInAes = "", strokeInAes = "";
+        if( parameters.getMarkColumn() != null )
+        {
+            // Rows marked by the flag column get a bold green outline; the rest keep the default black.
+            // The flag column itself is NOT reassigned: the ifelse below reads it in the same
+            // mutate() call, which dplyr does not allow (a column is re-read as its original value).
+            String flag = parameters.getMarkColumn();
+            script.append( "gsea_res <- gsea_res %>%\n"
+                    + "  mutate(mark_color = ifelse(`" + flag + "` %in% c(TRUE, \"TRUE\", \"true\"), \"green\", \"black\"),\n"
+                    + "         mark_stroke = ifelse(`" + flag + "` %in% c(TRUE, \"TRUE\", \"true\"), 1.0, 0.5))\n" );
+            // The mapping MUST go inside aes(): a bare "color=mark_color" outside aes() is
+            // evaluated as a constant in the script environment, where no such object exists
+            // (fails with "object 'mark_color' not found" on R 4.3 / ggplot2 4.0), and it would
+            // also bypass the color scale so the legend would not match the drawn outlines.
+            colorInAes = ", color = mark_color";
+            strokeInAes = ", stroke = mark_stroke";
+        }
+        script.append( "p <- ggplot(gsea_res, aes(x = " + xValue + ", y = `" + descriptionColumn + "`)) +\n"
+                + "  geom_point(aes(size = `" + sizeColumn + "`, fill = `" + fillColor + "`" + colorInAes + strokeInAes + "),shape=21"
+                + ( parameters.getMarkColumn() == null ? ",color=" + colorExpr + ",stroke=" + strokeExpr : "" ) + ") +\n" );
+        
         if(colorColumn != null)
         {
             script.append( "  scale_fill_gradient(\n" + "    name    = \"" + colorColumn + "\",\n"
@@ -171,7 +191,16 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
                 + "  theme(\n"
                 + "    axis.text.y   = element_text(size = " + labelSize + ", hjust = 1, vjust = 0.5),\n"
                 + "    panel.grid.minor = element_blank()\n" + "  )" );
-
+        if( parameters.getMarkColumn() != null )
+        {
+            // Only the green (marked) entry is shown in the legend; the unmarked black outline
+            // carries no information of its own, so the "black" break is dropped.
+            script.append( "+  scale_color_manual(name = NULL,\n"
+                    + "    values = c(green = \"green\", black = \"black\"),\n"
+                    + "    breaks = \"green\",\n"
+                    + "    labels = \"" + parameters.getMarkColumn() + "\",\n"
+                    + "    guide = guide_legend(override.aes = list(fill = NA), nrow = 1, byrow = TRUE))\n" );
+        }
         int dpi = parameters.getDpi();
         script.append( "# ---- 5. Save the plot to a file as high-resolution PNG ----\n"
                 + "ggsave(filename = \""+imageFile.getAbsolutePath()+"\", \n"
@@ -183,7 +212,7 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
 
     public static class Parameters extends ChartAnalysisParameters
     {
-        private String valuesColumn, categoryColumn, orderColumn, circleSizeColumn, circleColorColumn;
+        private String valuesColumn, categoryColumn, orderColumn, circleSizeColumn, circleColorColumn, markColumn;
         private boolean needLog = true;
         private int imageWidth = 1200, imageHeight = 800, dpi = 150;
         private int numTopCategories = 10;
@@ -330,6 +359,20 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
             return orderColumn == null;
         }
 
+        @PropertyName("Additional mark column")
+        @PropertyDescription("Optional boolean column: rows marked TRUE get a bold green circle outline (e.g. categories found in the disease GO classification).")
+        public String getMarkColumn()
+        {
+            return markColumn;
+        }
+
+        public void setMarkColumn(String markColumn)
+        {
+            String oldValue = this.markColumn;
+            this.markColumn = markColumn;
+            firePropertyChange( "markColumn", oldValue, markColumn );
+        }
+
         public int getDpi()
         {
             return dpi;
@@ -361,6 +404,7 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
             add( ColumnNameSelector.registerNumericSelector( "circleSizeColumn", beanClass, "inputTable", false ) );
             add( ColumnNameSelector.registerNumericSelector( "circleColorColumn", beanClass, "inputTable", true ) );
             add( ColumnNameSelector.registerSelector( "orderColumn", beanClass, "inputTable", true ) );
+            add( ColumnNameSelector.registerSelector( "markColumn", beanClass, "inputTable", true ) );
             property( "sortDescending" ).hidden( "hideSort" ).add();
 
             add( "numTopCategories" );
