@@ -147,13 +147,7 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
                 + "  mids <- seq(floor(lb) + step, ceiling(ub) - step + 1, by = step)\n"
                 + "  mids <- mids[mids > lb & mids < ub]\n"
                 + "  b <- sort(c(lo, 10 ^ mids, hi))\n"
-                + "  fmt <- function(x) {\n"
-                + "    vapply(x, function(v) {\n"
-                + "      lx <- log10(v)\n"
-                + "      if (abs(lx - round(lx)) < 1e-9) as.character(format_log(v)) else format(v, scientific = TRUE, digits = 1)\n"
-                + "    }, character(1))\n"
-                + "  }\n"
-                + "  list(breaks = b, formatter = fmt)\n"
+                + "  list(breaks = b, formatter = function(x) format(x, scientific = TRUE, digits = 1))\n"
                 + "}\n" );
 
         script.append( "# ---- 2. Sort and limit to top categories ----\n"
@@ -248,7 +242,8 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
                 + "ggsave(filename = \""+imageFile.getAbsolutePath()+"\", \n"
                 + "       plot = p, \n"
                 + "       width = " + parameters.getImageWidth() / dpi + ",      # Width in inches\n" + "       height = " + parameters.getImageHeight() / dpi
-                + ",    # Height in inches \n" + "       units = \"in\", \n" + "       dpi = " + 150 + ") " );
+                + ",    # Height in inches \n" + "       units = \"in\", \n" + "       dpi = " + 150 + ",\n"
+                + "       bg = \"white\") " );
         return script.toString();
     }
 
