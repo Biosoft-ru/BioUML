@@ -127,8 +127,35 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
                 + "gsea_res <- read.delim(\"" + inputFile.getAbsolutePath() + "\",\n"
                 + "                       sep = \"\\t\",\n"
                 + "                       stringsAsFactors = FALSE,\n"
-                + "                       check.names = FALSE)" );
-        
+                + "                       check.names = FALSE)\n"
+                + "# The colorbar tick labels anchor to the data's own P-value extent (which equals the\n"
+                + "# gradient's limits): the two ends are always labeled, and the middle is filled with evenly\n"
+                + "# spaced, decade-aligned ticks. This keeps ticks spread across the whole bar so none land on\n"
+                + "# the (clipped) tip and none overlap. A tight range (< ~2 decades) falls back to min/max in\n"
+                + "# plain scientific notation.\n"
+                + "pvalue_breaks <- function(pv, target = 3) {\n"
+                + "  lo <- min(pv, na.rm = TRUE)\n"
+                + "  hi <- max(pv, na.rm = TRUE)\n"
+                + "  if (!is.finite(lo) || !is.finite(hi) || hi <= lo || lo <= 0)\n"
+                + "    return(list(breaks = c(lo, hi), formatter = format))\n"
+                + "  span <- log10(hi / lo)\n"
+                + "  if (span < 2)\n"
+                + "    return(list(breaks = c(lo, hi), formatter = function(x) format(x, scientific = TRUE, digits = 2)))\n"
+                + "  step <- max(1, round(span / (target - 1)))\n"
+                + "  lb <- log10(lo)\n"
+                + "  ub <- log10(hi)\n"
+                + "  mids <- seq(floor(lb) + step, ceiling(ub) - step + 1, by = step)\n"
+                + "  mids <- mids[mids > lb & mids < ub]\n"
+                + "  b <- sort(c(lo, 10 ^ mids, hi))\n"
+                + "  fmt <- function(x) {\n"
+                + "    vapply(x, function(v) {\n"
+                + "      lx <- log10(v)\n"
+                + "      if (abs(lx - round(lx)) < 1e-9) as.character(format_log(v)) else format(v, scientific = TRUE, digits = 1)\n"
+                + "    }, character(1))\n"
+                + "  }\n"
+                + "  list(breaks = b, formatter = fmt)\n"
+                + "}\n" );
+
         script.append( "# ---- 2. Sort and limit to top categories ----\n"
                 + "showCategory <- " +parameters.getNumTopCategories()+ "\n"
                 + "gsea_res <- gsea_res %>%\n");
@@ -170,15 +197,28 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
             colorInAes = ", color = mark_color";
             strokeInAes = ", stroke = mark_stroke";
         }
+        // Data-driven colorbar ticks (see the pvalue_breaks() helper emitted before the read step).
+        // Must be a standalone statement BEFORE the "p <- ggplot(...) + ... + ..." chain starts:
+        // an assignment cannot appear in the middle of a "+" chain (R would parse "p + pvBreaks <- ...").
+        if(colorColumn != null)
+            script.append( "pvBreaks <- pvalue_breaks(gsea_res$`" + colorColumn + "`)\n" );
+
         script.append( "p <- ggplot(gsea_res, aes(x = " + xValue + ", y = `" + descriptionColumn + "`)) +\n"
                 + "  geom_point(aes(size = `" + sizeColumn + "`, fill = `" + fillColor + "`" + colorInAes + strokeInAes + "),shape=21"
                 + ( parameters.getMarkColumn() == null ? ",color=" + colorExpr + ",stroke=" + strokeExpr : "" ) + ") +\n" );
-        
+
         if(colorColumn != null)
         {
-            script.append( "  scale_fill_gradient(\n" + "    name    = \"" + colorColumn + "\",\n"
-                + "    low     = \"red\",\n" 
-                + "    high    = \"blue\",\n" 
+            // Log-scaled color gradient: the values (e.g. P-values) span many orders of magnitude,
+            // so a linear gradient compresses most points into the same color end. Scaling the fill
+            // by log10 spreads the colors across decades. limits == the data extent, matching the
+            // anchored colorbar breaks from pvalue_breaks().
+            script.append( "  scale_fill_gradientn(\n" + "    name    = \"" + colorColumn + "\",\n"
+                + "    colours = c(\"red\", \"blue\"),\n"
+                + "    trans   = \"log10\",\n"
+                + "    limits  = c(min(gsea_res$`" + colorColumn + "`), max(gsea_res$`" + colorColumn + "`)),\n"
+                + "    breaks  = pvBreaks$breaks,\n"
+                + "    labels  = pvBreaks$formatter,\n"
                 + "    guide   = guide_colorbar(reverse = TRUE)) + \n" );
         }
         script.append( "scale_x_continuous(expand = expansion(mult = c(0.15, 0.15))) +\n" );
@@ -190,6 +230,8 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
                 + "  theme_minimal(base_size = " + labelSize + ") +\n"
                 + "  theme(\n"
                 + "    axis.text.y   = element_text(size = " + labelSize + ", hjust = 1, vjust = 0.5),\n"
+                + "    legend.text   = element_text(size = " + Math.max( 6, labelSize - 1 ) + "),\n"
+                + "    legend.title  = element_text(size = " + Math.max( 6, labelSize - 1 ) + "),\n"
                 + "    panel.grid.minor = element_blank()\n" + "  )" );
         if( parameters.getMarkColumn() != null )
         {
