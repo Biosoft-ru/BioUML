@@ -1,0 +1,98 @@
+package biouml.plugins.wdl.parser2;
+
+import biouml.plugins.wdl.nextflow.WDLNextflowFormatter;
+
+public class VariableRenamer
+{
+    private String oldName;
+    private String newName;
+
+    public String rename(String expression, String oldName, String newName) throws ParseException
+    {
+        if (expression == null)
+            return null;
+        AstExpression astExpression = new ExpressionParser().parseExpression( expression );
+        rename( astExpression, oldName, newName );
+        return new WDLNextflowFormatter().format( astExpression );
+    }
+
+    public void rename(Node start, String oldName, String newName)
+    {
+        this.oldName = oldName;
+        this.newName = newName;
+        if( start != null )
+        {
+            int n = start.jjtGetNumChildren();
+            for( int i = 0; i < n; i++ )
+                visit( start.jjtGetChild( i ) );
+        }
+    }
+
+    protected void visit(Node node)
+    {
+        if( node instanceof AstSymbol )
+        {
+            visit( (AstSymbol)node );
+        }
+        else if (node instanceof AstRegularFormulaElement)
+        {
+            visit( (AstRegularFormulaElement)node );
+        }
+        else if (node instanceof AstText)
+        {
+            visit((AstText)node);
+        }
+        for( int i = 0; i < node.jjtGetNumChildren(); i++ )
+        {
+            visit( node.jjtGetChild( i ) );
+        }
+    }
+    
+    private void visit(AstText node)
+    {
+        String text = node.getText();
+        text = text.replace( "${" + oldName + "}", "${" + newName + "}" );
+        node.setText( text );
+    }
+
+    private void visit(AstSymbol node)
+    {
+        if( node.getName() == null || ! ( oldName.equals( node.getName() ) ) ) //TODO: check null name
+            return;
+        SimpleNode parent = (SimpleNode)node.jjtGetParent();
+        int index = ParserUtil.findIndex( parent, node );
+        AstSymbol newChild = new AstSymbol( ExpressionParserTreeConstants.JJTSYMBOL );
+        newChild.setName( newName );
+        newChild.jjtSetFirstToken( new Token( ExpressionParserTreeConstants.JJTSYMBOL, newName ) );
+        parent.children[index] = newChild;
+    }
+    
+    private void visit(AstRegularFormulaElement node)
+    {
+        if( !node.isVariable || ! oldName.equals(node.toString()) )
+            return;
+        SimpleNode parent = (SimpleNode)node.jjtGetParent();
+        int index = ParserUtil.findIndex( parent, node );
+        AstRegularFormulaElement newChild = new AstRegularFormulaElement( ExpressionParserTreeConstants.JJTREGULARFORMULAELEMENT );
+        newChild.setElement( newName );
+        parent.children[index] = newChild;
+    }
+
+    
+    public static void main(String ... args)
+    {
+        try
+        {
+//            String expression = "(ii + i + ii)*kji + i";
+//            String expression = "i.k";
+            String expression = "calls( x, y)";
+            String result = new VariableRenamer().rename( expression, "x", "oo" );
+            System.out.println( expression +" -> "+result );
+
+        }
+        catch( Exception ex )
+        {
+            ex.printStackTrace();
+        }
+    }
+}
