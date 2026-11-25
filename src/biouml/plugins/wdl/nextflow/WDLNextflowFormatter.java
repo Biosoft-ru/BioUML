@@ -2,25 +2,33 @@ package biouml.plugins.wdl.nextflow;
 
 import java.util.Map;
 
-import biouml.plugins.wdl.parser.AstArray;
-import biouml.plugins.wdl.parser.AstConstructor;
-import biouml.plugins.wdl.parser.AstContainerElement;
-import biouml.plugins.wdl.parser.AstElse;
-import biouml.plugins.wdl.parser.AstExpression;
-import biouml.plugins.wdl.parser.AstFunction;
-import biouml.plugins.wdl.parser.AstKeyValue;
-import biouml.plugins.wdl.parser.AstMap;
-import biouml.plugins.wdl.parser.AstNone;
-import biouml.plugins.wdl.parser.AstPair;
-import biouml.plugins.wdl.parser.AstRegularFormulaElement;
-import biouml.plugins.wdl.parser.AstSubSymbol;
-import biouml.plugins.wdl.parser.AstSymbol;
-import biouml.plugins.wdl.parser.AstTernary;
-import biouml.plugins.wdl.parser.AstText;
-import biouml.plugins.wdl.parser.AstThen;
-import biouml.plugins.wdl.parser.ExpressionFormatter;
-import biouml.plugins.wdl.parser.Node;
-import biouml.plugins.wdl.parser.SimpleNode;
+import biouml.plugins.wdl.parser2.AstArguments;
+import biouml.plugins.wdl.parser2.AstArray;
+import biouml.plugins.wdl.parser2.AstClosure;
+import biouml.plugins.wdl.parser2.AstClosureParameters;
+import biouml.plugins.wdl.parser2.AstColon;
+import biouml.plugins.wdl.parser2.AstComma;
+import biouml.plugins.wdl.parser2.AstConstructor;
+import biouml.plugins.wdl.parser2.AstContainerElement;
+import biouml.plugins.wdl.parser2.AstElse;
+import biouml.plugins.wdl.parser2.AstExpression;
+import biouml.plugins.wdl.parser2.AstFunction;
+import biouml.plugins.wdl.parser2.AstKeyValue;
+import biouml.plugins.wdl.parser2.AstMap;
+import biouml.plugins.wdl.parser2.AstNone;
+import biouml.plugins.wdl.parser2.AstNull;
+import biouml.plugins.wdl.parser2.AstPair;
+import biouml.plugins.wdl.parser2.AstRegularFormulaElement;
+import biouml.plugins.wdl.parser2.AstSubSymbol;
+import biouml.plugins.wdl.parser2.AstSymbol;
+import biouml.plugins.wdl.parser2.AstTernary;
+import biouml.plugins.wdl.parser2.AstText;
+import biouml.plugins.wdl.parser2.AstThen;
+import biouml.plugins.wdl.parser2.ExpressionFormatter;
+import biouml.plugins.wdl.parser2.ExpressionParser;
+import biouml.plugins.wdl.parser2.Node;
+import biouml.plugins.wdl.parser2.ParseException;
+import biouml.plugins.wdl.parser2.SimpleNode;
 import one.util.streamex.StreamEx;
 
 public class WDLNextflowFormatter extends ExpressionFormatter
@@ -42,7 +50,9 @@ public class WDLNextflowFormatter extends ExpressionFormatter
 
     protected void processNode(Node node)
     {
-        if( node instanceof AstArray )
+        if (node instanceof AstSymbol)
+            result.append(node.toString());
+        else if( node instanceof AstArray )
             processArray( (AstArray)node );
         else if( node instanceof AstFunction )
             processFunction( (AstFunction)node );
@@ -55,7 +65,7 @@ public class WDLNextflowFormatter extends ExpressionFormatter
         else if( node instanceof AstTernary )
             processTernary( (AstTernary)node );
         else if( node instanceof AstMap )
-            processMap( (AstMap)node );
+            processMap( (AstMap)node , false);
         else if( node instanceof AstConstructor )
             processConstructor( (AstConstructor)node );
         else if( node instanceof AstPair )
@@ -75,15 +85,38 @@ public class WDLNextflowFormatter extends ExpressionFormatter
         }
         else if (node instanceof AstThen)
         {
-            
+            result.append( "? " );
         }
         else if (node instanceof AstElse)
         {
-            result.append( ":" );
+            result.append( ": " );
+        }
+        else if (node instanceof AstArguments)
+        {
+            for( Node child : ((AstArguments)node).getChildren() )
+            {
+                processNode( child );
+            }
+        }
+        else if (node instanceof AstColon)
+        {
+            result.append( " : " );
+        }
+        else if (node instanceof AstComma)
+        {
+            result.append( ", " );
+        }
+        else if (node instanceof AstClosure)
+        {
+            processClosure((AstClosure)node);
+        }
+        else if (node instanceof AstNull)
+        {
+            result.append( "null" );
         }
         else if (node instanceof SimpleNode)
         {
-            result.append( node.toString() );
+            result.append(node.toString());
         }
         else
         {
@@ -93,25 +126,23 @@ public class WDLNextflowFormatter extends ExpressionFormatter
 
     private void processTernary(AstTernary ternary)
     {
-        result.append( "(" );
-        result.append( ternary.getChildren()[0] );
-        result.append( ")?" );
-        for( int i = 1; i < ternary.getChildren().length; i++ )
+        for( int i = 0; i < ternary.getChildren().length; i++ )
         {
-            result.append( " " );
             processNode( ternary.jjtGetChild( i ) );
         }
     }
 
     private void processArray(AstArray array)
     {
-        boolean hasChannel = containsChannel( array );
-        if( hasChannel )
-            result.append( "toArray(" );
+//        boolean alreadyHas = array.jjtGetParent() != null && array.jjtGetParent().jjtGetParent() instanceof AstFunction
+//                && ( (AstFunction)array.jjtGetParent().jjtGetParent() ).toString().equals( "toArray" );
+//        boolean needToArray = false && !alreadyHas && containsChannel( array );
+//        if( needToArray )
+//            result.append( "toArray(" );
         for( Node child : array.getChildren() )
             processNode( child );
-        if( hasChannel )
-            result.append( ")" );
+//        if( needToArray )
+//            result.append( ")" );
     }
     
     private boolean containsChannel(SimpleNode node)
@@ -138,23 +169,23 @@ public class WDLNextflowFormatter extends ExpressionFormatter
     protected void processText(AstText node)
     {
         String content = node.toString();
-        content = ensureDoubledBackslashes(content);// .content.replace( "\\", "\\\\");
-        boolean hasQuote = content.contains( "\"" );
-        result.append( hasQuote? "\'": "\"" );
+//        content = ensureDoubledBackslashes(content);// .content.replace( "\\", "\\\\");
+//        boolean hasQuote = content.contains( "\"" );
+//        result.append( hasQuote? "\'": "\"" );
         result.append( content );
-        result.append( hasQuote? "\'": "\"" );
+//        result.append( hasQuote? "\'": "\"" );
     }
 
     protected void processContainer(AstContainerElement node)
     {
         int indexes = node.jjtGetNumChildren() - 1;
-        for (int i=0; i<indexes; i++)
-        result.append( "get(" );
+        for( int i = 0; i < indexes; i++ )
+            result.append( "get(" );
         processNode( node.jjtGetChild( 0 ) );
         for( int i = 1; i < node.jjtGetNumChildren(); i++ )
         {
             result.append( "," );
-            processNode(  node.jjtGetChild( i ) );
+            processNode( node.jjtGetChild( i ) );
             result.append( ")" );
         }
     }
@@ -183,11 +214,44 @@ public class WDLNextflowFormatter extends ExpressionFormatter
         result.append( "\"NO_VALUE\"" );
     }
 
-    private void processMap(AstMap astMap)
+    private void processMap(AstMap astMap, boolean isObject)
+    {
+        Map<String, SimpleNode> map = astMap.toMap();
+
+        if( map.isEmpty() )
+        {
+            result.append( "[:]" );
+            return;
+        }
+
+        result.append( "[ " );
+
+        result.append( StreamEx.of( map.entrySet() ).map( e -> {
+            String key = e.getKey().trim();
+
+            if( isObject )
+                key = "\"" + key + "\"";
+
+            if( !isParenthesized( key ) )
+                key = "(" + key + ")";
+
+            return key + " : " + new WDLNextflowFormatter().format( e.getValue() );
+        } ).joining( ", " ) );
+
+        result.append( " ]" );
+    }
+    
+    private boolean isParenthesized(String s)
+    {
+        s = s.trim();
+        return s.startsWith("(") && s.endsWith(")");
+    }
+    
+    private void processMap2(AstMap astMap)
     {
         result.append( "[ " );
         Map<String, SimpleNode> map = astMap.toMap();
-        result.append( StreamEx.of( map.entrySet() ).map( e -> "("+ e.getKey() + ") : " + new WDLNextflowFormatter().format( e.getValue()) ).joining( ", " ) );
+        result.append( StreamEx.of( map.entrySet() ).map( e -> e.getKey() + " : " + new WDLNextflowFormatter().format( e.getValue()) ).joining( ", " ) );
         result.append( " ]" );
     }
 
@@ -219,12 +283,33 @@ public class WDLNextflowFormatter extends ExpressionFormatter
     
     private void processConstructor(AstConstructor astConstructor)
     {
-//        result.append( "[ " );
-//        result.append( ( (AstConstructor)astConstructor ).jjtGetFirstToken() );
+        result.append( "[ " );
+
+        boolean first = true;
+
         for( Node node : astConstructor.getChildren() )
         {
-            processNode( node );
+            if( !( node instanceof AstKeyValue ) )
+                continue;
+
+            if( !first )
+                result.append( ", " );
+
+            first = false;
+
+            AstKeyValue keyValue = (AstKeyValue)node;
+            String key = keyValue.jjtGetFirstToken().image;
+
+            result.append( "\"" ).append( key ).append( "\" : " );
+
+            Node[] children = keyValue.getChildren();
+            processNode( children[children.length - 1] );
         }
+
+        if( first )
+            result.append( ":" );
+
+        result.append( " ]" );
     }
     
     public static String ensureDoubledBackslashes(String input)
@@ -261,5 +346,64 @@ public class WDLNextflowFormatter extends ExpressionFormatter
         }
 
         return result.toString();
+    }
+    
+    public static void main(String... args)
+    {
+        AstExpression expr;
+        try
+        {
+            expr = new ExpressionParser().parseExpression("[0,1,2]");
+
+            String formatted = new WDLNextflowFormatter().format( expr );
+            System.out.println( formatted );
+//            expr.dump("");
+        }
+        catch( ParseException e )
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+    }
+    
+    
+    private void processClosure(AstClosure closure)
+    {
+        Node[] children = closure.getChildren();
+        int index = 0;
+
+        if( children.length > 0 )
+        {
+            result.append("{ ");
+
+            if( children[0] instanceof AstClosureParameters )
+            {
+                AstClosureParameters params = (AstClosureParameters)children[0];
+
+                for( int i = 0; i < params.jjtGetNumChildren(); i++ )
+                {
+                    if( i > 0 )
+                        result.append(", ");
+
+                    processNode(params.jjtGetChild(i));
+                }
+
+                result.append(" -> ");
+                index = 1;
+            }
+
+            for( int i = index; i < children.length; i++ )
+            {
+                if( i > index )
+                    result.append(" ");
+
+                processNode(children[i]);
+            }
+
+            result.append(" ");
+        }
+
+        result.append("}");
     }
 }
