@@ -123,16 +123,10 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
                 + "  library(dplyr)\n"
                 + "  library(scales)\n"
                 + "})\n"
-                + "# ---- 1. Read the results file ----\n"
                 + "gsea_res <- read.delim(\"" + inputFile.getAbsolutePath() + "\",\n"
                 + "                       sep = \"\\t\",\n"
                 + "                       stringsAsFactors = FALSE,\n"
                 + "                       check.names = FALSE)\n"
-                + "# The colorbar tick labels anchor to the data's own P-value extent (which equals the\n"
-                + "# gradient's limits): the two ends are always labeled, and the middle is filled with evenly\n"
-                + "# spaced, decade-aligned ticks. This keeps ticks spread across the whole bar so none land on\n"
-                + "# the (clipped) tip and none overlap. A tight range (< ~2 decades) falls back to min/max in\n"
-                + "# plain scientific notation.\n"
                 + "pvalue_breaks <- function(pv, target = 3) {\n"
                 + "  lo <- min(pv, na.rm = TRUE)\n"
                 + "  hi <- max(pv, na.rm = TRUE)\n"
@@ -150,8 +144,7 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
                 + "  list(breaks = b, formatter = function(x) format(x, scientific = TRUE, digits = 1))\n"
                 + "}\n" );
 
-        script.append( "# ---- 2. Sort and limit to top categories ----\n"
-                + "showCategory <- " +parameters.getNumTopCategories()+ "\n"
+        script.append( "showCategory <- " +parameters.getNumTopCategories()+ "\n"
                 + "gsea_res <- gsea_res %>%\n");
 
         script.append( "  arrange(" + sortColName + ") %>%\n"
@@ -170,8 +163,12 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
             xValue = "-log10(" + xValue + ")";
             xLabel = xColumn + " (-log10)";
         }
-        int labelSize = Math.max( 6, Math.min( 10, 120 / parameters.getNumTopCategories() ) );
-        script.append( "# ---- 3. Draw the plot and assign it to a variable 'p' ----\n" );
+        // Base text size: keep labels readable even with many categories, but never let them
+        // get so large they dominate the plot. The old max(6, min(10, 120/n)) shrank text to 6-8pt
+        // for n>=12, which was illegible once the image was scaled down for viewing; the higher
+        // floor/cap keeps the lettering readable like the Python reference plot without looking
+        // oversized (a nudge down from 12).
+        int labelSize = Math.max( 7, Math.min( 8, 180 / parameters.getNumTopCategories() ) );
         String colorExpr = "\"black\"";
         String strokeExpr = "0.5";
         String colorInAes = "", strokeInAes = "";
@@ -195,10 +192,10 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
         // Must be a standalone statement BEFORE the "p <- ggplot(...) + ... + ..." chain starts:
         // an assignment cannot appear in the middle of a "+" chain (R would parse "p + pvBreaks <- ...").
         if(colorColumn != null)
-            script.append( "pvBreaks <- pvalue_breaks(gsea_res$`" + colorColumn + "`)\n" );
+            script.append( "pvBreaks <- pvalue_breaks(gsea_res$`" + colorColumn + "`, 7)\n" );
 
         script.append( "p <- ggplot(gsea_res, aes(x = " + xValue + ", y = `" + descriptionColumn + "`)) +\n"
-                + "  geom_point(aes(size = `" + sizeColumn + "`, fill = `" + fillColor + "`" + colorInAes + strokeInAes + "),shape=21"
+                + "  geom_point(aes(fill = `" + fillColor + "`, size = `" + sizeColumn + "`" + colorInAes + strokeInAes + "),shape=21"
                 + ( parameters.getMarkColumn() == null ? ",color=" + colorExpr + ",stroke=" + strokeExpr : "" ) + ") +\n" );
 
         if(colorColumn != null)
@@ -206,16 +203,18 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
             // Log-scaled color gradient: the values (e.g. P-values) span many orders of magnitude,
             // so a linear gradient compresses most points into the same color end. Scaling the fill
             // by log10 spreads the colors across decades. limits == the data extent, matching the
-            // anchored colorbar breaks from pvalue_breaks().
+            // anchored colorbar breaks from pvalue_breaks(). The colorbar's GUIDE is defined in the
+            // guides() call below (alongside size and colour) so the vertical legend order is
+            // pinned; it is intentionally NOT set here to avoid a double definition.
             script.append( "  scale_fill_gradientn(\n" + "    name    = \"" + colorColumn + "\",\n"
                 + "    colours = c(\"red\", \"blue\"),\n"
                 + "    trans   = \"log10\",\n"
                 + "    limits  = c(min(gsea_res$`" + colorColumn + "`), max(gsea_res$`" + colorColumn + "`)),\n"
                 + "    breaks  = pvBreaks$breaks,\n"
-                + "    labels  = pvBreaks$formatter,\n"
-                + "    guide   = guide_colorbar(reverse = TRUE)) + \n" );
+                + "    labels  = pvBreaks$formatter\n"
+                    + "  ) +\n" );
         }
-        script.append( "scale_x_continuous(expand = expansion(mult = c(0.15, 0.15))) +\n" );
+        script.append( "scale_x_continuous(expand = expansion(mult = c(0.15, 0.15)), breaks=pretty_breaks(n=7)) +\n" );
         script.append( " scale_size_continuous(name = \"" + sizeColumn + "\", range = c(2, 8)) +\n"
         + "  labs(\n" + "    title = NULL,\n"
                 + "    x     = \"" + xLabel + "\",\n"
@@ -224,26 +223,56 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
                 + "  theme_minimal(base_size = " + labelSize + ") +\n"
                 + "  theme(\n"
                 + "    axis.text.y   = element_text(size = " + labelSize + ", hjust = 1, vjust = 0.5),\n"
-                + "    legend.text   = element_text(size = " + Math.max( 6, labelSize - 1 ) + "),\n"
-                + "    legend.title  = element_text(size = " + Math.max( 6, labelSize - 1 ) + "),\n"
-                + "    panel.grid.minor = element_blank()\n" + "  )" );
-        if( parameters.getMarkColumn() != null )
+                + "    legend.text   = element_text(size = " + Math.max( 5, labelSize - 1 ) + "),\n"
+                + "    legend.title  = element_text(size = " + Math.max( 5, labelSize - 1 ) + "),\n"
+                + "    legend.margin = margin(0, 0, 8, 0),\n"
+                + "    legend.box.spacing = unit(0, \"lines\"),\n"
+                + "    panel.grid.minor = element_blank(),\n"
+                + "    legend.position = \"right\"\n" + "  ) +\n" );
+        // Force the vertical legend order top->bottom: P-value (colorbar), Number of hits (size),
+        // then the disease mark (colour). With legend.position = "right" the guides stack
+        // vertically in the right gutter; the guides() call pins their sequence so the
+        // colourbar is always the topmost entry. Only guides that actually exist are emitted
+        // (fill needs a color mapping, colour needs a mark column) — the default dot plot has
+        // both, but a bare size-only plot must not reference a fill/colour guide that has no scale.
+        // The scale_color_manual (mark column) is emitted INSIDE the same statement right after
+        // the closing ")" of guides() — a leading "+" on its own line would be parsed by R as
+        // a comment (the comment runs to end-of-line), breaking the chain with
+        // "Cannot use + with a single argument".
         {
-            // Only the green (marked) entry is shown in the legend; the unmarked black outline
-            // carries no information of its own, so the "black" break is dropped.
-            script.append( "+  scale_color_manual(name = NULL,\n"
-                    + "    values = c(green = \"green\", black = \"black\"),\n"
-                    + "    breaks = \"green\",\n"
-                    + "    labels = \"" + parameters.getMarkColumn() + "\",\n"
-                    + "    guide = guide_legend(override.aes = list(fill = NA), nrow = 1, byrow = TRUE))\n" );
+            StringBuilder tail = new StringBuilder();
+            tail.append( "  guides(\n" );
+            if( colorColumn != null )
+                tail.append( "    fill   = guide_colorbar(order = 1, nbin = 5, reverse = TRUE, title.position = \"top\", theme = theme(legend.key.width = unit(0.5, \"lines\"), legend.key.height = unit(10, \"lines\"))),\n" );
+            tail.append( "    size   = guide_legend(order = 2, override.aes = list(stroke = 0.5))" );
+            if( parameters.getMarkColumn() != null )
+                tail.append( ",\n    colour = guide_legend(order = 3, override.aes = list(fill = NA, size = 4, stroke = 1.5), nrow = 1, byrow = TRUE, theme = theme(legend.text = element_blank()))\n" );
+            if( parameters.getMarkColumn() != null )
+            {
+                // Only the green (marked) entry is shown in the legend; the unmarked black outline
+                // carries no information of its own, so the "black" break is dropped.
+                tail.append( "  ) +\n  scale_color_manual(name = \"" + parameters.getMarkColumn() + "\",\n"
+                        + "    values = c(green = \"limegreen\", black = \"black\"),\n"
+                        + "    breaks = \"green\",\n"
+                        + "    labels = \"" + parameters.getMarkColumn() + "\")\n" );
+            }
+            else
+                tail.append( "  )\n" );
+            script.append( tail );
         }
+        // Render at the user-chosen dpi (NOT a hardcoded value): the inch size is derived from the
+        // same dpi via width/dpi, so passing a different dpi to ggsave would make the raster
+        // resolution disagree with the intended pixel size and the PNG would be upscaled — leaving
+        // text blurry/tiny at any zoom. Using parameters.getDpi() for both keeps the raster
+        // resolution exactly equal to imageWidth x imageHeight pixels.
         int dpi = parameters.getDpi();
-        script.append( "# ---- 5. Save the plot to a file as high-resolution PNG ----\n"
-                + "ggsave(filename = \""+imageFile.getAbsolutePath()+"\", \n"
-                + "       plot = p, \n"
-                + "       width = " + parameters.getImageWidth() / dpi + ",      # Width in inches\n" + "       height = " + parameters.getImageHeight() / dpi
-                + ",    # Height in inches \n" + "       units = \"in\", \n" + "       dpi = " + 150 + ",\n"
-                + "       bg = \"white\") " );
+        script.append( "ggsave(filename = \""+imageFile.getAbsolutePath()+"\",\n"
+                + "       plot = p,\n"
+                + "       width = " + parameters.getImageWidth() / dpi + ",\n"
+                + "       height = " + parameters.getImageHeight() / dpi + ",\n"
+                + "       units = \"in\",\n"
+                + "       dpi = " + dpi + ",\n"
+                + "       bg = \"white\")\n" );
         return script.toString();
     }
 
