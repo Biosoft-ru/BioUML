@@ -335,25 +335,8 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
     public String getCallEmit(Node node)
     {
         String expression = getExpression( node );
-        List<Node> sources = getSources( node );
-        Set<String> replaced = new HashSet<>();
-        for( Node source : sources )
-        {
-            if( source != null && isCall( source.getCompartment() ) )
-            {
-                String result = getResultName( source.getCompartment() );
-                String name = getCallName( source.getCompartment() );
-
-                if (replaced.contains( name ))
-                        continue;
-                
-                replaced.add( name );
-                if( result != null )
-                    expression = expression.replace( name + ".", result  + ".");
-                else
-                    expression = expression.replace( name + ".", name + ".out." );
-            }
-        }
+        if (expression == null)
+            return "";
         return expression;
     }
 
@@ -374,13 +357,10 @@ public class NextFlowVelocityHelper extends WorkflowVelocityHelper
         Compartment cycle = getClosestCycle( node );
         if( cycle == null )
             return expression;
-
         String variable = getCycleVariable( cycle );
         String name = getCycleName( cycle );
-
         return name + ".map {" + variable + "->" + expression + " }";
     }
-
 
 
     public String getRuntimeProperty(Compartment process, String name)
