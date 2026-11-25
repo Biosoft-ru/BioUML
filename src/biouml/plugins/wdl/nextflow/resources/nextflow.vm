@@ -136,7 +136,7 @@ $BR  main:
 #if ($externalOutputs.size() > 0)
 $BR  emit: 
 #foreach( $externalOutput in $externalOutputs )
-#if ( $helper.getOutputExpression($externalOutput) )
+#if ( $helper.getOutputExpression($externalOutput) && !$helper.getOutputExpression($externalOutput).isEmpty())
   $helper.getName($externalOutput) = $helper.getOutputExpression($externalOutput)
 #else
   $helper.getName($externalOutput)
