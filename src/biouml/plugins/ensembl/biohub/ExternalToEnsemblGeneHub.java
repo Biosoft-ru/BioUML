@@ -74,8 +74,9 @@ public class ExternalToEnsemblGeneHub extends ExternalToEnsemblHub
                 "JOIN seq_region sr ON(t.seq_region_id=sr.seq_region_id) " +
                 "WHERE ensembl_object_type='Transcript' AND " + typeRecord.getRestrictionClause( species );
         }
-        // Start each Entrez lookup at its indexed accession. Starting at object_xref scans gene links for every ID.
-        String select = typeRecord.getType() instanceof EntrezGeneTableType ? "SELECT STRAIGHT_JOIN DISTINCT" : "SELECT DISTINCT";
+        // On Ensembl 112 MySQL chose the gene object type before the more selective accession,
+        // estimating over 500,000 object_xref rows per ID. Start at the indexed accession instead.
+        String select = typeRecord.getType().getClass().equals(EntrezGeneTableType.class) ? "SELECT DISTINCT STRAIGHT_JOIN" : "SELECT DISTINCT";
         return select + " gs.stable_id,sr.name FROM xref x " +
                 "JOIN object_xref o USING(xref_id) " +
                 "JOIN gene_stable_id gs ON(gs.gene_id=o.ensembl_id) " +
