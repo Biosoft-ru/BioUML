@@ -21,17 +21,17 @@ import biouml.plugins.wdl.diagram.ExpressionProperties;
 import biouml.plugins.wdl.diagram.OutputProperties;
 import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.model.ExpressionInfo;
-import biouml.plugins.wdl.parser.AstExpression;
-import biouml.plugins.wdl.parser.AstFunction;
-import biouml.plugins.wdl.parser.AstRegularFormulaElement;
-import biouml.plugins.wdl.parser.AstSymbol;
-import biouml.plugins.wdl.parser.AstText;
-import biouml.plugins.wdl.parser.ExpressionFormatter;
-import biouml.plugins.wdl.parser.ExpressionParser;
-import biouml.plugins.wdl.parser.ParserUtil;
-import biouml.plugins.wdl.parser.SimpleNode;
-import biouml.plugins.wdl.parser.Token;
-import biouml.plugins.wdl.parser.WDLParserTreeConstants;
+import biouml.plugins.wdl.parser2.AstExpression;
+import biouml.plugins.wdl.parser2.AstFunction;
+import biouml.plugins.wdl.parser2.AstRegularFormulaElement;
+import biouml.plugins.wdl.parser2.AstSymbol;
+import biouml.plugins.wdl.parser2.AstText;
+import biouml.plugins.wdl.parser2.ExpressionParser;
+import biouml.plugins.wdl.parser2.ParserUtil;
+import biouml.plugins.wdl.parser2.SimpleNode;
+import biouml.plugins.wdl.parser2.Token;
+import biouml.plugins.wdl.parser2.ExpressionParserTreeConstants;
+import biouml.plugins.wdl.parser2.ParseException;
 import biouml.standard.type.Stub;
 
 /**
@@ -111,8 +111,8 @@ public class OutputWrapperProcessor
         if( taskOutput == null )
             throw new IllegalStateException( "Cannot find task output: " + name );
 
-        ExpressionInfo fromInfo = WorkflowUtil.getExpressionInfo( from );
-        AstExpression ast = fromInfo == null ? null : fromInfo.getAST();
+        String fromExpression = WorkflowUtil.getExpression( from );
+        AstExpression ast = new ExpressionParser().parseExpression( fromExpression );
         if( ast == null )
             return;
 
@@ -194,12 +194,13 @@ public class OutputWrapperProcessor
         }
         else
         {
-            StringBuilder body = new StringBuilder();
+            List<String> parameters = new ArrayList<>();
+
             for( int i = 0; i < args.size(); i++ )
-            {
-                body.append( "def x" ).append( i + 1 ).append( " = values[" ).append( i ).append( "]; " );
-            }
-            fullExpression = "mergeAll([" + String.join( ", ", channels ) + "]).map { values -> " + body + expression + " }";
+                parameters.add( "x" + ( i + 1 ) );
+
+            fullExpression = "mergeAll([" + String.join( ", ", channels ) + "]).map { " + String.join( ", ", parameters ) + " -> "
+                    + expression + " }";
         }
 
         String wrappedName = WorkflowUtil.getCallName( call ) + "_" + name + "_wrapped";
@@ -241,13 +242,6 @@ public class OutputWrapperProcessor
                     updated = updated.replace( alias + "." + name, wrappedName );
 
                 WorkflowUtil.setExpression( target, updated );
-                ExpressionInfo info = WorkflowUtil.getExpressionInfo( target );
-                if( info != null )
-                {
-                    info.setExpression( updated );
-                    // AST would otherwise override the new expression.
-                    info.setAST( null );
-                }
             }
         }
 
@@ -262,7 +256,7 @@ public class OutputWrapperProcessor
             createLink( source, wrapper );
     }
 
-    private static boolean containsFunction(biouml.plugins.wdl.parser.Node node, String name)
+    private static boolean containsFunction(biouml.plugins.wdl.parser2.Node node, String name)
     {
         if( node instanceof AstFunction && name.equals( node.toString() ) )
             return true;
@@ -487,11 +481,10 @@ public class OutputWrapperProcessor
         WorkflowUtil.setType( output, type );
         WorkflowUtil.setExpression( output, rhs );
         ExpressionInfo info = new ExpressionInfo( type, name, rhs );
-        info.setAST( new ExpressionParser().parseExpression( rhs ) );
         WorkflowUtil.setExpressionInfo( output, info );
     }
 
-    private void collectAndReplace(biouml.plugins.wdl.parser.Node node, Compartment task, Map<String, Argument> args, String outerFunction)
+    private void collectAndReplace(biouml.plugins.wdl.parser2.Node node, Compartment task, Map<String, Argument> args, String outerFunction)
             throws Exception
     {
         if( isStdStream( node ) )
@@ -537,12 +530,12 @@ public class OutputWrapperProcessor
         }
     }
 
-    private static boolean isDirectFileArgument(biouml.plugins.wdl.parser.Node node)
+    private static boolean isDirectFileArgument(biouml.plugins.wdl.parser2.Node node)
     {
         if( ! ( node.jjtGetParent() instanceof AstExpression ) )
             return false;
 
-        biouml.plugins.wdl.parser.Node arg = node.jjtGetParent();
+        biouml.plugins.wdl.parser2.Node arg = node.jjtGetParent();
         if( arg.jjtGetNumChildren() != 1 || ! ( arg.jjtGetParent() instanceof AstFunction ) )
             return false;
 
@@ -555,12 +548,12 @@ public class OutputWrapperProcessor
         return function.jjtGetNumChildren() > 1 && function.jjtGetChild( 1 ) == arg;
     }
 
-    private static boolean isStdStream(biouml.plugins.wdl.parser.Node node)
+    private static boolean isStdStream(biouml.plugins.wdl.parser2.Node node)
     {
         return node instanceof AstFunction && ( "stdout".equals( node.toString() ) || "stderr".equals( node.toString() ) );
     }
 
-    private static void replaceArgument(biouml.plugins.wdl.parser.Node node, Compartment task, Map<String, Argument> args,
+    private static void replaceArgument(biouml.plugins.wdl.parser2.Node node, Compartment task, Map<String, Argument> args,
             String outerFunction) throws Exception
     {
         if( ! ( node.jjtGetParent() instanceof SimpleNode ) )
@@ -579,19 +572,19 @@ public class OutputWrapperProcessor
             arg = new Argument( source, "x" + ( args.size() + 1 ), type );
             args.put( source, arg );
         }
-        AstSymbol replacement = new AstSymbol( WDLParserTreeConstants.JJTSYMBOL );
-        replacement.jjtSetFirstToken( new Token( WDLParserTreeConstants.JJTSYMBOL, arg.variable ) );
+        AstSymbol replacement = new AstSymbol( ExpressionParserTreeConstants.JJTSYMBOL );
+        replacement.jjtSetFirstToken( new Token( ExpressionParserTreeConstants.JJTSYMBOL, arg.variable ) );
         ParserUtil.replaceChild( parent, node, replacement );
     }
 
-    private static String formatSource(biouml.plugins.wdl.parser.Node node)
+    private static String formatSource(biouml.plugins.wdl.parser2.Node node)
     {
         if( isStdStream( node ) )
             return node.toString() + "()";
 
-        AstExpression fragment = new AstExpression( WDLParserTreeConstants.JJTEXPRESSION );
+        AstExpression fragment = new AstExpression( ExpressionParserTreeConstants.JJTEXPRESSION );
         fragment.jjtAddChild( node, 0 );
-        return new ExpressionFormatter().format( fragment );
+        return new WDLNextflowFormatter().format( fragment );
     }
 
     private static String inferType(Compartment task, String source, String outerFunction)
@@ -633,18 +626,18 @@ public class OutputWrapperProcessor
         throw new IllegalArgumentException( "Cannot determine type of wrapper argument: " + source );
     }
 
-    private static AstFunction findNeedWrapper(Node output)
+    private static AstFunction findNeedWrapper(Node output) throws ParseException
     {
-        ExpressionInfo info = WorkflowUtil.getExpressionInfo( output );
-        AstExpression expression = info == null ? null : info.getAST();
-
+        String expression = WorkflowUtil.getExpression( output );
         if( expression == null )
             return null;
+
+        AstExpression astExpression = new ExpressionParser().parseExpression( expression );
         /*
          * Only a bare glob("literal") is translated
          * to a Nextflow path pattern.
          */
-        biouml.plugins.wdl.parser.Node[] children = expression.getChildren();
+        biouml.plugins.wdl.parser2.Node[] children = astExpression.getChildren();
         if( children.length == 1 && children[0] instanceof AstFunction )
         {
             AstFunction function = (AstFunction)children[0];
@@ -653,7 +646,7 @@ public class OutputWrapperProcessor
                 return null;
         }
 
-        for( biouml.plugins.wdl.parser.Node node : children )
+        for( biouml.plugins.wdl.parser2.Node node : children )
         {
             if( node instanceof AstFunction )
                 return (AstFunction)node;
@@ -663,7 +656,7 @@ public class OutputWrapperProcessor
 
     private static boolean hasOneTextArgument(AstFunction func)
     {
-        biouml.plugins.wdl.parser.Node[] children = func.getChildren();
+        biouml.plugins.wdl.parser2.Node[] children = func.getChildren();
         return children.length == 3 && children[1] instanceof AstExpression && children[1].jjtGetNumChildren() == 1
                 && children[1].jjtGetChild( 0 ) instanceof AstText;
     }

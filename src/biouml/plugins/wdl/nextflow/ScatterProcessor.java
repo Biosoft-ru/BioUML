@@ -6,7 +6,7 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.plugins.wdl.WorkflowUtil;
-import biouml.plugins.wdl.parser.VariableRenamer;
+import biouml.plugins.wdl.parser2.VariableRenamer;
 import one.util.streamex.StreamEx;
 
 public class ScatterProcessor extends NextFlowVelocityHelper
@@ -291,10 +291,10 @@ public class ScatterProcessor extends NextFlowVelocityHelper
         sb.append( " )" );
         addCallOutputsToContext( call, contextNodes, sb, condition == null ? null : contextName, parentContextName );
     }
-    private String printInputInCycle(Node input, List<Node> contextNodes)
-    {
-        return printInputInCycle( input, contextNodes, "context" );
-    }
+    //    private String printInputInCycle(Node input, List<Node> contextNodes)
+    //    {
+    //        return printInputInCycle( input, contextNodes, "context" );
+    //    }
     private String printInputInCycle(Node input, List<Node> contextNodes, String contextName)
     {
         String expression = prepareExpression( getCallEmit( input ), contextNodes );
@@ -575,7 +575,7 @@ public class ScatterProcessor extends NextFlowVelocityHelper
             if( isCall( contextNode.getCompartment() ) )
             {
                 String callName = getCallName( contextNode.getCompartment() );
-                expression = expression.replace( callName + "." + oldName, oldName );
+                expression = expression.replace( callName + ".out." + oldName, oldName );
             }
             expression = renameVariable( expression, oldName, newName );
         }
