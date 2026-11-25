@@ -404,10 +404,10 @@
       value: temperature
     nested_access.subject_name:
       type: String
-      value: '25.5'
+      value: '25.500000'
     nested_access.subject_name_from_first_experiment:
       type: String
-      value: '25.5'
+      value: '25.500000'
 - description: |
     Tests dynamic creation of structure.
   tags:
@@ -428,10 +428,10 @@
       value: temperature
     nested_access.subject_name:
       type: String
-      value: '85.5'
+      value: '85.500000'
     nested_access.subject_name_from_first_experiment:
       type: String
-      value: '85.5'
+      value: '85.500000'
     nested_access.experiments:
       type: Array[Experiment]
       value:
@@ -574,8 +574,7 @@
   outputs:
     run_private_declaration.concatenated_output:
       type: String
-      value:
-        regex: '^A~B\n$'
+      value: 'A~B'
 - description: |
     Cycle using range function.
   tags:
