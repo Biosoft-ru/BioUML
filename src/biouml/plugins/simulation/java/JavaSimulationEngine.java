@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.beans.PropertyChangeEvent;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -101,6 +102,36 @@ public class JavaSimulationEngine extends OdeSimulationEngine
     private boolean hasDelays = false;
     private boolean parallel = false;
     private int threads = 4;
+
+    // Cached result of Util.hasFastReactions(diagram). The scan walks the whole diagram
+    // recursively and simulate() needs the answer on every call, which made it a measurable
+    // fixed cost per simulation in optimization loops (profiler: ~1% of server CPU). The
+    // cache is dropped whenever the engine learns the diagram may have changed - the same
+    // propertyChange/setDiagram signals that invalidate the generated model code
+    // (diagramModified) - so it is exactly as fresh as the compiled model itself.
+    private Boolean hasFastReactionsCache = null;
+
+    public boolean hasFastReactions()
+    {
+        if( hasFastReactionsCache == null )
+            hasFastReactionsCache = Util.hasFastReactions(diagram);
+        return hasFastReactionsCache;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if( !doNotAffectSimulation(evt) )
+            hasFastReactionsCache = null;
+        super.propertyChange(evt);
+    }
+
+    @Override
+    public void setDiagram(Diagram diagram)
+    {
+        hasFastReactionsCache = null;
+        super.setDiagram(diagram);
+    }
 
     public JavaSimulationEngine()
     {
@@ -300,7 +331,7 @@ public class JavaSimulationEngine extends OdeSimulationEngine
             resetSpan();
 
         if (simulator instanceof SimulatorSupport)
-            ((SimulatorSupport)simulator).setPresimulateFastReactions(fastReactions.equals(ODE_SYSTEM) && Util.hasFastReactions(diagram));
+            ((SimulatorSupport)simulator).setPresimulateFastReactions(fastReactions.equals(ODE_SYSTEM) && hasFastReactions());
             
         ( (JavaBaseModel)model ).setAeSolver(getAlgebraicSolver());
         try

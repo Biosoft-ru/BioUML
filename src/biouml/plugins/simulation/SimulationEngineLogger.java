@@ -186,12 +186,18 @@ public class SimulationEngineLogger
 
     public void info(String message)
     {
-        log.info(getCurrentTime() + message);
+        // Check the level before building the "[ HH:mm:ss ]" prefix: getCurrentTime()
+        // allocates a Calendar and a SimpleDateFormat per call, which is wasted work when
+        // the message is discarded (e.g. Level.OFF during optimization runs, where
+        // simulate() logs several info messages per run - profiler-visible hot path).
+        if( log.isLoggable(Level.INFO) )
+            log.info(getCurrentTime() + message);
     }
 
     public void warn(String message)
     {
-        log.warning(getCurrentTime() + message);
+        if( log.isLoggable(Level.WARNING) )
+            log.warning(getCurrentTime() + message);
     }
 
     public void error(String message, Exception ex)
