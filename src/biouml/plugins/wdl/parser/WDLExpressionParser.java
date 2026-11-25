@@ -5,16 +5,13 @@ import java.io.StringReader;
 /**
  * Parses expression in form of string into AST 
  */
-public class ExpressionParser extends WDLParser
+public class WDLExpressionParser extends WDLParser
 {
     public AstExpression parseExpression(String expression) throws ParseException
     {
         ReInit( new StringReader( expression ) );
-
         expression();
-
         jj_consume_token( 0 );
-
         Node node = jjtree.rootNode();
 
         if( node instanceof AstExpression )
@@ -27,10 +24,8 @@ public class ExpressionParser extends WDLParser
     {
         try
         {
-            AstExpression expression = new ExpressionParser().parseExpression( "read_lines(stdout())" );
-            
-            String formatted = new ExpressionFormatter().format( expression );
-            
+            AstExpression expression = new WDLExpressionParser().parseExpression( "read_lines(stdout())" );
+            String formatted = new WDLExpressionFormatter().format( expression );      
             System.out.println( formatted );
         }
         catch( Exception ex )

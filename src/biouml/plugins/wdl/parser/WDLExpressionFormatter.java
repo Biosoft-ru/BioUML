@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 import one.util.streamex.StreamEx;
 
-public class ExpressionFormatter
+public class WDLExpressionFormatter
 {
     protected StringBuilder result;
 
@@ -51,9 +51,9 @@ public class ExpressionFormatter
     private void processTernary(AstTernary ternary)
     {
         result.append( "if (" );
-        result.append( ternary.getChildren()[0] );
+        result.append( ternary.children[0] );
         result.append( ")" );
-        for( int i = 1; i < ternary.getChildren().length; i++ )
+        for( int i = 1; i < ternary.children.length; i++ )
         {
             result.append( " " );
             processNode( ternary.jjtGetChild( i ) );
@@ -62,7 +62,7 @@ public class ExpressionFormatter
 
     private void processArray(AstArray array)
     {
-        for( Node child : array.getChildren() )
+        for( Node child : array.children )
             processNode( child );
     }
 
@@ -130,7 +130,7 @@ public class ExpressionFormatter
     private void processConstructor(AstConstructor astConstructor)
     {
         result.append( ( (AstConstructor)astConstructor ).firstToken );
-        for( Node node : astConstructor.getChildren() )
+        for( Node node : astConstructor.children )
         {
             result.append( node.toString() );
         }
