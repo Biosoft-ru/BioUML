@@ -1004,6 +1004,19 @@ public class SqlTrack extends AbstractDataCollection<AnnotatedSequence> implemen
         return dc;
     }
 
+    /**
+     * Iterates over all sites like {@code getAllSites().iterator()}, but without putting every site read into that
+     * collection's cache. A full scan creates each site from the result set and never reads the cache, so for a scan
+     * the cache only retains memory: on a large track, millions of softly reachable sites stay in the old generation
+     * until a full GC clears them (the hottest part of "Site search result optimization" on a busy server).
+     */
+    public @Nonnull Iterator<Site> scanAllSites()
+    {
+        if( !isValid )
+            return Collections.emptyIterator();
+        return new SitesIterator(null);
+    }
+
     public static SqlTrack createTrack(DataElementPath path, Track parent)
     {
         return createTrack( path, parent, null, SqlTrack.class );

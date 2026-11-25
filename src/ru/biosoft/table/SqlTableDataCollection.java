@@ -59,6 +59,11 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
     protected String tableId;
     private boolean initialized = false;
     protected int size = -1;
+    /**
+     * The column model changed in the info and the table is not saved since (see saveColumnModel). Like the row
+     * buffer (inserter), not for concurrent changes of the columns of one table.
+     */
+    private boolean columnModelSavePending;
     protected List<String> names = null;
     protected Properties initProperties;
     protected int queryLength;
@@ -383,7 +388,7 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
     {
         if( !isInitialized() )
             return;
-        finalizeAddition();
+        flushInsertedRows();
         String type = col.getType().name();
         SqlUtil.execute(
                 getConnection(),
@@ -410,8 +415,7 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
         }
         else
         {
-            getInfo().getProperties().setProperty(COLUMN_MODEL_PROPERTY, getColumnModel().toJSON().toString());
-            getCompletePath().save(this);
+            saveColumnModel();
         }
         v_cache.clear();
         getIteratorRow = -1;
@@ -424,7 +428,7 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
     {
         if( !isInitialized() )
             return;
-        finalizeAddition();
+        flushInsertedRows();
         SqlUtil.execute(getConnection(), query("ALTER TABLE $table$ DROP COLUMN $column$").name("column", getSQLColumnName(columnPos)));
         String name = getColumnModel().getColumn(columnPos).getName();
         columnLengths.remove(name);
@@ -436,8 +440,10 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
         }
         else
         {
-            getInfo().getProperties().setProperty(COLUMN_MODEL_PROPERTY, getColumnModel().toJSON().toString());
-            getCompletePath().save(this);
+            // SqlColumnModel.removeColumn drops the column from the model after this call: store the model without it
+            JSONObject json = getColumnModel().toJSON();
+            json.getJSONArray( "columns" ).remove( columnPos );
+            saveColumnModel( json.toString() );
         }
         v_cache.clear();
         getIteratorRow = -1;
@@ -449,7 +455,7 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
     {
         if( !isInitialized() )
             return;
-        finalizeAddition();
+        flushInsertedRows();
         String type = col.getType().name();
         if( !oldName.equals(col.getName()) )
             columnLengths.remove(oldName);
@@ -491,8 +497,7 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
         }
         else
         {
-            getInfo().getProperties().setProperty(COLUMN_MODEL_PROPERTY, getColumnModel().toJSON().toString());
-            getCompletePath().save(this);
+            saveColumnModel();
         }
         if( !oldType.equals(type) )
         {
@@ -958,7 +963,7 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
             int length = values[i].toString().length();
             if( length > columnLengths.get(col.getName()) )
             {
-                finalizeAddition();
+                flushInsertedRows();
                 String sqlType = getSQLType(length);
                 columnLengths.put(col.getName(), SqlDataInfo.getColumnContentLength(sqlType));
                 SqlUtil.execute(
@@ -972,12 +977,63 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
     @Override
     public void finalizeAddition() throws BiosoftSQLException
     {
+        flushInsertedRows();
+        if( columnModelSavePending )
+        {
+            try
+            {
+                // the column model as it is now (the columns may have changed again since it was recorded)
+                getInfo().getProperties().setProperty( COLUMN_MODEL_PROPERTY, getColumnModel().toJSON().toString() );
+                getCompletePath().save( this );
+            }
+            catch( Exception e )
+            {
+                // still pending: the next finalizeAddition (or save of the table) tries again
+                throw ExceptionRegistry.translateException( e );
+            }
+            columnModelSavePending = false;
+        }
+    }
+
+    /** Writes the rows added and not yet written; the column operations use it, so that they do not save the table. */
+    protected void flushInsertedRows() throws BiosoftSQLException
+    {
         if( inserter != null )
         {
             inserter.flush();
             size = -1;
             names = null;
         }
+    }
+
+    /**
+     * Records the column model of a table without a column_info id in its info, and saves the table so that the info
+     * is stored. A table being built (no row yet) is saved once, at its finalizeAddition (or when its first row is added)
+     * instead of once per column: building a result table column by column saved it for every column, and a save of a
+     * table costs a lock, a quota check, two size queries and the info written (FilterTable copying 30 columns: 30 saves).
+     * The info is current at once, so any save of the table meanwhile stores it; and a table whose save never comes
+     * still has its columns, which initColumnModel reads from the database table (with their types, not their
+     * descriptions); analysis results are saved anyway when the analysis ends (AnalysisJobControl ->
+     * writeProperties), which stores the current info.
+     *
+     * <p>size == 0 means a table created here (createSQLTable) and given no row: the first row is added through
+     * prepareAddStatement, which calls finalizeAddition, so the save comes before the first row is written. A table
+     * opened from the repository starts at size -1 (unknown, not queried for this) and is saved at once, as before.</p>
+     */
+    private void saveColumnModel() throws Exception
+    {
+        saveColumnModel( getColumnModel().toJSON().toString() );
+    }
+
+    /** @param columnModel the column model to store, as JSON (see saveColumnModel()) */
+    private void saveColumnModel(String columnModel) throws Exception
+    {
+        getInfo().getProperties().setProperty( COLUMN_MODEL_PROPERTY, columnModel );
+        columnModelSavePending = true;
+        if( size == 0 )
+            return;
+        getCompletePath().save( this ); // a failure leaves it pending, for finalizeAddition to try again
+        columnModelSavePending = false;
     }
 
     protected String getOrderByClause()
@@ -1247,15 +1303,21 @@ public class SqlTableDataCollection extends TableDataCollection implements SqlDa
             if( length == -1 )
                 continue;
 
-            String sqlType = resultTable.getSQLType( length );
-            resultTable.columnLengths.put( columnName, SqlDataInfo.getColumnContentLength( sqlType ) );
+            String type = col.getType().name();
+            String sqlType = resultTable.getSQLType( type );
+            if( !type.equals( "Float" ) && !type.equals( "Integer" ) )
+            {
+                sqlType = resultTable.getSQLType( length );
+                resultTable.columnLengths.put( columnName, SqlDataInfo.getColumnContentLength( sqlType ) );
+            }
             SqlUtil.execute( resultTable.getConnection(),
                     resultTable.query( "ALTER TABLE $table$ MODIFY COLUMN $column$ $type$ DEFAULT NULL" )
                             .name( "column", resultTable.getSQLColumnName( columnName ) )
                             .raw( "type", sqlType )
             );
         }
-
+        resultTable.size = -1;
+        resultTable.names = null;
         return resultTable;
     }
 }

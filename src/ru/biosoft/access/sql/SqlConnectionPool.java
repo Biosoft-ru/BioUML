@@ -32,6 +32,7 @@ public class SqlConnectionPool
     static Logger cat = Logger.getLogger(SqlConnectionPool.class.getName());
 
     public static final long CONNECTION_TIMEOUT = 120000; // ms
+    static final int VALIDATION_TIMEOUT_SECONDS = 5;
 
     /**
      * Map of default JDBC driver classes
@@ -128,6 +129,12 @@ public class SqlConnectionPool
                 threadConnections.put(key, connection);
                 if( ! ( Thread.currentThread() instanceof SessionThread ) )
                     sqlConnectionCloser.register( connection );
+            }
+            else
+            {
+                // The loop above never times out the requested connection and SessionThread connections are not
+                // registered with the closer, so a worker's connection may be long dead (server wait_timeout)
+                connection.validateIfIdle( CONNECTION_TIMEOUT, VALIDATION_TIMEOUT_SECONDS );
             }
             return connection;
         }

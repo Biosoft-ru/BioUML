@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import com.developmentontheedge.beans.DynamicProperty;
@@ -23,12 +26,15 @@ import ru.biosoft.access.core.ClassIcon;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.access.task.ExceptionalConsumer;
+import ru.biosoft.access.task.TaskPool;
 import ru.biosoft.analysis.Stat;
 import ru.biosoft.analysiscore.AbstractAnalysisParameters;
 import ru.biosoft.analysiscore.AnalysisMethodSupport;
 import ru.biosoft.bsa.AnnotatedSequence;
 import ru.biosoft.bsa.BasicGenomeSelector;
 import ru.biosoft.bsa.Interval;
+import ru.biosoft.bsa.LinearSequence;
 import ru.biosoft.bsa.Sequence;
 import ru.biosoft.bsa.SequenceRegion;
 import ru.biosoft.bsa.Site;
@@ -44,6 +50,8 @@ import ru.biosoft.bsa.analysis.maos.coord_mapping.CoordinateMapping;
 import ru.biosoft.bsa.analysis.maos.coord_mapping.InverseMapping;
 import ru.biosoft.bsa.analysis.maos.coord_mapping.MappingByVCF;
 import ru.biosoft.bsa.analysis.maos.coord_mapping.ReverseStrandMapping;
+import ru.biosoft.exception.ExceptionRegistry;
+import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.table.ColumnModel;
 import ru.biosoft.table.RowDataElement;
 import ru.biosoft.table.TableDataCollection;
@@ -83,12 +91,16 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
         Track yesTrack = parameters.getYesVCFTrack().getDataElement( Track.class );
         Scores yesScores = computeMaxGainLossDeltas( yesTrack, chromosomes, siteModels, maxModelLength );
         jobControl.popProgress();
+        if( yesScores == null )
+            return null; // cancelled
 
         log.info( "Computing site gain/loss scores for control track" );
         jobControl.pushProgress( 25, 50 );
         Track noTrack = parameters.getNoVCFTrack().getDataElement( Track.class );
         Scores noScores = computeMaxGainLossDeltas( noTrack, chromosomes, siteModels, maxModelLength );
         jobControl.popProgress();
+        if( noScores == null )
+            return null; // cancelled
 
         log.info( "Finding site loss over/under representation" );
         jobControl.pushProgress( 50, 75 );
@@ -155,9 +167,31 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
             }
             DataElementPath trackPath = parameters.getFilteredVCFTrack();
             SqlTrack filteredYesTrack = SqlTrack.createTrack( trackPath, yesTrack, yesTrack.getClass() );
-            filterVCF( yesTrack, chromosomes, siteModels, maxModelLength, model2index, noScores, filteredYesTrack );
-            filteredYesTrack.finalizeAddition();
-            CollectionFactoryUtils.save( filteredYesTrack );
+            boolean completed = false;
+            try
+            {
+                if( !filterVCF( yesTrack, chromosomes, siteModels, maxModelLength, model2index, noScores, filteredYesTrack ) )
+                    return null; // cancelled
+                filteredYesTrack.finalizeAddition();
+                CollectionFactoryUtils.save( filteredYesTrack );
+                completed = true;
+            }
+            finally
+            {
+                // cancelled or failed: remove the track not finished, as ProcessTrack and FilterTrackAnalysis do on cancel
+                if( !completed )
+                {
+                    try
+                    {
+                        filteredYesTrack.getOrigin().remove( filteredYesTrack.getName() );
+                    }
+                    catch( Exception e )
+                    {
+                        // keep the exception that brought us here, if any
+                        log.log( Level.WARNING, "Cannot remove the unfinished track " + trackPath, e );
+                    }
+                }
+            }
             results.add( filteredYesTrack );
         }
         return results.toArray( new Object[0] );
@@ -187,7 +221,9 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
             gains = new float[siteModelCount][siteCount];
         }
     }
+    /** @return the scores, or null if cancelled */
     private Scores computeMaxGainLossDeltas(Track track, Map<String, Sequence> chromosomes, SiteModel[] siteModels, int maxModelLength)
+            throws Exception
     {
         DataCollection<Site> sites = track.getAllSites();
 
@@ -244,31 +280,141 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
         }
 
         Scores result = new Scores( siteModels.length, siteCount );
-        float[] gains = new float[siteModels.length];
-        float[] losses = new float[siteModels.length];
-
-        int i = 0;
-        for( Map.Entry<String, List<Variation>> e : variationsByChr.entrySet() )
-        {
-            String chrName = e.getKey();
-            Sequence seq = chromosomes.get( chrName );
-            for( Variation var : e.getValue() )
-            {
-                jobControl.setPreparedness( (int) ( (double)i * 100 / siteCount ) );
-                computeMaxGainLossDeltasForSite( var, seq, siteModels, maxModelLength, losses, gains );
-                for( int j = 0; j < siteModels.length; j++ )
-                {
-                    result.losses[j][i] = losses[j];
-                    result.gains[j][i] = gains[j];
-                }
-                i++;
-            }
-        }
-
+        if( !computeDeltas( variationsByChr, chromosomes, siteModels, maxModelLength, result.losses, result.gains, jobControl ) )
+            return null; // cancelled: the scores are incomplete
         return result;
     }
-    private void filterVCF(Track track, Map<String, Sequence> chromosomes, SiteModel[] siteModels, int maxModelLength,
+
+    /** A variation to score, with its chromosome; index is its place in the former loop over the variations. */
+    private static class ScoredVariation
+    {
+        final int index;
+        final Variation var;
+        final Sequence chromosome;
+        final SequenceAccessor accessor;
+
+        ScoredVariation(int index, Variation var, Sequence chromosome, SequenceAccessor accessor)
+        {
+            this.index = index;
+            this.var = var;
+            this.chromosome = chromosome;
+            this.accessor = accessor;
+        }
+    }
+
+    /** The variations of the map, numbered in the map's order, each with its chromosome and the accessor to read it. */
+    private static List<ScoredVariation> numbered(Map<String, List<Variation>> variationsByChr, Map<String, Sequence> chromosomes)
+    {
+        List<ScoredVariation> result = new ArrayList<>();
+        for( Map.Entry<String, List<Variation>> e : variationsByChr.entrySet() )
+        {
+            Sequence chromosome = chromosomes.get( e.getKey() );
+            // a chromosome is read by several threads: its regions are copied through one synchronized accessor, as
+            // SiteSearchAnalysis does; the copies are private to the thread
+            SequenceAccessor accessor = new SequenceAccessor( chromosome );
+            for( Variation var : e.getValue() )
+                result.add( new ScoredVariation( result.size(), var, chromosome, accessor ) );
+        }
+        return result;
+    }
+
+    /**
+     * Runs the body for every variation in parallel (TaskPool). Each variation is independent and writes only its own
+     * index of the results, so they do not depend on the threads. Stops at a cancel request.
+     *
+     * <p>The site models are shared by the threads, as in SiteSearchAnalysis, which scores with them in parallel too.
+     * Their scoring is safe for that: getScore, getMinScore, getLength and getAlphabet read the model; the state of a
+     * call is per thread (WeightMatrixModel: lazily built weights under double-checked locking, its letter cache in a
+     * ThreadLocal; IPSSiteModel, LogIPSSiteModel: ThreadLocal), and MatchSiteModel and the log/log-odds/custom weight
+     * models compute from final data. A new model class used here must keep that.</p>
+     * @param jobControl gets the progress, 0-100%, forward only; may be null
+     * @return false if cancelled
+     */
+    private static boolean forEachVariation(List<ScoredVariation> variations, ExceptionalConsumer<ScoredVariation> body,
+            JobControl jobControl) throws Exception
+    {
+        Progress progress = new Progress( jobControl, variations.size() );
+        try
+        {
+            // not given the jobControl: iterate would report the progress from several threads, out of order
+            TaskPool.getInstance().iterate( variations, variation -> {
+                if( jobControl != null && jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST )
+                    return false;
+                try
+                {
+                    body.accept( variation );
+                }
+                catch( Throwable t )
+                {
+                    throw ExceptionRegistry.translateException( t );
+                }
+                progress.add();
+                return true;
+            } );
+        }
+        catch( ExecutionException e )
+        {
+            throw ExceptionRegistry.translateException( e );
+        }
+        return jobControl == null || jobControl.getStatus() != JobControl.TERMINATED_BY_REQUEST;
+    }
+
+    /**
+     * Progress of work done in parallel, forward only. Counting is lock-free; only a new percent is published, in order,
+     * under the lock (at most 100 times).
+     */
+    private static class Progress
+    {
+        private final JobControl jobControl;
+        private final long total;
+        private final AtomicLong done = new AtomicLong();
+        private volatile int reported = -1;
+
+        Progress(JobControl jobControl, long total)
+        {
+            this.jobControl = jobControl;
+            this.total = Math.max( 1, total );
+        }
+
+        void add()
+        {
+            int percent = (int) ( done.incrementAndGet() * 100 / total );
+            if( jobControl == null || percent <= reported )
+                return;
+            synchronized( this )
+            {
+                if( percent > reported )
+                {
+                    reported = percent;
+                    jobControl.setPreparedness( percent );
+                }
+            }
+        }
+    }
+
+    /**
+     * The greatest site loss and gain of each model at each variation: losses[model][i] and gains[model][i], i in the
+     * order of the variations in the map (by chromosome, then as listed). Public for tests.
+     * @param jobControl gets the progress and may cancel; may be null
+     * @return false if cancelled (the scores are then incomplete)
+     */
+    public static boolean computeDeltas(Map<String, List<Variation>> variationsByChr, Map<String, Sequence> chromosomes,
+            SiteModel[] siteModels, int maxModelLength, float[][] losses, float[][] gains, JobControl jobControl) throws Exception
+    {
+        return forEachVariation( numbered( variationsByChr, chromosomes ), v -> {
+            float[] varLosses = new float[siteModels.length], varGains = new float[siteModels.length];
+            computeMaxGainLossDeltasForSite( v.var, v.chromosome, v.accessor, siteModels, maxModelLength, varLosses, varGains );
+            for( int j = 0; j < siteModels.length; j++ )
+            {
+                losses[j][v.index] = varLosses[j];
+                gains[j][v.index] = varGains[j];
+            }
+        }, jobControl );
+    }
+    /** @return false if cancelled: then nothing was written */
+    private boolean filterVCF(Track track, Map<String, Sequence> chromosomes, SiteModel[] siteModels, int maxModelLength,
             Map<String, Integer> siteModelToIndex, Scores bgScores, SqlTrack resultTrack)
+            throws Exception
     {
         //TODO: here we run again computeMaxGainLossDeltasForSite
         //Think about caching variation-site-gain-loss data
@@ -276,7 +422,6 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
 
         SiteModel[] siteModelsTop = StreamEx.of( siteModels ).filter( sm -> siteModelToIndex.containsKey( sm.getName() ) )
                 .toArray( SiteModel[]::new );
-        int siteCount = 0;
         Set<String> missingChromosomes = new HashSet<>();
         Map<String, List<Variation>> variationsByChr = new HashMap<>();
         for( Site s : sites )
@@ -305,69 +450,84 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
                 .computeIfAbsent( chrName, k->new ArrayList<>() )
                 .add( var );
 
-            siteCount++;
         }
 
-        float[] gains = new float[siteModelsTop.length];
-        float[] losses = new float[siteModelsTop.length];
-
-        int i = 0;
-        for(Map.Entry<String, List<Variation>> e : variationsByChr.entrySet())
-        {
-            String chrName = e.getKey();
-            Sequence seq = chromosomes.get( chrName );
-            for(Variation var : e.getValue())
+        // the weights are computed in parallel, then the sites are written in the former order
+        List<ScoredVariation> variations = numbered( variationsByChr, chromosomes );
+        double[] weights = new double[variations.size()];
+        if( !forEachVariation( variations, v -> {
+            float[] gains = new float[siteModelsTop.length];
+            float[] losses = new float[siteModelsTop.length];
+            computeMaxGainLossDeltasForSite( v.var, v.chromosome, v.accessor, siteModelsTop, maxModelLength, losses, gains );
+            int igain = 0, iloss = 0;
+            for( int j = 1; j < siteModelsTop.length; j++ )
             {
-                jobControl.setPreparedness( (int)((double)i * 100 / siteCount) );
-                computeMaxGainLossDeltasForSite( var, seq, siteModelsTop, maxModelLength, losses, gains );
-                int igain = 0, iloss = 0;
-                for( int j = 1; j < siteModelsTop.length; j++ )
+                if( gains[j] > gains[igain] )
+                    igain = j;
+                if( losses[j] > losses[iloss] )
+                    iloss = j;
+            }
+            float[] values;
+            float cur;
+            if( gains[igain] > losses[iloss] )
+            {
+                cur = gains[igain];
+                SiteModel sm = siteModelsTop[igain];
+                int smi = siteModelToIndex.get( sm.getName() );
+                values = bgScores.gains[smi];
+                //count in bg gains
+            }
+            else
+            {
+                cur = losses[iloss];
+                //count in bg losses
+                SiteModel sm = siteModelsTop[iloss];
+                int smi = siteModelToIndex.get( sm.getName() );
+                values = bgScores.losses[smi];
+            }
+            int numGreater = 0;
+            for( int j = 0; j < values.length; j++ )
+                if( values[j] >= cur )
+                    numGreater++;
+            weights[v.index] = numGreater > 0 ? -Math.log10( (double)numGreater / values.length )
+                    : -Math.log10( 1.0 / ( 2.0 * values.length ) );
+        }, jobControl ) )
+            return false;
+        int failed = 0, notFound = 0;
+        Exception firstFailure = null;
+        String firstFailed = null;
+        for( ScoredVariation v : variations )
+        {
+            if( jobControl.getStatus() == JobControl.TERMINATED_BY_REQUEST )
+                return false; // the caller then neither finalizes nor saves the track
+            try
+            {
+                Site site = sites.get( v.var.id );
+                if( site != null )
                 {
-                    if( gains[j] > gains[igain] )
-                        igain = j;
-                    if( losses[j] > losses[iloss] )
-                        iloss = j;
-                }
-                float[] values;
-                float cur;
-                if( gains[igain] > losses[iloss] )
-                {
-                    cur = gains[igain];
-                    SiteModel sm = siteModelsTop[igain];
-                    int smi = siteModelToIndex.get( sm.getName() );
-                    values = bgScores.gains[smi];
-                    //count in bg gains
+                    Site si = ( (SiteImpl)site ).clone( resultTrack );
+                    si.getProperties().add( new DynamicProperty( CHANGING_PROPERTY, Float.class, weights[v.index] ) );
+                    resultTrack.addSite( si );
                 }
                 else
+                    notFound++;
+            }
+            catch( Exception e )
+            {
+                // a site that cannot be written is left out, as before, but no longer silently
+                if( failed++ == 0 )
                 {
-                    cur = losses[iloss];
-                    //count in bg losses
-                    SiteModel sm = siteModelsTop[iloss];
-                    int smi = siteModelToIndex.get( sm.getName() );
-                    values = bgScores.losses[smi];
+                    firstFailure = e;
+                    firstFailed = v.var.id;
                 }
-                int numGreater = 0;
-                for( int j = 0; j < values.length; j++ )
-                    if( values[j] >= cur )
-                        numGreater++;
-                double weight = numGreater > 0 ? -Math.log10( (double)numGreater / values.length )
-                        : -Math.log10( 1.0 / ( 2.0 * values.length ) );
-                try
-                {
-                    Site site = sites.get( var.id );
-                    if( site != null )
-                    {
-                        Site si = ( (SiteImpl)site ).clone( resultTrack );
-                        si.getProperties().add( new DynamicProperty( CHANGING_PROPERTY, Float.class, weight ) );
-                        resultTrack.addSite( si );
-                    }
-                }
-                catch( Exception e1 )
-                {
-                }
-                i++;
             }
         }
+        if( notFound > 0 )
+            log.warning( notFound + " variation(s) were not found in the input track and are not in the filtered track" );
+        if( failed > 0 )
+            log.log( Level.WARNING, failed + " site(s) could not be written to the filtered track; the first, " + firstFailed + ":",
+                    firstFailure );
+        return jobControl.getStatus() != JobControl.TERMINATED_BY_REQUEST;
     }
 
     private Map<String, List<Variation>> subSample(Map<String, List<Variation>> variations, int maxSize)
@@ -396,13 +556,14 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
     }
 
 
-    private void computeMaxGainLossDeltasForSite(Variation var, Sequence chrSeq, SiteModel[] siteModels, int maxModelLength, float[] resultLosses,
-            float[] resultGains)
+    private static void computeMaxGainLossDeltasForSite(Variation var, Sequence chrSeq, SequenceAccessor chrAccessor, SiteModel[] siteModels,
+            int maxModelLength, float[] resultLosses, float[] resultGains)
     {
         Interval interval = var.grow( maxModelLength ).intersect( chrSeq.getInterval() );
         if( interval == null )
             throw new RuntimeException( "Variation out of chromosome bounds: " + chrSeq.getName() + ":" + var );
-        CachedSequenceRegion reference = new CachedSequenceRegion( chrSeq, interval.getFrom(), interval.getLength(), false );
+        // copied through the accessor (synchronized): the chromosome is shared by the threads, the copy is not
+        CachedSequenceRegion reference = chrAccessor.getSubSequence( interval.getFrom(), interval.getLength(), false );
         CachedSequenceRegion referenceRC = reference.getReverseComplement();
 
         int relativeFrom = reference.translatePositionBack( var.getFrom() );
@@ -416,36 +577,147 @@ public class CompareTFBSMutationsWithVCF extends AnalysisMethodSupport<CompareTF
         InverseMapping alt2ref = new InverseMapping( alternative.getInterval(), ref2alt );
         InverseMapping alt2refRC = new InverseMapping( alternativeRC.getInterval(), ref2altRC );
 
+        // This is the hot path of the analysis (every variation x every model). The loss pass scores every reference
+        // window and the alternative windows they map to; the gain pass scores every alternative window and the
+        // reference windows they map to -- i.e. the same scores again. So each window of the four sequences is scored
+        // once per model into a buffer and both passes read from it. The window -> mapped-windows lists depend only on
+        // the mapping and the model length, so they are computed once per distinct length rather than once per model.
+        // getScore and getMinScore are pure, so the deltas are bit-identical to scoring on demand.
+        double[] refScores = new double[reference.getLength()];
+        double[] refRCScores = new double[referenceRC.getLength()];
+        double[] altScores = new double[alternative.getLength()];
+        double[] altRCScores = new double[alternativeRC.getLength()];
+        int[][][] ref2altWindows = new int[maxModelLength + 1][][];
+        int[][][] ref2altRCWindows = new int[maxModelLength + 1][][];
+        int[][][] alt2refWindows = new int[maxModelLength + 1][][];
+        int[][][] alt2refRCWindows = new int[maxModelLength + 1][][];
+
+        // The four sequences are three different classes (cached region, reverse-complement region, linear sequence),
+        // so the per-letter getLetterAt in the scoring loop is megamorphic and costs an itable dispatch plus position
+        // translation per letter -- more than half of the scoring time. Plain array-backed copies (same start, length,
+        // alphabet and letters) keep that call site monomorphic. Used only for weight-matrix models with a one-letter
+        // code, which read nothing outside the scored window, so their scores are identical. The copies are made only
+        // when at least one model can use them (with only a few other models they measurably cost more than they save).
+        boolean anyFlat = false;
+        for( SiteModel model : siteModels )
+            anyFlat |= model instanceof WeightMatrixModel && model.getAlphabet().codeLength() == 1;
+        Sequence referenceFlat = anyFlat ? flatten( reference ) : reference;
+        Sequence referenceRCFlat = anyFlat ? flatten( referenceRC ) : referenceRC;
+        Sequence alternativeFlat = anyFlat ? flatten( alternative ) : alternative;
+        Sequence alternativeRCFlat = anyFlat ? flatten( alternativeRC ) : alternativeRC;
+
         for( int i = 0; i < siteModels.length; i++ )
         {
             SiteModel model = siteModels[i];
-            float loss = maxSiteLoss( reference, alternative, ref2alt, model );
-            float lossRC = maxSiteLoss( referenceRC, alternativeRC, ref2altRC, model );
+            int length = model.getLength();
+            boolean flat = model instanceof WeightMatrixModel && model.getAlphabet().codeLength() == 1;
+            int refCount = scoreWindows( model, flat ? referenceFlat : reference, refScores );
+            int refRCCount = scoreWindows( model, flat ? referenceRCFlat : referenceRC, refRCScores );
+            int altCount = scoreWindows( model, flat ? alternativeFlat : alternative, altScores );
+            int altRCCount = scoreWindows( model, flat ? alternativeRCFlat : alternativeRC, altRCScores );
+
+            if( ref2altWindows[length] == null )
+            {
+                ref2altWindows[length] = mapWindows( reference, ref2alt, alternative, length );
+                ref2altRCWindows[length] = mapWindows( referenceRC, ref2altRC, alternativeRC, length );
+                alt2refWindows[length] = mapWindows( alternative, alt2ref, reference, length );
+                alt2refRCWindows[length] = mapWindows( alternativeRC, alt2refRC, referenceRC, length );
+            }
+
+            float loss = maxSiteLoss( refScores, refCount, alternative, altScores, altCount, ref2altWindows[length], model );
+            float lossRC = maxSiteLoss( refRCScores, refRCCount, alternativeRC, altRCScores, altRCCount, ref2altRCWindows[length],
+                    model );
             resultLosses[i] = Math.max( loss, lossRC );
 
-            float gain = maxSiteLoss( alternative, reference, alt2ref, model );
-            float gainRC = maxSiteLoss( alternativeRC, referenceRC, alt2refRC, model );
+            float gain = maxSiteLoss( altScores, altCount, reference, refScores, refCount, alt2refWindows[length], model );
+            float gainRC = maxSiteLoss( altRCScores, altRCCount, referenceRC, refRCScores, refRCCount, alt2refRCWindows[length],
+                    model );
             resultGains[i] = Math.max( gain, gainRC );
         }
     }
 
-    private float maxSiteLoss(Sequence reference, Sequence alternative, CoordinateMapping mapping, SiteModel siteModel)
+    /** The windows of a window mapped to no window (or only to windows outside the target). */
+    private static final int[] NO_WINDOWS = new int[0];
+
+    /** An array-backed copy of the sequence with the same start, length, alphabet and letters. */
+    private static Sequence flatten(Sequence sequence)
+    {
+        int start = sequence.getStart();
+        byte[] letters = new byte[sequence.getLength()];
+        for( int k = 0; k < letters.length; k++ )
+            letters[k] = sequence.getLetterAt( start + k );
+        return new LinearSequence( sequence.getName(), start, letters, sequence.getAlphabet() );
+    }
+
+    /**
+     * Scores every window of the sequence: scores[k] is the score at position sequence.getStart() + k.
+     * @return the number of windows
+     */
+    private static int scoreWindows(SiteModel siteModel, Sequence sequence, double[] scores)
+    {
+        int start = sequence.getStart();
+        int count = Math.max( 0, sequence.getLength() - siteModel.getLength() + 1 );
+        for( int k = 0; k < count; k++ )
+            scores[k] = siteModel.getScore( sequence, start + k );
+        return count;
+    }
+
+    /**
+     * For each window of the source, the starts of the windows of the target it maps to.
+     *
+     * <p>Only windows lying wholly within the target are kept. A window that crosses an indel maps to candidate starts
+     * shifted by the indel, and these can reach past the target. Away from the chromosome ends they never do: the scored
+     * region extends the longest model length on each side of the variation. Where the region is cut at a chromosome
+     * end, they do, and scoring them read past the sequence (ArrayIndexOutOfBoundsException). Such a window would
+     * extend past the chromosome, so it is no site. A source window none of whose windows remains counts as one with no
+     * mapped window: its site is lost.</p>
+     */
+    public static int[][] mapWindows(Sequence source, CoordinateMapping mapping, Sequence target, int length) // public for tests
+    {
+        int start = source.getStart();
+        int count = Math.max( 0, source.getLength() - length + 1 );
+        int targetFrom = target.getStart(), targetLastStart = target.getStart() + target.getLength() - length;
+        int[][] result = new int[count][];
+        for( int k = 0; k < count; k++ )
+        {
+            Collection<Integer> mapped = mapping.mapInterval( new Interval( start + k, start + k + length - 1 ) );
+            int[] positions = new int[mapped.size()];
+            int j = 0;
+            for( Integer pos : mapped )
+                if( pos >= targetFrom && pos <= targetLastStart )
+                    positions[j++] = pos;
+            result[k] = j == 0 ? NO_WINDOWS : j == positions.length ? positions : Arrays.copyOf( positions, j );
+        }
+        return result;
+    }
+
+    private static float maxSiteLoss(double[] refScores, int refCount, Sequence alternative, double[] altScores, int altCount,
+            int[][] windows, SiteModel siteModel)
     {
         float res = 0;
-        for( int pos = reference.getStart(); pos < reference.getStart() + reference.getLength() - siteModel.getLength() + 1; pos++ )
+        // getMinScore loops over the whole weight matrix, and it is needed only for a window with no mapped window
+        // (an indel longer than the model), which most variations never have -- so compute it on first use only.
+        double minScore = Double.NaN;
+        int altStart = alternative.getStart();
+        for( int k = 0; k < refCount; k++ )
         {
-            double refScore = siteModel.getScore( reference, pos );
-            Collection<Integer> altPositions = mapping.mapInterval( new Interval( pos, pos + siteModel.getLength() - 1 ) );
-            if( altPositions.isEmpty() )
+            double refScore = refScores[k];
+            int[] altPositions = windows[k];
+            if( altPositions.length == 0 )
             {
-                float delta = (float) ( refScore - siteModel.getMinScore() );
+                if( Double.isNaN( minScore ) )
+                    minScore = siteModel.getMinScore();
+                float delta = (float) ( refScore - minScore );
                 if( delta > res )
                     res = delta;
                 continue;
             }
-            for( Integer altPos : altPositions )
+            for( int altPos : altPositions )
             {
-                double altScore = siteModel.getScore( alternative, altPos );
+                int idx = altPos - altStart;
+                // A mapped window can start outside the alternative's window range (e.g. a deletion at the edge of
+                // the region); score it on demand exactly as before instead of reading the buffer.
+                double altScore = idx >= 0 && idx < altCount ? altScores[idx] : siteModel.getScore( alternative, altPos );
                 float delta = (float) (refScore - altScore);
                 if( delta > res )
                     res = delta;

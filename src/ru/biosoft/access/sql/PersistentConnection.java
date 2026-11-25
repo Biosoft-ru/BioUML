@@ -12,6 +12,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.sql.SQLNonTransientConnectionException;
 import java.sql.SQLRecoverableException;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
@@ -33,9 +35,17 @@ import java.util.logging.Logger;
 public class PersistentConnection implements Connection
 {
     private static Logger cat = Logger.getLogger(PersistentConnection.class.getName());
-    private Connection parent;
+    private volatile Connection parent;
     private volatile long lastActivity;
-    private boolean closedByTimeout;
+    private volatile boolean closedByTimeout;
+    /**
+     * Guards every replacement of {@link #parent} (reconnect, idle close and reopen, idle validation) and every
+     * creation of a statement on it, so that a statement is always created on the current connection and
+     * concurrent failures of statements on the same connection replace it once.
+     * Lock order: replacementLock before {@link #statements}, never the reverse. Statements register only from
+     * their constructors, which run under replacementLock (see {@link #withRetry}).
+     */
+    private final Object replacementLock = new Object();
     private String url, user, password;
     private Collection<Statement> statements = new ArrayList<>();
     private static String CONNECTION_RESET = "Connection reset";
@@ -61,7 +71,15 @@ public class PersistentConnection implements Connection
         }
     }
 
-    public synchronized void reconnect(SQLException ex) throws SQLException
+    public void reconnect(SQLException ex) throws SQLException
+    {
+        synchronized( replacementLock )
+        {
+            doReconnect( ex );
+        }
+    }
+
+    private void doReconnect(SQLException ex) throws SQLException
     {
         if( ex != null )
         {
@@ -90,17 +108,91 @@ public class PersistentConnection implements Connection
         }
         cat.info("Reconnected successfully!");
     }
+
+    @FunctionalInterface
+    interface ConnectionFunction<T>
+    {
+        T apply(Connection connection) throws SQLException;
+    }
+
+    /**
+     * Runs function on the current wrapped connection; if it fails with a connection error, reconnects and runs it
+     * once more. Only for creating statements: never pass the execution of SQL, which may already have taken effect
+     * on the server when the connection failed (a retried INSERT could run twice). All of it happens under {@link #replacementLock}: another thread failing at the same time waits and
+     * then simply uses the new connection instead of replacing it a second time.
+     */
+    <T> T withRetry(ConnectionFunction<T> function) throws SQLException
+    {
+        synchronized( replacementLock )
+        {
+            try
+            {
+                return function.apply( parent );
+            }
+            catch( SQLException e )
+            {
+                doReconnect( e );
+                return function.apply( parent );
+            }
+        }
+    }
+
+    /**
+     * For a statement bound to expected that failed with ex: reconnects unless the connection was already replaced
+     * since then (by another statement or by validation), then runs function on the current connection to create the
+     * statement's replacement. The check, the reconnect and the creation are one critical section, so the new
+     * statement cannot end up on a connection that is being replaced.
+     */
+    <T> T reconnectIfCurrent(Connection expected, SQLException ex, ConnectionFunction<T> function) throws SQLException
+    {
+        synchronized( replacementLock )
+        {
+            if( parent == expected )
+                doReconnect( ex );
+            return function.apply( parent );
+        }
+    }
+
+    void reconnectIfCurrent(Connection expected, SQLException ex) throws SQLException
+    {
+        reconnectIfCurrent( expected, ex, c -> null );
+    }
+
+    @FunctionalInterface
+    interface SqlAction
+    {
+        void run() throws SQLException;
+    }
+
+    /**
+     * Closes a statement of this connection under {@link #replacementLock}, so the close cannot interleave with the
+     * statement being rebound to a new connection (which happens under the same lock), and unregisters it only after
+     * the JDBC close has returned or thrown: until then idle validation must still see it as open.
+     */
+    void closeStatement(Statement statement, SqlAction close) throws SQLException
+    {
+        synchronized( replacementLock )
+        {
+            try
+            {
+                close.run();
+            }
+            finally
+            {
+                releaseStatement( statement );
+            }
+        }
+    }
     
     /**
      * Update last activity time
      * @throws SQLException
      */
-    private Object lock = new Object();
     public void touch()
     {
         if(closedByTimeout)
         {
-            synchronized( lock )
+            synchronized( replacementLock )
             {
                 if( closedByTimeout )
                 {
@@ -123,10 +215,9 @@ public class PersistentConnection implements Connection
     {
         if( !closedByTimeout )
         {
-            synchronized( lock )
+            synchronized( replacementLock )
             {
-
-                if( !closedByTimeout && statements.isEmpty() && System.currentTimeMillis() - lastActivity > millis )
+                if( !closedByTimeout && noOpenStatements() && System.currentTimeMillis() - lastActivity > millis )
                 {
                     try
                     {
@@ -138,6 +229,14 @@ public class PersistentConnection implements Connection
                     closedByTimeout = true;
                 }
             }
+        }
+    }
+
+    private boolean noOpenStatements()
+    {
+        synchronized( statements )
+        {
+            return statements.isEmpty();
         }
     }
 
@@ -220,45 +319,21 @@ public class PersistentConnection implements Connection
     public Statement createStatement() throws SQLException
     {
         touch();
-        try
-        {
-            return new PersistentStatement(this, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability());
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return new PersistentStatement(this, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability());
-        }
+        return withRetry( c -> new PersistentStatement(this, c, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability()) );
     }
 
     @Override
     public Statement createStatement(int arg0, int arg1, int arg2) throws SQLException
     {
         touch();
-        try
-        {
-            return new PersistentStatement(this, arg0, arg1, arg2);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return new PersistentStatement(this, arg0, arg1, arg2);
-        }
+        return withRetry( c -> new PersistentStatement(this, c, arg0, arg1, arg2) );
     }
 
     @Override
     public Statement createStatement(int arg0, int arg1) throws SQLException
     {
         touch();
-        try
-        {
-            return new PersistentStatement(this, arg0, arg1, getHoldability());
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return new PersistentStatement(this, arg0, arg1, getHoldability());
-        }
+        return withRetry( c -> new PersistentStatement(this, c, arg0, arg1, getHoldability()) );
     }
 
     @Override
@@ -370,135 +445,65 @@ public class PersistentConnection implements Connection
     public CallableStatement prepareCall(String arg0, int arg1, int arg2, int arg3) throws SQLException
     {
         touch();
-        try
-        {
-            return parent.prepareCall(arg0, arg1, arg2, arg3);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return parent.prepareCall(arg0, arg1, arg2, arg3);
-        }
+        return withRetry( c -> TrackedCallableStatement.wrap(this, c.prepareCall(arg0, arg1, arg2, arg3)) );
     }
 
     @Override
     public CallableStatement prepareCall(String arg0, int arg1, int arg2) throws SQLException
     {
         touch();
-        try
-        {
-            return parent.prepareCall(arg0, arg1, arg2);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return parent.prepareCall(arg0, arg1, arg2);
-        }
+        return withRetry( c -> TrackedCallableStatement.wrap(this, c.prepareCall(arg0, arg1, arg2)) );
     }
 
     @Override
     public CallableStatement prepareCall(String arg0) throws SQLException
     {
         touch();
-        try
-        {
-            return parent.prepareCall(arg0);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return parent.prepareCall(arg0);
-        }
+        return withRetry( c -> TrackedCallableStatement.wrap(this, c.prepareCall(arg0)) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0, int arg1, int arg2, int arg3) throws SQLException
     {
         touch();
-        try
-        {
-            return new PersistentPreparedStatement(this, arg0, arg1, arg2, arg3);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return new PersistentPreparedStatement(this, arg0, arg1, arg2, arg3);
-        }
+        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, arg1, arg2, arg3) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0, int arg1, int arg2) throws SQLException
     {
         touch();
-        try
-        {
-            return new PersistentPreparedStatement(this, arg0, arg1, arg2, getHoldability());
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return new PersistentPreparedStatement(this, arg0, arg1, arg2, getHoldability());
-        }
+        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, arg1, arg2, getHoldability()) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0, int arg1) throws SQLException
     {
         touch();
-        try
-        {
-            return parent.prepareStatement(arg0, arg1);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return parent.prepareStatement(arg0, arg1);
-        }
+        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, c2 -> c2.prepareStatement(arg0, arg1)) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0, int[] arg1) throws SQLException
     {
         touch();
-        try
-        {
-            return parent.prepareStatement(arg0, arg1);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return parent.prepareStatement(arg0, arg1);
-        }
+        int[] columns = arg1 == null ? null : arg1.clone(); // re-preparing after a reconnect must not see later changes
+        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, c2 -> c2.prepareStatement(arg0, columns)) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0, String[] arg1) throws SQLException
     {
         touch();
-        try
-        {
-            return parent.prepareStatement(arg0, arg1);
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return parent.prepareStatement(arg0, arg1);
-        }
+        String[] columns = arg1 == null ? null : arg1.clone(); // re-preparing after a reconnect must not see later changes
+        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, c2 -> c2.prepareStatement(arg0, columns)) );
     }
 
     @Override
     public PreparedStatement prepareStatement(String arg0) throws SQLException
     {
         touch();
-        try
-        {
-            return new PersistentPreparedStatement(this, arg0, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability());
-        }
-        catch (SQLException e)
-        {
-            reconnect(e);
-            return new PersistentPreparedStatement(this, arg0, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability());
-        }
+        return withRetry( c -> new PersistentPreparedStatement(this, c, arg0, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, getHoldability()) );
     }
 
     @Override
@@ -512,13 +517,14 @@ public class PersistentConnection implements Connection
     public void rollback() throws SQLException
     {
         touch();
+        Connection current = parent;
         try
         {
-            parent.rollback();
+            current.rollback();
         }
         catch (SQLException e)
         {
-            reconnect(e);
+            reconnectIfCurrent(current, e);
         }
     }
 
@@ -662,7 +668,81 @@ public class PersistentConnection implements Connection
             cat.log(Level.WARNING, "Trying to reconnect on 'Connection reset'", ex);
             return;
         }
+        // The driver has already given up on the wrapped connection, e.g. MySQL's "No operations allowed after
+        // connection closed." (SQLNonTransientConnectionException, SQLState 08003) once an earlier call, often a
+        // prepared statement, which does not reconnect, hit a socket the server dropped after wait_timeout.
+        // Without reconnecting here every later call on this thread's connection fails the same way for good.
+        else if ( ex instanceof SQLNonTransientConnectionException || isConnectionState( ex.getSQLState() ) || isParentClosed() )
+            return;
         else
             throw ex;
+    }
+
+    /** SQLState class 08 = connection exception */
+    private static boolean isConnectionState(String sqlState)
+    {
+        return sqlState != null && sqlState.startsWith( "08" );
+    }
+
+    private boolean isParentClosed()
+    {
+        try
+        {
+            return parent.isClosed();
+        }
+        catch( SQLException e )
+        {
+            return true;
+        }
+    }
+
+    /**
+     * Replaces the wrapped connection if it has been idle for longer than idleMillis and no longer answers.
+     * A connection kept by a long-lived worker thread can sit unused for hours (e.g. through a CMA run) while
+     * the server drops it after wait_timeout; checking it once on checkout is cheaper than failing the analysis.
+     * Skipped while statements are open: a result set may still be streaming over this connection
+     * (reading rows does not update the activity time), and pinging or replacing it would break that.
+     */
+    public void validateIfIdle(long idleMillis, int timeoutSeconds) throws SQLException
+    {
+        if( !isIdle( idleMillis ) )
+            return; // cheap check without the lock; repeated under it
+        // Held through the ping and the reconnect: statements are only created and registered under this lock,
+        // so with no open statement none can start (or still be streaming) while the connection is pinged or
+        // replaced, even when the connection object is shared between threads (callers keep it in fields)
+        synchronized( replacementLock )
+        {
+            // rechecked under the lock: another thread may have used the connection in the meantime
+            if( !isIdle( idleMillis ) || !noOpenStatements() )
+                return;
+            if( !isAlive( timeoutSeconds ) )
+                doReconnect( null );
+        }
+        touch();
+    }
+
+    private boolean isIdle(long idleMillis)
+    {
+        return !closedByTimeout && System.currentTimeMillis() - lastActivity > idleMillis;
+    }
+
+    private boolean isAlive(int timeoutSeconds)
+    {
+        try
+        {
+            if( parent.isValid( timeoutSeconds ) )
+                return true;
+            cat.log( Level.WARNING, "Idle connection " + url + " (user:" + user + ") did not answer within " + timeoutSeconds + " s" );
+            return false;
+        }
+        catch( SQLFeatureNotSupportedException | AbstractMethodError e )
+        {
+            return true; // the driver cannot tell: keep the connection, as before validation existed
+        }
+        catch( SQLException e )
+        {
+            cat.log( Level.WARNING, "Validation of idle connection " + url + " (user:" + user + ") failed, reconnecting", e );
+            return false;
+        }
     }
 }
