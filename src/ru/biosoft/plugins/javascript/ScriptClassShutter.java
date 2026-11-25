@@ -13,6 +13,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.mozilla.javascript.ClassShutter;
+import org.mozilla.javascript.ScriptRuntime;
+import org.mozilla.javascript.ScriptableObject;
 
 import com.developmentontheedge.application.Application;
 import com.developmentontheedge.beans.Preferences;
@@ -39,6 +41,40 @@ import org.mozilla.javascript.Context;
 public class ScriptClassShutter implements ClassShutter
 {
     private static final Logger log = Logger.getLogger( ScriptClassShutter.class.getName() );
+
+    // Only a user script job may enter its private administrator scope. A worker and its
+    // Rhino context can both be reused by subsequent jobs.
+    private static final ThreadLocal<ScriptableObject> adminScope = new ThreadLocal<>();
+
+    static void runInScope(ScriptableObject scope, boolean administrator, Runnable action)
+    {
+        ScriptableObject previous = adminScope.get();
+        if( administrator )
+            adminScope.set( scope );
+        else
+            adminScope.remove();
+        try
+        {
+            action.run();
+        }
+        finally
+        {
+            if( previous == null )
+                adminScope.remove();
+            else
+                adminScope.set( previous );
+        }
+    }
+
+    private static boolean inAdminScope()
+    {
+        ScriptableObject scope = adminScope.get();
+        if( scope == null )
+            return false;
+        Context cx = Context.getCurrentContext();
+        // Variables are wrapped before Rhino enters the top-level script call.
+        return cx != null && ( !ScriptRuntime.hasTopCall( cx ) || ScriptRuntime.getTopCallScope( cx ) == scope );
+    }
 
     /** The preferences.xml entry with the mode: enforce, audit or off. */
     public static final String MODE_PREFERENCE = "JavaScriptClassShutter";
@@ -249,13 +285,13 @@ public class ScriptClassShutter implements ClassShutter
         ScriptClassShutter shutter = getInstance();
         if( value == null || shutter.mode != Mode.ENFORCE || value instanceof org.mozilla.javascript.Scriptable )
             return false;
-        return !shutter.isAllowed( value.getClass().getName() );
+        return !shutter.isAllowed( value.getClass().getName() ) && !inAdminScope();
     }
 
     @Override
     public boolean visibleToScripts(String fullClassName)
     {
-        if( isAllowed( fullClassName ) )
+        if( isAllowed( fullClassName ) || inAdminScope() )
             return true;
         // Rhino also asks about each package prefix while resolving Packages.a.b.C: not worth a log line
         if( !isPackageName( fullClassName ) && reported.add( fullClassName ) )

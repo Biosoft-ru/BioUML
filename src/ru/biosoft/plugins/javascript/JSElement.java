@@ -1,9 +1,11 @@
 package ru.biosoft.plugins.javascript;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.WeakHashMap;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeArray;
@@ -23,6 +25,7 @@ import ru.biosoft.access.script.DerivedScriptEnvironment;
 import ru.biosoft.access.script.ScriptDataElement;
 import ru.biosoft.access.script.ScriptEnvironment;
 import ru.biosoft.access.script.ScriptJobControl;
+import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.access.security.SessionCache;
 import ru.biosoft.access.security.SessionCacheManager;
 import com.developmentontheedge.beans.annot.PropertyName;
@@ -35,6 +38,10 @@ import ru.biosoft.jobcontrol.JobControlException;
 public class JSElement extends ScriptDataElement
 {
     private static final String JAVA_SCRIPT_SCOPE_PROPERTY = "properties/JavaScript/scope";
+
+    // Keep privileged wrappers out of the script-accessible session cache. A new login
+    // creates a new SessionCache, so its administrator console starts with a fresh scope.
+    private static final Map<SessionCache, Global> adminScopes = Collections.synchronizedMap( new WeakHashMap<>() );
 
     public JSElement(DataCollection<?> parent, String name, String data)
     {
@@ -303,26 +310,64 @@ public class JSElement extends ScriptDataElement
             } );
             debugger.init();
             Context context = JScriptContext.getContext();
-            ScriptableObject topLevelScope;
-            if(sessionContext)
+            boolean administrator = ScriptClassShutter.getInstance().getMode() != ScriptClassShutter.Mode.OFF
+                    && SecurityManager.isSessionUserAdmin();
+            ScriptableObject topLevelScope = getJobScope( context, administrator );
+            if( administrator )
             {
-                SessionCache sessionCache = SessionCacheManager.getSessionCache();
-                synchronized(sessionCache)
+                // Nested table expressions and host functions can use the worker's default scope.
+                // Give those calls a separate global so their Java wrappers stay inside this job.
+                var previousScope = JScriptContext.getScope();
+                var previousDebugger = context.getDebugger();
+                Object previousDebuggerData = context.getDebuggerContextData();
+                JScriptContext.setScope( createTopLevelScope( context ) );
+                try
                 {
-                    Object scopeObj = sessionCache.getObject(JAVA_SCRIPT_SCOPE_PROPERTY);
-                    if(scopeObj instanceof ScriptableObject)
-                    {
-                        topLevelScope = (ScriptableObject)scopeObj;
-                    } else
-                    {
-                        topLevelScope = createTopLevelScope( context );
-                        sessionCache.addObject(JAVA_SCRIPT_SCOPE_PROPERTY, topLevelScope, true);
-                    }
+                    ScriptClassShutter.runInScope( topLevelScope, true, () -> executeInScope( context, topLevelScope ) );
                 }
-            } else
-            {
-                topLevelScope = createTopLevelScope( context );
+                finally
+                {
+                    JScriptContext.setScope( previousScope );
+                    context.setDebugger( previousDebugger, previousDebuggerData );
+                }
             }
+            else
+            {
+                ScriptClassShutter.runInScope( topLevelScope, false, () -> executeInScope( context, topLevelScope ) );
+            }
+        }
+
+        private ScriptableObject getJobScope(Context context, boolean administrator)
+        {
+            if( !sessionContext )
+                return createTopLevelScope( context );
+
+            SessionCache cache = SessionCacheManager.getSessionCache();
+            if( cache == null )
+                return createTopLevelScope( context );
+            synchronized( cache )
+            {
+                if( administrator )
+                {
+                    Global global = adminScopes.get( cache );
+                    if( global == null )
+                    {
+                        global = createTopLevelScope( context );
+                        adminScopes.put( cache, global );
+                    }
+                    return global;
+                }
+                Object existing = cache.getObject( JAVA_SCRIPT_SCOPE_PROPERTY );
+                if( existing instanceof ScriptableObject global )
+                    return global;
+                Global global = createTopLevelScope( context );
+                cache.addObject( JAVA_SCRIPT_SCOPE_PROPERTY, global, true );
+                return global;
+            }
+        }
+
+        private void executeInScope(Context context, ScriptableObject topLevelScope)
+        {
             try
             {
                 Scriptable buck = JavaScriptUtils.defineVariables( topLevelScope, scope );

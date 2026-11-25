@@ -747,6 +747,26 @@ public class SecurityManager
         }
     }
 
+    /** Root ADMIN of the authenticated user, independent of test mode and privileged server threads. */
+    public static synchronized boolean isSessionUserAdmin()
+    {
+        String session = getSession();
+        UserPermissions user = sessionToPermission.get( session );
+        if( SYSTEM_SESSION.equals( session ) || securityProvider == null || user == null || user.isExpired() || user.isDead()
+                || user.getUser() == null || user.getUser().isEmpty() )
+            return false;
+        try
+        {
+            Permission root = getUserPermission( session, "/", false );
+            return root != null && root.isAllowed( Permission.ADMIN );
+        }
+        catch( RuntimeException e )
+        {
+            log.log( Level.WARNING, "Cannot check administrator permission for the current session", e );
+            return false;
+        }
+    }
+
     public static boolean isNode()
     {
         String sessionId = threadToSession.get(Thread.currentThread());

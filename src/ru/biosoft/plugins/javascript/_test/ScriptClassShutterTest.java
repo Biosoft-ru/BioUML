@@ -1,6 +1,16 @@
 package ru.biosoft.plugins.javascript._test;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import ru.biosoft.access.script.NullScriptEnvironment;
+import ru.biosoft.access.script.ScriptJobControl;
+import ru.biosoft.access.security.Permission;
+import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.access.security.TestSecurityProvider;
+import ru.biosoft.access.security.UserPermissions;
+import ru.biosoft.plugins.javascript.JSElement;
 import java.util.concurrent.atomic.AtomicReference;
 
 import ru.biosoft.access._test.AbstractBioUMLTest;
@@ -142,6 +152,88 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
 
         ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.OFF ) );
         assertEquals( "visible: x", evaluate( PROBE ) );
+    }
+
+    private static class ScriptTask extends JSElement
+    {
+        ScriptTask()
+        {
+            super( null, "test", "" );
+        }
+
+        String evaluate(String source, boolean console)
+        {
+            ScriptJobControl job = createJobControl( source, new NullScriptEnvironment(),
+                    Map.of( "importPath", new ru.biosoft.util.FileItem( "example" ) ), new HashMap<>(), console );
+            job.run();
+            return job.getResult();
+        }
+    }
+
+    public void testAdminSessionAndRoleChangeOnOneWorker() throws Exception
+    {
+        // Use actual logins and root permissions even when the suite runs outside Equinox in test mode.
+        Field provider = SecurityManager.class.getDeclaredField( "securityProvider" );
+        provider.setAccessible( true );
+        Object previous = provider.get( null );
+        TestSecurityProvider fixture = new TestSecurityProvider()
+        {
+            @Override
+            public int getPermissions(String path, UserPermissions user)
+            {
+                return path.equals( "/" ) && user.getUser().equals( "server-admin" ) ? Permission.ALL : Permission.READ;
+            }
+        };
+        fixture.init( new java.util.Properties() );
+        provider.set( null, fixture );
+        try
+        {
+            for( ScriptClassShutter.Mode mode : new ScriptClassShutter.Mode[]{ScriptClassShutter.Mode.ENFORCE, ScriptClassShutter.Mode.AUDIT} )
+            {
+                ScriptClassShutter.setInstance( shutter( mode ) );
+                onFreshThread( () -> {
+                    String sid = SecurityManager.generateSessionId();
+                    SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sid );
+                    try
+                    {
+                        assertFalse( SecurityManager.isSessionUserAdmin() );
+                        SecurityManager.commonLogin( "server-admin", "", null, null );
+                        ScriptTask task = new ScriptTask();
+                        String script = "var saved = java.nio.file.StandardCopyOption.REPLACE_EXISTING; '' + saved + ',' + importPath.getName()";
+                        assertTrue( logged( () -> {
+                            assertEquals( "REPLACE_EXISTING,example", task.evaluate( script, false ) );
+                            assertEquals( "REPLACE_EXISTING,example", task.evaluate( script, true ) );
+                            assertEquals( "REPLACE_EXISTING", task.evaluate( "'' + saved", true ) );
+                            return null;
+                        } ).stream().noneMatch( message -> message.contains( "StandardCopyOption" ) || message.contains( "FileItem" ) ) );
+
+                        assertNull( ru.biosoft.access.security.SessionCacheManager.getSessionCache().getObject( "properties/JavaScript/scope" ) );
+                        // Demote in place, retaining both the session cache and the Rhino context.
+                        SecurityManager.getCurrentUserPermission().getDbToPermission().put( "/",
+                                new Permission( Permission.READ, "server-admin", sid, Long.MAX_VALUE ) );
+                        assertFalse( SecurityManager.isSessionUserAdmin() );
+                        assertEquals( "undefined", task.evaluate( "typeof saved", true ) );
+                        String expected = mode == ScriptClassShutter.Mode.ENFORCE ? "undefined" : "object";
+                        assertEquals( expected, task.evaluate( "typeof importPath", false ) );
+                        String probe = task.evaluate( PROBE, true );
+                        assertTrue( probe, probe.startsWith( mode == ScriptClassShutter.Mode.ENFORCE ? "hidden:" : "visible:" ) );
+                        SecurityManager.commonLogin( "regular-user", "", null, null );
+                        assertFalse( SecurityManager.isSessionUserAdmin() );
+                        assertEquals( "undefined," + expected, task.evaluate( "typeof saved + ',' + typeof importPath", true ) );
+                    }
+                    finally
+                    {
+                        SecurityManager.commonLogout();
+                        SecurityManager.removeThreadFromSessionRecord();
+                    }
+                    return "";
+                } );
+            }
+        }
+        finally
+        {
+            provider.set( null, previous );
+        }
     }
 
     /** A script's variables as a workflow script node binds them, then the script; on a fresh thread. */
