@@ -1742,7 +1742,7 @@ def addConditionalValues(context, valueChannels, conditionalContext)
     ]
 
     valueChannels.each { valueChannel ->
-        inputs.add(valueChannel.collect())
+        inputs.add(valueChannel.toList())
     }
 
     def collected = mergeAll(inputs)
