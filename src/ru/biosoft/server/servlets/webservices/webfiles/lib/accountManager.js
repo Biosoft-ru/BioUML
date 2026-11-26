@@ -299,6 +299,20 @@ function initProjectsTable()
 {
     var projectsDC = getDataCollection(appInfo.userProjectsPath);
     var projectsTable = $('#projects_table');
+    if(!$('#projects_retry_deletion').length)
+    {
+        $('<button id="projects_retry_deletion" type="button" class="ui-state-default"/>')
+            .text(resources.dlgRetryProjectDeletion)
+            .click(function()
+            {
+                createPromptDialog(resources.dlgRetryProjectDeletion, resources.dlgRetryProjectDeletionName, function(name)
+                {
+                    if(name && name.trim())
+                        removeProject(createPath(appInfo.userProjectsPath, name.trim()), true);
+                });
+            })
+            .insertAfter(projectsTable);
+    }
     projectsTable.hide();
     queryBioUML("support/getProjectsData", {}, function(data)
     {
@@ -330,7 +344,7 @@ function initProjectsTable()
     });
 }
 
-function removeProject(completePath)
+function removeProject(completePath, retryOnly)
 {
     if(!completePath)
     {
@@ -340,8 +354,9 @@ function removeProject(completePath)
     var dialogDiv = $('<div title="'+resources.dlgRemovePrjTitle+'"></div>');
     var loginForm = $('<table><tr><td>'+resources.dlgLoginUsername+'</td><td><b>'+currentUser+'</b></td></tr>'+
     '<tr><td>'+resources.dlgLoginPassword+'</td><td><input type="password" size="25" id="password"/></td></tr>'+
-    '<tr><td colspan="2"><input type="checkbox" id="remove_project"/>'+resources.dlgRemovePrjConfirmation.replace("{name}", name)+'</td></tr>'+
+    '<tr><td colspan="2"><input type="checkbox" id="remove_project"/></td></tr>'+
     '</table>');
+    loginForm.find("#remove_project").after(document.createTextNode(resources.dlgRemovePrjConfirmation.replace("{name}", name)));
     dialogDiv.append(loginForm);
     var dialogButtons = {};
     var path = getElementPath(completePath);
@@ -355,7 +370,8 @@ function removeProject(completePath)
                         "user" : currentUser,
                         "pass" : pass,
                         "project" : name,
-                        "dc" : path
+                        "dc" : path,
+                        "retryOnly" : retryOnly === true ? "true" : "false"
                     },
                     function(data)
                     {

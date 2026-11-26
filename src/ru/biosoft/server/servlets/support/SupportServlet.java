@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.text.SimpleDateFormat;
@@ -21,7 +22,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -43,6 +43,8 @@ import biouml.plugins.server.access.AccessService;
 import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.Repository;
+import ru.biosoft.access.LocalRepository;
+import ru.biosoft.access.ProjectStorage;
 import ru.biosoft.access.SqlDataCollection;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
@@ -630,65 +632,146 @@ public class SupportServlet extends AbstractJSONServlet
         return deleteProject( projectName, parentDC );
     }
 
-    private static final String INCOMPLETE_PROJECT_DELETION = "Cannot completely delete project ";
-    private static final Set<Path> activeProjectDeletions = ConcurrentHashMap.newKeySet();
+    public enum ProjectDeletionStatus
+    {
+        COMPLETE, NOT_FOUND, INCOMPLETE
+    }
+
+    public record ProjectDeletionResult(ProjectDeletionStatus status, String message)
+    {
+    }
+
+    @FunctionalInterface
+    interface DropProjectDatabase
+    {
+        void drop(String database) throws Exception;
+    }
 
     public static String deleteProject(String projectName, DataCollection<?> parentDC) throws Exception
     {
-        Permission permission = SecurityManager.getPermissions( parentDC.getCompletePath().getChildPath( projectName ) );
+        return deleteProjectResult( projectName, parentDC ).message();
+    }
+
+    public static ProjectDeletionResult deleteProjectResult(String projectName, DataCollection<?> parent) throws Exception
+    {
+        return deleteProjectResult( projectName, parent, false );
+    }
+
+    private static ProjectDeletionResult deleteProjectResult(String projectName, DataCollection<?> parent, boolean pendingOnly)
+            throws Exception
+    {
+        return deleteProjectResult( projectName, parent, pendingOnly, ProjectBackup::dumpDatabase, database ->
+                SqlUtil.execute( GlobalDatabaseManager.getDatabaseConnection(), "DROP DATABASE IF EXISTS " + SqlUtil.quoteIdentifier( database ) ) );
+    }
+
+    static ProjectDeletionResult deleteProjectResult(String projectName, DataCollection<?> parent,
+            ProjectBackup.DatabaseDump dump, DropProjectDatabase drop) throws Exception
+    {
+        return deleteProjectResult( projectName, parent, false, dump, drop );
+    }
+
+    private static ProjectDeletionResult deleteProjectResult(String projectName, DataCollection<?> parent, boolean pendingOnly,
+            ProjectBackup.DatabaseDump dump, DropProjectDatabase drop) throws Exception
+    {
+        Permission permission = SecurityManager.getPermissions( parent.getCompletePath().getChildPath( projectName ) );
         if( !permission.isDeleteAllowed() )
             throw new SecurityException( "Delete access denied for " + SecurityManager.getSessionUser() );
         try
         {
-            return (String)SecurityManager.runPrivileged( () -> deleteProjectFiles( projectName, parentDC ) );
+            return (ProjectDeletionResult)SecurityManager.runPrivileged( () -> deleteProjectFiles( projectName, parent, pendingOnly, dump, drop ) );
         }
         catch( Exception e )
         {
             log.log( Level.SEVERE, "Cannot complete deletion of project " + projectName, e );
-            return INCOMPLETE_PROJECT_DELETION + projectName;
+            return new ProjectDeletionResult( ProjectDeletionStatus.INCOMPLETE, "Cannot completely delete project " + projectName );
         }
     }
 
-    private static String deleteProjectFiles(String projectName, DataCollection<?> parent) throws Exception
+    private static ProjectDeletionResult deleteProjectFiles(String projectName, DataCollection<?> parent, boolean pendingOnly,
+            ProjectBackup.DatabaseDump dump, DropProjectDatabase drop) throws Exception
     {
         DataCollection<?> primaryParent = DataCollectionUtils.fetchPrimaryCollectionPrivileged( parent );
-        ProjectDeletion deletion = new ProjectDeletion( collectionDirectory( primaryParent ), projectName );
-        if( !activeProjectDeletions.add( deletion.directory() ) )
-            return INCOMPLETE_PROJECT_DELETION + projectName + ": deletion is already running";
-        try
+        if( primaryParent instanceof FilteredDataCollection<?> filtered )
+            primaryParent = DataCollectionUtils.fetchPrimaryCollectionPrivileged( filtered.getPrimaryCollection() );
+        Path projectsRoot = collectionDirectory( primaryParent ).toRealPath();
+        ProjectDeletion deletion = new ProjectDeletion( projectsRoot, projectName );
+        try( var storageLock = ProjectStorage.lock( projectsRoot, projectName ) )
         {
             ProjectDeletion.Pending pending = deletion.readPending();
             if( pending == null )
             {
+                if( pendingOnly )
+                    return new ProjectDeletionResult( ProjectDeletionStatus.NOT_FOUND, "No pending deletion for project " + projectName );
                 if( !parent.contains( projectName ) )
-                    return "Project " + projectName + " doesn't exists";
+                    return new ProjectDeletionResult( ProjectDeletionStatus.NOT_FOUND, "Project " + projectName + " doesn't exist" );
+                if( !( primaryParent instanceof LocalRepository ) )
+                    throw new IOException( "Unsupported project repository: " + primaryParent.getCompletePath() );
                 deletion.validateTarget();
+                if( Files.isSymbolicLink( deletion.directory().resolve( Module.DATA ) ) )
+                    throw new IOException( "Project Data directory is a symbolic link: " + deletion.directory().resolve( Module.DATA ) );
+
                 DataCollection<?> project = (DataCollection<?>)parent.get( projectName );
-                DataElement data = Files.isSymbolicLink( deletion.directory().resolve( Module.DATA ) ) ? null : project.get( Module.DATA );
+                DataCollection<?> primary = DataCollectionUtils.fetchPrimaryCollectionPrivileged( project );
+                String config = primary.getInfo().getProperty( DataCollectionConfigConstants.CONFIG_PATH_PROPERTY );
+                if( config != null && !config.isBlank() )
+                    deletion.validateDeclaredDirectory( Path.of( config ) );
+                DataElement data = project.get( Module.DATA );
                 String database = data instanceof DataCollection<?> collection ? projectDatabase( collection ) : null;
-                pending = deletion.begin( collectionDirectory( DataCollectionUtils.fetchPrimaryCollectionPrivileged( project ) ), database );
-                if( database != null )
-                    backupProject( deletion.directory().toString(), database );
+                pending = deletion.begin( collectionDirectory( primary ), database );
             }
 
+            else if( pending.backupComplete() && pending.backup() != null && parent.contains( projectName )
+                    && Files.isRegularFile( deletion.directory().resolve( DataCollectionConfigConstants.DEFAULT_CONFIG_FILE ),
+                            LinkOption.NOFOLLOW_LINKS ) )
+            {
+                // A configured project can have changed. A rediscovered orphan must keep its original backup.
+                pending = new ProjectDeletion.Pending( pending.directoryIdentity(), pending.database(), pending.backup(), false );
+                deletion.save( pending );
+            }
+            pending = ProjectBackup.ensureComplete( deletion, pending, dump );
             if( parent.contains( projectName ) )
             {
-                deletion.removeSymbolicLinks( pending );
-                parent.remove( projectName );
+                if( !( primaryParent instanceof LocalRepository repository ) )
+                    throw new IOException( "Unsupported project repository: " + primaryParent.getCompletePath() );
+                removeProjectEntry( projectName, parent, repository, deletion, pending );
             }
             deletion.removeDirectory( pending );
             if( parent.contains( projectName ) )
                 throw new IOException( "Project remains in the repository: " + parent.getCompletePath().getChildPath( projectName ) );
 
-            String database = pending.database();
-            if( database != null )
-                SqlUtil.execute( GlobalDatabaseManager.getDatabaseConnection(), "DROP DATABASE IF EXISTS " + SqlUtil.quoteIdentifier( database ) );
+            if( pending.database() != null )
+                drop.drop( pending.database() );
             deletion.complete();
-            return null;
+            return new ProjectDeletionResult( ProjectDeletionStatus.COMPLETE, null );
         }
-        finally
+    }
+
+    private static void removeProjectEntry(String projectName, DataCollection<?> parent, LocalRepository repository,
+            ProjectDeletion deletion, ProjectDeletion.Pending pending) throws Exception
+    {
+        Map<Path, Path> links = new java.util.LinkedHashMap<>();
+        try
         {
-            activeProjectDeletions.remove( deletion.directory() );
+            repository.prepareRemoval( projectName, () -> deletion.removeSymbolicLinks( pending, links ), () -> parent.remove( projectName ) );
+            if( parent.contains( projectName ) )
+                throw new IOException( "Repository refused to remove project: " + parent.getCompletePath().getChildPath( projectName ) );
+        }
+        catch( Exception e )
+        {
+            if( parent.contains( projectName ) )
+            {
+                try
+                {
+                    deletion.restoreSymbolicLinks( pending, links );
+                    if( pending.backup() != null )
+                        deletion.save( new ProjectDeletion.Pending( pending.directoryIdentity(), pending.database(), pending.backup(), false ) );
+                }
+                catch( IOException recoveryError )
+                {
+                    e.addSuppressed( recoveryError );
+                }
+            }
+            throw e;
         }
     }
 
@@ -713,72 +796,6 @@ public class SupportServlet extends AbstractJSONServlet
         if( database.isBlank() )
             throw new IOException( "Cannot resolve the database for " + data.getCompletePath() );
         return database;
-    }
-
-    private static void backupProject(String localPath, String dbName)
-    {
-        try
-        {
-            //make a backup before removing
-            String backupAddr = Application.getGlobalValue("BackupFolder");
-            if ( !backupAddr.equals("BackupFolder") )
-            {
-                File backupFolder = new File(backupAddr);
-                if ( !backupFolder.exists() && !backupFolder.mkdirs() )
-                {
-                    log.log( Level.WARNING, "Cannot create backup folder '" + backupAddr + "', skipping backup of project '" + localPath + "'");
-                }
-                File src = new File(localPath);
-                String date = new SimpleDateFormat("yyyy.MM.dd_HH:mm:ss").format(new Date());
-                File dst = new File(backupFolder, date + "_" + src.getName());
-
-                if ( dst.exists() )
-                {
-                    log.log( Level.WARNING, "Backup folder '" + dst.getAbsolutePath() + "' already exists, skipping backup of project '" + localPath + "'");
-                }
-                else if ( "Linux".equals(System.getProperty("os.name")) )
-                {
-                    log.info("Moving deleted project '" + localPath + "' to backup folder '" + dst.getAbsolutePath() + "'...");
-                    ProcessBuilder processBuilder = new ProcessBuilder();
-                    processBuilder.command("mv", localPath, dst.getAbsolutePath());
-                    Process proc = processBuilder.start();
-                    int mvExitCode = proc.waitFor();
-                    if ( mvExitCode != 0 )
-                    {
-                        log.log( Level.WARNING, "'mv' to backup folder '" + dst.getAbsolutePath() + "' failed with exit code " + mvExitCode + ", project '" + localPath + "' was not moved");
-                    }
-                }
-                else
-                {
-                    log.info("Copying deleted project '" + localPath + "' to backup folder '" + dst.getAbsolutePath() + "'...");
-                    ApplicationUtils.copyFolder(dst, src);
-                }
-
-                File dumpPath = new File(dst, "_dump.sql");
-                if ( !dst.isDirectory() )
-                {
-                    log.log( Level.WARNING, "Backup folder '" + dst.getAbsolutePath() + "' was not created, cannot dump database '" + dbName + "' to '" + dumpPath + "'");
-                }
-                else
-                {
-                    List<String> cmd = new ArrayList<>();
-                    cmd.add("mysqldump");
-                    String user = Application.getGlobalValue("BackupUser", "root");
-                    String password = Application.getGlobalValue("BackupPassword", "root");
-                    cmd.add("-u" + user);
-                    cmd.add("-p" + password);
-                    cmd.add(dbName);
-                    Runtime rt = Runtime.getRuntime();
-                    String[] cmdArray = cmd.toArray(new String[cmd.size()]);
-                    Process proc = rt.exec(cmdArray);
-                    ApplicationUtils.copyStream(new FileOutputStream(dumpPath), proc.getInputStream());
-                }
-            }
-        }
-        catch( Exception e )
-        {
-            log.log( Level.SEVERE, "cannot create backup copy", e );
-        }
     }
 
     /**
@@ -1015,26 +1032,31 @@ public class SupportServlet extends AbstractJSONServlet
             }
 
             DataCollection userProjectsParent = userProjectsPath.getDataCollection();
-            DataCollection primaryParent = null;
-            if( userProjectsParent instanceof FilteredDataCollection )
-                primaryParent = ((FilteredDataCollection)userProjectsParent).getPrimaryCollection();
-            
-            if( !userProjectsParent.contains(projectName) && (primaryParent == null || ! primaryParent.contains(projectName) ) )
+            Path projectsRoot = collectionDirectory( userProjectsParent ).toRealPath();
+            try( var storageLock = ProjectStorage.lock( projectsRoot, projectName ) )
             {
-                if(projectType == ProjectType.SQL)
-                    return createSQLBasedProject( projectName, userProjectsParent );
-                else if(projectType == ProjectType.FILE)
-                    return createFileBasedProject( projectName, userProjectsParent, null );
-            }
-            else
-            {
-                if( reuse )
-                    return (DataCollection) userProjectsParent.get( projectName );
+                ProjectStorage.checkCreation( projectsRoot, projectName );
+                DataCollection primaryParent = null;
+                if( userProjectsParent instanceof FilteredDataCollection )
+                    primaryParent = ((FilteredDataCollection)userProjectsParent).getPrimaryCollection();
+
+                if( !userProjectsParent.contains(projectName) && (primaryParent == null || ! primaryParent.contains(projectName) ) )
+                {
+                    if(projectType == ProjectType.SQL)
+                        return createSQLBasedProject( projectName, userProjectsParent );
+                    else if(projectType == ProjectType.FILE)
+                        return createFileBasedProject( projectName, userProjectsParent, null );
+                }
                 else
                 {
-                    errors.add( "Project " + projectName + " already exist. Please, select another project name." );
-                    log.log( Level.INFO, errors.get( 0 ) );
-                    return null;
+                    if( reuse )
+                        return (DataCollection) userProjectsParent.get( projectName );
+                    else
+                    {
+                        errors.add( "Project " + projectName + " already exist. Please, select another project name." );
+                        log.log( Level.INFO, errors.get( 0 ) );
+                        return null;
+                    }
                 }
             }
         }
@@ -1065,26 +1087,31 @@ public class SupportServlet extends AbstractJSONServlet
             }
 
             DataCollection projectsParent = parentPath.getDataCollection();
-            DataCollection primaryParent = null;
-            if( projectsParent instanceof FilteredDataCollection )
-                primaryParent = ((FilteredDataCollection) projectsParent).getPrimaryCollection();
+            Path projectsRoot = collectionDirectory( projectsParent ).toRealPath();
+            try( var storageLock = ProjectStorage.lock( projectsRoot, projectName ) )
+            {
+                ProjectStorage.checkCreation( projectsRoot, projectName );
+                DataCollection primaryParent = null;
+                if( projectsParent instanceof FilteredDataCollection )
+                    primaryParent = ((FilteredDataCollection) projectsParent).getPrimaryCollection();
 
-            if( !projectsParent.contains( projectName ) && (primaryParent == null || !primaryParent.contains( projectName )) )
-            {
-                if( projectType == ProjectType.SQL )
-                    return createSQLBasedProject( projectName, projectsParent );
-                else if( projectType == ProjectType.FILE )
-                    return createFileBasedProject( projectName, projectsParent, properties );
-            }
-            else
-            {
-                if( reuse )
-                    return (DataCollection) projectsParent.get( projectName );
+                if( !projectsParent.contains( projectName ) && (primaryParent == null || !primaryParent.contains( projectName )) )
+                {
+                    if( projectType == ProjectType.SQL )
+                        return createSQLBasedProject( projectName, projectsParent );
+                    else if( projectType == ProjectType.FILE )
+                        return createFileBasedProject( projectName, projectsParent, properties );
+                }
                 else
                 {
-                    errors.add( "Project " + projectName + " already exist. Please, select another project name." );
-                    log.log( Level.INFO, errors.get( 0 ) );
-                    return null;
+                    if( reuse )
+                        return (DataCollection) projectsParent.get( projectName );
+                    else
+                    {
+                        errors.add( "Project " + projectName + " already exist. Please, select another project name." );
+                        log.log( Level.INFO, errors.get( 0 ) );
+                        return null;
+                    }
                 }
             }
         }
@@ -1104,6 +1131,16 @@ public class SupportServlet extends AbstractJSONServlet
 
 
     public static DataCollection createSQLBasedProject(String projectName, DataCollection userProjectsParent) throws Exception
+    {
+        Path projectsRoot = collectionDirectory( userProjectsParent ).toRealPath();
+        try( var storageLock = ProjectStorage.lock( projectsRoot, projectName ) )
+        {
+            ProjectStorage.checkCreation( projectsRoot, projectName );
+            return createSQLBasedProjectUnlocked( projectName, userProjectsParent );
+        }
+    }
+
+    private static DataCollection createSQLBasedProjectUnlocked(String projectName, DataCollection userProjectsParent) throws Exception
     {
         log.log( Level.INFO, "createSQLBasedProject(" + projectName + "): START" );
         long before = System.currentTimeMillis();
@@ -1165,8 +1202,18 @@ public class SupportServlet extends AbstractJSONServlet
     
     public static DataCollection createFileBasedProject(String projectName, DataCollection userProjectsParent, Properties properties) throws Exception
     {
-        String projectsFolder = userProjectsParent.getInfo().getProperty( DataCollectionConfigConstants.FILE_PATH_PROPERTY );
-        File projectFolder = new File( projectsFolder, projectName );
+        Path projectsRoot = collectionDirectory( userProjectsParent ).toRealPath();
+        try( var storageLock = ProjectStorage.lock( projectsRoot, projectName ) )
+        {
+            ProjectStorage.checkCreation( projectsRoot, projectName );
+            return createFileBasedProjectUnlocked( projectName, userProjectsParent, properties, projectsRoot );
+        }
+    }
+
+    private static DataCollection createFileBasedProjectUnlocked(String projectName, DataCollection userProjectsParent, Properties properties,
+            Path projectsRoot) throws Exception
+    {
+        File projectFolder = new ProjectDeletion( projectsRoot, projectName ).directory().toFile();
         projectFolder.mkdirs();
 
         GenericFileDataCollection.initGenericFileDataCollection( userProjectsParent, projectFolder, properties );
@@ -1291,12 +1338,12 @@ public class SupportServlet extends AbstractJSONServlet
         String dcPath = getStringParameter( params, "dc" );
         DataCollection dc = dcPath != null ? DataElementPath.create( dcPath ).optDataCollection() : null;
         boolean askBiostore = ! ( "true".equals( getStringParameter( params, "skipBiostore" ) ) );
+        boolean pendingOnly = "true".equals( getStringParameter( params, "retryOnly" ) );
 
         String projectNamesJson = getStrictParameter( params, "projects" );
         JSONArray projectNames = new JSONArray( projectNamesJson );
 
         StringWriter sw = new StringWriter();
-        String resp;
         StringBuilder removeErrors = new StringBuilder();
         List<String> removedSuccessfully = new ArrayList<>();
         for( int i = 0; i < projectNames.length(); i++ )
@@ -1305,18 +1352,15 @@ public class SupportServlet extends AbstractJSONServlet
             log.info( "Deleting project '" + projectName + "', askBiostore = " + askBiostore + "..." );
             StringBuilder curRemoveErrors = new StringBuilder();
             //First remove project from repository
-            boolean localDeletionIncomplete = false;
+            boolean localDeletionIncomplete = pendingOnly;
             try
             {
-                if( dc != null )
-                    resp = deleteProject( projectName, dc );
-                else
-                    resp = deleteProject( projectName );
-                if( resp != null )
-                {
-                    localDeletionIncomplete = resp.startsWith( INCOMPLETE_PROJECT_DELETION );
-                    curRemoveErrors.append( resp );
-                }
+                DataCollection<?> parent = dc != null ? dc : CollectionFactoryUtils.getUserProjectsPath().getDataCollection();
+                ProjectDeletionResult result = deleteProjectResult( projectName, parent, pendingOnly );
+                localDeletionIncomplete = result.status() == ProjectDeletionStatus.INCOMPLETE
+                        || ( pendingOnly && result.status() == ProjectDeletionStatus.NOT_FOUND );
+                if( result.message() != null )
+                    curRemoveErrors.append( result.message() );
             }
             catch( Exception e )
             {

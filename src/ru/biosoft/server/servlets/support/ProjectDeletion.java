@@ -1,7 +1,6 @@
 package ru.biosoft.server.servlets.support;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -11,8 +10,9 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Map;
 import java.util.Properties;
-import java.util.UUID;
+import ru.biosoft.access.ProjectStorage;
 
 /** Records the target outside the project tree so cleanup can be retried after its config is removed. */
 final class ProjectDeletion
@@ -20,7 +20,7 @@ final class ProjectDeletion
     private final Path directory;
     private final Path pending;
 
-    record Pending(String directoryIdentity, String database)
+    record Pending(String directoryIdentity, String database, Path backup, boolean backupComplete)
     {
     }
 
@@ -30,8 +30,7 @@ final class ProjectDeletion
         directory = root.resolve( projectName ).normalize();
         if( !root.equals( directory.getParent() ) || !projectName.equals( directory.getFileName().toString() ) )
             throw new IOException( "Invalid project directory: " + directory );
-        pending = root.resolve( ".project-deletion-" + UUID.nameUUIDFromBytes( projectName.getBytes( StandardCharsets.UTF_8 ) )
-                + ".pending" );
+        pending = ProjectStorage.deletionRecord( root, projectName );
     }
 
     Path directory()
@@ -58,20 +57,35 @@ final class ProjectDeletion
         String identity = state.getProperty( "directoryIdentity" );
         if( identity == null )
             throw new IOException( "Invalid project deletion record: " + pending );
-        return new Pending( identity, state.getProperty( "database" ) );
+        String backup = state.getProperty( "backup" );
+        return new Pending( identity, state.getProperty( "database" ), backup == null ? null : Path.of( backup ),
+                Boolean.parseBoolean( state.getProperty( "backupComplete" ) ) );
     }
 
     Pending begin(Path declaredDirectory, String database) throws IOException
     {
+        validateDeclaredDirectory( declaredDirectory );
+        Pending state = new Pending( directoryIdentity(), database, null, false );
+        save( state );
+        return state;
+    }
+
+    void validateDeclaredDirectory(Path declaredDirectory) throws IOException
+    {
         Path declared = declaredDirectory.toAbsolutePath().normalize();
         if( declared.getParent() == null || !directory.equals( declared.getParent().toRealPath().resolve( declared.getFileName() ) ) )
             throw new IOException( "Project directory is outside its expected location: " + declaredDirectory );
+    }
 
+    void save(Pending record) throws IOException
+    {
         Properties state = new Properties();
-        String identity = directoryIdentity();
-        state.setProperty( "directoryIdentity", identity );
-        if( database != null )
-            state.setProperty( "database", database );
+        state.setProperty( "directoryIdentity", record.directoryIdentity() );
+        if( record.database() != null )
+            state.setProperty( "database", record.database() );
+        if( record.backup() != null )
+            state.setProperty( "backup", record.backup().toString() );
+        state.setProperty( "backupComplete", Boolean.toString( record.backupComplete() ) );
         Path temporary = Files.createTempFile( pending.getParent(), ".project-deletion-", ".tmp" );
         try
         {
@@ -81,18 +95,17 @@ final class ProjectDeletion
             }
             try
             {
-                Files.move( temporary, pending, StandardCopyOption.ATOMIC_MOVE );
+                Files.move( temporary, pending, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING );
             }
             catch( AtomicMoveNotSupportedException e )
             {
-                Files.move( temporary, pending );
+                throw new IOException( "Project deletion record requires atomic replacement: " + pending, e );
             }
         }
         finally
         {
             Files.deleteIfExists( temporary );
         }
-        return new Pending( identity, database );
     }
 
     void verifyDirectory(Pending state) throws IOException
@@ -103,7 +116,7 @@ final class ProjectDeletion
     }
 
     /** Unlink project symlinks before legacy repository removal can resolve them as child collections. */
-    void removeSymbolicLinks(Pending state) throws IOException
+    void removeSymbolicLinks(Pending state, Map<Path, Path> links) throws IOException
     {
         verifyDirectory( state );
         if( Files.notExists( directory, LinkOption.NOFOLLOW_LINKS ) )
@@ -115,10 +128,27 @@ final class ProjectDeletion
             public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException
             {
                 if( attributes.isSymbolicLink() )
-                    Files.deleteIfExists( file );
+                {
+                    Path target = Files.readSymbolicLink( file );
+                    if( Files.deleteIfExists( file ) )
+                        links.put( file, target );
+                }
                 return FileVisitResult.CONTINUE;
             }
         } );
+    }
+
+    void restoreSymbolicLinks(Pending state, Map<Path, Path> links) throws IOException
+    {
+        if( links.isEmpty() )
+            return;
+        verifyDirectory( state );
+        for( var link : links.entrySet() )
+        {
+            Path file = link.getKey();
+            if( Files.isDirectory( file.getParent(), LinkOption.NOFOLLOW_LINKS ) && Files.notExists( file, LinkOption.NOFOLLOW_LINKS ) )
+                Files.createSymbolicLink( file, link.getValue() );
+        }
     }
 
     void removeDirectory(Pending state) throws IOException

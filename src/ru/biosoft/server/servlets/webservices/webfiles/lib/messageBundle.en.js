@@ -254,6 +254,8 @@ var resourcesEN = {
     dlgCreatePrjDescription: "Description:",
     dlgCreatePrjDescriptionPlaceholder: "Type project description here",
     
+    dlgRetryProjectDeletion: "Retry project deletion",
+    dlgRetryProjectDeletionName: "Project name",
     dlgRemovePrjTitle: "Remove project",
     dlgRemovePrjConfirmation: "Yes, I really want to remove project <b>{name}</b> with all data.",
     dlgRemovePrjNotConfirmed: "You didn't check the confirmation checkbox",

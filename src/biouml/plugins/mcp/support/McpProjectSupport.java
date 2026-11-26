@@ -235,13 +235,14 @@ public final class McpProjectSupport
 		{
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "cannot resolve the user projects path: " + e.getMessage() );
 		}
-		if ( !parent.contains( name ) )
-			return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "project '" + name + "' does not exist" + staleHint( parent.getCompletePath().getChildPath( name ).toString() ) );
 		try
 		{
-			String error = SupportServlet.deleteProject( name, parent );
-			if ( error != null )
-				return McpEnvelope.error( McpConstants.CODE_INTERNAL, error );
+			SupportServlet.ProjectDeletionResult result = SupportServlet.deleteProjectResult( name, parent );
+			if ( result.status() == SupportServlet.ProjectDeletionStatus.NOT_FOUND )
+				return McpEnvelope.error( McpConstants.CODE_NOT_FOUND, "project '" + name + "' does not exist"
+						+ staleHint( parent.getCompletePath().getChildPath( name ).toString() ) );
+			if ( result.status() == SupportServlet.ProjectDeletionStatus.INCOMPLETE )
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL, result.message() );
 		}
 		catch ( Exception e )
 		{
