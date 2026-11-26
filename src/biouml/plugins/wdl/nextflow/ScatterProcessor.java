@@ -308,11 +308,31 @@ public class ScatterProcessor extends NextFlowVelocityHelper
         sb.append( " )" );
         addCallOutputsToContext( call, contextNodes, sb, condition == null ? null : contextName, parentContextName );
     }
+    
     private String printInputInCycle(Node input, List<Node> contextNodes, String contextName)
     {
         String expression = prepareExpression( getCallEmit( input ), contextNodes );
+
+        for( Node source : WorkflowUtil.getSources( input ) )
+        {
+            if( contextNodes.contains( source ) )
+                continue;
+
+            if( !isExpression( source ) )
+                continue;
+
+            String sourceExpression = WorkflowUtil.getExpression( source );
+
+            if( sourceExpression != null && sourceExpression.trim().endsWith( ".toList()" ) )
+            {
+                String name = getName( source );
+                expression = renameVariable( expression, name, name + ".getVal()" );
+            }
+        }
+
         return printContextMap( expression, contextNodes, contextName );
     }
+    
     private String printContextMap(String expression, List<Node> contextNodes, String contextName)
     {
         return "calcInScatter(" + contextName + ") { " + getContextArguments( contextNodes ) + " -> " + expression + " }";
