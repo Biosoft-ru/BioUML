@@ -43,6 +43,7 @@ import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.jobcontrol.JobControlEvent;
 import ru.biosoft.jobcontrol.JobControlListener;
 import ru.biosoft.jobcontrol.JobControlListenerAdapter;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 import ru.biosoft.plugins.javascript.Global;
 import ru.biosoft.plugins.javascript.JSObjectConverter;
 import ru.biosoft.plugins.javascript.JScriptContext;
@@ -446,6 +447,14 @@ public class JavaScriptData extends JavaScriptHostObjectBase
 
     public void recalc(DataElement rowDE, String column, String expression)
     {
+        ScriptClassShutter.runRestricted( () -> {
+            recalcRestricted( rowDE, column, expression );
+            return null;
+        } );
+    }
+
+    private void recalcRestricted(DataElement rowDE, String column, String expression)
+    {
         beforeFunctionCall();
 
         Script script;
@@ -471,7 +480,7 @@ public class JavaScriptData extends JavaScriptHostObjectBase
         try
         {
             defineColumnVariables(rowDE);
-            Object result = script.exec(getCurrentContext(), scope);
+            Object result = ScriptClassShutter.execRestricted( script, getCurrentContext(), scope );
             ComponentFactory.getModel(rowDE, Policy.DEFAULT, true).findProperty(column).setValue(result);
         }
         catch( NoSuchMethodException e )

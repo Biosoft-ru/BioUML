@@ -55,11 +55,21 @@ public class JavaScriptUtils
     
     public static Scriptable defineVariables(ScriptableObject scope, Map<String, Object> variables)
     {
+        return defineVariables( scope, variables, false );
+    }
+
+    static Scriptable defineVariables(ScriptableObject scope, Map<String, Object> variables, boolean administrator)
+    {
+        return ScriptClassShutter.withAdminAccess( administrator ? scope : null, () -> bindVariables( scope, variables, administrator ) );
+    }
+
+    private static Scriptable bindVariables(ScriptableObject scope, Map<String, Object> variables, boolean administrator)
+    {
         Scriptable buck = new BuckScriptable();
         scope.defineProperty( "$", buck, ScriptableObject.DONTENUM );
         for( Entry<String, Object> var : variables.entrySet() )
         {
-            if( ScriptClassShutter.hides( var.getValue() ) )
+            if( !administrator && ScriptClassShutter.hides( var.getValue() ) )
             {
                 // e.g. a workflow's importPath (a file) or the server preferences: wrapping it would fail the script,
                 // used or not; left out, only a script that uses it fails ("not defined")
@@ -67,7 +77,8 @@ public class JavaScriptUtils
                         + " is not visible to scripts" );
                 continue;
             }
-            Object val = var.getValue() == null ? "" : Context.toObject(var.getValue(), scope);
+            Object value = var.getValue();
+            Object val = value == null ? "" : Context.toObject( value, scope );
             scope.put(JavaScriptUtils.getValidName(var.getKey()), scope, val);
             buck.put(var.getKey(), buck, val);
         }
@@ -75,6 +86,14 @@ public class JavaScriptUtils
     }
     
     public static void defineColumnVariables(DataElement rowDE, Scriptable scope, boolean addEvaluated)
+    {
+        ScriptClassShutter.runRestricted( () -> {
+            bindColumnVariables( rowDE, scope, addEvaluated );
+            return null;
+        } );
+    }
+
+    private static void bindColumnVariables(DataElement rowDE, Scriptable scope, boolean addEvaluated)
     {
         Scriptable buck = new RowScriptable();
         scope.put("$", scope, buck);

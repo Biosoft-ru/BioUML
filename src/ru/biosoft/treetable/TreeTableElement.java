@@ -10,6 +10,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementSupport;
 import ru.biosoft.access.core.ClassIcon;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 import ru.biosoft.plugins.javascript.JScriptContext;
 import com.developmentontheedge.beans.annot.PropertyName;
 
@@ -65,21 +66,23 @@ public class TreeTableElement extends DataElementSupport
     private DataCollection table = null;
     public synchronized DataCollection getTable()
     {
-        if(table == null)
-        {
-            try
+        return ScriptClassShutter.runRestricted( () -> {
+            if(table == null)
             {
-                Context context = JScriptContext.getContext();
-                ScriptableObject scope = JScriptContext.getScope();
-                Object obj = context.evaluateString(scope, tableScript, "", 0, null);
-                table = (DataCollection) ( (NativeJavaObject)obj ).unwrap();
+                try
+                {
+                    Context context = JScriptContext.getContext();
+                    ScriptableObject scope = JScriptContext.getScope();
+                    Object obj = ScriptClassShutter.evaluateRestricted( context, scope, tableScript, "", 0 );
+                    table = (DataCollection) ( (NativeJavaObject)obj ).unwrap();
+                }
+                catch( Exception e )
+                {
+                    log.log(Level.SEVERE, "Incorrect table script", e);
+                }
             }
-            catch( Exception e )
-            {
-                log.log(Level.SEVERE, "Incorrect table script", e);
-            }
-        }
-        return table;
+            return table;
+        } );
     }
     
     public boolean isHideBranchesAbsentInTable()

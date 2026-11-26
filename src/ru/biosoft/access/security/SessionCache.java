@@ -2,6 +2,8 @@ package ru.biosoft.access.security;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 import ru.biosoft.util.HashMapWeakValues;
 
@@ -10,6 +12,53 @@ import ru.biosoft.util.HashMapWeakValues;
  */
 public class SessionCache
 {
+    private final Map<ConsoleKey<?>, ConsoleState<?>> consoles = new ConcurrentHashMap<>();
+
+    /** Access to private console state requires the key retained by its Java caller. */
+    public static final class ConsoleKey<T>
+    {
+        @SuppressWarnings( "unchecked" )
+        public ConsoleState<T> forSession(SessionCache cache)
+        {
+            return (ConsoleState<T>)cache.consoles.computeIfAbsent( this, key -> new ConsoleState<>() );
+        }
+    }
+
+    public static final class ConsoleState<T>
+    {
+        private final ReentrantLock execution = new ReentrantLock();
+        private final AtomicReference<Snapshot<T>> administrator = new AtomicReference<>( new Snapshot<>( null ) );
+
+        public ReentrantLock executionLock()
+        {
+            return execution;
+        }
+
+        public Snapshot<T> administrator()
+        {
+            return administrator.get();
+        }
+
+        public boolean publish(Snapshot<T> expected, T scope)
+        {
+            return administrator.compareAndSet( expected, new Snapshot<>( scope ) );
+        }
+
+        private void publishInvalidation()
+        {
+            administrator.set( new Snapshot<>( null ) );
+        }
+
+        public record Snapshot<T>(T scope)
+        {
+        }
+    }
+
+    void invalidateAdministratorConsoles()
+    {
+        consoles.values().forEach( console -> console.publishInvalidation() );
+    }
+
     /**
      * Map for asked(not changed) objects.
      */
