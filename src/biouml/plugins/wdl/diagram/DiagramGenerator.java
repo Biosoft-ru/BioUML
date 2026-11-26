@@ -548,7 +548,6 @@ public class DiagramGenerator
     {
         WorkflowUtil.setName( node, declaration.getName() );
         WorkflowUtil.setType( node, declaration.getType() );
-        WorkflowUtil.setExpression( node, declaration.getExpression() );
         WorkflowUtil.setArguments( node, declaration.getArguments() );
         WorkflowUtil.setExpressionInfo( node, declaration );
     }
