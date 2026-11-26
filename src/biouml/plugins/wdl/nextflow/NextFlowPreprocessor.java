@@ -507,7 +507,7 @@ public class NextFlowPreprocessor
                     {
                         String nodeName = DefaultSemanticController.generateUniqueName( diagram, node.getName() );
                         Node clone = node.clone( conditional.getCompartment(), nodeName );
-                        WorkflowUtil.setExpressionInfo( clone, null );
+                        WorkflowUtil.setExpressionInfo( clone, WorkflowUtil.getExpressionInfo( node ) );
                         WorkflowUtil.setExpression( clone, "null" );
                         conditional.getCompartment().put( clone );
 
@@ -519,37 +519,6 @@ public class NextFlowPreprocessor
                 }
             }
         }
-    }
-
-    /**
-     * Matches: ~{if defined(var) then value1 else value2}
-     */
-    public static ConversionResult processIf2(String wdlCommand)
-    {
-        List<ExpressionInfo> declarations = new ArrayList<>();
-        String result = wdlCommand;
-        int counter = 0;
-
-        Pattern pattern = Pattern.compile( "~\\{if (.+?) then (.+?) else (.+?)\\}" );
-
-        Matcher matcher = pattern.matcher( result );
-        StringBuffer sb = new StringBuffer();
-
-        while( matcher.find() )
-        {
-            String variable = matcher.group( 1 ).trim();
-            String thenValue = cleanValue( matcher.group( 2 ).trim() );
-            String elseValue = cleanValue( matcher.group( 3 ).trim() );
-            String varName = "var_" + counter++;
-
-            // Generate: def var_0 = isDefined(x) ? "value1" : "value2"
-            String expression = "defined(" + variable + ") ? " + "\"" + thenValue + "\"" + " : " + "\"" + elseValue + "\"";
-            declarations.add( new ExpressionInfo( "String", varName, expression ) );
-            matcher.appendReplacement( sb, "\\${" + varName + "}" );
-        }
-        matcher.appendTail( sb );
-        result = sb.toString();
-        return new ConversionResult( declarations, result );
     }
 
     public static ConversionResult processIf(String wdlCommand)
@@ -1266,7 +1235,7 @@ public class NextFlowPreprocessor
             sb.append( StreamEx.of( nestedCycles ).map( cycle -> "        " + WorkflowUtil.getCycleName( cycle ) ).joining( ",\n" ) );
             sb.append( "\n" );
             sb.append( "    ]\n" );
-            sb.append( ")" );
+            sb.append( ")");
             expression = sb.toString();
         }
 
