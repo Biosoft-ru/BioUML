@@ -42,6 +42,7 @@ import ru.biosoft.access.core.filter.Filter;
 import ru.biosoft.exception.ExceptionRegistry;
 import ru.biosoft.exception.LoggedException;
 import ru.biosoft.jobcontrol.FunctionJobControl;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 import ru.biosoft.plugins.javascript.JScriptContext;
 import ru.biosoft.plugins.javascript.JavaScriptUtils;
 import ru.biosoft.table.columnbeans.Descriptor;
@@ -193,7 +194,7 @@ public abstract class TableDataCollection extends AbstractDataCollection<RowData
                     {
                         AtomicReference<Object> ref = new AtomicReference<>();
                         BiosoftSecurityManager.runInSandbox( () -> {
-                            Object value = prepared.exec( context, scope );
+                            Object value = ScriptClassShutter.execRestricted( prepared, context, scope );
                             ref.set( value );
                         } );
                         Object value = ref.get();

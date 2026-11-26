@@ -10,6 +10,18 @@ import ru.biosoft.util.HashMapWeakValues;
  */
 public class SessionCache
 {
+    private volatile Object administratorScriptScope;
+
+    public Object getAdministratorScriptScope()
+    {
+        return administratorScriptScope;
+    }
+
+    public void setAdministratorScriptScope(Object scope)
+    {
+        administratorScriptScope = scope;
+    }
+
     /**
      * Map for asked(not changed) objects.
      */

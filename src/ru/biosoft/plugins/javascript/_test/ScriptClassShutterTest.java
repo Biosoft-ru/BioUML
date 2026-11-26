@@ -4,18 +4,30 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.mozilla.javascript.BaseFunction;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Scriptable;
+
+import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.access.script.NullScriptEnvironment;
 import ru.biosoft.access.script.ScriptJobControl;
 import ru.biosoft.access.security.Permission;
 import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.access.security.SessionCacheManager;
 import ru.biosoft.access.security.TestSecurityProvider;
 import ru.biosoft.access.security.UserPermissions;
+import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.plugins.javascript.JSElement;
-import java.util.concurrent.atomic.AtomicReference;
-
-import ru.biosoft.access._test.AbstractBioUMLTest;
 import ru.biosoft.plugins.javascript.JScriptContext;
 import ru.biosoft.plugins.javascript.ScriptClassShutter;
+import ru.biosoft.table.RowJSExpression;
+import ru.biosoft.table.StandardTableDataCollection;
+import ru.biosoft.table.TableDataCollectionUtils;
 
 /** The class list of {@link ScriptClassShutter}, and that scripts run through {@link JScriptContext} get it. */
 public class ScriptClassShutterTest extends AbstractBioUMLTest
@@ -163,10 +175,19 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
 
         String evaluate(String source, boolean console)
         {
-            ScriptJobControl job = createJobControl( source, new NullScriptEnvironment(),
-                    Map.of( "importPath", new ru.biosoft.util.FileItem( "example" ) ), new HashMap<>(), console );
+            return evaluate( source, console, Map.of( "importPath", new ru.biosoft.util.FileItem( "example" ) ) );
+        }
+
+        String evaluate(String source, boolean console, Map<String, Object> variables)
+        {
+            ScriptJobControl job = job( source, console, variables );
             job.run();
             return job.getResult();
+        }
+
+        ScriptJobControl job(String source, boolean console, Map<String, Object> variables)
+        {
+            return createJobControl( source, new NullScriptEnvironment(), variables, new HashMap<>(), console );
         }
     }
 
@@ -181,7 +202,10 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
             @Override
             public int getPermissions(String path, UserPermissions user)
             {
-                return path.equals( "/" ) && user.getUser().equals( "server-admin" ) ? Permission.ALL : Permission.READ;
+                if( user.getUser().equals( "unavailable" ) )
+                    throw new IllegalStateException( "Test provider unavailable" );
+                return path.equals( "/" ) && user.getUser().equals( "server-admin" ) || path.equals( "project" )
+                        ? Permission.ALL : Permission.READ;
             }
         };
         fixture.init( new java.util.Properties() );
@@ -196,7 +220,7 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
                     SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sid );
                     try
                     {
-                        assertFalse( SecurityManager.isSessionUserAdmin() );
+                        assertNull( SecurityManager.getSessionAdministratorPermission() );
                         SecurityManager.commonLogin( "server-admin", "", null, null );
                         ScriptTask task = new ScriptTask();
                         String script = "var saved = java.nio.file.StandardCopyOption.REPLACE_EXISTING; '' + saved + ',' + importPath.getName()";
@@ -207,19 +231,51 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
                             return null;
                         } ).stream().noneMatch( message -> message.contains( "StandardCopyOption" ) || message.contains( "FileItem" ) ) );
 
-                        assertNull( ru.biosoft.access.security.SessionCacheManager.getSessionCache().getObject( "properties/JavaScript/scope" ) );
+                        assertNull( SessionCacheManager.getSessionCache().getObject( "properties/JavaScript/scope" ) );
+                        if( mode == ScriptClassShutter.Mode.ENFORCE )
+                        {
+                            checkNestedEvaluation( task );
+                            checkCancelledJob( task );
+                            checkConcurrentConsoleJobs( task, sid );
+                        }
+                        // Demote and promote without running a script while demoted.
+                        SecurityManager.addUserPermission( "server-admin", "/", new Permission( Permission.READ, "server-admin", sid, Long.MAX_VALUE ) );
+                        SecurityManager.addUserPermission( "server-admin", "/", new Permission( Permission.ALL, "server-admin", sid, Long.MAX_VALUE ) );
+                        assertEquals( "undefined", task.evaluate( "typeof saved", true ) );
+                        task.evaluate( script, true );
+                        SecurityManager.commonLogout();
+                        SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sid );
+                        SecurityManager.commonLogin( "server-admin", "", null, null );
+                        assertEquals( "undefined", task.evaluate( "typeof saved", true ) );
+                        task.evaluate( script, true );
                         // Demote in place, retaining both the session cache and the Rhino context.
                         SecurityManager.getCurrentUserPermission().getDbToPermission().put( "/",
                                 new Permission( Permission.READ, "server-admin", sid, Long.MAX_VALUE ) );
-                        assertFalse( SecurityManager.isSessionUserAdmin() );
+                        assertNull( SecurityManager.getSessionAdministratorPermission() );
                         assertEquals( "undefined", task.evaluate( "typeof saved", true ) );
                         String expected = mode == ScriptClassShutter.Mode.ENFORCE ? "undefined" : "object";
                         assertEquals( expected, task.evaluate( "typeof importPath", false ) );
                         String probe = task.evaluate( PROBE, true );
                         assertTrue( probe, probe.startsWith( mode == ScriptClassShutter.Mode.ENFORCE ? "hidden:" : "visible:" ) );
                         SecurityManager.commonLogin( "regular-user", "", null, null );
-                        assertFalse( SecurityManager.isSessionUserAdmin() );
+                        assertNull( SecurityManager.getSessionAdministratorPermission() );
                         assertEquals( "undefined," + expected, task.evaluate( "typeof saved + ',' + typeof importPath", true ) );
+                        assertTrue( SecurityManager.getPermissions( "project" ).isAdminAllowed() );
+                        SecurityManager.runPrivileged( () -> {
+                            assertNull( SecurityManager.getSessionAdministratorPermission() );
+                            return null;
+                        } );
+                        SecurityManager.commonLogin( "unavailable", "", null, null );
+                        assertNull( SecurityManager.getSessionAdministratorPermission() );
+                        SecurityManager.commonLogin( "server-admin", "", null, null );
+                        UserPermissions admin = SecurityManager.getCurrentUserPermission();
+                        Field expiration = UserPermissions.class.getDeclaredField( "expirationTime" );
+                        expiration.setAccessible( true );
+                        expiration.setLong( admin, 0 );
+                        assertNull( SecurityManager.getSessionAdministratorPermission() );
+                        admin.updateExpirationTime();
+                        admin.setDead( true );
+                        assertNull( SecurityManager.getSessionAdministratorPermission() );
                     }
                     finally
                     {
@@ -234,6 +290,96 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
         {
             provider.set( null, previous );
         }
+    }
+
+    private static void checkNestedEvaluation(ScriptTask task)
+    {
+        BaseFunction nested = new BaseFunction()
+        {
+            @Override
+            public Object call(Context context, Scriptable scope, Scriptable thisObject, Object[] args)
+            {
+                // This is a separate expression invoked from Java while the admin script is still active.
+                assertTrue( JScriptContext.evaluateString( PROBE ).startsWith( "hidden: " ) );
+                var table = new StandardTableDataCollection( null, "test" );
+                TableDataCollectionUtils.addRow( table, "row", new Object[0] );
+                try
+                {
+                    return new RowJSExpression( PROBE, table ).evaluate( table.get( "row" ) );
+                }
+                catch( Exception e )
+                {
+                    throw new AssertionError( e );
+                }
+            }
+        };
+        String result = task.evaluate( "var nestedResult = nested(); "
+                + "nestedResult + ' / ' + new java.io.File('outer').getName()", false, Map.of( "nested", nested ) );
+        assertTrue( result, result.startsWith( "hidden: " ) && result.endsWith( " / outer" ) );
+        task.evaluate( "throw new Error('test error')", false );
+        assertTrue( JScriptContext.evaluateString( PROBE ).startsWith( "hidden: " ) );
+    }
+
+    private static void checkCancelledJob(ScriptTask task)
+    {
+        AtomicReference<ScriptJobControl> running = new AtomicReference<>();
+        BaseFunction cancel = new BaseFunction()
+        {
+            @Override
+            public Object call(Context context, Scriptable scope, Scriptable thisObject, Object[] args)
+            {
+                running.get().terminate();
+                throw new java.util.concurrent.CancellationException();
+            }
+        };
+        ScriptJobControl job = task.job( "cancel()", false, Map.of( "cancel", cancel ) );
+        running.set( job );
+        job.run();
+        assertEquals( JobControl.TERMINATED_BY_REQUEST, job.getStatus() );
+        assertTrue( JScriptContext.evaluateString( PROBE ).startsWith( "hidden: " ) );
+    }
+
+    private static void checkConcurrentConsoleJobs(ScriptTask task, String session) throws Exception
+    {
+        assertEquals( "0", task.evaluate( "var count = 0; '' + count", true ) );
+        CountDownLatch ready = new CountDownLatch( 2 );
+        CountDownLatch start = new CountDownLatch( 1 );
+        java.util.concurrent.Callable<String> increment = () -> {
+            SecurityManager.addThreadToSessionRecord( Thread.currentThread(), session );
+            try
+            {
+                ready.countDown();
+                assertTrue( start.await( 5, TimeUnit.SECONDS ) );
+                return new ScriptTask().evaluate( "new java.io.File('test'); '' + ++count", true );
+            }
+            finally
+            {
+                SecurityManager.removeThreadFromSessionRecord();
+            }
+        };
+        FutureTask<String> first = new FutureTask<>( increment );
+        FutureTask<String> second = new FutureTask<>( increment );
+        new Thread( first ).start();
+        new Thread( second ).start();
+        assertTrue( ready.await( 5, TimeUnit.SECONDS ) );
+        start.countDown();
+        assertEquals( java.util.Set.of( "1", "2" ),
+                new java.util.HashSet<>( Arrays.asList( first.get( 5, TimeUnit.SECONDS ), second.get( 5, TimeUnit.SECONDS ) ) ) );
+    }
+
+    public void testConsoleModeTransitionOnOneWorker() throws Exception
+    {
+        onFreshThread( () -> {
+            ScriptTask task = new ScriptTask();
+            ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.OFF ) );
+            assertEquals( "off", task.evaluate( "var saved = new java.io.File('off'); saved.getName()", true ) );
+            assertTrue( JScriptContext.evaluateString( PROBE ).startsWith( "visible: " ) );
+            ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.ENFORCE ) );
+            assertEquals( "undefined", task.evaluate( "typeof saved", true ) );
+            assertTrue( task.evaluate( PROBE, true ).startsWith( "hidden: " ) );
+            assertTrue( JScriptContext.evaluateString( PROBE ).startsWith( "hidden: " ) );
+            return "";
+        } );
     }
 
     /** A script's variables as a workflow script node binds them, then the script; on a fresh thread. */

@@ -21,6 +21,7 @@ import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 
 /**
  * @author lan
@@ -52,7 +53,7 @@ public class ScriptDataGenerator extends SimulationDataGeneratorSupport
         this.origin = origin;
         this.name = name;
         context = Context.enter();
-        ru.biosoft.plugins.javascript.ScriptClassShutter.install( context );
+        ScriptClassShutter.install( context );
         scope = new ImporterTopLevel();
         buck = new NativeObject();
         scope.put("$", scope, buck);
@@ -167,7 +168,7 @@ public class ScriptDataGenerator extends SimulationDataGeneratorSupport
     public double getValue(int point) throws Exception
     {
         scope.put("point", scope, point);
-        return (Double)script.exec(context, scope);
+        return (Double)ScriptClassShutter.execRestricted( script, context, scope );
     }
 
     /**
@@ -249,7 +250,7 @@ public class ScriptDataGenerator extends SimulationDataGeneratorSupport
         }
         
         context = Context.enter();
-        ru.biosoft.plugins.javascript.ScriptClassShutter.install( context );
+        ScriptClassShutter.install( context );
         scope = new ImporterTopLevel();
         buck = new NativeObject();
         scope.put("$", scope, buck);

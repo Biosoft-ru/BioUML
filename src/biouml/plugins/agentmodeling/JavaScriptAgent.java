@@ -10,6 +10,7 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 import ru.biosoft.access.BiosoftSecurityManager;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 import ru.biosoft.plugins.javascript.JScriptContext;
 import biouml.plugins.simulation.Span;
 
@@ -41,7 +42,7 @@ public class JavaScriptAgent extends ScriptAgent
             scope = JScriptContext.getScope();
             defineVariableValues();
             BiosoftSecurityManager.runInSandbox( () -> {
-                preparedInitial.exec(context, scope);
+                ScriptClassShutter.execRestricted( preparedInitial, context, scope );
             } );
             retrieveVariableValues();
         }
@@ -61,7 +62,7 @@ public class JavaScriptAgent extends ScriptAgent
             scope = JScriptContext.getScope();
             defineVariableValues();
             BiosoftSecurityManager.runInSandbox( () -> {
-                prepared.exec(context, scope);    
+                ScriptClassShutter.execRestricted( prepared, context, scope );
             } );
             retrieveVariableValues();
             

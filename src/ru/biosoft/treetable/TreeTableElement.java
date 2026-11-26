@@ -10,6 +10,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElementPath;
 import ru.biosoft.access.core.DataElementSupport;
 import ru.biosoft.access.core.ClassIcon;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 import ru.biosoft.plugins.javascript.JScriptContext;
 import com.developmentontheedge.beans.annot.PropertyName;
 
@@ -71,7 +72,7 @@ public class TreeTableElement extends DataElementSupport
             {
                 Context context = JScriptContext.getContext();
                 ScriptableObject scope = JScriptContext.getScope();
-                Object obj = context.evaluateString(scope, tableScript, "", 0, null);
+                Object obj = ScriptClassShutter.evaluateRestricted( context, scope, tableScript, "", 0 );
                 table = (DataCollection) ( (NativeJavaObject)obj ).unwrap();
             }
             catch( Exception e )

@@ -23,6 +23,7 @@ import ru.biosoft.bsa.Track;
 import ru.biosoft.bsa.WritableTrack;
 import ru.biosoft.jobcontrol.Iteration;
 import ru.biosoft.jobcontrol.JobControl;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 import ru.biosoft.plugins.javascript.JScriptContext;
 
 /**
@@ -70,7 +71,7 @@ public class FilterTrackByCondition extends AnalysisMethodSupport<FilterTrackByC
         }
         AtomicReference<Object> ref = new AtomicReference<>();
         BiosoftSecurityManager.runInSandbox( () -> {
-            Object result = script.exec(context, scope);
+            Object result = ScriptClassShutter.execRestricted( script, context, scope );
             ref.set( result );
         } );
         Object result = ref.get();

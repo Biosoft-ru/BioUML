@@ -98,6 +98,8 @@ public class JScriptContext
         }
     };
 
+    private static final ThreadLocal<ScriptClassShutter> scopePolicy = new ThreadLocal<>();
+
     public static Context getContext()
     {
         Context threadContext = context.get();
@@ -114,11 +116,6 @@ public class JScriptContext
             catch( Exception e )
             {
             }
-            ImporterTopLevel scope = getScope();
-            scope.initStandardObjects(threadContext, false);
-            JScriptVisiblePlugin jsPlugin = JScriptVisiblePlugin.getInstance();
-            if( jsPlugin != null )
-                loadExtensions(jsPlugin, threadContext, scope);
             context.set(threadContext);
         }
 
@@ -134,6 +131,19 @@ public class JScriptContext
             {
             }
             //context.initStandardObjects(getScope());
+        }
+
+        ScriptClassShutter policy = ScriptClassShutter.getInstance();
+        if( scopePolicy.get() != policy )
+        {
+            if( scopePolicy.get() != null )
+                scope.remove();
+            ImporterTopLevel threadScope = getScope();
+            threadScope.initStandardObjects( threadContext, false );
+            JScriptVisiblePlugin plugin = JScriptVisiblePlugin.getInstance();
+            if( plugin != null )
+                loadExtensions( plugin, threadContext, threadScope );
+            scopePolicy.set( policy );
         }
 
         return threadContext;
@@ -181,21 +191,24 @@ public class JScriptContext
     {
         private Object result;
         private final Context context;
-        private final Scriptable scope;
+        private final ScriptableObject scope;
         private final Script script;
+        private final boolean administrator;
 
-        public SandboxRunnable(Context context, Scriptable scope, Script script)
+        public SandboxRunnable(Context context, ScriptableObject scope, Script script, boolean administrator)
         {
             this.context = context;
             this.scope = scope;
             this.script = script;
+            this.administrator = administrator;
         }
 
         @Override
         public void run()
         {
             //log.info( "JavaScript ClassLoader: " + script.getClass().getClassLoader() );
-            result = script.exec(context, scope);
+            result = ScriptClassShutter.withAdminAccess( administrator ? scope : null,
+                    () -> script.exec( context, scope ) );
         }
 
         public Object getResult()
@@ -207,6 +220,18 @@ public class JScriptContext
     private static final PerThreadStream threadOutStream = new PerThreadStream( System.out ), threadErrStream = new PerThreadStream( System.err );
 
     public static String evaluateString(Context context, ScriptableObject scope, String expr, String name, ScriptEnvironment environment)
+    {
+        return evaluateJob( context, scope, expr, name, environment, false );
+    }
+
+    static String evaluateJob(Context context, ScriptableObject scope, String expr, String name,
+            ScriptEnvironment environment, boolean administrator)
+    {
+        return ScriptClassShutter.withAdminAccess( null, () -> evaluate( context, scope, expr, name, environment, administrator ) );
+    }
+
+    private static String evaluate(Context context, ScriptableObject scope, String expr, String name,
+            ScriptEnvironment environment, boolean administrator)
     {
         //execute preprocessors
         expr = PreprocessorRegistry.preprocessors().foldLeft( expr, (code, prep) -> prep.preprocess( code ) );
@@ -239,7 +264,7 @@ public class JScriptContext
             try
             {
                 Script script = context.compileString(expr, name, 1, null);
-                SandboxRunnable runnable = new SandboxRunnable(context, scope, script);
+                SandboxRunnable runnable = new SandboxRunnable(context, scope, script, administrator);
                 BiosoftSecurityManager.runInSandbox(runnable);
                 result = runnable.getResult();
 
@@ -407,7 +432,7 @@ public class JScriptContext
         Object result = Context.getUndefinedValue();
         try
         {
-            result = cx.evaluateReader( getScope(), in, sourceName, lineno, securityDomain );
+            result = ScriptClassShutter.withAdminAccess( null, () -> cx.evaluateReader( getScope(), in, sourceName, lineno, securityDomain ) );
         }
         catch( WrappedException we )
         {

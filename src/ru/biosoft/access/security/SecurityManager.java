@@ -358,6 +358,11 @@ public class SecurityManager
             if( fresh == null )
                 return false;
             current.refreshFrom( fresh );
+            // Aliased sessions can share the same UserPermissions instance.
+            sessionToPermission.forEach( (session, permissions) -> {
+                if( permissions == current )
+                    clearAdministratorScriptScope( session );
+            } );
             return true;
         }
         catch( Exception e )
@@ -379,13 +384,14 @@ public class SecurityManager
     {
         if( user == null || user.isEmpty() || path == null || permission == null )
             return;
-        for( UserPermissions ps : sessionToPermission.values() )
-        {
-            if( user.equalsIgnoreCase( ps.getUser() ) )
+        sessionToPermission.forEach( (session, permissions) -> {
+            if( user.equalsIgnoreCase( permissions.getUser() ) )
             {
-                ps.getDbToPermission().put( path, permission );
+                permissions.getDbToPermission().put( path, permission );
+                if( "/".equals( path ) )
+                    clearAdministratorScriptScope( session );
             }
-        }
+        } );
     }
 
     public static Permission commonLoginViaOtherSession(
@@ -443,6 +449,10 @@ public class SecurityManager
             if( userPermissions != null )
             {
                 userPermissions.setDead(true);
+                sessionToPermission.forEach( (session, permissions) -> {
+                    if( permissions == userPermissions )
+                        clearAdministratorScriptScope( session );
+                } );
                 removeThreadFromSessionRecord();
                 cleanSessionToPermissionMap(System.currentTimeMillis());
             }
@@ -480,6 +490,8 @@ public class SecurityManager
                 for( String dcName : permissionsToDelete )
                 {
                     dbToPermission.remove(dcName);
+                    if( "/".equals( dcName ) )
+                        clearAdministratorScriptScope( sessionId );
                 }
                 if( dbToPermission.size() == 0 && ps.isExpired() && !threadToSession.containsValue( sessionId ) )
                 {
@@ -747,23 +759,24 @@ public class SecurityManager
         }
     }
 
-    /** Root ADMIN of the authenticated user, independent of test mode and privileged server threads. */
-    public static synchronized boolean isSessionUserAdmin()
+    /** Resolve root ADMIN from the authenticated session, excluding internal privilege overrides. */
+    public static Permission getSessionAdministratorPermission()
     {
         String session = getSession();
         UserPermissions user = sessionToPermission.get( session );
         if( SYSTEM_SESSION.equals( session ) || securityProvider == null || user == null || user.isExpired() || user.isDead()
                 || user.getUser() == null || user.getUser().isEmpty() )
-            return false;
+            return null;
         try
         {
             Permission root = getUserPermission( session, "/", false );
-            return root != null && root.isAllowed( Permission.ADMIN );
+            return root != null && root.isAdminAllowed() && user == sessionToPermission.get( session ) && !user.isDead()
+                    ? root : null;
         }
         catch( RuntimeException e )
         {
             log.log( Level.WARNING, "Cannot check administrator permission for the current session", e );
-            return false;
+            return null;
         }
     }
 
@@ -809,6 +822,8 @@ public class SecurityManager
             {
                 Permission permission = authorize(dbName, permissions, entry.getKey());
                 dbToPermission.put(dbName, permission);
+                if( "/".equals( dbName ) )
+                    clearAdministratorScriptScope( entry.getKey() );
             }
         }
 
@@ -836,6 +851,15 @@ public class SecurityManager
         Hashtable<String, Permission> dbToPermission = userPermissions.getDbToPermission();
         Permission permission = authorize(path, userPermissions, sessionId);
         dbToPermission.put(path, permission);
+        if( "/".equals( path ) )
+            clearAdministratorScriptScope( sessionId );
+    }
+
+    private static void clearAdministratorScriptScope(String session)
+    {
+        SessionCache cache = SessionCacheManager.getSessionCache( session );
+        if( cache != null )
+            cache.setAdministratorScriptScope( null );
     }
 
     public static boolean isProductAvailable(String productName)

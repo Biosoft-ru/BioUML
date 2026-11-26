@@ -13,6 +13,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.filter.Filter;
 import ru.biosoft.access.core.filter.FilteredDataCollection;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 import ru.biosoft.plugins.javascript.JavaScriptHostObjectBase;
 import ru.biosoft.util.TextUtil2;
 
@@ -146,7 +147,7 @@ public class JavaScriptFilter extends JavaScriptHostObjectBase
         public boolean isAcceptable(DataElement de)
         {
             defineColumnVariables(de);
-            Object result = script.exec(getCurrentContext(), scope);
+            Object result = ScriptClassShutter.execRestricted( script, getCurrentContext(), scope );
             return Boolean.valueOf(result.toString());
         }
 

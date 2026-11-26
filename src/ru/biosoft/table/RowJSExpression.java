@@ -11,6 +11,7 @@ import org.mozilla.javascript.Scriptable;
 import ru.biosoft.access.BiosoftSecurityManager;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 import ru.biosoft.plugins.javascript.JScriptContext;
 
 /**
@@ -49,7 +50,7 @@ public class RowJSExpression
         scope.setDataElement(rowDataElement);
         AtomicReference<Object> result = new AtomicReference<>();
         BiosoftSecurityManager.runInSandbox( ()->{
-            result.set( script.exec(context, scope) );
+            result.set( ScriptClassShutter.execRestricted( script, context, scope ) );
         } );
         return convertResult( result.get() );
     }
@@ -72,7 +73,7 @@ public class RowJSExpression
         scope.initStandardObjects(context, false);
         try
         {
-            BiosoftSecurityManager.runInSandbox( () -> script.exec(context, scope) );
+            BiosoftSecurityManager.runInSandbox( () -> ScriptClassShutter.execRestricted( script, context, scope ) );
         }
         catch( Exception e )
         {

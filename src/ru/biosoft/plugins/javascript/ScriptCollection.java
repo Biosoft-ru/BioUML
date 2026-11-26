@@ -152,7 +152,7 @@ public class ScriptCollection extends DerivedDataCollection<ru.biosoft.access.co
         
         AtomicReference<Object> ref = new AtomicReference<>( );
         BiosoftSecurityManager.runInSandbox( () -> {
-            Object scriptResult = script.exec(JScriptContext.getContext(), scope);
+            Object scriptResult = ScriptClassShutter.execRestricted( script, JScriptContext.getContext(), scope );
             ref.set( scriptResult );
         } );
         Object scriptResult = ref.get();

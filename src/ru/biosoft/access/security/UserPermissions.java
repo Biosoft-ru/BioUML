@@ -40,7 +40,7 @@ public class UserPermissions
      * Indicates that session in dead state
      * which means that after all session threads are finished, it will be wiped completely.
      */
-    protected boolean dead;
+    protected volatile boolean dead;
 
     protected Hashtable<String, Permission> dbToPermission;
 
@@ -52,7 +52,7 @@ public class UserPermissions
     /**
      * Time when this permission object should be expired
      */
-    protected long expirationTime;
+    protected volatile long expirationTime;
 
     public UserPermissions(String user, String password)
     {

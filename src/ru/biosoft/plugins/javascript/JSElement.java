@@ -1,11 +1,9 @@
 package ru.biosoft.plugins.javascript;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.WeakHashMap;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeArray;
@@ -13,6 +11,7 @@ import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.RhinoException;
+import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
@@ -25,6 +24,7 @@ import ru.biosoft.access.script.DerivedScriptEnvironment;
 import ru.biosoft.access.script.ScriptDataElement;
 import ru.biosoft.access.script.ScriptEnvironment;
 import ru.biosoft.access.script.ScriptJobControl;
+import ru.biosoft.access.security.Permission;
 import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.access.security.SessionCache;
 import ru.biosoft.access.security.SessionCacheManager;
@@ -39,9 +39,9 @@ public class JSElement extends ScriptDataElement
 {
     private static final String JAVA_SCRIPT_SCOPE_PROPERTY = "properties/JavaScript/scope";
 
-    // Keep privileged wrappers out of the script-accessible session cache. A new login
-    // creates a new SessionCache, so its administrator console starts with a fresh scope.
-    private static final Map<SessionCache, Global> adminScopes = Collections.synchronizedMap( new WeakHashMap<>() );
+    private record ConsoleScope(ScriptClassShutter policy, Permission authorization, ScriptableObject scope)
+    {
+    }
 
     public JSElement(DataCollection<?> parent, String name, String data)
     {
@@ -309,75 +309,86 @@ public class JSElement extends ScriptDataElement
                 }
             } );
             debugger.init();
+            ScriptClassShutter.withAdminAccess( null, () -> {
+                runScript();
+                return null;
+            } );
+        }
+
+        private void runScript()
+        {
             Context context = JScriptContext.getContext();
-            boolean administrator = ScriptClassShutter.getInstance().getMode() != ScriptClassShutter.Mode.OFF
-                    && SecurityManager.isSessionUserAdmin();
-            ScriptableObject topLevelScope = getJobScope( context, administrator );
-            if( administrator )
-            {
-                // Nested table expressions and host functions can use the worker's default scope.
-                // Give those calls a separate global so their Java wrappers stay inside this job.
-                var previousScope = JScriptContext.getScope();
-                var previousDebugger = context.getDebugger();
-                Object previousDebuggerData = context.getDebuggerContextData();
+            ScriptClassShutter policy = ScriptClassShutter.getInstance();
+            // Root ADMIN is a job-start snapshot. Revocation applies to subsequent jobs.
+            // A running administrator job can already hold Java objects until it finishes.
+            boolean nested = ScriptRuntime.hasTopCall( context );
+            SessionCache cache = nested ? null : SessionCacheManager.getSessionCache( SecurityManager.getSession() );
+            Permission authorization = nested || policy.getMode() == ScriptClassShutter.Mode.OFF
+                    ? null : SecurityManager.getSessionAdministratorPermission();
+            if( cache != null && authorization == null )
+                cache.setAdministratorScriptScope( null );
+            ScriptableObject topLevelScope = getJobScope( context, policy, authorization, cache );
+            var previousScope = JScriptContext.getScope();
+            var previousDebugger = context.getDebugger();
+            Object previousDebuggerData = context.getDebuggerContextData();
+            if( authorization != null )
                 JScriptContext.setScope( createTopLevelScope( context ) );
-                try
+            try
+            {
+                synchronized( topLevelScope )
                 {
-                    ScriptClassShutter.runInScope( topLevelScope, true, () -> executeInScope( context, topLevelScope ) );
-                }
-                finally
-                {
-                    JScriptContext.setScope( previousScope );
-                    context.setDebugger( previousDebugger, previousDebuggerData );
+                    executeInScope( context, topLevelScope, authorization != null );
                 }
             }
-            else
+            finally
             {
-                ScriptClassShutter.runInScope( topLevelScope, false, () -> executeInScope( context, topLevelScope ) );
+                if( authorization != null )
+                    JScriptContext.setScope( previousScope );
+                context.setDebugger( previousDebugger, previousDebuggerData );
             }
         }
 
-        private ScriptableObject getJobScope(Context context, boolean administrator)
+        private ScriptableObject getJobScope(Context context, ScriptClassShutter policy, Permission authorization, SessionCache cache)
         {
-            if( !sessionContext )
-                return createTopLevelScope( context );
-
-            SessionCache cache = SessionCacheManager.getSessionCache();
-            if( cache == null )
+            if( !sessionContext || cache == null )
                 return createTopLevelScope( context );
             synchronized( cache )
             {
-                if( administrator )
+                Object existing;
+                if( authorization == null )
                 {
-                    Global global = adminScopes.get( cache );
-                    if( global == null )
-                    {
-                        global = createTopLevelScope( context );
-                        adminScopes.put( cache, global );
-                    }
-                    return global;
+                    existing = cache.getObject( JAVA_SCRIPT_SCOPE_PROPERTY );
                 }
-                Object existing = cache.getObject( JAVA_SCRIPT_SCOPE_PROPERTY );
-                if( existing instanceof ScriptableObject global )
-                    return global;
-                Global global = createTopLevelScope( context );
-                cache.addObject( JAVA_SCRIPT_SCOPE_PROPERTY, global, true );
-                return global;
+                else
+                {
+                    existing = cache.getAdministratorScriptScope();
+                }
+
+                if( existing instanceof ConsoleScope entry && entry.authorization() == authorization && entry.policy() == policy )
+                    return entry.scope();
+
+                ScriptableObject scope = createTopLevelScope( context );
+                ConsoleScope entry = new ConsoleScope( policy, authorization, scope );
+                if( authorization == null )
+                    cache.addObject( JAVA_SCRIPT_SCOPE_PROPERTY, entry, true );
+                else
+                    cache.setAdministratorScriptScope( entry );
+                return scope;
             }
         }
 
-        private void executeInScope(Context context, ScriptableObject topLevelScope)
+        private void executeInScope(Context context, ScriptableObject topLevelScope, boolean administrator)
         {
             try
             {
-                Scriptable buck = JavaScriptUtils.defineVariables( topLevelScope, scope );
+                Scriptable buck = JavaScriptUtils.defineVariables( topLevelScope, scope, administrator );
                 context.setDebugger(debugger, 0);
                 context.setGeneratingDebug(true);
                 context.setOptimizationLevel( -1);
 
 
                 DerivedScriptEnvironment trackingEnv = new DerivedScriptEnvironment( env );
-                result = JScriptContext.evaluateString( context, topLevelScope, content, getName(), trackingEnv );
+                result = JScriptContext.evaluateJob( context, topLevelScope, content, getName(), trackingEnv, administrator );
                 // echo the value like a console does, but not a script document's "undefined" (a workflow's script steps
                 // logged nothing else)
                 if( !trackingEnv.hasData() && result != null && ( sessionContext || !"undefined".equals( result ) ) )
