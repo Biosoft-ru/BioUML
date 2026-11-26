@@ -109,22 +109,32 @@ public class JScriptContext
         if( threadContext == null )
         {
             threadContext = Context.enter();
-            // before the scope and its host objects exist: they are wrapped through it too
-            ScriptClassShutter.install( threadContext );
-            threadContext.setApplicationClassLoader(ClassLoading.getClassLoader());
+            // Publish the entered context for extension initialization that calls getContext() again.
+            context.set( threadContext );
             try
             {
-                threadContext.setSecurityController(securityController);
+                ScriptClassShutter.install( threadContext );
+                threadContext.setApplicationClassLoader( ClassLoading.getClassLoader() );
+                try
+                {
+                    threadContext.setSecurityController( securityController );
+                }
+                catch( SecurityException e )
+                {
+                    // A Rhino context may already have a security controller.
+                }
+                ImporterTopLevel threadScope = getScope();
+                threadScope.initStandardObjects( threadContext, false );
+                JScriptVisiblePlugin plugin = JScriptVisiblePlugin.getInstance();
+                if( plugin != null )
+                    loadExtensions( plugin, threadContext, threadScope );
             }
-            catch( Exception e )
+            catch( RuntimeException | Error e )
             {
+                scope.remove();
+                context.remove();
+                throw e;
             }
-            context.set(threadContext);
-            ImporterTopLevel threadScope = getScope();
-            threadScope.initStandardObjects( threadContext, false );
-            JScriptVisiblePlugin plugin = JScriptVisiblePlugin.getInstance();
-            if( plugin != null )
-                loadExtensions( plugin, threadContext, threadScope );
         }
 
         if( Context.getCurrentContext() == null )

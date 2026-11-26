@@ -157,9 +157,10 @@ public class SecurityManager
         return getGuestPermission( dataCollectionName );
     }
 
-    // Per-user permission resolution. Synchronized on this class: the sessionToPermission map
-    // and the per-user dbToPermission Hashtable are shared mutable state, and this method may
-    // add new entries to both.
+    /**
+     * Returns the cached permission unchanged so administrator authorization can compare its identity.
+     * The public permission lookup fills in a missing session ID before returning it to callers.
+     */
     private static synchronized Permission getUserPermission(String sessionId, String dataCollectionName, boolean create)
     {
         long currentTime = System.currentTimeMillis();

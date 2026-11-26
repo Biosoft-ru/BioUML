@@ -94,6 +94,7 @@ public class JSElement extends ScriptDataElement
         private final JScriptDebugger debugger;
         private final ScriptEnvironment env;
         private String result;
+        private volatile boolean cancellationRequested;
         private final boolean sessionContext;
         private final Map<String, Object> scope;
         private final Map<String, Object> outVars;
@@ -113,6 +114,7 @@ public class JSElement extends ScriptDataElement
         @Override
         public void terminate()
         {
+            cancellationRequested = true;
             super.terminate();
             end();
             if(debugger != null)
@@ -323,17 +325,21 @@ public class JSElement extends ScriptDataElement
 
         private void runScript() throws JobControlException
         {
+            String session = SecurityManager.getSession();
+            SessionCache cache = SessionCacheManager.getSessionCache( session );
             Context context = JScriptContext.getContext();
             boolean nested = ScriptRuntime.hasTopCall( context );
-            String session = SecurityManager.getSession();
-            SessionCache cache = nested ? null : SessionCacheManager.getSessionCache( session );
-            if( !sessionContext || cache == null )
+            if( nested || !sessionContext || cache == null )
             {
                 ScriptableObject scope = createTopLevelScope( context );
                 Permission authorization = nested ? null : administratorPermission();
                 Global scratch = authorization == null ? null : createTopLevelScope( context );
-                if( authorization != null && administratorPermission() != authorization )
-                    throw authorizationChanged();
+                if( authorization != null )
+                {
+                    checkSession( session, cache );
+                    if( administratorPermission() != authorization )
+                        throw authorizationChanged();
+                }
                 executeJob( context, scope, scratch );
                 return;
             }
@@ -353,8 +359,10 @@ public class JSElement extends ScriptDataElement
             }
             try
             {
+                if( cancellationRequested )
+                    throw new JobControlException( JobControl.TERMINATED_BY_REQUEST );
                 checkStatus();
-                checkConsoleSession( session, cache );
+                checkSession( session, cache );
                 runConsoleCommand( context, session, cache, console );
             }
             finally
@@ -363,10 +371,10 @@ public class JSElement extends ScriptDataElement
             }
         }
 
-        private void checkConsoleSession(String session, SessionCache cache) throws JobControlException
+        private void checkSession(String session, SessionCache cache) throws JobControlException
         {
             if( !session.equals( SecurityManager.getSession() ) || cache != SessionCacheManager.getSessionCache( session ) )
-                throw new JobControlException( JobControl.TERMINATED_BY_ERROR, "The JavaScript console session changed" );
+                throw new JobControlException( JobControl.TERMINATED_BY_ERROR, "The JavaScript session changed" );
         }
 
         private void runConsoleCommand(Context context, String session, SessionCache cache, ConsoleState<ConsoleScope> console)
@@ -397,7 +405,9 @@ public class JSElement extends ScriptDataElement
             if( fresh )
                 entry = new ConsoleScope( authorization, createTopLevelScope( context ) );
             Global scratch = createTopLevelScope( context );
-            checkConsoleSession( session, cache );
+            checkSession( session, cache );
+            // Final permission and snapshot validation commits authorization for this execution.
+            // Later revocation affects subsequent commands.
             if( administratorPermission() != authorization
                     || ( fresh ? !console.publish( snapshot, entry ) : console.administrator() != snapshot ) )
                 throw authorizationChanged();
