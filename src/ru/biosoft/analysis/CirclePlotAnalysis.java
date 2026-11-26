@@ -243,7 +243,7 @@ public class CirclePlotAnalysis extends AnalysisMethodSupport<Parameters>
             StringBuilder tail = new StringBuilder();
             tail.append( "  guides(\n" );
             if( colorColumn != null )
-                tail.append( "    fill   = guide_colorbar(order = 1, nbin = 5, reverse = TRUE, title.position = \"top\", theme = theme(legend.key.width = unit(0.5, \"lines\"), legend.key.height = unit(10, \"lines\"))),\n" );
+                tail.append( "    fill   = guide_colorbar(order = 1, nbin = 5, reverse = TRUE, title.position = \"top\", barheight=10, barwidth=0.5, theme = theme(legend.key.width = unit(0.5, \"lines\"), legend.key.height = unit(10, \"lines\"))),\n" );
             tail.append( "    size   = guide_legend(order = 2, override.aes = list(stroke = 0.5))" );
             if( parameters.getMarkColumn() != null )
                 tail.append( ",\n    colour = guide_legend(order = 3, override.aes = list(fill = NA, size = 4, stroke = 1.5), nrow = 1, byrow = TRUE, theme = theme(legend.text = element_blank()))\n" );
