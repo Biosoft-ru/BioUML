@@ -1,7 +1,9 @@
 package biouml.plugins.wdl.nextflow;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
@@ -123,8 +125,8 @@ public class ScatterProcessor extends NextFlowVelocityHelper
         sb.append( ")" );
         contextNodes.add( node );
     }
-    private void printConditionalCollectedExpression(Node node, List<Node> parentContextNodes, StringBuilder sb, String parentContextName,
-            String conditionalContextName)
+    private void printConditionalCollectedExpression(Node node, List<Node> parentContextNodes, List<Node> conditionalContextNodes,
+            StringBuilder sb, String parentContextName, String conditionalContextName)
     {
         String name = getName( node );
         /*
@@ -138,6 +140,8 @@ public class ScatterProcessor extends NextFlowVelocityHelper
         sb.append( collectedValueName );
         sb.append( " = " );
         sb.append( getExpression( node ) );
+        if( isScatterCollection( node ) )
+            sb.append( ".flatMap { it }" );
         /*
          * Restore missing rows into parent context.
          */
@@ -151,8 +155,21 @@ public class ScatterProcessor extends NextFlowVelocityHelper
         sb.append( conditionalContextName );
         sb.append( ")" );
         /*
-         * From now on result_collected is represented
-         * inside parent context.
+         * Keep the collected value in the conditional context as well:
+         * subsequent calls inside the if must receive the value for the
+         * current outer scatter iteration, not a channel of all results.
+         */
+        sb.append( "\n " );
+        sb.append( conditionalContextName );
+        sb.append( " = addValue(" );
+        sb.append( conditionalContextName );
+        sb.append( ", " );
+        sb.append( collectedValueName );
+        sb.append( ")" );
+        conditionalContextNodes.add( node );
+        /*
+         * The parent context also carries the collected value, including
+         * the missing rows restored by addConditionalValue().
          */
         parentContextNodes.add( node );
         /*
@@ -291,18 +308,10 @@ public class ScatterProcessor extends NextFlowVelocityHelper
         sb.append( " )" );
         addCallOutputsToContext( call, contextNodes, sb, condition == null ? null : contextName, parentContextName );
     }
-    //    private String printInputInCycle(Node input, List<Node> contextNodes)
-    //    {
-    //        return printInputInCycle( input, contextNodes, "context" );
-    //    }
     private String printInputInCycle(Node input, List<Node> contextNodes, String contextName)
     {
         String expression = prepareExpression( getCallEmit( input ), contextNodes );
         return printContextMap( expression, contextNodes, contextName );
-    }
-    private String printContextMap(String expression, List<Node> contextNodes)
-    {
-        return printContextMap( expression, contextNodes, "context" );
     }
     private String printContextMap(String expression, List<Node> contextNodes, String contextName)
     {
@@ -498,17 +507,35 @@ public class ScatterProcessor extends NextFlowVelocityHelper
                 cycleNames.add( getCycleName( (Compartment)node ) );
             }
         }
+        /*
+         * The diagram can contain two nodes with the same collected name:
+         * collectScatter(...) for the nested scatter and a later, flat
+         * channel.toList() node. Only the first is meaningful here.
+         * Prefer collectScatter even if orderCallsScatters() returns the
+         * duplicate toList() node first.
+         */
+        Map<String, Node> collectedNodes = new LinkedHashMap<>();
+        for( Node node : nodes )
+        {
+            if( isExpression( node ) && getName( node ).endsWith( "_collected" ) )
+            {
+                String name = getName( node );
+                Node previous = collectedNodes.get( name );
+                if( previous == null || ( !isScatterCollection( previous ) && isScatterCollection( node ) ) )
+                    collectedNodes.put( name, node );
+            }
+        }
         for( Node node : nodes )
         {
             if( isExpression( node ) )
             {
                 String name = getName( node );
-                /*
-                 * collect node created earlier by createCollect()
-                 */
                 if( name.endsWith( "_collected" ) )
                 {
-                    printConditionalCollectedExpression( node, parentContextNodes, sb, parentContextName, conditionalContextName );
+                    if( collectedNodes.get( name ) != node )
+                        continue;
+                    printConditionalCollectedExpression( node, parentContextNodes, conditionalContextNodes, sb,
+                            parentContextName, conditionalContextName );
                     continue;
                 }
                 if( name.endsWith( "_wrapped" ) )
@@ -565,6 +592,48 @@ public class ScatterProcessor extends NextFlowVelocityHelper
                 printConditionalInCycle( (Compartment)node, conditionalContextNodes, sb, conditionals, conditionalContextName );
             }
         }
+
+        // Restore values that were produced only in the conditional context.
+        List<Node> localNodes = new ArrayList<>( conditionalContextNodes );
+        localNodes.removeAll( parentContextNodes );
+        if( !localNodes.isEmpty() )
+        {
+            // Match the parent context's columns without re-evaluating the condition.
+            String selectedContextName = conditionalContextName + "_selected";
+            sb.append( "\n " );
+            sb.append( selectedContextName );
+            sb.append( " = " );
+            sb.append( printContextMap( "[" + getContextArguments( parentContextNodes ) + "]",
+                    conditionalContextNodes, conditionalContextName ) );
+
+            String valueChannels = StreamEx.of( localNodes ).map( node ->
+                    isCall( node.getCompartment() ) ? getCallName( node.getCompartment() ) + "_" + getName( node ) : getName( node ) )
+                    .joining( ", " );
+            sb.append( "\n " );
+            sb.append( parentContextName );
+            sb.append( " = addConditionalValues(" );
+            sb.append( parentContextName );
+            sb.append( ", [" );
+            sb.append( valueChannels );
+            sb.append( "], " );
+            sb.append( selectedContextName );
+            sb.append( ")" );
+            parentContextNodes.addAll( localNodes );
+
+            for( Node node : localNodes )
+            {
+                String name = isCall( node.getCompartment() ) ? getCallName( node.getCompartment() ) + "_" + getName( node ) : getName( node );
+                sb.append( "\n " );
+                sb.append( name );
+                sb.append( " = " );
+                sb.append( printContextMap( getContextArgumentName( node ), parentContextNodes, parentContextName ) );
+            }
+        }
+    }
+    private boolean isScatterCollection(Node node)
+    {
+        String expression = getExpression( node );
+        return expression != null && expression.trim().startsWith( "collectScatter(" );
     }
     private String prepareExpression(String expression, List<Node> contextNodes)
     {
