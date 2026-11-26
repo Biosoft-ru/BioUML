@@ -89,6 +89,7 @@ final class ProjectBackup
         }
 
         ProjectDeletion.Pending complete = pending.withBackup( destination, true, null );
+        SupportServlet.log.info( "Completed backup of project " + deletion.directory().getFileName() + " at " + destination );
         deletion.save( complete );
         return complete;
     }

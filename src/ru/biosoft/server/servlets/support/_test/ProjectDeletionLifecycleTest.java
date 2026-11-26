@@ -28,8 +28,11 @@ import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataCollectionEvent;
 import ru.biosoft.access.core.DataCollectionVetoException;
+import ru.biosoft.access.security.Permission;
 import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.access.security.SecurityProvider.ProjectGroupStatus;
 import ru.biosoft.access.security.TestSecurityProvider;
+import ru.biosoft.access.security.UserPermissions;
 import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.TempFiles;
 
@@ -347,7 +350,7 @@ public class ProjectDeletionLifecycleTest extends AbstractBioUMLTest
             assertTrue( servlet.delete( false, false ).toString().contains( "was not removed completely" ) );
             assertTrue( Files.notExists( project ) );
             assertTrue( deletion.readPending().groupPending() );
-            assertNotNull( McpProjectSupport.delete( PROJECT ).getError() );
+            assertTrue( McpProjectSupport.delete( PROJECT ).getError().contains( "BioStore cleanup through the web deletion endpoint" ) );
             assertTrue( deletion.readPending().groupPending() );
             servlet.delete( true, false );
             assertEquals( 2, groupRemovals.get() );
@@ -357,6 +360,176 @@ public class ProjectDeletionLifecycleTest extends AbstractBioUMLTest
         {
             providerField.set( null, previous );
         }
+    }
+
+    public void testVerifiedMissingGroupDoesNotReserveName() throws Exception
+    {
+        withSecurityProvider( new TestSecurityProvider()
+        {
+            @Override
+            public boolean removeProject(String groupName, String username, String password, String jwToken)
+            {
+                return false;
+            }
+
+            @Override
+            public ProjectGroupStatus getProjectGroupStatus(String groupName)
+            {
+                return ProjectGroupStatus.ABSENT;
+            }
+        }, () -> {
+            JSONObject result = new FixtureServlet().delete( false, false );
+            assertEquals( result.toString(), "ok", result.getString( "type" ) );
+            assertNull( deletion.readPending() );
+            assertNotNull( SupportServlet.createFileBasedProject( PROJECT, repository, null ) );
+        } );
+    }
+
+    public void testOriginalRequesterCanFinishAfterGroupDisappears() throws Exception
+    {
+        String projectPath = repository.getCompletePath().getChildPath( PROJECT ).toString();
+        AtomicInteger groupRemovals = new AtomicInteger();
+        AtomicInteger statusChecks = new AtomicInteger();
+        TestSecurityProvider provider = new TestSecurityProvider()
+        {
+            @Override
+            public int getPermissions(String path, UserPermissions user)
+            {
+                return path.equals( projectPath ) && groupRemovals.get() == 0 ? Permission.DELETE | Permission.READ : Permission.READ;
+            }
+
+            @Override
+            public boolean removeProject(String groupName, String username, String password, String jwToken)
+            {
+                assertEquals( "The provider must only remove the group once", 1, groupRemovals.incrementAndGet() );
+                throw new IllegalStateException( "Fixture interrupted after removing group" );
+            }
+
+            @Override
+            public ProjectGroupStatus getProjectGroupStatus(String groupName)
+            {
+                // The first request lost its reply after the provider removed the group.
+                return statusChecks.incrementAndGet() == 1 ? ProjectGroupStatus.UNKNOWN : ProjectGroupStatus.ABSENT;
+            }
+        };
+        withSecurityProvider( provider, () -> {
+            FixtureServlet servlet = new FixtureServlet();
+            String requester = SecurityManager.getSessionUser();
+            assertTrue( SecurityManager.getPermissions( projectPath ).isDeleteAllowed() );
+            assertEquals( "error", servlet.delete( false, false ).getString( "type" ) );
+            assertEquals( 1, groupRemovals.get() );
+            assertTrue( deletion.readPending().localComplete() );
+            assertEquals( requester, deletion.readPending().groupRequestedBy() );
+            assertTrue( Files.notExists( project ) );
+
+            SecurityManager.commonLogin( "other-user", "", null, null );
+            assertTrue( servlet.delete( true, false ).getString( "message" ).contains( "Delete access denied" ) );
+            assertNotNull( deletion.readPending() );
+            SecurityManager.commonLogin( requester, "", null, null );
+            assertNull( SecurityManager.getSessionAdministratorPermission() );
+            assertFalse( SecurityManager.getPermissions( projectPath ).isDeleteAllowed() );
+            JSONObject result = servlet.delete( true, false );
+            assertEquals( result.toString(), "ok", result.getString( "type" ) );
+            assertNull( deletion.readPending() );
+            assertEquals( 1, groupRemovals.get() );
+        } );
+    }
+
+    public void testAdminRecoveryAfterGroupPermissionIsLost() throws Exception
+    {
+        String projectPath = repository.getCompletePath().getChildPath( PROJECT ).toString();
+        var status = new java.util.concurrent.atomic.AtomicReference<>( ProjectGroupStatus.UNKNOWN );
+        TestSecurityProvider provider = new TestSecurityProvider()
+        {
+            @Override
+            public int getPermissions(String path, UserPermissions user)
+            {
+                return "/".equals( path ) && "server-admin".equals( user.getUser() ) ? Permission.ADMIN : Permission.READ;
+            }
+
+            @Override
+            public ProjectGroupStatus getProjectGroupStatus(String groupName)
+            {
+                return status.get();
+            }
+        };
+        withSecurityProvider( provider, () -> {
+            FixtureServlet servlet = new FixtureServlet();
+            SecurityManager.commonLogin( "server-admin", "", null, null );
+            assertFalse( SecurityManager.getPermissions( projectPath ).isDeleteAllowed() );
+            assertTrue( servlet.recover( true ).getString( "message" ).contains( "No pending BioStore cleanup" ) );
+
+            // A record from before the local-completion checkpoint was introduced.
+            ProjectDeletion.Pending pending = deletion.begin( project, null ).withGroupPending( null );
+            pending = ProjectBackup.ensureComplete( deletion, pending, this::writeDump );
+            assertTrue( servlet.recover( true ).getString( "message" ).contains( "still has a repository entry or files" ) );
+            repository.remove( PROJECT );
+            deletion.removeDirectory( pending );
+            SecurityManager.commonLogin( "ordinary-user", "", null, null );
+            try
+            {
+                servlet.recover( true );
+                fail( "Recovery must require authenticated root ADMIN" );
+            }
+            catch( SecurityException expected )
+            {
+                assertTrue( expected.getMessage().contains( "Server administrator" ) );
+            }
+
+            SecurityManager.commonLogin( "server-admin", "", null, null );
+            assertTrue( servlet.recover( false ).getString( "message" ).contains( "cannot verify group absence" ) );
+            status.set( ProjectGroupStatus.PRESENT );
+            assertTrue( servlet.recover( true ).getString( "message" ).contains( "group still exists" ) );
+            assertNotNull( deletion.readPending() );
+            status.set( ProjectGroupStatus.UNKNOWN );
+            JSONObject result = servlet.recover( true );
+            assertEquals( result.toString(), "ok", result.getString( "type" ) );
+            assertNull( deletion.readPending() );
+            assertNotNull( SupportServlet.createFileBasedProject( PROJECT, repository, null ) );
+        } );
+    }
+
+    public void testWebResponseIncludesSafeProviderReason() throws Exception
+    {
+        withSecurityProvider( new TestSecurityProvider()
+        {
+            @Override
+            public boolean removeProject(String groupName, String username, String password, String jwToken)
+            {
+                throw new IllegalStateException( "Fixture provider unavailable <message> " + password );
+            }
+        }, () -> {
+            JSONObject result = new FixtureServlet().delete( false, false, "fixture-credential" );
+            String message = result.getString( "message" );
+            assertTrue( message, message.contains( "Fixture provider unavailable &lt;message&gt; [redacted]" ) );
+            assertFalse( message.contains( "fixture-credential" ) );
+            assertTrue( deletion.readPending().groupPending() );
+        } );
+    }
+
+    public void testPendingDeletionBlocksWebAndMcpGroupCreation() throws Exception
+    {
+        AtomicInteger groupCreations = new AtomicInteger();
+        withSecurityProvider( new TestSecurityProvider()
+        {
+            @Override
+            public void createGroup(String username, String groupName, boolean reuse)
+            {
+                groupCreations.incrementAndGet();
+            }
+        }, () -> {
+            ProjectDeletion.Pending pending = deletion.begin( project, null ).withGroupPending( "fixture" );
+            pending = ProjectBackup.ensureComplete( deletion, pending, this::writeDump );
+            repository.remove( PROJECT );
+            deletion.removeDirectory( pending );
+            deletion.save( pending.withLocalComplete() );
+            FixtureServlet servlet = new FixtureServlet();
+            assertCreationBlocked( servlet::create );
+            assertTrue( McpProjectSupport.create( PROJECT ).getError().contains( "Finish deleting project" ) );
+            assertEquals( 0, groupCreations.get() );
+            assertTrue( servlet.delete( true, true ).getString( "message" ).contains( "needs BioStore cleanup" ) );
+            assertNotNull( deletion.readPending() );
+        } );
     }
 
     public void testWebRetryRequiresPendingDeletion() throws Exception
@@ -374,6 +547,30 @@ public class ProjectDeletionLifecycleTest extends AbstractBioUMLTest
         assertNull( deletion.readPending() );
     }
 
+    private void withSecurityProvider(TestSecurityProvider provider, LocalRepository.RemovalAction test) throws Exception
+    {
+        var providerField = SecurityManager.class.getDeclaredField( "securityProvider" );
+        providerField.setAccessible( true );
+        Object previous = providerField.get( null );
+        String previousSession = SecurityManager.getSession();
+        provider.init( new Properties() );
+        providerField.set( null, provider );
+        SecurityManager.addThreadToSessionRecord( Thread.currentThread(), "deletion-" + UUID.randomUUID() );
+        try
+        {
+            SecurityManager.commonLogin( "fixture", "", null, null );
+            test.run();
+        }
+        finally
+        {
+            SecurityManager.commonLogout();
+            SecurityManager.removeThreadFromSessionRecord();
+            if( !SecurityManager.SYSTEM_SESSION.equals( previousSession ) )
+                SecurityManager.addThreadToSessionRecord( Thread.currentThread(), previousSession );
+            providerField.set( null, previous );
+        }
+    }
+
     private static class FixtureServlet extends SupportServlet
     {
         @Override
@@ -383,9 +580,25 @@ public class ProjectDeletionLifecycleTest extends AbstractBioUMLTest
 
         JSONObject delete(boolean retryOnly, boolean skipBiostore) throws Exception
         {
-            return deleteProjects( Map.of( "user", new String[]{"fixture"}, "pass", new String[]{""},
+            return delete( retryOnly, skipBiostore, "" );
+        }
+
+        JSONObject delete(boolean retryOnly, boolean skipBiostore, String password) throws Exception
+        {
+            return deleteProjects( Map.of( "user", new String[]{"fixture"}, "pass", new String[]{password},
                     "projects", new String[]{"[\"" + PROJECT + "\"]"}, "retryOnly", new String[]{Boolean.toString( retryOnly )},
                     "skipBiostore", new String[]{Boolean.toString( skipBiostore )} ) );
+        }
+
+        JSONObject create() throws Exception
+        {
+            return createProjectWithPermissions( Map.of( "project", new String[]{PROJECT}, "projectType", new String[]{"FILE"} ) );
+        }
+
+        JSONObject recover(boolean confirm) throws Exception
+        {
+            return recoverProjectDeletion( Map.of( "project", new String[]{PROJECT},
+                    "confirmGroupHandled", new String[]{Boolean.toString( confirm )} ) );
         }
     }
 

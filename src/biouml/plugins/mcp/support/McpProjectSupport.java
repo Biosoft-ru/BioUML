@@ -178,45 +178,52 @@ public final class McpProjectSupport
 		{
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "cannot resolve the user projects path: " + e.getMessage() );
 		}
-		if ( parent.contains( name ) )
-			return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "project '" + name + "' already exists" );
-		// As SupportServlet.createProjectWithPermissions (the web UI path): the user may write a new project only
-		// through a project group, so create the group and grant it access before creating the collection.
-		String user = SecurityManager.getSessionUser();
-		DataElementPath projectPath = parent.getCompletePath().getChildPath( name );
-		StringWriter sw = new StringWriter();
-		try
+		try ( var storageLock = SupportServlet.lockProjectCreation( parent, name ) )
 		{
-			if ( !SecurityAdminUtils.createUserGroup( user, name, false, sw )
-					|| !SecurityAdminUtils.addGroupPermission( user, name, projectPath, PROJECT_GROUP_PERMISSION, sw ) )
-				return McpEnvelope.error( McpConstants.CODE_INTERNAL, groupErrorMessage( sw.toString() ) );
-		}
-		catch ( Exception e )
-		{
-			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "cannot create project group: " + e.getMessage() );
-		}
-		// Grant the new project's permission to all sessions of this user so a web UI session sees
-		// the project after a refresh without a re-login.
-		Permission projectPermission = new Permission( PROJECT_GROUP_PERMISSION, user, SecurityManager.getSession(),
-				System.currentTimeMillis() + UserPermissions.TIMEOUT );
-		SecurityManager.addUserPermission( user, projectPath.toString(), projectPermission );
-		SecurityManager.invalidatePermissions( projectPath.toString() );
-		List<String> errors = new ArrayList<String>();
-		try
-		{
-			DataCollection created = SupportServlet.createNewProject( name, user, true, errors );
-			if ( created == null )
-				return McpEnvelope.error( McpConstants.CODE_INTERNAL,
-						"cannot create project" + ( errors.size() > 0 ? ": " + errors.get( 0 ) : "" ) );
+			if ( parent.contains( name ) )
+				return McpEnvelope.error( McpConstants.CODE_INVALID_PARAMS, "project '" + name + "' already exists" );
+			// As SupportServlet.createProjectWithPermissions (the web UI path): the user may write a new project only
+			// through a project group, so create the group and grant it access before creating the collection.
+			String user = SecurityManager.getSessionUser();
+			DataElementPath projectPath = parent.getCompletePath().getChildPath( name );
+			StringWriter sw = new StringWriter();
+			try
+			{
+				if ( !SecurityAdminUtils.createUserGroup( user, name, false, sw )
+						|| !SecurityAdminUtils.addGroupPermission( user, name, projectPath, PROJECT_GROUP_PERMISSION, sw ) )
+					return McpEnvelope.error( McpConstants.CODE_INTERNAL, groupErrorMessage( sw.toString() ) );
+			}
+			catch ( Exception e )
+			{
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "cannot create project group: " + e.getMessage() );
+			}
+			// Grant the new project's permission to all sessions of this user so a web UI session sees
+			// the project after a refresh without a re-login.
+			Permission projectPermission = new Permission( PROJECT_GROUP_PERMISSION, user, SecurityManager.getSession(),
+					System.currentTimeMillis() + UserPermissions.TIMEOUT );
+			SecurityManager.addUserPermission( user, projectPath.toString(), projectPermission );
+			SecurityManager.invalidatePermissions( projectPath.toString() );
+			List<String> errors = new ArrayList<String>();
+			try
+			{
+				DataCollection created = SupportServlet.createNewProject( name, user, true, errors );
+				if ( created == null )
+					return McpEnvelope.error( McpConstants.CODE_INTERNAL,
+							"cannot create project" + ( errors.size() > 0 ? ": " + errors.get( 0 ) : "" ) );
+			}
+			catch ( Exception e )
+			{
+				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "cannot create project: " + e.getMessage() );
+			}
+			Map<String, Object> data = new LinkedHashMap<String, Object>();
+			data.put( "name", name );
+			data.put( "path", projectPath.toString() );
+			return McpEnvelope.ok( data );
 		}
 		catch ( Exception e )
 		{
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "cannot create project: " + e.getMessage() );
 		}
-		Map<String, Object> data = new LinkedHashMap<String, Object>();
-		data.put( "name", name );
-		data.put( "path", projectPath.toString() );
-		return McpEnvelope.ok( data );
 	}
 
 	/**

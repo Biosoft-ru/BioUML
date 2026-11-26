@@ -74,6 +74,29 @@ The grant can recover across restarts within its seven-day refresh lifetime. Wit
 the key, BioUML still preserves OAuth client registrations so users can sign in again
 through the same connector. See the [MCP OAuth deployment notes](plugconfig/biouml.plugins.mcp/README.md#oauth-across-server-restarts).
 
+## Recover a pending project deletion
+
+Use **Retry project deletion** on the account page for an interrupted deletion.
+A pending record reserves the name while cleanup is incomplete.
+
+If the BioStore step cannot finish after local files are gone, an authenticated
+server administrator can send a POST to `support/recoverProjectDeletion` with
+`project` and the usual support authentication parameters. Add `dc` if the
+project was in a repository other than the default user projects collection.
+The endpoint checks that there is a pending BioStore deletion and that the
+repository entry and directory are gone. If the provider reports that the
+group still exists, remove the old group before recovering the record. If the
+provider does not support a reliable absence check, verify in BioStore that the
+old group is gone and send `confirmGroupHandled=true`. Recovery releases the
+name once the remaining local cleanup has succeeded.
+
+BioUML logs each completed archive path under `BackupFolder`. A retry can take
+another full copy while any project files remain. Keep the copies for your
+deployment's backup retention period, and preserve the original archive until
+you have verified that it can be restored. BioUML leaves archive expiration to
+the deployment. For MySQL backup connections, `localhost` without a port uses
+the client's default local socket and an explicit port uses TCP.
+
 # To Run tests
 
 On Linux install required packages

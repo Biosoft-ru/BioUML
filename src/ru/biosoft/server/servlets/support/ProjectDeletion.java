@@ -20,16 +20,22 @@ final class ProjectDeletion
     private final Path directory;
     private final Path pending;
 
-    record Pending(String directoryIdentity, String database, Path backup, boolean backupComplete, Path backupAttempt, boolean groupPending)
+    record Pending(String directoryIdentity, String database, Path backup, boolean backupComplete, Path backupAttempt,
+            boolean groupPending, String groupRequestedBy, boolean localComplete)
     {
         Pending withBackup(Path complete, boolean ready, Path attempt)
         {
-            return new Pending( directoryIdentity, database, complete, ready, attempt, groupPending );
+            return new Pending( directoryIdentity, database, complete, ready, attempt, groupPending, groupRequestedBy, localComplete );
         }
 
-        Pending withGroupPending()
+        Pending withGroupPending(String user)
         {
-            return new Pending( directoryIdentity, database, backup, backupComplete, backupAttempt, true );
+            return new Pending( directoryIdentity, database, backup, backupComplete, backupAttempt, true, user, localComplete );
+        }
+
+        Pending withLocalComplete()
+        {
+            return new Pending( directoryIdentity, database, backup, backupComplete, backupAttempt, groupPending, groupRequestedBy, true );
         }
     }
 
@@ -76,13 +82,14 @@ final class ProjectDeletion
             backup = null;
         }
         return new Pending( identity, state.getProperty( "database" ), backup == null ? null : Path.of( backup ), complete,
-                attempt == null ? null : Path.of( attempt ), Boolean.parseBoolean( state.getProperty( "groupPending" ) ) );
+                attempt == null ? null : Path.of( attempt ), Boolean.parseBoolean( state.getProperty( "groupPending" ) ),
+                state.getProperty( "groupRequestedBy" ), Boolean.parseBoolean( state.getProperty( "localComplete" ) ) );
     }
 
     Pending begin(Path declaredDirectory, String database) throws IOException
     {
         validateDeclaredDirectory( declaredDirectory );
-        Pending state = new Pending( directoryIdentity(), database, null, false, null, false );
+        Pending state = new Pending( directoryIdentity(), database, null, false, null, false, null, false );
         save( state );
         return state;
     }
@@ -106,6 +113,9 @@ final class ProjectDeletion
         if( record.backupAttempt() != null )
             state.setProperty( "backupAttempt", record.backupAttempt().toString() );
         state.setProperty( "groupPending", Boolean.toString( record.groupPending() ) );
+        if( record.groupRequestedBy() != null )
+            state.setProperty( "groupRequestedBy", record.groupRequestedBy() );
+        state.setProperty( "localComplete", Boolean.toString( record.localComplete() ) );
         Path temporary = Files.createTempFile( pending.getParent(), ".project-deletion-", ".tmp" );
         try
         {

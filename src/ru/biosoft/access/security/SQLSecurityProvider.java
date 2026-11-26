@@ -591,15 +591,27 @@ public class SQLSecurityProvider implements SecurityProvider
     }
 
     @Override
+    public ProjectGroupStatus getProjectGroupStatus(String groupName)
+    {
+        return findProjectGroupId( GlobalDatabaseManager.getDatabaseConnection(), groupName ) == null
+                ? ProjectGroupStatus.ABSENT : ProjectGroupStatus.PRESENT;
+    }
+
+    private String findProjectGroupId(Connection connection, String groupName)
+    {
+        return SqlUtil.queryString( connection, new Query( "SELECT ID FROM groups WHERE name=$group$" ).str( groupName ) );
+    }
+
+    @Override
     public boolean removeProject(String groupName, String username, String password, String jwToken)
     {
         boolean result = false;
         try
         {
             Connection connection = GlobalDatabaseManager.getDatabaseConnection();
-            String groupID = SqlUtil.queryString( connection, new Query( "SELECT ID FROM groups WHERE name=$group$" ).str( groupName ) );
+            String groupID = findProjectGroupId( connection, groupName );
             if( groupID == null )
-                return false;
+                return true;
 
             List<String> userRoles = SqlUtil.queryStrings( connection,
                     new Query( "SELECT role FROM user_groups WHERE user=$user$ AND groupID=$groupID$" ).str( username ).str( groupID ) );
