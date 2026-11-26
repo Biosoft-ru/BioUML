@@ -21,6 +21,7 @@ import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 
 /**
  * @author lan
@@ -49,14 +50,17 @@ public class ScriptDataGenerator extends SimulationDataGeneratorSupport
     
     public ScriptDataGenerator(DataCollection<?> origin, String name, String script)
     {
-        this.origin = origin;
-        this.name = name;
-        context = Context.enter();
-        ru.biosoft.plugins.javascript.ScriptClassShutter.install( context );
-        scope = new ImporterTopLevel();
-        buck = new NativeObject();
-        scope.put("$", scope, buck);
-        setScript(script);
+        ScriptClassShutter.runRestricted( () -> {
+            this.origin = origin;
+            this.name = name;
+            context = Context.enter();
+            ScriptClassShutter.install( context );
+            scope = new ImporterTopLevel();
+            buck = new NativeObject();
+            scope.put("$", scope, buck);
+            setScript(script);
+            return null;
+        } );
     }
     
     public ScriptDataGenerator(String jsonStr)
@@ -73,11 +77,14 @@ public class ScriptDataGenerator extends SimulationDataGeneratorSupport
     
     public void setScript(String script)
     {
-        this.scriptSource = script;
-        if(script == null)
-            this.script = null;
-        else
-            this.script = context.compileString(script, "", 1, null);
+        ScriptClassShutter.runRestricted( () -> {
+            this.scriptSource = script;
+            if(script == null)
+                this.script = null;
+            else
+                this.script = context.compileString(script, "", 1, null);
+            return null;
+        } );
     }
     
     public String getScript()
@@ -95,6 +102,14 @@ public class ScriptDataGenerator extends SimulationDataGeneratorSupport
      * @throws Exception if reference is invalid
      */
     public void addVariable(String name, SimulationResult result, String ref, int skipPoints) throws Exception
+    {
+        ScriptClassShutter.runRestricted( () -> {
+            addVariableRestricted( name, result, ref, skipPoints );
+            return null;
+        } );
+    }
+
+    private void addVariableRestricted(String name, SimulationResult result, String ref, int skipPoints) throws Exception
     {
         if(!results.containsKey(result))
         {
@@ -127,9 +142,12 @@ public class ScriptDataGenerator extends SimulationDataGeneratorSupport
      */
     public void addParameter(String name, Object value)
     {
-        ScriptParameter parameter = new ScriptParameter(value);
-        parameters.put(name, value);
-        buck.put(name, buck, Context.toObject(parameter, buck));
+        ScriptClassShutter.runRestricted( () -> {
+            ScriptParameter parameter = new ScriptParameter(value);
+            parameters.put(name, value);
+            buck.put(name, buck, Context.toObject(parameter, buck));
+            return null;
+        } );
     }
     
     private void add(double t, double[] y, SimulationResult result)
@@ -166,8 +184,10 @@ public class ScriptDataGenerator extends SimulationDataGeneratorSupport
     @Override
     public double getValue(int point) throws Exception
     {
-        scope.put("point", scope, point);
-        return (Double)script.exec(context, scope);
+        return ScriptClassShutter.runRestricted( () -> {
+            scope.put("point", scope, point);
+            return (Double)ScriptClassShutter.execRestricted( script, context, scope );
+        } );
     }
 
     /**
@@ -242,20 +262,28 @@ public class ScriptDataGenerator extends SimulationDataGeneratorSupport
     
     public void fromJSON(JSONObject json) throws JSONException
     {
+        ScriptClassShutter.runRestricted( () -> {
+            fromJSONRestricted( json );
+            return null;
+        } );
+    }
+
+    private void fromJSONRestricted(JSONObject json) throws JSONException
+    {
         name = json.getString("name");
         if(json.has("origin"))
         {
             origin = CollectionFactory.getDataCollection(json.getString("origin"));
         }
-        
+
         context = Context.enter();
-        ru.biosoft.plugins.javascript.ScriptClassShutter.install( context );
+        ScriptClassShutter.install( context );
         scope = new ImporterTopLevel();
         buck = new NativeObject();
         scope.put("$", scope, buck);
-        
+
         setScript(json.getString("script"));
-        
+
         if( json.has("parameters") )
         {
             addParametersFromJSONArray(json.getJSONArray("parameters"));
