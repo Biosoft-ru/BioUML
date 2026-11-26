@@ -160,6 +160,7 @@ public class SecurityManager
     /**
      * Returns the cached permission unchanged so administrator authorization can compare its identity.
      * The public permission lookup fills in a missing session ID before returning it to callers.
+     * Resolution is synchronized because it can update the shared session and per-user permission maps.
      */
     private static synchronized Permission getUserPermission(String sessionId, String dataCollectionName, boolean create)
     {

@@ -203,6 +203,7 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
         Field provider = SecurityManager.class.getDeclaredField( "securityProvider" );
         provider.setAccessible( true );
         Object previous = provider.get( null );
+        AtomicReference<Runnable> onRootPermissionLookup = new AtomicReference<>();
         TestSecurityProvider fixture = new TestSecurityProvider()
         {
             @Override
@@ -210,6 +211,9 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
             {
                 if( user.getUser().equals( "unavailable" ) )
                     throw new IllegalStateException( "Test provider unavailable" );
+                Runnable action = "/".equals( path ) ? onRootPermissionLookup.getAndSet( null ) : null;
+                if( action != null )
+                    action.run();
                 return path.equals( "/" ) && user.getUser().equals( "server-admin" ) || path.equals( "project" )
                         ? Permission.ALL : Permission.READ;
             }
@@ -245,6 +249,7 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
                             checkConcurrentConsoleJobs( task, sid );
                             checkQueuedRevocation( task, sid );
                             checkQueuedCancellation( task, sid );
+                            checkCancellationDuringPreparation( task, onRootPermissionLookup );
                             checkNonConsoleSessionChange( sid );
                         }
                         // Demote and promote without running a script while demoted.
@@ -486,6 +491,20 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
         assertEquals( "undefined", task.evaluate( "typeof cancelledCommandRan", true ) );
     }
 
+    private static void checkCancellationDuringPreparation(ScriptTask task, AtomicReference<Runnable> onRootPermissionLookup)
+    {
+        for( boolean console : new boolean[]{true, false} )
+        {
+            ScriptJobControl job = task.job( "'must not execute'", console, Map.of() );
+            SecurityManager.getCurrentUserPermission().getDbToPermission().remove( "/" );
+            onRootPermissionLookup.set( job::terminate );
+            job.run();
+            assertNull( "The permission lookup must trigger cancellation", onRootPermissionLookup.get() );
+            assertEquals( JobControl.TERMINATED_BY_REQUEST, job.getStatus() );
+            assertNull( "Cancellation during preparation must prevent script execution", job.getResult() );
+        }
+    }
+
     private static void awaitConsoleWaiter(java.util.concurrent.locks.ReentrantLock lock, Thread worker, FutureTask<?> command)
     {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos( 8 );
@@ -546,31 +565,50 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
     {
         ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.ENFORCE ) );
         onFreshThread( () -> {
-            IllegalStateException failure = new IllegalStateException( "fixture initialization failure" );
-            ImporterTopLevel broken = new ImporterTopLevel()
-            {
-                @Override
-                public void initStandardObjects(Context context, boolean sealed)
-                {
-                    assertSame( context, JScriptContext.getContext() );
-                    throw failure;
-                }
-            };
-            JScriptContext.setScope( broken );
-            try
-            {
-                JScriptContext.getContext();
-                fail( "Expected the initial scope setup to fail" );
-            }
-            catch( IllegalStateException e )
-            {
-                assertSame( failure, e );
-            }
-            assertNull( Context.getCurrentContext() );
+            checkFailedContextInitialization( null );
             assertEquals( "2", JScriptContext.evaluateString( "1 + 1" ) );
-            assertNotSame( broken, JScriptContext.getScope() );
             return "";
         } );
+        onFreshThread( () -> {
+            Context caller = Context.enter();
+            try
+            {
+                checkFailedContextInitialization( caller );
+            }
+            finally
+            {
+                if( Context.getCurrentContext() == caller )
+                    Context.exit();
+            }
+            assertNull( "Initialization must release exactly one entry", Context.getCurrentContext() );
+            return "";
+        } );
+    }
+
+    private static void checkFailedContextInitialization(Context caller)
+    {
+        IllegalStateException failure = new IllegalStateException( "fixture initialization failure" );
+        ImporterTopLevel broken = new ImporterTopLevel()
+        {
+            @Override
+            public void initStandardObjects(Context context, boolean sealed)
+            {
+                assertSame( context, JScriptContext.getContext() );
+                throw failure;
+            }
+        };
+        JScriptContext.setScope( broken );
+        try
+        {
+            JScriptContext.getContext();
+            fail( "Expected the initial scope setup to fail" );
+        }
+        catch( IllegalStateException e )
+        {
+            assertSame( failure, e );
+        }
+        assertSame( caller, Context.getCurrentContext() );
+        assertNotSame( broken, JScriptContext.getScope() );
     }
 
     public void testPolicyChangeRequiresFreshContext() throws Exception

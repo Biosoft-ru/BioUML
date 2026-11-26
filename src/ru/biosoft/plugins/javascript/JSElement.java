@@ -350,7 +350,10 @@ public class JSElement extends ScriptDataElement
             try
             {
                 if( !execution.tryLock( CONSOLE_WAIT_SECONDS, TimeUnit.SECONDS ) )
+                {
+                    checkCancellation();
                     throw new JobControlException( JobControl.TERMINATED_BY_ERROR, "The JavaScript console is busy" );
+                }
             }
             catch( InterruptedException e )
             {
@@ -359,8 +362,7 @@ public class JSElement extends ScriptDataElement
             }
             try
             {
-                if( cancellationRequested )
-                    throw new JobControlException( JobControl.TERMINATED_BY_REQUEST );
+                checkCancellation();
                 checkStatus();
                 checkSession( session, cache );
                 runConsoleCommand( context, session, cache, console );
@@ -369,6 +371,12 @@ public class JSElement extends ScriptDataElement
             {
                 execution.unlock();
             }
+        }
+
+        private void checkCancellation() throws JobControlException
+        {
+            if( cancellationRequested )
+                throw new JobControlException( JobControl.TERMINATED_BY_REQUEST );
         }
 
         private void checkSession(String session, SessionCache cache) throws JobControlException
@@ -425,8 +433,9 @@ public class JSElement extends ScriptDataElement
                     ? null : SecurityManager.getSessionAdministratorPermission();
         }
 
-        private void executeJob(Context context, ScriptableObject topLevelScope, Global scratch)
+        private void executeJob(Context context, ScriptableObject topLevelScope, Global scratch) throws JobControlException
         {
+            checkCancellation();
             var previousScope = JScriptContext.getScope();
             var previousDebugger = context.getDebugger();
             Object previousDebuggerData = context.getDebuggerContextData();

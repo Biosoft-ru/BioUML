@@ -73,30 +73,7 @@ public class JScriptContext
 
     private static final SecurityController securityController = new PolicySecurityController();
 
-    //private static ThreadLocal<Context> context = new ThreadLocal<>();
-
-    private static ThreadLocal<Context> context = new ThreadLocal<Context>() {
-        @Override
-        public void remove() {
-            Context cx = get();
-            if (cx != null) {
-                try {
-                    // Exit the context if it's currently entered
-                    if (Context.getCurrentContext() == cx) {
-                        Context.exit();
-                    }
-                } catch (Exception e) {
-                    log.log(Level.WARNING, "Error exiting context during cleanup", e);
-                }
-            }
-            super.remove();
-        }
-        
-        @Override
-        protected Context initialValue() {
-            return null; // Will be set explicitly when needed
-        }
-    };
+    private static final ThreadLocal<Context> context = new ThreadLocal<>();
 
     public static Context getContext()
     {
@@ -133,6 +110,8 @@ public class JScriptContext
             {
                 scope.remove();
                 context.remove();
+                // Release the entry acquired above, including when Rhino reused a caller's context.
+                Context.exit();
                 throw e;
             }
         }
