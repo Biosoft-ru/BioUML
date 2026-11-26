@@ -364,17 +364,13 @@ public class WorkflowUtil
     {
         if( args == null )
             return;
-        if (args.contains( null ))
-        {
-            System.out.println( "" );
-        }
         n.getAttributes()
                 .add( new DynamicProperty( WDLConstants.ARGUMENTS_ATTR, String[].class, StreamEx.of( args ).toArray( String[]::new ) ) );
     }
 
     public static void setExpressionInfo(Node n, ExpressionInfo info)
     {
-        n.getAttributes().add( new DynamicProperty(WDLConstants.EXPRESSION_INFO_ATTR, ExpressionInfo.class, info ));
+        n.getAttributes().add( new DynamicProperty(WDLConstants.EXPRESSION_INFO_ATTR, ExpressionInfo.class, info.clone() ));
     }
     
     public static ExpressionInfo getExpressionInfo(Node n)
@@ -402,13 +398,14 @@ public class WorkflowUtil
     
     public static void setExpression(Node n, String expression)
     {
-        ExpressionInfo info = getExpressionInfo( n );
-        if (info == null)
+        if (getExpressionInfo( n ) == null)
         {
-            info = new ExpressionInfo();
+            ExpressionInfo info = new ExpressionInfo();
+            info.setType(getType(n));
+            info.setName( getName(n) );
             setExpressionInfo( n, info );
         }
-        info.setExpression( expression );
+        getExpressionInfo( n ).setExpression( expression );
     }
     
     public static Integer getPosition(Node n)
