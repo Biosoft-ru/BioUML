@@ -366,8 +366,10 @@ var resourcesRU = {
     dlgCreatePrjDescription: "Описание:",
     dlgCreatePrjDescriptionPlaceholder: "Введите описание проекта здесь",
 
+    dlgRetryProjectDeletion: "Повторить удаление проекта",
+    dlgRetryProjectDeletionName: "Имя проекта",
     dlgRemovePrjTitle: "Удалить проект",
-    dlgRemovePrjConfirmation: "Да, я действительно хочу удалить проект <b>{name}</b> со всеми данными.",
+    dlgRemovePrjConfirmation: "Да, я действительно хочу удалить проект {name} со всеми данными.",
     dlgRemovePrjNotConfirmed: "Вы не отметили флажок подтверждения",
     dlgRemovePrjRemoved: "Проект {name} удален",
 

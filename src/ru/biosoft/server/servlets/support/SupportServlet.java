@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,6 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -41,6 +44,8 @@ import biouml.plugins.server.access.AccessService;
 import ru.biosoft.access.CollectionFactoryUtils;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.Repository;
+import ru.biosoft.access.LocalRepository;
+import ru.biosoft.access.ProjectStorage;
 import ru.biosoft.access.SqlDataCollection;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
@@ -54,10 +59,10 @@ import ru.biosoft.access.file.GenericFileDataCollection;
 import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.access.security.GlobalDatabaseManager;
 import ru.biosoft.access.security.Permission;
-import ru.biosoft.access.security.PrivilegedAction;
 import ru.biosoft.access.security.ProtectedDataCollection;
 import ru.biosoft.access.security.SecurityAdminUtils;
 import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.access.security.SecurityProvider.ProjectGroupStatus;
 import ru.biosoft.access.security.UserPermissions;
 import ru.biosoft.access.sql.SqlUtil;
 import ru.biosoft.server.AbstractJSONServlet;
@@ -67,6 +72,7 @@ import ru.biosoft.tasks.TaskInfo;
 import ru.biosoft.tasks.TaskManager;
 import ru.biosoft.util.Pair;
 import ru.biosoft.util.TextUtil;
+import ru.biosoft.util.TextUtil2;
 
 /**
  * BioUML server support functions.
@@ -196,6 +202,7 @@ public class SupportServlet extends AbstractJSONServlet
     public static final String GET_PROJECTS_DATA = "getProjectsData";
     public static final String SET_QUOTA = "setQuota";
     public static final String DELETE_PROJECT = "deleteProject";
+    public static final String RECOVER_PROJECT_DELETION = "recoverProjectDeletion";
     public static final String DATABASE_INFO = "dbInfo";
     public static final String KILL_TASK = "killTasks";
     public static final String GET_TASKS = "getTasks";
@@ -235,6 +242,10 @@ public class SupportServlet extends AbstractJSONServlet
                 else if( localAddress.endsWith(DELETE_PROJECT) )
                 {
                     result = deleteProject(params);
+                }
+                else if( localAddress.endsWith(RECOVER_PROJECT_DELETION) )
+                {
+                    result = recoverProjectDeletion(params);
                 }
                 else if( localAddress.endsWith(GET_PROJECTS_DATA) )
                 {
@@ -521,59 +532,62 @@ public class SupportServlet extends AbstractJSONServlet
         String user = SecurityManager.getSessionUser();
         StringWriter sw = new StringWriter();
         DataCollection<?> userProjectsParent = CollectionFactoryUtils.getUserProjectsPath().getDataCollection();
-        DataCollection<?> primaryParent = null;
-        if( userProjectsParent instanceof FilteredDataCollection )
-            primaryParent = ( (FilteredDataCollection<?>)userProjectsParent ).getPrimaryCollection();
-        if( userProjectsParent.contains(projectName) || ( primaryParent != null && primaryParent.contains(projectName) ) )
-            return errorResponse( "Project already exists, please try another name." );
-        // If group cannot be created, we still try to create the project (probably it will be successful if
-        // group already exists and access was granted previously
-        DataElementPath projectPath = userProjectsParent.getCompletePath().getChildPath( projectName );
-        boolean groupError = !SecurityAdminUtils.createUserGroup(user, projectName, false, sw)
-                || !SecurityAdminUtils.addGroupPermission(user, projectName,
-                        projectPath, 15, sw );
-        if( groupError )
+        try( var storageLock = lockProjectCreation( userProjectsParent, projectName ) )
         {
-            String biostoreMsg = sw.toString();
-            log.log( Level.SEVERE, biostoreMsg );
-            JSONObject resp = handleGroupCreateError( biostoreMsg );
-            if(resp != null)
-                return resp;
-            if( biostoreMsg != null && !"".equals( biostoreMsg ) )
+            DataCollection<?> primaryParent = null;
+            if( userProjectsParent instanceof FilteredDataCollection )
+                primaryParent = ( (FilteredDataCollection<?>)userProjectsParent ).getPrimaryCollection();
+            if( userProjectsParent.contains(projectName) || ( primaryParent != null && primaryParent.contains(projectName) ) )
+                return errorResponse( "Project already exists, please try another name." );
+            // If group cannot be created, we still try to create the project (probably it will be successful if
+            // group already exists and access was granted previously
+            DataElementPath projectPath = userProjectsParent.getCompletePath().getChildPath( projectName );
+            boolean groupError = !SecurityAdminUtils.createUserGroup(user, projectName, false, sw)
+                    || !SecurityAdminUtils.addGroupPermission(user, projectName,
+                            projectPath, 15, sw );
+            if( groupError )
             {
-                return errorResponse( "Error: " + biostoreMsg + ", please try another project name." ); 
-            } 
-            return errorResponse( "Unknown error while creating user's group, please try another project name. If this doesn't help, please contact the support." ); 
-        }
-        
-        login(params);
-        SecurityManager.invalidatePermissions( projectPath.toString() );
+                String biostoreMsg = sw.toString();
+                log.log( Level.SEVERE, biostoreMsg );
+                JSONObject resp = handleGroupCreateError( biostoreMsg );
+                if(resp != null)
+                    return resp;
+                if( biostoreMsg != null && !"".equals( biostoreMsg ) )
+                {
+                    return errorResponse( "Error: " + biostoreMsg + ", please try another project name." );
+                }
+                return errorResponse( "Unknown error while creating user's group, please try another project name. If this doesn't help, please contact the support." );
+            }
 
-        //create project
-        
-        String projectTypeStr = getStringParameter( params, "projectType" );
-        ProjectType projectType = ProjectType.SQL;
-        if(projectTypeStr != null)
-            projectType = ProjectType.valueOf( projectTypeStr );
-        
-        ArrayList<String> errors = new ArrayList<>();
-        
-        DataCollection<?> project = createNewProject( projectName, user, true, errors, projectType );
-        if( project == null )
-        {
-            return handleProjectCreateError( errors.size() > 0 ? errors.get( 0 ) : "reason unknown" );
-        } 
-        String description = getStringParameter(params, "description");
-        if( description != null && !description.isEmpty() )
-        {
-            if( project instanceof Module )
-                ( (Module)project ).setDescription(description);
-            else
-                project.getInfo().setDescription(description);
+            login(params);
+            SecurityManager.invalidatePermissions( projectPath.toString() );
+
+            //create project
+
+            String projectTypeStr = getStringParameter( params, "projectType" );
+            ProjectType projectType = ProjectType.SQL;
+            if(projectTypeStr != null)
+                projectType = ProjectType.valueOf( projectTypeStr );
+
+            ArrayList<String> errors = new ArrayList<>();
+
+            DataCollection<?> project = createNewProject( projectName, user, true, errors, projectType );
+            if( project == null )
+            {
+                return handleProjectCreateError( errors.size() > 0 ? errors.get( 0 ) : "reason unknown" );
+            }
+            String description = getStringParameter(params, "description");
+            if( description != null && !description.isEmpty() )
+            {
+                if( project instanceof Module )
+                    ( (Module)project ).setDescription(description);
+                else
+                    project.getInfo().setDescription(description);
+            }
+            return simpleOkResponse();
         }
-        return simpleOkResponse();
     }
-    
+
     protected JSONObject handleGroupCreateError(String biostoreMsg) throws Exception
     {
         if( biostoreMsg == null )
@@ -607,7 +621,6 @@ public class SupportServlet extends AbstractJSONServlet
      */
     protected JSONObject deleteProject(Map params) throws Exception
     {
-        log.info( "Delete project request = " + params ); 
         String userName = getStrictParameter(params, "user");
         if(userName.isEmpty())
             throw new SecurityException("Access denied");
@@ -629,136 +642,301 @@ public class SupportServlet extends AbstractJSONServlet
         return deleteProject( projectName, parentDC );
     }
 
-    public static String deleteProject(final String projectName, final DataCollection parentDC) throws Exception
+    public enum ProjectDeletionStatus
     {
-        if( parentDC.contains(projectName) )
+        COMPLETE, NOT_FOUND, INCOMPLETE
+    }
+
+    public record ProjectDeletionResult(ProjectDeletionStatus status, String message)
+    {
+    }
+
+    @FunctionalInterface
+    interface DropProjectDatabase
+    {
+        void drop(String database) throws Exception;
+    }
+
+    @FunctionalInterface
+    private interface DropProjectGroup
+    {
+        void drop() throws Exception;
+    }
+
+    private enum ProjectDeletionRecovery
+    {
+        NONE, VERIFY_GROUP_ABSENT, CONFIRM_GROUP_HANDLED
+    }
+
+    private static class ProjectDeletionFailure extends IOException
+    {
+        ProjectDeletionFailure(String message)
         {
-            Permission permission = SecurityManager.getPermissions(CollectionFactoryUtils.getUserProjectsPath().getChildPath(projectName));
-            //checkPermission(permission, "put");
-            if(!permission.isDeleteAllowed())
-                throw new SecurityException("Delete access denied for "+SecurityManager.getSessionUser());
-            try
-            {
-                SecurityManager.runPrivileged(new PrivilegedAction()
-                {
-                    @Override
-                    public Object run() throws Exception
-                    {
-                        DataCollection research = (DataCollection)parentDC.get(projectName);
-                        DataCollection dataCollection = (DataCollection)research.get(Module.DATA);
-                        research = DataCollectionUtils.fetchPrimaryCollectionPrivileged(research);
-                        String localPath = research.getInfo().getProperty(DataCollectionConfigConstants.CONFIG_PATH_PROPERTY);
-                        if( localPath == null && research instanceof GenericFileDataCollection )
-                        {
-                            localPath = research.getInfo().getProperty( DataCollectionConfigConstants.FILE_PATH_PROPERTY );
-                        }
-                        String dbName = null;
-                        if ( dataCollection != null )
-                        {
-                            dataCollection = DataCollectionUtils.fetchPrimaryCollectionPrivileged(dataCollection);
-                            String jdbcUrl = dataCollection.getInfo().getProperty(SqlDataCollection.JDBC_URL_PROPERTY);
-
-                            dbName = jdbcUrl;
-                            int ind = jdbcUrl.lastIndexOf('/');
-                            if ( ind != -1 )
-                            {
-                                dbName = jdbcUrl.substring(ind + 1);
-                            }
-                            ind = dbName.lastIndexOf('?');
-                            if ( ind != -1 )
-                            {
-                                dbName = dbName.substring(0, ind);
-                            }
-
-                            try
-                            {
-                                //make a backup before removing
-                                String backupAddr = Application.getGlobalValue("BackupFolder");
-                                if ( !backupAddr.equals("BackupFolder") )
-                                {
-                                    File backupFolder = new File(backupAddr);
-                                    if ( !backupFolder.exists() && !backupFolder.mkdirs() )
-                                    {
-                                        log.log( Level.WARNING, "Cannot create backup folder '" + backupAddr + "', skipping backup of project '" + localPath + "'");
-                                    }
-                                    File src = new File(localPath);
-                                    String date = new SimpleDateFormat("yyyy.MM.dd_HH:mm:ss").format(new Date());
-                                    File dst = new File(backupFolder, date + "_" + src.getName());
-
-                                    if ( dst.exists() )
-                                    {
-                                        log.log( Level.WARNING, "Backup folder '" + dst.getAbsolutePath() + "' already exists, skipping backup of project '" + localPath + "'");
-                                    }
-                                    else if ( "Linux".equals(System.getProperty("os.name")) )
-                                    {
-                                        log.info("Moving deleted project '" + localPath + "' to backup folder '" + dst.getAbsolutePath() + "'...");
-                                        ProcessBuilder processBuilder = new ProcessBuilder();
-                                        processBuilder.command("mv", localPath, dst.getAbsolutePath());
-                                        Process proc = processBuilder.start();
-                                        int mvExitCode = proc.waitFor();
-                                        if ( mvExitCode != 0 )
-                                        {
-                                            log.log( Level.WARNING, "'mv' to backup folder '" + dst.getAbsolutePath() + "' failed with exit code " + mvExitCode + ", project '" + localPath + "' was not moved");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        log.info("Copying deleted project '" + localPath + "' to backup folder '" + dst.getAbsolutePath() + "'...");
-                                        ApplicationUtils.copyFolder(dst, src);
-                                    }
-
-                                    File dumpPath = new File(dst, "_dump.sql");
-                                    if ( !dst.isDirectory() )
-                                    {
-                                        log.log( Level.WARNING, "Backup folder '" + dst.getAbsolutePath() + "' was not created, cannot dump database '" + dbName + "' to '" + dumpPath + "'");
-                                    }
-                                    else
-                                    {
-                                        List<String> cmd = new ArrayList<>();
-                                        cmd.add("mysqldump");
-                                        String user = Application.getGlobalValue("BackupUser", "root");
-                                        String password = Application.getGlobalValue("BackupPassword", "root");
-                                        cmd.add("-u" + user);
-                                        cmd.add("-p" + password);
-                                        cmd.add(dbName);
-                                        Runtime rt = Runtime.getRuntime();
-                                        String[] cmdArray = cmd.toArray(new String[cmd.size()]);
-                                        Process proc = rt.exec(cmdArray);
-                                        ApplicationUtils.copyStream(new FileOutputStream(dumpPath), proc.getInputStream());
-                                    }
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                log.log(Level.SEVERE, "cannot create backup copy", e);
-                            }
-                        }
-                        parentDC.remove(projectName);
-                        //remove all files manually
-                        if( localPath != null )
-                        {
-                            File file = new File(localPath);
-                            ApplicationUtils.removeDir(file);
-                        }
-
-                        // remove the project database
-                        if ( dbName != null )
-                        {
-                            Connection rootConnection = GlobalDatabaseManager.getDatabaseConnection();
-                            SqlUtil.execute(rootConnection, "DROP DATABASE " + dbName);
-                        }
-                        return null;
-                    }
-                });
-                return null;
-            }
-            catch( Exception e )
-            {
-                log.log( Level.SEVERE, "Cannot delete project " + projectName, e );
-                return "Cannot delete project " + projectName;
-            }
+            super( message );
         }
-        return "Project " + projectName + " doesn't exists";
+
+        ProjectDeletionFailure(String message, Exception cause)
+        {
+            super( message, cause );
+        }
+    }
+
+    private static final DropProjectDatabase DROP_PROJECT_DATABASE = database ->
+            SqlUtil.execute( GlobalDatabaseManager.getDatabaseConnection(), "DROP DATABASE IF EXISTS " + SqlUtil.quoteIdentifier( database ) );
+
+    public static String deleteProject(String projectName, DataCollection<?> parentDC) throws Exception
+    {
+        return deleteProjectResult( projectName, parentDC ).message();
+    }
+
+    public static ProjectDeletionResult deleteProjectResult(String projectName, DataCollection<?> parent) throws Exception
+    {
+        return deleteProjectResult( projectName, parent, false, null );
+    }
+
+    private static ProjectDeletionResult deleteProjectResult(String projectName, DataCollection<?> parent, boolean pendingOnly,
+            DropProjectGroup dropGroup) throws Exception
+    {
+        return deleteProjectResult( projectName, parent, pendingOnly, ProjectBackup::dumpDatabase, DROP_PROJECT_DATABASE, dropGroup,
+                ProjectDeletionRecovery.NONE );
+    }
+
+    static ProjectDeletionResult deleteProjectResult(String projectName, DataCollection<?> parent,
+            ProjectBackup.DatabaseDump dump, DropProjectDatabase drop) throws Exception
+    {
+        return deleteProjectResult( projectName, parent, false, dump, drop, null, ProjectDeletionRecovery.NONE );
+    }
+
+    private static ProjectDeletionResult deleteProjectResult(String projectName, DataCollection<?> parent, boolean pendingOnly,
+            ProjectBackup.DatabaseDump dump, DropProjectDatabase drop, DropProjectGroup dropGroup, ProjectDeletionRecovery recovery ) throws Exception
+    {
+        boolean allowed = recovery != ProjectDeletionRecovery.NONE
+                || SecurityManager.getPermissions( parent.getCompletePath().getChildPath( projectName ) ).isDeleteAllowed();
+        String user = SecurityManager.getSessionUser();
+        if( !allowed && ( !pendingOnly || dropGroup == null || user == null || user.isEmpty() ) )
+            throw new SecurityException( "Delete access denied for " + user );
+        try
+        {
+            return (ProjectDeletionResult)SecurityManager.runPrivileged(
+                    () -> deleteProjectFiles( projectName, parent, pendingOnly, dump, drop, dropGroup, recovery, allowed, user ) );
+        }
+        catch( SecurityException e )
+        {
+            throw e;
+        }
+        catch( Exception e )
+        {
+            log.log( Level.SEVERE, "Cannot complete deletion of project " + projectName, e );
+            String reason = e instanceof ProjectDeletionFailure ? ". " + e.getMessage() : "";
+            return new ProjectDeletionResult( ProjectDeletionStatus.INCOMPLETE, "Cannot completely delete project " + projectName + reason );
+        }
+    }
+
+    private static ProjectDeletionResult deleteProjectFiles(String projectName, DataCollection<?> parent, boolean pendingOnly,
+            ProjectBackup.DatabaseDump dump, DropProjectDatabase drop, DropProjectGroup dropGroup, ProjectDeletionRecovery recovery,
+            boolean allowed, String user) throws Exception
+    {
+        DataCollection<?> primaryParent = DataCollectionUtils.fetchPrimaryCollectionPrivileged( parent );
+        if( primaryParent instanceof FilteredDataCollection<?> filtered )
+            primaryParent = DataCollectionUtils.fetchPrimaryCollectionPrivileged( filtered.getPrimaryCollection() );
+        Path projectsRoot = collectionDirectory( primaryParent ).toRealPath();
+        ProjectDeletion deletion = new ProjectDeletion( projectsRoot, projectName );
+        try( var storageLock = ProjectStorage.lock( projectsRoot, projectName ) )
+        {
+            ProjectDeletion.Pending pending = deletion.readPending();
+            if( !allowed )
+            {
+                // An original requester who lost access may only close a finished local deletion with a verified absent group.
+                if( pending == null || !pending.groupPending() || !pending.localComplete() || !user.equals( pending.groupRequestedBy() ) )
+                    throw new SecurityException( "Delete access denied for " + user );
+                requireLocalProjectAbsent( primaryParent, projectName, deletion );
+                if( projectGroupStatus( projectName ) != ProjectGroupStatus.ABSENT )
+                    throw new ProjectDeletionFailure( "Ask a server administrator to recover this pending BioStore cleanup" );
+                deletion.complete();
+                return new ProjectDeletionResult( ProjectDeletionStatus.COMPLETE, null );
+            }
+            if( recovery != ProjectDeletionRecovery.NONE )
+            {
+                if( pending == null || !pending.groupPending() )
+                    return new ProjectDeletionResult( ProjectDeletionStatus.NOT_FOUND, "No pending BioStore cleanup for project " + projectName );
+                requireLocalProjectAbsent( primaryParent, projectName, deletion );
+                ProjectGroupStatus status = projectGroupStatus( projectName );
+                if( status == ProjectGroupStatus.PRESENT )
+                    throw new ProjectDeletionFailure( "The BioStore group still exists. Remove it before recovering this deletion" );
+                if( status == ProjectGroupStatus.UNKNOWN && recovery != ProjectDeletionRecovery.CONFIRM_GROUP_HANDLED )
+                    throw new ProjectDeletionFailure( "The security provider cannot verify group absence. Verify the group externally before confirming recovery" );
+                // Older records did not record the local checkpoint. Complete any remaining database work while the name is held.
+                if( !pending.localComplete() )
+                {
+                    verifyProjectBackup( deletion, pending, dump );
+                    dropProjectDatabase( pending, drop );
+                }
+                deletion.complete();
+                log.info( "Administrator " + user + " completed pending BioStore cleanup for project " + projectName + " (group status: " + status + ")" );
+                return new ProjectDeletionResult( ProjectDeletionStatus.COMPLETE, null );
+            }
+            if( pending == null )
+            {
+                if( pendingOnly )
+                    return new ProjectDeletionResult( ProjectDeletionStatus.NOT_FOUND, "No pending deletion for project " + projectName );
+                if( !primaryParent.contains( projectName ) )
+                {
+                    if( dropGroup != null )
+                        dropGroup.drop();
+                    return new ProjectDeletionResult( ProjectDeletionStatus.NOT_FOUND, "Project " + projectName + " doesn't exist" );
+                }
+                if( !( primaryParent instanceof LocalRepository ) )
+                    throw new IOException( "Unsupported project repository: " + primaryParent.getCompletePath() );
+                deletion.validateTarget();
+                if( Files.isSymbolicLink( deletion.directory().resolve( Module.DATA ) ) )
+                    throw new IOException( "Project Data directory is a symbolic link: " + deletion.directory().resolve( Module.DATA ) );
+
+                DataCollection<?> project = (DataCollection<?>)parent.get( projectName );
+                DataCollection<?> primary = DataCollectionUtils.fetchPrimaryCollectionPrivileged( project );
+                String config = primary.getInfo().getProperty( DataCollectionConfigConstants.CONFIG_PATH_PROPERTY );
+                if( config != null && !config.isBlank() )
+                    deletion.validateDeclaredDirectory( Path.of( config ) );
+                DataElement data = project.get( Module.DATA );
+                String database = data instanceof DataCollection<?> collection ? projectDatabase( collection ) : null;
+                pending = deletion.begin( collectionDirectory( primary ), database );
+            }
+
+            if( dropGroup != null && !pending.groupPending() )
+            {
+                pending = pending.withGroupPending( user );
+                deletion.save( pending );
+            }
+            if( pending.localComplete() )
+                requireLocalProjectAbsent( primaryParent, projectName, deletion );
+            else
+            {
+                pending = verifyProjectBackup( deletion, pending, dump );
+                try
+                {
+                    if( primaryParent.contains( projectName ) )
+                    {
+                        if( !( primaryParent instanceof LocalRepository repository ) )
+                            throw new IOException( "Unsupported project repository: " + primaryParent.getCompletePath() );
+                        removeProjectEntry( projectName, parent, repository, deletion, pending );
+                    }
+                    deletion.removeDirectory( pending );
+                    requireLocalProjectAbsent( primaryParent, projectName, deletion );
+                }
+                catch( Exception e )
+                {
+                    throw new ProjectDeletionFailure( "Could not remove the project repository entry or files", e );
+                }
+
+                dropProjectDatabase( pending, drop );
+                if( pending.groupPending() )
+                    deletion.save( pending.withLocalComplete() );
+            }
+            if( pending.groupPending() )
+            {
+                if( dropGroup == null )
+                    throw new ProjectDeletionFailure( "This project still needs BioStore cleanup through the web deletion endpoint" );
+                dropGroup.drop();
+            }
+            deletion.complete();
+            return new ProjectDeletionResult( ProjectDeletionStatus.COMPLETE, null );
+        }
+    }
+
+    private static ProjectGroupStatus projectGroupStatus(String projectName) throws ProjectDeletionFailure
+    {
+        try
+        {
+            ProjectGroupStatus status = SecurityManager.getSecurityProvider().getProjectGroupStatus( projectName );
+            return status == null ? ProjectGroupStatus.UNKNOWN : status;
+        }
+        catch( Exception e )
+        {
+            throw new ProjectDeletionFailure( "Could not verify BioStore group status. The deletion remains pending", e );
+        }
+    }
+
+    private static void requireLocalProjectAbsent(DataCollection<?> primaryParent, String projectName, ProjectDeletion deletion)
+            throws ProjectDeletionFailure
+    {
+        if( primaryParent.contains( projectName ) || !Files.notExists( deletion.directory(), LinkOption.NOFOLLOW_LINKS ) )
+            throw new ProjectDeletionFailure( "The project still has a repository entry or files. Finish local deletion before recovery" );
+    }
+
+    private static ProjectDeletion.Pending verifyProjectBackup(ProjectDeletion deletion, ProjectDeletion.Pending pending,
+            ProjectBackup.DatabaseDump dump) throws ProjectDeletionFailure
+    {
+        try
+        {
+            return ProjectBackup.ensureComplete( deletion, pending, dump );
+        }
+        catch( Exception e )
+        {
+            throw new ProjectDeletionFailure( "Could not complete or verify the project backup. Check the server log", e );
+        }
+    }
+
+    private static void dropProjectDatabase(ProjectDeletion.Pending pending, DropProjectDatabase drop) throws ProjectDeletionFailure
+    {
+        if( pending.database() == null )
+            return;
+        try
+        {
+            drop.drop( pending.database() );
+        }
+        catch( Exception e )
+        {
+            throw new ProjectDeletionFailure( "Could not remove the project database. Check the server log", e );
+        }
+    }
+
+    private static void removeProjectEntry(String projectName, DataCollection<?> parent, LocalRepository repository,
+            ProjectDeletion deletion, ProjectDeletion.Pending pending) throws Exception
+    {
+        Map<Path, Path> links = new java.util.LinkedHashMap<>();
+        try
+        {
+            repository.prepareRemoval( projectName, () -> deletion.removeSymbolicLinks( pending, links ), () -> parent.remove( projectName ) );
+            if( parent.contains( projectName ) )
+                throw new IOException( "Repository refused to remove project: " + parent.getCompletePath().getChildPath( projectName ) );
+        }
+        catch( Exception e )
+        {
+            if( parent.contains( projectName ) )
+            {
+                try
+                {
+                    deletion.restoreSymbolicLinks( pending, links );
+                }
+                catch( IOException recoveryError )
+                {
+                    e.addSuppressed( recoveryError );
+                }
+            }
+            throw e;
+        }
+    }
+
+    private static Path collectionDirectory(DataCollection<?> collection) throws IOException
+    {
+        String path = collection.getInfo().getProperty( DataCollectionConfigConstants.FILE_PATH_PROPERTY );
+        if( path == null || path.isBlank() )
+            path = collection.getInfo().getProperty( DataCollectionConfigConstants.CONFIG_PATH_PROPERTY );
+        if( path == null || path.isBlank() )
+            throw new IOException( "Cannot resolve directory for " + collection.getCompletePath() );
+        return Path.of( path );
+    }
+
+    private static String projectDatabase(DataCollection<?> data) throws IOException
+    {
+        String jdbcUrl = DataCollectionUtils.fetchPrimaryCollectionPrivileged( data ).getInfo()
+                .getProperty( SqlDataCollection.JDBC_URL_PROPERTY );
+        if( jdbcUrl == null || jdbcUrl.isBlank() )
+            return null;
+        String database = jdbcUrl.split( "\\?", 2 )[0];
+        database = database.substring( database.lastIndexOf( '/' ) + 1 );
+        if( database.isBlank() )
+            throw new IOException( "Cannot resolve the database for " + data.getCompletePath() );
+        return database;
     }
 
     /**
@@ -995,26 +1173,31 @@ public class SupportServlet extends AbstractJSONServlet
             }
 
             DataCollection userProjectsParent = userProjectsPath.getDataCollection();
-            DataCollection primaryParent = null;
-            if( userProjectsParent instanceof FilteredDataCollection )
-                primaryParent = ((FilteredDataCollection)userProjectsParent).getPrimaryCollection();
-            
-            if( !userProjectsParent.contains(projectName) && (primaryParent == null || ! primaryParent.contains(projectName) ) )
+            Path projectsRoot = collectionDirectory( userProjectsParent ).toRealPath();
+            try( var storageLock = ProjectStorage.lock( projectsRoot, projectName ) )
             {
-                if(projectType == ProjectType.SQL)
-                    return createSQLBasedProject( projectName, userProjectsParent );
-                else if(projectType == ProjectType.FILE)
-                    return createFileBasedProject( projectName, userProjectsParent, null );
-            }
-            else
-            {
-                if( reuse )
-                    return (DataCollection) userProjectsParent.get( projectName );
+                ProjectStorage.checkCreation( projectsRoot, projectName );
+                DataCollection primaryParent = null;
+                if( userProjectsParent instanceof FilteredDataCollection )
+                    primaryParent = ((FilteredDataCollection)userProjectsParent).getPrimaryCollection();
+
+                if( !userProjectsParent.contains(projectName) && (primaryParent == null || ! primaryParent.contains(projectName) ) )
+                {
+                    if(projectType == ProjectType.SQL)
+                        return createSQLBasedProject( projectName, userProjectsParent );
+                    else if(projectType == ProjectType.FILE)
+                        return createFileBasedProject( projectName, userProjectsParent, null );
+                }
                 else
                 {
-                    errors.add( "Project " + projectName + " already exist. Please, select another project name." );
-                    log.log( Level.INFO, errors.get( 0 ) );
-                    return null;
+                    if( reuse )
+                        return (DataCollection) userProjectsParent.get( projectName );
+                    else
+                    {
+                        errors.add( "Project " + projectName + " already exist. Please, select another project name." );
+                        log.log( Level.INFO, errors.get( 0 ) );
+                        return null;
+                    }
                 }
             }
         }
@@ -1045,26 +1228,31 @@ public class SupportServlet extends AbstractJSONServlet
             }
 
             DataCollection projectsParent = parentPath.getDataCollection();
-            DataCollection primaryParent = null;
-            if( projectsParent instanceof FilteredDataCollection )
-                primaryParent = ((FilteredDataCollection) projectsParent).getPrimaryCollection();
+            Path projectsRoot = collectionDirectory( projectsParent ).toRealPath();
+            try( var storageLock = ProjectStorage.lock( projectsRoot, projectName ) )
+            {
+                ProjectStorage.checkCreation( projectsRoot, projectName );
+                DataCollection primaryParent = null;
+                if( projectsParent instanceof FilteredDataCollection )
+                    primaryParent = ((FilteredDataCollection) projectsParent).getPrimaryCollection();
 
-            if( !projectsParent.contains( projectName ) && (primaryParent == null || !primaryParent.contains( projectName )) )
-            {
-                if( projectType == ProjectType.SQL )
-                    return createSQLBasedProject( projectName, projectsParent );
-                else if( projectType == ProjectType.FILE )
-                    return createFileBasedProject( projectName, projectsParent, properties );
-            }
-            else
-            {
-                if( reuse )
-                    return (DataCollection) projectsParent.get( projectName );
+                if( !projectsParent.contains( projectName ) && (primaryParent == null || !primaryParent.contains( projectName )) )
+                {
+                    if( projectType == ProjectType.SQL )
+                        return createSQLBasedProject( projectName, projectsParent );
+                    else if( projectType == ProjectType.FILE )
+                        return createFileBasedProject( projectName, projectsParent, properties );
+                }
                 else
                 {
-                    errors.add( "Project " + projectName + " already exist. Please, select another project name." );
-                    log.log( Level.INFO, errors.get( 0 ) );
-                    return null;
+                    if( reuse )
+                        return (DataCollection) projectsParent.get( projectName );
+                    else
+                    {
+                        errors.add( "Project " + projectName + " already exist. Please, select another project name." );
+                        log.log( Level.INFO, errors.get( 0 ) );
+                        return null;
+                    }
                 }
             }
         }
@@ -1083,7 +1271,34 @@ public class SupportServlet extends AbstractJSONServlet
     }
 
 
+    /** Reserve the name before creating either the project group or its local repository entry. */
+    public static ProjectStorage.Lease lockProjectCreation(DataCollection<?> parent, String name) throws IOException
+    {
+        Path root = collectionDirectory( parent ).toRealPath();
+        ProjectStorage.Lease lease = ProjectStorage.lock( root, name );
+        try
+        {
+            ProjectStorage.checkCreation( root, name );
+            return lease;
+        }
+        catch( IOException | RuntimeException e )
+        {
+            lease.close();
+            throw e;
+        }
+    }
+
     public static DataCollection createSQLBasedProject(String projectName, DataCollection userProjectsParent) throws Exception
+    {
+        Path projectsRoot = collectionDirectory( userProjectsParent ).toRealPath();
+        try( var storageLock = ProjectStorage.lock( projectsRoot, projectName ) )
+        {
+            ProjectStorage.checkCreation( projectsRoot, projectName );
+            return createSQLBasedProjectUnlocked( projectName, userProjectsParent );
+        }
+    }
+
+    private static DataCollection createSQLBasedProjectUnlocked(String projectName, DataCollection userProjectsParent) throws Exception
     {
         log.log( Level.INFO, "createSQLBasedProject(" + projectName + "): START" );
         long before = System.currentTimeMillis();
@@ -1145,8 +1360,18 @@ public class SupportServlet extends AbstractJSONServlet
     
     public static DataCollection createFileBasedProject(String projectName, DataCollection userProjectsParent, Properties properties) throws Exception
     {
-        String projectsFolder = userProjectsParent.getInfo().getProperty( DataCollectionConfigConstants.FILE_PATH_PROPERTY );
-        File projectFolder = new File( projectsFolder, projectName );
+        Path projectsRoot = collectionDirectory( userProjectsParent ).toRealPath();
+        try( var storageLock = ProjectStorage.lock( projectsRoot, projectName ) )
+        {
+            ProjectStorage.checkCreation( projectsRoot, projectName );
+            return createFileBasedProjectUnlocked( projectName, userProjectsParent, properties, projectsRoot );
+        }
+    }
+
+    private static DataCollection createFileBasedProjectUnlocked(String projectName, DataCollection userProjectsParent, Properties properties,
+            Path projectsRoot) throws Exception
+    {
+        File projectFolder = new ProjectDeletion( projectsRoot, projectName ).directory().toFile();
         projectFolder.mkdirs();
 
         GenericFileDataCollection.initGenericFileDataCollection( userProjectsParent, projectFolder, properties );
@@ -1271,48 +1496,71 @@ public class SupportServlet extends AbstractJSONServlet
         String dcPath = getStringParameter( params, "dc" );
         DataCollection dc = dcPath != null ? DataElementPath.create( dcPath ).optDataCollection() : null;
         boolean askBiostore = ! ( "true".equals( getStringParameter( params, "skipBiostore" ) ) );
+        boolean pendingOnly = "true".equals( getStringParameter( params, "retryOnly" ) );
 
         String projectNamesJson = getStrictParameter( params, "projects" );
         JSONArray projectNames = new JSONArray( projectNamesJson );
 
-        StringWriter sw = new StringWriter();
-        String resp;
         StringBuilder removeErrors = new StringBuilder();
-        List<String> removedSuccessfully = new ArrayList<>();
         for( int i = 0; i < projectNames.length(); i++ )
         {
             String projectName = projectNames.getString( i );
             log.info( "Deleting project '" + projectName + "', askBiostore = " + askBiostore + "..." );
             StringBuilder curRemoveErrors = new StringBuilder();
             //First remove project from repository
+            boolean removeGroupSeparately = false;
+            DropProjectGroup dropGroup = askBiostore ? () -> {
+                StringWriter response = new StringWriter();
+                if( !SecurityAdminUtils.removeUserProject( projectName, user, password, jwToken, response )
+                        && projectGroupStatus( projectName ) != ProjectGroupStatus.ABSENT )
+                {
+                    String detail = response.toString().strip();
+                    for( String credential : new String[]{ password, jwToken } )
+                    {
+                        if( credential != null && !credential.isEmpty() )
+                            detail = detail.replace( credential, "[redacted]" )
+                                    .replace( TextUtil2.encodeURL( credential ), "[redacted]" );
+                    }
+                    if( detail.length() > 500 )
+                        detail = detail.substring( 0, 500 );
+                    throw new ProjectDeletionFailure( "BioStore rejected project group cleanup"
+                            + ( detail.isEmpty() ? ". Check the server log or ask a server administrator to recover the pending deletion" : ": " + detail ) );
+                }
+            } : null;
             try
             {
-                if( dc != null )
-                    resp = deleteProject( projectName, dc );
-                else
-                    resp = deleteProject( projectName );
-                if( resp != null )
-                    curRemoveErrors.append( resp );
+                DataCollection<?> parent = dc != null ? dc : CollectionFactoryUtils.getUserProjectsPath().getDataCollection();
+                ProjectDeletionResult result = deleteProjectResult( projectName, parent, pendingOnly, dropGroup );
+                if( result.message() != null )
+                    curRemoveErrors.append( result.message() );
+            }
+            catch( SecurityException e )
+            {
+                if( !askBiostore )
+                    throw e;
+                removeGroupSeparately = !pendingOnly;
+                curRemoveErrors.append( "Can not remove from server:  " + e.getMessage() );
             }
             catch( Exception e )
             {
-                if( askBiostore )
-                {
-                    curRemoveErrors.append( "Can not remove from server:  " + e.getMessage() );
-                }
-                else
-                    throw e;
+                curRemoveErrors.append( "Can not remove from server:  " + e.getMessage() );
             }
 
-            //Then remove project from biostore or remove user from project group if no enough permissions
-            if( askBiostore )
+            // Preserve the leave-group fallback for an ordinary request with denied local access.
+            if( removeGroupSeparately )
             {
-                boolean groupError = !SecurityAdminUtils.removeUserProject( projectName, user, password, jwToken, sw );
-                if( groupError )
+                try
                 {
-                    String biostoreMsg = sw.toString();
-                    log.log( Level.SEVERE, biostoreMsg );
-                    curRemoveErrors.append( biostoreMsg );
+                    DataCollection<?> parent = dc != null ? dc : CollectionFactoryUtils.getUserProjectsPath().getDataCollection();
+                    try( var storageLock = lockProjectCreation( parent, projectName ) )
+                    {
+                        dropGroup.drop();
+                    }
+                }
+                catch( Exception e )
+                {
+                    log.log( Level.SEVERE, "BioStore project cleanup failed", e );
+                    curRemoveErrors.append( e.getMessage() );
                 }
             }
             SecurityManager.invalidatePermissions();
@@ -1321,14 +1569,37 @@ public class SupportServlet extends AbstractJSONServlet
                 removeErrors.append( "\nProject " + projectName + " was not removed completely.\n" );
                 removeErrors.append( curRemoveErrors );
             }
-            else
-                removedSuccessfully.add( projectName );
         }
         login( params ); //call login to re-read permissions from biostore
         if( removeErrors.length() == 0 )
             return simpleOkResponse();
         else
-            return errorResponse( removeErrors.toString() );
+            return errorResponse( StringEscapeUtils.escapeHtml4( removeErrors.toString() ) );
+    }
+
+    /**
+     * Close a pending BioStore deletion after local removal. Providers without a reliable group lookup require
+     * an administrator to verify cleanup externally and explicitly confirm it.
+     */
+    protected JSONObject recoverProjectDeletion(Map params) throws Exception
+    {
+        login( params );
+        if( SecurityManager.getSessionAdministratorPermission() == null )
+            throw new SecurityException( "Server administrator access is required to recover a project deletion" );
+        String projectName = getStrictParameter( params, "project" );
+        String dcPath = getStringParameter( params, "dc" );
+        DataElementPath parentPath = dcPath == null ? CollectionFactoryUtils.getUserProjectsPath() : DataElementPath.create( dcPath );
+        DataCollection<?> parent = (DataCollection<?>)SecurityManager.runPrivileged( parentPath::getDataCollection );
+        ProjectDeletionRecovery recovery = "true".equals( getStringParameter( params, "confirmGroupHandled" ) )
+                ? ProjectDeletionRecovery.CONFIRM_GROUP_HANDLED : ProjectDeletionRecovery.VERIFY_GROUP_ABSENT;
+        ProjectDeletionResult result = deleteProjectResult( projectName, parent, true, ProjectBackup::dumpDatabase,
+                DROP_PROJECT_DATABASE, null, recovery );
+        if( result.status() == ProjectDeletionStatus.COMPLETE )
+        {
+            SecurityManager.invalidatePermissions();
+            return simpleOkResponse();
+        }
+        return errorResponse( StringEscapeUtils.escapeHtml4( result.message() ) );
     }
 
     private JSONObject listInterruptedTasks(Map params) throws Exception
