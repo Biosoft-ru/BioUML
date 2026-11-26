@@ -91,7 +91,22 @@ and other providers without an authoritative lookup, verify in BioStore that
 the old group is gone before sending `confirmGroupHandled=true`. Recovery
 releases the name once the remaining local cleanup has succeeded.
 Older SQL releases could leave a group row after deleting its memberships and
-permissions. Check that such a group is orphaned before removing it separately.
+permissions. Use this read-only query on the BioUML security database to find
+candidate rows.
+
+```sql
+SELECT g.ID, g.name
+FROM `groups` g
+WHERE NOT EXISTS (SELECT 1 FROM user_groups u WHERE u.groupID = g.ID)
+  AND NOT EXISTS (SELECT 1 FROM group_permissions p WHERE p.groupID = g.ID);
+```
+
+Before removing a candidate, verify that no project uses the name in any
+repository served by the security database, no creation or deletion is running
+for the name, and no other application or deployment depends on the group.
+Review any pending deletion record for the name and coordinate cleanup with
+the administrator handling that recovery. A query result alone cannot establish
+that removal is safe.
 
 BioUML logs each completed archive path under `BackupFolder`. A retry can take
 another full copy while any project files remain. Keep the copies for your
