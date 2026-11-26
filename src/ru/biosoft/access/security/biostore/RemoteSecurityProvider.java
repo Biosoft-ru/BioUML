@@ -576,7 +576,6 @@ public class RemoteSecurityProvider implements SecurityProvider
             parameters.put( "username", username );
             parameters.put( "password", password );
         }
-        log.info( "Removing project with BioStore, params = " + parameters );
         JsonObject response = biostore.askServer( username, "removeProject", parameters );
         try
         {
