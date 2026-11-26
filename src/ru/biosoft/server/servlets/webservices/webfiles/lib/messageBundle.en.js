@@ -257,7 +257,7 @@ var resourcesEN = {
     dlgRetryProjectDeletion: "Retry project deletion",
     dlgRetryProjectDeletionName: "Project name",
     dlgRemovePrjTitle: "Remove project",
-    dlgRemovePrjConfirmation: "Yes, I really want to remove project <b>{name}</b> with all data.",
+    dlgRemovePrjConfirmation: "Yes, I really want to remove project {name} with all data.",
     dlgRemovePrjNotConfirmed: "You didn't check the confirmation checkbox",
     dlgRemovePrjRemoved: "Project {name} removed",
     

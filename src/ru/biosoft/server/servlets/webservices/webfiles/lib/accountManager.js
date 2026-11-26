@@ -308,7 +308,7 @@ function initProjectsTable()
                 createPromptDialog(resources.dlgRetryProjectDeletion, resources.dlgRetryProjectDeletionName, function(name)
                 {
                     if(name && name.trim())
-                        removeProject(createPath(appInfo.userProjectsPath, name.trim()), true);
+                        removeProject(createPath(appInfo.userProjectsPath, name), true);
                 });
             })
             .insertAfter(projectsTable);
@@ -356,7 +356,9 @@ function removeProject(completePath, retryOnly)
     '<tr><td>'+resources.dlgLoginPassword+'</td><td><input type="password" size="25" id="password"/></td></tr>'+
     '<tr><td colspan="2"><input type="checkbox" id="remove_project"/></td></tr>'+
     '</table>');
-    loginForm.find("#remove_project").after(document.createTextNode(resources.dlgRemovePrjConfirmation.replace("{name}", name)));
+    var confirmation = resources.dlgRemovePrjConfirmation.split("{name}");
+    loginForm.find("#remove_project").after(document.createTextNode(confirmation[0]),
+        $('<b/>').text(name), document.createTextNode(confirmation[1] || ""));
     dialogDiv.append(loginForm);
     var dialogButtons = {};
     var path = getElementPath(completePath);

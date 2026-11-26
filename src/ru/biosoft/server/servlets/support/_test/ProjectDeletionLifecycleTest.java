@@ -6,7 +6,9 @@ import static ru.biosoft.server.servlets.support.SupportServlet.ProjectDeletionS
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -93,7 +95,9 @@ public class ProjectDeletionLifecycleTest extends AbstractBioUMLTest
         AtomicInteger drops = new AtomicInteger();
         assertEquals( INCOMPLETE, delete( (db, output) -> { throw new InterruptedException( "fixture interruption" ); },
                 db -> drops.incrementAndGet() ).status() );
-        Path interrupted = deletion.readPending().backup();
+        Path interrupted = deletion.readPending().backupAttempt();
+        assertNotNull( interrupted );
+        assertNoBackupStaging();
         assertFalse( deletion.readPending().backupComplete() );
         assertTrue( Files.exists( project.resolve( "default.config" ) ) );
 
@@ -102,13 +106,20 @@ public class ProjectDeletionLifecycleTest extends AbstractBioUMLTest
             throw new IOException( "fixture dump exited nonzero" );
         }, db -> drops.incrementAndGet() ).status() );
         assertFalse( deletion.readPending().backupComplete() );
-        assertFalse( interrupted.equals( deletion.readPending().backup() ) );
+        assertFalse( interrupted.equals( deletion.readPending().backupAttempt() ) );
+        assertNoBackupStaging();
         assertEquals( 0, drops.get() );
         assertTrue( Files.exists( project.resolve( "sequence.fasta" ) ) );
+
+        Path abandoned = backups.resolve( PROJECT + "-" + UUID.randomUUID() );
+        Path staging = Files.createDirectory( abandoned.resolveSibling( abandoned.getFileName() + ".partial" ) );
+        Files.writeString( staging.resolve( "abandoned" ), "partial backup from an interrupted server" );
+        deletion.save( deletion.readPending().withBackup( null, false, abandoned ) );
 
         Files.writeString( project.resolve( "after-failure.txt" ), "latest contents" );
         assertEquals( COMPLETE, delete( this::writeDump, db -> drops.incrementAndGet() ).status() );
         assertEquals( 1, drops.get() );
+        assertTrue( Files.notExists( staging ) );
         assertTrue( Files.notExists( project ) );
         try( var paths = Files.list( backups ) )
         {
@@ -161,7 +172,18 @@ public class ProjectDeletionLifecycleTest extends AbstractBioUMLTest
         assertTrue( repository.contains( PROJECT ) );
 
         AtomicInteger drops = new AtomicInteger();
-        assertEquals( COMPLETE, delete( (db, output) -> fail( "Keep the original backup" ), db -> drops.incrementAndGet() ).status() );
+        Files.writeString( project.resolve( "changed.txt" ), "new contents" );
+        assertEquals( COMPLETE, delete( (db, output) -> {
+            assertEquals( DATABASE, db );
+            Files.writeString( output, "remaining SQL tables" );
+        }, db -> drops.incrementAndGet() ).status() );
+        try( var archives = Files.list( backups ) )
+        {
+            Path latest = archives.filter( path -> !path.equals( backup ) ).findFirst().orElseThrow();
+            assertEquals( "new contents", Files.readString( latest.resolve( "project/changed.txt" ) ) );
+            assertEquals( "remaining SQL tables", Files.readString( latest.resolve( "_dump.sql" ) ) );
+        }
+        assertEquals( "fixture SQL", Files.readString( backup.resolve( "_dump.sql" ) ) );
         assertEquals( 1, drops.get() );
         assertTrue( Files.exists( backup.resolve( "project/sequence.fasta" ) ) );
         assertTrue( Files.notExists( project ) );
@@ -184,12 +206,73 @@ public class ProjectDeletionLifecycleTest extends AbstractBioUMLTest
         assertTrue( repository.contains( PROJECT ) );
         assertTrue( Files.isSymbolicLink( link ) );
         assertTrue( Files.exists( project.resolve( "sequence.fasta" ) ) );
-        assertFalse( deletion.readPending().backupComplete() );
+        assertTrue( deletion.readPending().backupComplete() );
         repository.removeDataCollectionListener( veto );
 
         assertEquals( COMPLETE, delete( this::writeDump, db -> fail() ).status() );
         assertTrue( Files.notExists( project ) );
         assertEquals( "external", Files.readString( external ) );
+    }
+
+    public void testRetryBacksUpChangesToConfiglessProject() throws Exception
+    {
+        String name = "File based fixture";
+        assertNotNull( SupportServlet.createFileBasedProject( name, repository, null ) );
+        ProjectDeletion fileDeletion = new ProjectDeletion( projects, name );
+        Path directory = fileDeletion.directory();
+        assertTrue( Files.notExists( directory.resolve( "default.config" ) ) );
+        ProjectDeletion.Pending original = ProjectBackup.ensureComplete( fileDeletion, fileDeletion.begin( directory, null ), this::writeDump );
+
+        Files.writeString( directory.resolve( "new.txt" ), "new contents" );
+        assertEquals( COMPLETE, SupportServlet.deleteProjectResult( name, repository, this::writeDump, db -> fail() ).status() );
+        assertTrue( Files.notExists( original.backup().resolve( "project/new.txt" ) ) );
+        assertArchived( "new.txt", "new contents" );
+    }
+
+    public void testBackupEnabledAfterVeto() throws Exception
+    {
+        globals.setValue( "BackupFolder", "BackupFolder" );
+        DataCollectionListenerSupport veto = new DataCollectionListenerSupport()
+        {
+            @Override
+            public void elementWillRemove(DataCollectionEvent event) throws DataCollectionVetoException
+            {
+                throw new DataCollectionVetoException();
+            }
+        };
+        repository.addDataCollectionListener( veto );
+        assertEquals( INCOMPLETE, delete( this::writeDump, db -> fail() ).status() );
+        assertTrue( deletion.readPending().backupComplete() );
+        assertNull( deletion.readPending().backup() );
+        repository.removeDataCollectionListener( veto );
+
+        globals.setValue( "BackupFolder", backups.toString() );
+        assertEquals( COMPLETE, delete( this::writeDump, db -> fail() ).status() );
+        assertArchived( "sequence.fasta", ">fixture\nATCG\n" );
+    }
+
+    public void testDumpConnectionOptions() throws Exception
+    {
+        assertEquals( List.of( "--host=localhost" ), ProjectBackup.dumpConnectionOptions( "jdbc:mysql://localhost/schema" ) );
+        assertEquals( List.of( "--protocol=TCP", "--host=db_server", "--port=3307" ),
+                ProjectBackup.dumpConnectionOptions( "jdbc:mysql://db_server:3307/schema?useSSL=false" ) );
+        assertEquals( List.of( "--protocol=TCP", "--host=localhost", "--port=3307" ),
+                ProjectBackup.dumpConnectionOptions( "jdbc:mysql://localhost:3307/schema" ) );
+        assertEquals( List.of( "--protocol=TCP", "--host=::1", "--port=3306" ),
+                ProjectBackup.dumpConnectionOptions( "jdbc:mariadb://[::1]/schema" ) );
+        for( String invalid : List.of( "jdbc:mysql://user@localhost/schema", "jdbc:mysql://localhost:65536/schema",
+                "jdbc:mysql://server,backup/schema" ) )
+        {
+            try
+            {
+                ProjectBackup.dumpConnectionOptions( invalid );
+                fail( "Unsupported database authority: " + invalid );
+            }
+            catch( IOException expected )
+            {
+                assertTrue( expected.getMessage().contains( "supported database server" ) );
+            }
+        }
     }
 
     public void testLinkedDataIsRejectedBeforeAnyChanges() throws Exception
@@ -244,6 +327,38 @@ public class ProjectDeletionLifecycleTest extends AbstractBioUMLTest
         }
     }
 
+    public void testWebResumesFailedBiostoreCleanup() throws Exception
+    {
+        var providerField = SecurityManager.class.getDeclaredField( "securityProvider" );
+        providerField.setAccessible( true );
+        Object previous = providerField.get( null );
+        AtomicInteger groupRemovals = new AtomicInteger();
+        providerField.set( null, new TestSecurityProvider()
+        {
+            @Override
+            public boolean removeProject(String groupName, String username, String password, String jwToken)
+            {
+                return groupRemovals.incrementAndGet() > 1;
+            }
+        } );
+        try
+        {
+            FixtureServlet servlet = new FixtureServlet();
+            assertTrue( servlet.delete( false, false ).toString().contains( "was not removed completely" ) );
+            assertTrue( Files.notExists( project ) );
+            assertTrue( deletion.readPending().groupPending() );
+            assertNotNull( McpProjectSupport.delete( PROJECT ).getError() );
+            assertTrue( deletion.readPending().groupPending() );
+            servlet.delete( true, false );
+            assertEquals( 2, groupRemovals.get() );
+            assertNull( deletion.readPending() );
+        }
+        finally
+        {
+            providerField.set( null, previous );
+        }
+    }
+
     public void testWebRetryRequiresPendingDeletion() throws Exception
     {
         FixtureServlet servlet = new FixtureServlet();
@@ -278,6 +393,24 @@ public class ProjectDeletionLifecycleTest extends AbstractBioUMLTest
             throws Exception
     {
         return SupportServlet.deleteProjectResult( PROJECT, repository, dump, drop );
+    }
+
+    private void assertNoBackupStaging() throws IOException
+    {
+        try( var paths = Files.list( backups ) )
+        {
+            assertFalse( paths.anyMatch( path -> path.getFileName().toString().endsWith( ".partial" ) ) );
+        }
+    }
+
+    private void assertArchived(String name, String contents) throws IOException
+    {
+        try( var paths = Files.list( backups ) )
+        {
+            Path archived = paths.map( path -> path.resolve( "project" ).resolve( name ) )
+                    .filter( Files::isRegularFile ).findFirst().orElseThrow();
+            assertEquals( contents, Files.readString( archived ) );
+        }
     }
 
     private void addDatabaseMetadata() throws Exception

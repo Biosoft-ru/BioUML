@@ -20,8 +20,17 @@ final class ProjectDeletion
     private final Path directory;
     private final Path pending;
 
-    record Pending(String directoryIdentity, String database, Path backup, boolean backupComplete)
+    record Pending(String directoryIdentity, String database, Path backup, boolean backupComplete, Path backupAttempt, boolean groupPending)
     {
+        Pending withBackup(Path complete, boolean ready, Path attempt)
+        {
+            return new Pending( directoryIdentity, database, complete, ready, attempt, groupPending );
+        }
+
+        Pending withGroupPending()
+        {
+            return new Pending( directoryIdentity, database, backup, backupComplete, backupAttempt, true );
+        }
     }
 
     ProjectDeletion(Path projectsRoot, String projectName) throws IOException
@@ -58,14 +67,22 @@ final class ProjectDeletion
         if( identity == null )
             throw new IOException( "Invalid project deletion record: " + pending );
         String backup = state.getProperty( "backup" );
-        return new Pending( identity, state.getProperty( "database" ), backup == null ? null : Path.of( backup ),
-                Boolean.parseBoolean( state.getProperty( "backupComplete" ) ) );
+        String attempt = state.getProperty( "backupAttempt" );
+        boolean complete = Boolean.parseBoolean( state.getProperty( "backupComplete" ) );
+        // Earlier deletion records used the backup field for the in-progress attempt.
+        if( !complete && attempt == null )
+        {
+            attempt = backup;
+            backup = null;
+        }
+        return new Pending( identity, state.getProperty( "database" ), backup == null ? null : Path.of( backup ), complete,
+                attempt == null ? null : Path.of( attempt ), Boolean.parseBoolean( state.getProperty( "groupPending" ) ) );
     }
 
     Pending begin(Path declaredDirectory, String database) throws IOException
     {
         validateDeclaredDirectory( declaredDirectory );
-        Pending state = new Pending( directoryIdentity(), database, null, false );
+        Pending state = new Pending( directoryIdentity(), database, null, false, null, false );
         save( state );
         return state;
     }
@@ -86,6 +103,9 @@ final class ProjectDeletion
         if( record.backup() != null )
             state.setProperty( "backup", record.backup().toString() );
         state.setProperty( "backupComplete", Boolean.toString( record.backupComplete() ) );
+        if( record.backupAttempt() != null )
+            state.setProperty( "backupAttempt", record.backupAttempt().toString() );
+        state.setProperty( "groupPending", Boolean.toString( record.groupPending() ) );
         Path temporary = Files.createTempFile( pending.getParent(), ".project-deletion-", ".tmp" );
         try
         {
@@ -154,6 +174,11 @@ final class ProjectDeletion
     void removeDirectory(Pending state) throws IOException
     {
         verifyDirectory( state );
+        deleteTree( directory );
+    }
+
+    static void deleteTree(Path directory) throws IOException
+    {
         if( Files.notExists( directory, LinkOption.NOFOLLOW_LINKS ) )
             return;
 
