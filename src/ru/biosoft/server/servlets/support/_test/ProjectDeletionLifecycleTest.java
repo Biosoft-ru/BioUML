@@ -6,10 +6,12 @@ import static ru.biosoft.server.servlets.support.SupportServlet.ProjectDeletionS
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.json.JSONObject;
@@ -28,11 +30,16 @@ import ru.biosoft.access.core.CollectionFactory;
 import ru.biosoft.access.core.DataCollectionConfigConstants;
 import ru.biosoft.access.core.DataCollectionEvent;
 import ru.biosoft.access.core.DataCollectionVetoException;
+import ru.biosoft.access.security.GlobalDatabaseManager;
 import ru.biosoft.access.security.Permission;
+import ru.biosoft.access.security.SQLSecurityProvider;
 import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.access.security.SecurityProvider;
 import ru.biosoft.access.security.SecurityProvider.ProjectGroupStatus;
 import ru.biosoft.access.security.TestSecurityProvider;
 import ru.biosoft.access.security.UserPermissions;
+import ru.biosoft.access.sql.SqlConnectionPool;
+import ru.biosoft.access.sql.SqlUtil;
 import ru.biosoft.util.ExProperties;
 import ru.biosoft.util.TempFiles;
 
@@ -547,7 +554,124 @@ public class ProjectDeletionLifecycleTest extends AbstractBioUMLTest
         assertNull( deletion.readPending() );
     }
 
-    private void withSecurityProvider(TestSecurityProvider provider, LocalRepository.RemovalAction test) throws Exception
+    public void testSqlAdministratorDeletesGroupAndCanRecreateIt() throws Exception
+    {
+        withSqlGroups( connection -> {
+            SQLSecurityProvider provider = new SQLSecurityProvider();
+            assertTrue( provider.removeProject( PROJECT, "member", "", null ) );
+            assertEquals( List.of( "fixture" ), SqlUtil.queryStrings( connection, "SELECT `user` FROM user_groups" ) );
+            assertEquals( 1, SqlUtil.queryInt( connection, "SELECT COUNT(*) FROM group_permissions" ) );
+            assertEquals( ProjectGroupStatus.PRESENT, provider.getProjectGroupStatus( PROJECT ) );
+
+            assertTrue( provider.removeProject( PROJECT, "fixture", "", null ) );
+            assertEquals( ProjectGroupStatus.ABSENT, provider.getProjectGroupStatus( PROJECT ) );
+            assertEquals( 0, SqlUtil.queryInt( connection, "SELECT COUNT(*) FROM user_groups" ) );
+            assertEquals( 0, SqlUtil.queryInt( connection, "SELECT COUNT(*) FROM group_permissions" ) );
+            assertTrue( provider.removeProject( PROJECT, "fixture", "", null ) );
+
+            provider.createGroup( "fixture", PROJECT, false );
+            assertEquals( ProjectGroupStatus.PRESENT, provider.getProjectGroupStatus( PROJECT ) );
+            assertEquals( List.of( "fixture" ), SqlUtil.queryStrings( connection, "SELECT `user` FROM user_groups" ) );
+        } );
+    }
+
+    public void testSqlGroupRemovalRollsBackWhenFinalDeleteFails() throws Exception
+    {
+        withSqlGroups( connection -> {
+            SqlUtil.execute( connection, "CREATE TABLE group_reference (group_id INT, FOREIGN KEY (group_id) REFERENCES `groups`(id))" );
+            SqlUtil.execute( connection, "INSERT INTO group_reference VALUES (1)" );
+            SQLSecurityProvider provider = new SQLSecurityProvider();
+
+            assertFalse( provider.removeProject( PROJECT, "fixture", "", null ) );
+            assertEquals( ProjectGroupStatus.PRESENT, provider.getProjectGroupStatus( PROJECT ) );
+            assertEquals( 2, SqlUtil.queryInt( connection, "SELECT COUNT(*) FROM user_groups" ) );
+            assertEquals( 1, SqlUtil.queryInt( connection, "SELECT COUNT(*) FROM group_permissions" ) );
+        } );
+    }
+
+    public void testSqlRequesterCanRetryAfterGroupRemovalWasInterrupted() throws Exception
+    {
+        withSqlGroups( connection -> {
+            SQLSecurityProvider provider = new SQLSecurityProvider()
+            {
+                @Override
+                public boolean removeProject(String groupName, String username, String password, String jwToken)
+                {
+                    assertTrue( super.removeProject( groupName, username, password, jwToken ) );
+                    throw new InterruptedGroupRemoval();
+                }
+            };
+            withSecurityProvider( provider, () -> {
+                FixtureServlet servlet = new FixtureServlet();
+                String projectPath = repository.getCompletePath().getChildPath( PROJECT ).toString();
+                // Grant the current session delete access. A fresh SQL login after interruption has no such grant.
+                SecurityManager.addUserPermission( "fixture", projectPath, new Permission( Permission.DELETE | Permission.READ,
+                        "fixture", SecurityManager.getSession(), Long.MAX_VALUE ) );
+                try
+                {
+                    servlet.delete( false, false );
+                    fail( "Expected interruption after SQL group removal" );
+                }
+                catch( InterruptedGroupRemoval expected )
+                {
+                    assertEquals( ProjectGroupStatus.ABSENT, provider.getProjectGroupStatus( PROJECT ) );
+                    assertTrue( deletion.readPending().localComplete() );
+                    assertTrue( Files.notExists( project ) );
+                }
+
+                SecurityManager.commonLogin( "fixture", "", null, null );
+                assertFalse( SecurityManager.getPermissions( projectPath ).isDeleteAllowed() );
+                JSONObject retry = servlet.delete( true, false );
+                assertEquals( retry.toString(), "ok", retry.getString( "type" ) );
+                assertNull( deletion.readPending() );
+            } );
+        } );
+    }
+
+    private static class InterruptedGroupRemoval extends Error
+    {
+    }
+
+    @FunctionalInterface
+    private interface SqlFixtureAction
+    {
+        void run(Connection connection) throws Exception;
+    }
+
+    private void withSqlGroups(SqlFixtureAction test) throws Exception
+    {
+        var propertiesField = GlobalDatabaseManager.class.getDeclaredField( "properties" );
+        propertiesField.setAccessible( true );
+        Object previous = propertiesField.get( null );
+        String url = "jdbc:h2:mem:" + UUID.randomUUID() + ";MODE=MySQL;DATABASE_TO_LOWER=TRUE;NON_KEYWORDS=USER";
+        Properties properties = new Properties();
+        properties.setProperty( SqlDataCollection.JDBC_URL_PROPERTY, url );
+        properties.setProperty( SqlDataCollection.JDBC_USER_PROPERTY, "sa" );
+        properties.setProperty( SqlDataCollection.JDBC_PASSWORD_PROPERTY, "" );
+        try( Connection connection = DriverManager.getConnection( url, "sa", "" ) )
+        {
+            GlobalDatabaseManager.initDatabaseManager( properties );
+            SqlUtil.execute( connection, "CREATE TABLE `groups` (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) UNIQUE,"
+                    + " language VARCHAR(2), description VARCHAR(255))" );
+            SqlUtil.execute( connection, "CREATE TABLE user_groups (`user` VARCHAR(255), groupID INT, role VARCHAR(255))" );
+            SqlUtil.execute( connection, "CREATE TABLE group_permissions (groupID INT, module VARCHAR(255), permission INT)" );
+            SqlUtil.execute( connection, "CREATE TABLE permissions (user VARCHAR(255), module VARCHAR(255), permission INT)" );
+            SqlUtil.execute( connection, "CREATE TABLE users (user_name VARCHAR(255), user_pass VARCHAR(255), expirationDate BIGINT, trial INT)" );
+            SqlUtil.execute( connection, "CREATE TABLE user_roles (user_name VARCHAR(255), role_name VARCHAR(255))" );
+            SqlUtil.execute( connection, "INSERT INTO `groups`(name) VALUES (" + SqlUtil.quoteString( PROJECT ) + ")" );
+            SqlUtil.execute( connection, "INSERT INTO users VALUES ('fixture', '', 0, 0), ('member', '', 0, 0)" );
+            SqlUtil.execute( connection, "INSERT INTO user_groups VALUES ('fixture', 1, 'Administrator'), ('member', 1, 'Member')" );
+            SqlUtil.execute( connection, "INSERT INTO group_permissions VALUES (1, 'fixture', 15)" );
+            test.run( connection );
+        }
+        finally
+        {
+            SqlConnectionPool.closeMyConnections();
+            propertiesField.set( null, previous );
+        }
+    }
+
+    private void withSecurityProvider(SecurityProvider provider, LocalRepository.RemovalAction test) throws Exception
     {
         var providerField = SecurityManager.class.getDeclaredField( "securityProvider" );
         providerField.setAccessible( true );

@@ -85,10 +85,13 @@ server administrator can send a POST to `support/recoverProjectDeletion` with
 project was in a repository other than the default user projects collection.
 The endpoint checks that there is a pending BioStore deletion and that the
 repository entry and directory are gone. If the provider reports that the
-group still exists, remove the old group before recovering the record. If the
-provider does not support a reliable absence check, verify in BioStore that the
-old group is gone and send `confirmGroupHandled=true`. Recovery releases the
-name once the remaining local cleanup has succeeded.
+group still exists, remove the old group before recovering the record. The
+SQL security provider verifies group absence automatically. For remote BioStore
+and other providers without an authoritative lookup, verify in BioStore that
+the old group is gone before sending `confirmGroupHandled=true`. Recovery
+releases the name once the remaining local cleanup has succeeded.
+Older SQL releases could leave a group row after deleting its memberships and
+permissions. Check that such a group is orphaned before removing it separately.
 
 BioUML logs each completed archive path under `BackupFolder`. A retry can take
 another full copy while any project files remain. Keep the copies for your
