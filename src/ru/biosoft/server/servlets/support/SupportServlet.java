@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -54,7 +56,6 @@ import ru.biosoft.access.file.GenericFileDataCollection;
 import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.access.security.GlobalDatabaseManager;
 import ru.biosoft.access.security.Permission;
-import ru.biosoft.access.security.PrivilegedAction;
 import ru.biosoft.access.security.ProtectedDataCollection;
 import ru.biosoft.access.security.SecurityAdminUtils;
 import ru.biosoft.access.security.SecurityManager;
@@ -629,136 +630,155 @@ public class SupportServlet extends AbstractJSONServlet
         return deleteProject( projectName, parentDC );
     }
 
-    public static String deleteProject(final String projectName, final DataCollection parentDC) throws Exception
+    private static final String INCOMPLETE_PROJECT_DELETION = "Cannot completely delete project ";
+    private static final Set<Path> activeProjectDeletions = ConcurrentHashMap.newKeySet();
+
+    public static String deleteProject(String projectName, DataCollection<?> parentDC) throws Exception
     {
-        if( parentDC.contains(projectName) )
+        Permission permission = SecurityManager.getPermissions( parentDC.getCompletePath().getChildPath( projectName ) );
+        if( !permission.isDeleteAllowed() )
+            throw new SecurityException( "Delete access denied for " + SecurityManager.getSessionUser() );
+        try
         {
-            Permission permission = SecurityManager.getPermissions(CollectionFactoryUtils.getUserProjectsPath().getChildPath(projectName));
-            //checkPermission(permission, "put");
-            if(!permission.isDeleteAllowed())
-                throw new SecurityException("Delete access denied for "+SecurityManager.getSessionUser());
-            try
+            return (String)SecurityManager.runPrivileged( () -> deleteProjectFiles( projectName, parentDC ) );
+        }
+        catch( Exception e )
+        {
+            log.log( Level.SEVERE, "Cannot complete deletion of project " + projectName, e );
+            return INCOMPLETE_PROJECT_DELETION + projectName;
+        }
+    }
+
+    private static String deleteProjectFiles(String projectName, DataCollection<?> parent) throws Exception
+    {
+        DataCollection<?> primaryParent = DataCollectionUtils.fetchPrimaryCollectionPrivileged( parent );
+        ProjectDeletion deletion = new ProjectDeletion( collectionDirectory( primaryParent ), projectName );
+        if( !activeProjectDeletions.add( deletion.directory() ) )
+            return INCOMPLETE_PROJECT_DELETION + projectName + ": deletion is already running";
+        try
+        {
+            ProjectDeletion.Pending pending = deletion.readPending();
+            if( pending == null )
             {
-                SecurityManager.runPrivileged(new PrivilegedAction()
-                {
-                    @Override
-                    public Object run() throws Exception
-                    {
-                        DataCollection research = (DataCollection)parentDC.get(projectName);
-                        DataCollection dataCollection = (DataCollection)research.get(Module.DATA);
-                        research = DataCollectionUtils.fetchPrimaryCollectionPrivileged(research);
-                        String localPath = research.getInfo().getProperty(DataCollectionConfigConstants.CONFIG_PATH_PROPERTY);
-                        if( localPath == null && research instanceof GenericFileDataCollection )
-                        {
-                            localPath = research.getInfo().getProperty( DataCollectionConfigConstants.FILE_PATH_PROPERTY );
-                        }
-                        String dbName = null;
-                        if ( dataCollection != null )
-                        {
-                            dataCollection = DataCollectionUtils.fetchPrimaryCollectionPrivileged(dataCollection);
-                            String jdbcUrl = dataCollection.getInfo().getProperty(SqlDataCollection.JDBC_URL_PROPERTY);
-
-                            dbName = jdbcUrl;
-                            int ind = jdbcUrl.lastIndexOf('/');
-                            if ( ind != -1 )
-                            {
-                                dbName = jdbcUrl.substring(ind + 1);
-                            }
-                            ind = dbName.lastIndexOf('?');
-                            if ( ind != -1 )
-                            {
-                                dbName = dbName.substring(0, ind);
-                            }
-
-                            try
-                            {
-                                //make a backup before removing
-                                String backupAddr = Application.getGlobalValue("BackupFolder");
-                                if ( !backupAddr.equals("BackupFolder") )
-                                {
-                                    File backupFolder = new File(backupAddr);
-                                    if ( !backupFolder.exists() && !backupFolder.mkdirs() )
-                                    {
-                                        log.log( Level.WARNING, "Cannot create backup folder '" + backupAddr + "', skipping backup of project '" + localPath + "'");
-                                    }
-                                    File src = new File(localPath);
-                                    String date = new SimpleDateFormat("yyyy.MM.dd_HH:mm:ss").format(new Date());
-                                    File dst = new File(backupFolder, date + "_" + src.getName());
-
-                                    if ( dst.exists() )
-                                    {
-                                        log.log( Level.WARNING, "Backup folder '" + dst.getAbsolutePath() + "' already exists, skipping backup of project '" + localPath + "'");
-                                    }
-                                    else if ( "Linux".equals(System.getProperty("os.name")) )
-                                    {
-                                        log.info("Moving deleted project '" + localPath + "' to backup folder '" + dst.getAbsolutePath() + "'...");
-                                        ProcessBuilder processBuilder = new ProcessBuilder();
-                                        processBuilder.command("mv", localPath, dst.getAbsolutePath());
-                                        Process proc = processBuilder.start();
-                                        int mvExitCode = proc.waitFor();
-                                        if ( mvExitCode != 0 )
-                                        {
-                                            log.log( Level.WARNING, "'mv' to backup folder '" + dst.getAbsolutePath() + "' failed with exit code " + mvExitCode + ", project '" + localPath + "' was not moved");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        log.info("Copying deleted project '" + localPath + "' to backup folder '" + dst.getAbsolutePath() + "'...");
-                                        ApplicationUtils.copyFolder(dst, src);
-                                    }
-
-                                    File dumpPath = new File(dst, "_dump.sql");
-                                    if ( !dst.isDirectory() )
-                                    {
-                                        log.log( Level.WARNING, "Backup folder '" + dst.getAbsolutePath() + "' was not created, cannot dump database '" + dbName + "' to '" + dumpPath + "'");
-                                    }
-                                    else
-                                    {
-                                        List<String> cmd = new ArrayList<>();
-                                        cmd.add("mysqldump");
-                                        String user = Application.getGlobalValue("BackupUser", "root");
-                                        String password = Application.getGlobalValue("BackupPassword", "root");
-                                        cmd.add("-u" + user);
-                                        cmd.add("-p" + password);
-                                        cmd.add(dbName);
-                                        Runtime rt = Runtime.getRuntime();
-                                        String[] cmdArray = cmd.toArray(new String[cmd.size()]);
-                                        Process proc = rt.exec(cmdArray);
-                                        ApplicationUtils.copyStream(new FileOutputStream(dumpPath), proc.getInputStream());
-                                    }
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                log.log(Level.SEVERE, "cannot create backup copy", e);
-                            }
-                        }
-                        parentDC.remove(projectName);
-                        //remove all files manually
-                        if( localPath != null )
-                        {
-                            File file = new File(localPath);
-                            ApplicationUtils.removeDir(file);
-                        }
-
-                        // remove the project database
-                        if ( dbName != null )
-                        {
-                            Connection rootConnection = GlobalDatabaseManager.getDatabaseConnection();
-                            SqlUtil.execute(rootConnection, "DROP DATABASE " + dbName);
-                        }
-                        return null;
-                    }
-                });
-                return null;
+                if( !parent.contains( projectName ) )
+                    return "Project " + projectName + " doesn't exists";
+                deletion.validateTarget();
+                DataCollection<?> project = (DataCollection<?>)parent.get( projectName );
+                DataElement data = Files.isSymbolicLink( deletion.directory().resolve( Module.DATA ) ) ? null : project.get( Module.DATA );
+                String database = data instanceof DataCollection<?> collection ? projectDatabase( collection ) : null;
+                pending = deletion.begin( collectionDirectory( DataCollectionUtils.fetchPrimaryCollectionPrivileged( project ) ), database );
+                if( database != null )
+                    backupProject( deletion.directory().toString(), database );
             }
-            catch( Exception e )
+
+            if( parent.contains( projectName ) )
             {
-                log.log( Level.SEVERE, "Cannot delete project " + projectName, e );
-                return "Cannot delete project " + projectName;
+                deletion.removeSymbolicLinks( pending );
+                parent.remove( projectName );
+            }
+            deletion.removeDirectory( pending );
+            if( parent.contains( projectName ) )
+                throw new IOException( "Project remains in the repository: " + parent.getCompletePath().getChildPath( projectName ) );
+
+            String database = pending.database();
+            if( database != null )
+                SqlUtil.execute( GlobalDatabaseManager.getDatabaseConnection(), "DROP DATABASE IF EXISTS " + SqlUtil.quoteIdentifier( database ) );
+            deletion.complete();
+            return null;
+        }
+        finally
+        {
+            activeProjectDeletions.remove( deletion.directory() );
+        }
+    }
+
+    private static Path collectionDirectory(DataCollection<?> collection) throws IOException
+    {
+        String path = collection.getInfo().getProperty( DataCollectionConfigConstants.FILE_PATH_PROPERTY );
+        if( path == null || path.isBlank() )
+            path = collection.getInfo().getProperty( DataCollectionConfigConstants.CONFIG_PATH_PROPERTY );
+        if( path == null || path.isBlank() )
+            throw new IOException( "Cannot resolve directory for " + collection.getCompletePath() );
+        return Path.of( path );
+    }
+
+    private static String projectDatabase(DataCollection<?> data) throws IOException
+    {
+        String jdbcUrl = DataCollectionUtils.fetchPrimaryCollectionPrivileged( data ).getInfo()
+                .getProperty( SqlDataCollection.JDBC_URL_PROPERTY );
+        if( jdbcUrl == null || jdbcUrl.isBlank() )
+            return null;
+        String database = jdbcUrl.split( "\\?", 2 )[0];
+        database = database.substring( database.lastIndexOf( '/' ) + 1 );
+        if( database.isBlank() )
+            throw new IOException( "Cannot resolve the database for " + data.getCompletePath() );
+        return database;
+    }
+
+    private static void backupProject(String localPath, String dbName)
+    {
+        try
+        {
+            //make a backup before removing
+            String backupAddr = Application.getGlobalValue("BackupFolder");
+            if ( !backupAddr.equals("BackupFolder") )
+            {
+                File backupFolder = new File(backupAddr);
+                if ( !backupFolder.exists() && !backupFolder.mkdirs() )
+                {
+                    log.log( Level.WARNING, "Cannot create backup folder '" + backupAddr + "', skipping backup of project '" + localPath + "'");
+                }
+                File src = new File(localPath);
+                String date = new SimpleDateFormat("yyyy.MM.dd_HH:mm:ss").format(new Date());
+                File dst = new File(backupFolder, date + "_" + src.getName());
+
+                if ( dst.exists() )
+                {
+                    log.log( Level.WARNING, "Backup folder '" + dst.getAbsolutePath() + "' already exists, skipping backup of project '" + localPath + "'");
+                }
+                else if ( "Linux".equals(System.getProperty("os.name")) )
+                {
+                    log.info("Moving deleted project '" + localPath + "' to backup folder '" + dst.getAbsolutePath() + "'...");
+                    ProcessBuilder processBuilder = new ProcessBuilder();
+                    processBuilder.command("mv", localPath, dst.getAbsolutePath());
+                    Process proc = processBuilder.start();
+                    int mvExitCode = proc.waitFor();
+                    if ( mvExitCode != 0 )
+                    {
+                        log.log( Level.WARNING, "'mv' to backup folder '" + dst.getAbsolutePath() + "' failed with exit code " + mvExitCode + ", project '" + localPath + "' was not moved");
+                    }
+                }
+                else
+                {
+                    log.info("Copying deleted project '" + localPath + "' to backup folder '" + dst.getAbsolutePath() + "'...");
+                    ApplicationUtils.copyFolder(dst, src);
+                }
+
+                File dumpPath = new File(dst, "_dump.sql");
+                if ( !dst.isDirectory() )
+                {
+                    log.log( Level.WARNING, "Backup folder '" + dst.getAbsolutePath() + "' was not created, cannot dump database '" + dbName + "' to '" + dumpPath + "'");
+                }
+                else
+                {
+                    List<String> cmd = new ArrayList<>();
+                    cmd.add("mysqldump");
+                    String user = Application.getGlobalValue("BackupUser", "root");
+                    String password = Application.getGlobalValue("BackupPassword", "root");
+                    cmd.add("-u" + user);
+                    cmd.add("-p" + password);
+                    cmd.add(dbName);
+                    Runtime rt = Runtime.getRuntime();
+                    String[] cmdArray = cmd.toArray(new String[cmd.size()]);
+                    Process proc = rt.exec(cmdArray);
+                    ApplicationUtils.copyStream(new FileOutputStream(dumpPath), proc.getInputStream());
+                }
             }
         }
-        return "Project " + projectName + " doesn't exists";
+        catch( Exception e )
+        {
+            log.log( Level.SEVERE, "cannot create backup copy", e );
+        }
     }
 
     /**
@@ -1285,6 +1305,7 @@ public class SupportServlet extends AbstractJSONServlet
             log.info( "Deleting project '" + projectName + "', askBiostore = " + askBiostore + "..." );
             StringBuilder curRemoveErrors = new StringBuilder();
             //First remove project from repository
+            boolean localDeletionIncomplete = false;
             try
             {
                 if( dc != null )
@@ -1292,7 +1313,10 @@ public class SupportServlet extends AbstractJSONServlet
                 else
                     resp = deleteProject( projectName );
                 if( resp != null )
+                {
+                    localDeletionIncomplete = resp.startsWith( INCOMPLETE_PROJECT_DELETION );
                     curRemoveErrors.append( resp );
+                }
             }
             catch( Exception e )
             {
@@ -1305,7 +1329,7 @@ public class SupportServlet extends AbstractJSONServlet
             }
 
             //Then remove project from biostore or remove user from project group if no enough permissions
-            if( askBiostore )
+            if( askBiostore && !localDeletionIncomplete )
             {
                 boolean groupError = !SecurityAdminUtils.removeUserProject( projectName, user, password, jwToken, sw );
                 if( groupError )
