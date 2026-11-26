@@ -60,6 +60,11 @@ public class JavaScriptUtils
 
     static Scriptable defineVariables(ScriptableObject scope, Map<String, Object> variables, boolean administrator)
     {
+        return ScriptClassShutter.withAdminAccess( administrator ? scope : null, () -> bindVariables( scope, variables, administrator ) );
+    }
+
+    private static Scriptable bindVariables(ScriptableObject scope, Map<String, Object> variables, boolean administrator)
+    {
         Scriptable buck = new BuckScriptable();
         scope.defineProperty( "$", buck, ScriptableObject.DONTENUM );
         for( Entry<String, Object> var : variables.entrySet() )
@@ -73,8 +78,7 @@ public class JavaScriptUtils
                 continue;
             }
             Object value = var.getValue();
-            Object val = value == null ? "" : ScriptClassShutter.withAdminAccess( administrator ? scope : null,
-                    () -> Context.toObject( value, scope ) );
+            Object val = value == null ? "" : Context.toObject( value, scope );
             scope.put(JavaScriptUtils.getValidName(var.getKey()), scope, val);
             buck.put(var.getKey(), buck, val);
         }
@@ -83,7 +87,7 @@ public class JavaScriptUtils
     
     public static void defineColumnVariables(DataElement rowDE, Scriptable scope, boolean addEvaluated)
     {
-        ScriptClassShutter.withAdminAccess( null, () -> {
+        ScriptClassShutter.runRestricted( () -> {
             bindColumnVariables( rowDE, scope, addEvaluated );
             return null;
         } );

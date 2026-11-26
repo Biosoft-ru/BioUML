@@ -447,6 +447,14 @@ public class JavaScriptData extends JavaScriptHostObjectBase
 
     public void recalc(DataElement rowDE, String column, String expression)
     {
+        ScriptClassShutter.runRestricted( () -> {
+            recalcRestricted( rowDE, column, expression );
+            return null;
+        } );
+    }
+
+    private void recalcRestricted(DataElement rowDE, String column, String expression)
+    {
         beforeFunctionCall();
 
         Script script;

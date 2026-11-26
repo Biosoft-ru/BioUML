@@ -177,6 +177,14 @@ public abstract class TableDataCollection extends AbstractDataCollection<RowData
     protected Map<String, Script> scriptText2PreparedScript = new HashMap<>();
     public void evaluateRowCalculation(RowDataElement rde)
     {
+        ScriptClassShutter.runRestricted( () -> {
+            evaluateRowCalculationRestricted( rde );
+            return null;
+        } );
+    }
+
+    private void evaluateRowCalculationRestricted(RowDataElement rde)
+    {
         for( int i = 0; i < getColumnModel().getColumnCount(); i++ )
         {
             TableColumn col = getColumnModel().getColumn(i);

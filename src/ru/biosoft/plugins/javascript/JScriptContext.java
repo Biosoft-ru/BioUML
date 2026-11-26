@@ -98,9 +98,12 @@ public class JScriptContext
         }
     };
 
-    private static final ThreadLocal<ScriptClassShutter> scopePolicy = new ThreadLocal<>();
-
     public static Context getContext()
+    {
+        return ScriptClassShutter.runRestricted( JScriptContext::getRestrictedContext );
+    }
+
+    private static Context getRestrictedContext()
     {
         Context threadContext = context.get();
         if( threadContext == null )
@@ -117,6 +120,11 @@ public class JScriptContext
             {
             }
             context.set(threadContext);
+            ImporterTopLevel threadScope = getScope();
+            threadScope.initStandardObjects( threadContext, false );
+            JScriptVisiblePlugin plugin = JScriptVisiblePlugin.getInstance();
+            if( plugin != null )
+                loadExtensions( plugin, threadContext, threadScope );
         }
 
         if( Context.getCurrentContext() == null )
@@ -131,19 +139,6 @@ public class JScriptContext
             {
             }
             //context.initStandardObjects(getScope());
-        }
-
-        ScriptClassShutter policy = ScriptClassShutter.getInstance();
-        if( scopePolicy.get() != policy )
-        {
-            if( scopePolicy.get() != null )
-                scope.remove();
-            ImporterTopLevel threadScope = getScope();
-            threadScope.initStandardObjects( threadContext, false );
-            JScriptVisiblePlugin plugin = JScriptVisiblePlugin.getInstance();
-            if( plugin != null )
-                loadExtensions( plugin, threadContext, threadScope );
-            scopePolicy.set( policy );
         }
 
         return threadContext;
@@ -174,12 +169,12 @@ public class JScriptContext
 
     public static String evaluateString(String expr)
     {
-        return evaluateString(getContext(), getScope(), expr, "", null);
+        return evaluateString( expr, null );
     }
 
     public static String evaluateString(String expr, ScriptEnvironment environment)
     {
-        return evaluateString(getContext(), getScope(), expr, "", environment);
+        return ScriptClassShutter.runRestricted( () -> evaluateString( getContext(), getScope(), expr, "", environment ) );
     }
 
     public static String evaluateString(Context context, ScriptableObject scope, String expr, ScriptEnvironment environment)
@@ -227,7 +222,7 @@ public class JScriptContext
     static String evaluateJob(Context context, ScriptableObject scope, String expr, String name,
             ScriptEnvironment environment, boolean administrator)
     {
-        return ScriptClassShutter.withAdminAccess( null, () -> evaluate( context, scope, expr, name, environment, administrator ) );
+        return ScriptClassShutter.runRestricted( () -> evaluate( context, scope, expr, name, environment, administrator ) );
     }
 
     private static String evaluate(Context context, ScriptableObject scope, String expr, String name,
@@ -428,11 +423,10 @@ public class JScriptContext
 
     public static Object evaluateReader(Reader in, String sourceName, int lineno, Object securityDomain)
     {
-        Context cx = getContext();
         Object result = Context.getUndefinedValue();
         try
         {
-            result = ScriptClassShutter.withAdminAccess( null, () -> cx.evaluateReader( getScope(), in, sourceName, lineno, securityDomain ) );
+            result = ScriptClassShutter.runRestricted( () -> getContext().evaluateReader( getScope(), in, sourceName, lineno, securityDomain ) );
         }
         catch( WrappedException we )
         {

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeArray;
@@ -27,6 +28,8 @@ import ru.biosoft.access.script.ScriptJobControl;
 import ru.biosoft.access.security.Permission;
 import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.access.security.SessionCache;
+import ru.biosoft.access.security.SessionCache.ConsoleKey;
+import ru.biosoft.access.security.SessionCache.ConsoleState;
 import ru.biosoft.access.security.SessionCacheManager;
 import com.developmentontheedge.beans.annot.PropertyName;
 
@@ -37,9 +40,12 @@ import ru.biosoft.jobcontrol.JobControlException;
 @PropertyName("script")
 public class JSElement extends ScriptDataElement
 {
+    private static final int CONSOLE_WAIT_SECONDS = 10;
     private static final String JAVA_SCRIPT_SCOPE_PROPERTY = "properties/JavaScript/scope";
 
-    private record ConsoleScope(ScriptClassShutter policy, Permission authorization, ScriptableObject scope)
+    private static final ConsoleKey<ConsoleScope> CONSOLE = new ConsoleKey<>();
+
+    private record ConsoleScope(Permission authorization, ScriptableObject scope)
     {
     }
 
@@ -309,71 +315,122 @@ public class JSElement extends ScriptDataElement
                 }
             } );
             debugger.init();
-            ScriptClassShutter.withAdminAccess( null, () -> {
+            ScriptClassShutter.runRestricted( () -> {
                 runScript();
                 return null;
             } );
         }
 
-        private void runScript()
+        private void runScript() throws JobControlException
         {
             Context context = JScriptContext.getContext();
-            ScriptClassShutter policy = ScriptClassShutter.getInstance();
-            // Root ADMIN is a job-start snapshot. Revocation applies to subsequent jobs.
-            // A running administrator job can already hold Java objects until it finishes.
             boolean nested = ScriptRuntime.hasTopCall( context );
-            SessionCache cache = nested ? null : SessionCacheManager.getSessionCache( SecurityManager.getSession() );
-            Permission authorization = nested || policy.getMode() == ScriptClassShutter.Mode.OFF
-                    ? null : SecurityManager.getSessionAdministratorPermission();
-            if( cache != null && authorization == null )
-                cache.setAdministratorScriptScope( null );
-            ScriptableObject topLevelScope = getJobScope( context, policy, authorization, cache );
-            var previousScope = JScriptContext.getScope();
-            var previousDebugger = context.getDebugger();
-            Object previousDebuggerData = context.getDebuggerContextData();
-            if( authorization != null )
-                JScriptContext.setScope( createTopLevelScope( context ) );
+            String session = SecurityManager.getSession();
+            SessionCache cache = nested ? null : SessionCacheManager.getSessionCache( session );
+            if( !sessionContext || cache == null )
+            {
+                ScriptableObject scope = createTopLevelScope( context );
+                Permission authorization = nested ? null : administratorPermission();
+                Global scratch = authorization == null ? null : createTopLevelScope( context );
+                if( authorization != null && administratorPermission() != authorization )
+                    throw authorizationChanged();
+                executeJob( context, scope, scratch );
+                return;
+            }
+
+            ConsoleState<ConsoleScope> console = CONSOLE.forSession( cache );
+            // Cross-worker dependencies must not wait indefinitely for a console that is waiting on them.
+            var execution = console.executionLock();
             try
             {
-                synchronized( topLevelScope )
-                {
-                    executeInScope( context, topLevelScope, authorization != null );
-                }
+                if( !execution.tryLock( CONSOLE_WAIT_SECONDS, TimeUnit.SECONDS ) )
+                    throw new JobControlException( JobControl.TERMINATED_BY_ERROR, "The JavaScript console is busy" );
+            }
+            catch( InterruptedException e )
+            {
+                Thread.currentThread().interrupt();
+                throw new JobControlException( JobControl.TERMINATED_BY_REQUEST, "Interrupted while waiting for the JavaScript console" );
+            }
+            try
+            {
+                checkStatus();
+                checkConsoleSession( session, cache );
+                runConsoleCommand( context, session, cache, console );
             }
             finally
             {
-                if( authorization != null )
-                    JScriptContext.setScope( previousScope );
-                context.setDebugger( previousDebugger, previousDebuggerData );
+                execution.unlock();
             }
         }
 
-        private ScriptableObject getJobScope(Context context, ScriptClassShutter policy, Permission authorization, SessionCache cache)
+        private void checkConsoleSession(String session, SessionCache cache) throws JobControlException
         {
-            if( !sessionContext || cache == null )
-                return createTopLevelScope( context );
-            synchronized( cache )
+            if( !session.equals( SecurityManager.getSession() ) || cache != SessionCacheManager.getSessionCache( session ) )
+                throw new JobControlException( JobControl.TERMINATED_BY_ERROR, "The JavaScript console session changed" );
+        }
+
+        private void runConsoleCommand(Context context, String session, SessionCache cache, ConsoleState<ConsoleScope> console)
+                throws JobControlException
+        {
+            // Capture authorization after waiting. A started script may already hold Java objects when it is demoted.
+            var snapshot = console.administrator();
+            Permission authorization = administratorPermission();
+            if( authorization == null )
             {
-                Object existing;
-                if( authorization == null )
-                {
-                    existing = cache.getObject( JAVA_SCRIPT_SCOPE_PROPERTY );
-                }
+                if( snapshot.scope() != null )
+                    console.publish( snapshot, null );
+                Object existing = cache.getObject( JAVA_SCRIPT_SCOPE_PROPERTY );
+                ScriptableObject scope;
+                if( existing instanceof ScriptableObject ordinary )
+                    scope = ordinary;
                 else
                 {
-                    existing = cache.getAdministratorScriptScope();
+                    scope = createTopLevelScope( context );
+                    cache.addObject( JAVA_SCRIPT_SCOPE_PROPERTY, scope, true );
                 }
+                executeJob( context, scope, null );
+                return;
+            }
 
-                if( existing instanceof ConsoleScope entry && entry.authorization() == authorization && entry.policy() == policy )
-                    return entry.scope();
+            ConsoleScope entry = snapshot.scope();
+            boolean fresh = entry == null || entry.authorization() != authorization;
+            if( fresh )
+                entry = new ConsoleScope( authorization, createTopLevelScope( context ) );
+            Global scratch = createTopLevelScope( context );
+            checkConsoleSession( session, cache );
+            if( administratorPermission() != authorization
+                    || ( fresh ? !console.publish( snapshot, entry ) : console.administrator() != snapshot ) )
+                throw authorizationChanged();
+            executeJob( context, entry.scope(), scratch );
+        }
 
-                ScriptableObject scope = createTopLevelScope( context );
-                ConsoleScope entry = new ConsoleScope( policy, authorization, scope );
-                if( authorization == null )
-                    cache.addObject( JAVA_SCRIPT_SCOPE_PROPERTY, entry, true );
-                else
-                    cache.setAdministratorScriptScope( entry );
-                return scope;
+        private JobControlException authorizationChanged()
+        {
+            return new JobControlException( JobControl.TERMINATED_BY_ERROR, "Administrator authorization changed before script execution" );
+        }
+
+        private Permission administratorPermission()
+        {
+            return ScriptClassShutter.getInstance().getMode() == ScriptClassShutter.Mode.OFF
+                    ? null : SecurityManager.getSessionAdministratorPermission();
+        }
+
+        private void executeJob(Context context, ScriptableObject topLevelScope, Global scratch)
+        {
+            var previousScope = JScriptContext.getScope();
+            var previousDebugger = context.getDebugger();
+            Object previousDebuggerData = context.getDebuggerContextData();
+            if( scratch != null )
+                JScriptContext.setScope( scratch );
+            try
+            {
+                executeInScope( context, topLevelScope, scratch != null );
+            }
+            finally
+            {
+                if( scratch != null )
+                    JScriptContext.setScope( previousScope );
+                context.setDebugger( previousDebugger, previousDebuggerData );
             }
         }
 

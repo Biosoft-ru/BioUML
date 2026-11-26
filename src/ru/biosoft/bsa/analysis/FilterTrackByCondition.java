@@ -52,6 +52,11 @@ public class FilterTrackByCondition extends AnalysisMethodSupport<FilterTrackByC
 
     public boolean isFilterAccept(Site site) throws Exception
     {
+        return ScriptClassShutter.runRestricted( () -> isFilterAcceptRestricted( site ) );
+    }
+
+    private boolean isFilterAcceptRestricted(Site site) throws Exception
+    {
         Context context = JScriptContext.getContext();
         Scriptable scope = JScriptContext.getScope();
         if(site.getOriginalSequence() != null)

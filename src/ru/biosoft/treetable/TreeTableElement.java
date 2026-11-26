@@ -66,21 +66,23 @@ public class TreeTableElement extends DataElementSupport
     private DataCollection table = null;
     public synchronized DataCollection getTable()
     {
-        if(table == null)
-        {
-            try
+        return ScriptClassShutter.runRestricted( () -> {
+            if(table == null)
             {
-                Context context = JScriptContext.getContext();
-                ScriptableObject scope = JScriptContext.getScope();
-                Object obj = ScriptClassShutter.evaluateRestricted( context, scope, tableScript, "", 0 );
-                table = (DataCollection) ( (NativeJavaObject)obj ).unwrap();
+                try
+                {
+                    Context context = JScriptContext.getContext();
+                    ScriptableObject scope = JScriptContext.getScope();
+                    Object obj = ScriptClassShutter.evaluateRestricted( context, scope, tableScript, "", 0 );
+                    table = (DataCollection) ( (NativeJavaObject)obj ).unwrap();
+                }
+                catch( Exception e )
+                {
+                    log.log(Level.SEVERE, "Incorrect table script", e);
+                }
             }
-            catch( Exception e )
-            {
-                log.log(Level.SEVERE, "Incorrect table script", e);
-            }
-        }
-        return table;
+            return table;
+        } );
     }
     
     public boolean isHideBranchesAbsentInTable()

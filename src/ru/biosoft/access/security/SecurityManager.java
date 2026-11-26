@@ -148,7 +148,12 @@ public class SecurityManager
         if( sessionId.equals(SYSTEM_SESSION) && !create )
             return null;
         if( !sessionId.equals(SYSTEM_SESSION) )
-            return getUserPermission( sessionId, dataCollectionName, create );
+        {
+            Permission permission = getUserPermission( sessionId, dataCollectionName, create );
+            if( permission != null && (permission.getSessionId() == null || permission.getSessionId().isEmpty()) )
+                return new Permission( permission.getPermissions(), permission.getUserName(), sessionId, permission.getExpirationTime() );
+            return permission;
+        }
         return getGuestPermission( dataCollectionName );
     }
 
@@ -190,10 +195,6 @@ public class SecurityManager
                 permission = authorize(dataCollectionName, ps, sessionId);
                 dbToPermission.put(dataCollectionName, permission);
             }
-        }
-        if(permission.getSessionId() == null || permission.getSessionId().isEmpty())
-        {
-            permission = new Permission(permission.getPermissions(), permission.getUserName(), sessionId, permission.getExpirationTime());
         }
         return permission;
     }
@@ -859,7 +860,7 @@ public class SecurityManager
     {
         SessionCache cache = SessionCacheManager.getSessionCache( session );
         if( cache != null )
-            cache.setAdministratorScriptScope( null );
+            cache.invalidateAdministratorConsoles();
     }
 
     public static boolean isProductAvailable(String productName)

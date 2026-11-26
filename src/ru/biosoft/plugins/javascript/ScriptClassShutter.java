@@ -37,7 +37,8 @@ import org.mozilla.javascript.Context;
  *
  * <p>The mode, the {@value #MODE_PREFERENCE} entry of the server's preferences.xml (read once, at the first script):
  * {@code enforce} hides what the list does not allow; {@code audit}, the default, allows it but logs each such class
- * once, so the list can be completed from a real run before enforcing; {@code off} allows all classes.</p>
+ * once, so the list can be completed from a real run before enforcing; {@code off} allows all classes.
+ * Restart the server when changing the mode or class list. Existing Rhino scopes can cache Java objects.</p>
  */
 public class ScriptClassShutter implements ClassShutter
 {
@@ -70,21 +71,27 @@ public class ScriptClassShutter implements ClassShutter
     }
 
     @FunctionalInterface
-    interface Evaluation<T, E extends Exception>
+    public interface Evaluation<T, E extends Exception>
     {
         T run() throws E;
+    }
+
+    /** Apply the configured policy throughout a Java-side evaluation, including scope preparation. */
+    public static <T, E extends Exception> T runRestricted(Evaluation<T, E> action) throws E
+    {
+        return withAdminAccess( null, action );
     }
 
     /** Suspend the administrator exemption for Java-side evaluation in a separate scope. */
     public static Object evaluateRestricted(Context context, Scriptable scope, String source, String name, int line)
     {
-        return withAdminAccess( null, () -> context.evaluateString( scope, source, name, line, null ) );
+        return runRestricted( () -> context.evaluateString( scope, source, name, line, null ) );
     }
 
     /** Execute a Java-side script or expression under the configured policy, including during an admin job. */
     public static Object execRestricted(Script script, Context context, Scriptable scope)
     {
-        return withAdminAccess( null, () -> script.exec( context, scope ) );
+        return runRestricted( () -> script.exec( context, scope ) );
     }
 
     /** The preferences.xml entry with the mode: enforce, audit or off. */
@@ -137,6 +144,7 @@ public class ScriptClassShutter implements ClassShutter
             "ru.biosoft.access.core.CollectionFactory", "ru.biosoft.access.core.ClassLoading", "ru.biosoft.access.core.Environment",
             "ru.biosoft.access.CollectionFactoryUtils", "ru.biosoft.access.BiosoftSecurityManager", "ru.biosoft.access.ClassLoading",
             "ru.biosoft.access.security.SecurityManager", "ru.biosoft.access.security.SessionCache",
+            "ru.biosoft.access.security.SessionCache$", "ru.biosoft.access.security.SessionCacheManager",
             // direct database access and running other script types (R, Java, ...) from a script
             "ru.biosoft.access.sql.", "ru.biosoft.access.script.ScriptTypeRegistry",
             // reading and writing files by path, and server connections, inside the track packages
@@ -250,8 +258,8 @@ public class ScriptClassShutter implements ClassShutter
     }
 
     /**
-     * Use this shutter for the contexts entered from now on; null configures it from preferences.xml again.
-     * For tests and embedders (Java code; scripts cannot see this class).
+     * Use this shutter for new contexts; null configures it from preferences.xml again.
+     * Tests and embedders must also discard scopes created under the previous policy.
      */
     public static void setInstance(ScriptClassShutter shutter)
     {
@@ -266,9 +274,12 @@ public class ScriptClassShutter implements ClassShutter
     /** Install the shutter on a context just entered, before any script or host object uses it. */
     public static void install(Context context)
     {
+        ScriptClassShutter shutter = getInstance();
+        if( shutter.mode == Mode.OFF )
+            return;
         try
         {
-            context.setClassShutter( name -> getInstance().visibleToScripts( name ) );
+            context.setClassShutter( shutter );
         }
         catch( SecurityException e )
         {

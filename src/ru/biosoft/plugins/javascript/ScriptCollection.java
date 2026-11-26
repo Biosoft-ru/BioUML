@@ -145,18 +145,23 @@ public class ScriptCollection extends DerivedDataCollection<ru.biosoft.access.co
     @Override
     public DataElement doGet(String name) throws Exception
     {
+        return ScriptClassShutter.runRestricted( () -> doGetRestricted( name ) );
+    }
+
+    private DataElement doGetRestricted(String name) throws Exception
+    {
         ScriptInfo scriptInfo = getScriptInfo(name);
         Script script = scriptInfo.getScript();
         ScriptableObject scope = JScriptContext.getScope();
         scope.put("path", scope, DataElementPath.create(this, name));
-        
+
         AtomicReference<Object> ref = new AtomicReference<>( );
         BiosoftSecurityManager.runInSandbox( () -> {
             Object scriptResult = ScriptClassShutter.execRestricted( script, JScriptContext.getContext(), scope );
             ref.set( scriptResult );
         } );
         Object scriptResult = ref.get();
-        
+
         if(scriptResult instanceof NativeJavaObject)
             scriptResult = ((NativeJavaObject)scriptResult).unwrap();
         if(scriptInfo.getTargetClass().isInstance(scriptResult))

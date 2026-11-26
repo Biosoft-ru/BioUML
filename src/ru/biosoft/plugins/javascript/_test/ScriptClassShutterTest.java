@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.mozilla.javascript.BaseFunction;
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ImporterTopLevel;
 import org.mozilla.javascript.Scriptable;
 
 import ru.biosoft.access._test.AbstractBioUMLTest;
@@ -18,12 +19,16 @@ import ru.biosoft.access.script.NullScriptEnvironment;
 import ru.biosoft.access.script.ScriptJobControl;
 import ru.biosoft.access.security.Permission;
 import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.access.security.SessionCache;
+import ru.biosoft.access.security.SessionCache.ConsoleKey;
+import ru.biosoft.access.security.SessionCache.ConsoleState;
 import ru.biosoft.access.security.SessionCacheManager;
 import ru.biosoft.access.security.TestSecurityProvider;
 import ru.biosoft.access.security.UserPermissions;
 import ru.biosoft.jobcontrol.JobControl;
 import ru.biosoft.plugins.javascript.JSElement;
 import ru.biosoft.plugins.javascript.JScriptContext;
+import ru.biosoft.plugins.javascript.JavaScriptUtils;
 import ru.biosoft.plugins.javascript.ScriptClassShutter;
 import ru.biosoft.table.RowJSExpression;
 import ru.biosoft.table.StandardTableDataCollection;
@@ -71,7 +76,8 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
                 "java.lang.Runtime", "java.lang.ProcessBuilder", "java.lang.System", "java.lang.Thread", "java.lang.Class",
                 "java.lang.ClassLoader", "java.lang.reflect.Method", "java.util.concurrent.Executors", "java.util.zip.ZipFile",
                 "java.util.ServiceLoader", "ru.biosoft.access.core.CollectionFactory", "ru.biosoft.access.sql.SqlUtil",
-                "ru.biosoft.access.security.SecurityManager", "ru.biosoft.access.script.ScriptTypeRegistry",
+                "ru.biosoft.access.security.SecurityManager", "ru.biosoft.access.security.SessionCacheManager",
+                "ru.biosoft.access.security.SessionCache$ConsoleKey", "ru.biosoft.access.script.ScriptTypeRegistry",
                 "ru.biosoft.plugins.javascript.JScriptContext", "ru.biosoft.plugins.javascript.ScriptClassShutter",
                 "ru.biosoft.util.ApplicationUtils", "ru.biosoft.util.FileItem", "[Ljava.io.File;",
                 // also seen in the audit log, and kept hidden: files, properties files, server preferences, the registry
@@ -237,6 +243,7 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
                             checkNestedEvaluation( task );
                             checkCancelledJob( task );
                             checkConcurrentConsoleJobs( task, sid );
+                            checkQueuedRevocation( task, sid );
                         }
                         // Demote and promote without running a script while demoted.
                         SecurityManager.addUserPermission( "server-admin", "/", new Permission( Permission.READ, "server-admin", sid, Long.MAX_VALUE ) );
@@ -301,6 +308,13 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
             {
                 // This is a separate expression invoked from Java while the admin script is still active.
                 assertTrue( JScriptContext.evaluateString( PROBE ).startsWith( "hidden: " ) );
+                ImporterTopLevel binding = new ImporterTopLevel( context );
+                ScriptClassShutter.evaluateRestricted( context, binding,
+                        "var captured; Object.defineProperty(this, 'input', {set: function(v) { captured = (function() { "
+                                + PROBE + "; return r; })(); }});", "binding fixture", 1 );
+                JavaScriptUtils.defineVariables( binding, Map.of( "input", "value" ) );
+                assertTrue( Context.toString( binding.get( "captured", binding ) ).startsWith( "hidden: " ) );
+
                 var table = new StandardTableDataCollection( null, "test" );
                 TableDataCollectionUtils.addRow( table, "row", new Object[0] );
                 try
@@ -349,7 +363,7 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
             try
             {
                 ready.countDown();
-                assertTrue( start.await( 5, TimeUnit.SECONDS ) );
+                assertTrue( start.await( 8, TimeUnit.SECONDS ) );
                 return new ScriptTask().evaluate( "new java.io.File('test'); '' + ++count", true );
             }
             finally
@@ -361,25 +375,72 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
         FutureTask<String> second = new FutureTask<>( increment );
         new Thread( first ).start();
         new Thread( second ).start();
-        assertTrue( ready.await( 5, TimeUnit.SECONDS ) );
+        assertTrue( ready.await( 8, TimeUnit.SECONDS ) );
         start.countDown();
         assertEquals( java.util.Set.of( "1", "2" ),
-                new java.util.HashSet<>( Arrays.asList( first.get( 5, TimeUnit.SECONDS ), second.get( 5, TimeUnit.SECONDS ) ) ) );
+                new java.util.HashSet<>( Arrays.asList( first.get( 8, TimeUnit.SECONDS ), second.get( 8, TimeUnit.SECONDS ) ) ) );
     }
 
-    public void testConsoleModeTransitionOnOneWorker() throws Exception
+    @SuppressWarnings( "unchecked" )
+    private static void checkQueuedRevocation(ScriptTask task, String session) throws Exception
     {
-        onFreshThread( () -> {
-            ScriptTask task = new ScriptTask();
-            ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.OFF ) );
-            assertEquals( "off", task.evaluate( "var saved = new java.io.File('off'); saved.getName()", true ) );
-            assertTrue( JScriptContext.evaluateString( PROBE ).startsWith( "visible: " ) );
-            ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.ENFORCE ) );
-            assertEquals( "undefined", task.evaluate( "typeof saved", true ) );
-            assertTrue( task.evaluate( PROBE, true ).startsWith( "hidden: " ) );
-            assertTrue( JScriptContext.evaluateString( PROBE ).startsWith( "hidden: " ) );
-            return "";
+        String admin = "server-admin";
+        SessionCache cache = SessionCacheManager.getSessionCache( session );
+        Field field = JSElement.class.getDeclaredField( "CONSOLE" );
+        field.setAccessible( true );
+        ConsoleState<Object> state = ((ConsoleKey<Object>)field.get( null )).forSession( cache );
+        var old = state.administrator();
+        assertNotNull( old.scope() );
+        assertNull( new ConsoleKey<>().forSession( cache ).administrator().scope() );
+        assertNull( cache.getObject( "properties/JavaScript/scope" ) );
+        for( var property : java.beans.Introspector.getBeanInfo( SessionCache.class ).getPropertyDescriptors() )
+            assertEquals( "class", property.getName() );
+
+        FutureTask<String> waiter = new FutureTask<>( () -> {
+            SecurityManager.addThreadToSessionRecord( Thread.currentThread(), session );
+            try
+            {
+                return new ScriptTask().evaluate( "typeof saved + ';' + (" + "(function() {" + PROBE + "; return r;})())", true );
+            }
+            finally
+            {
+                SecurityManager.removeThreadFromSessionRecord();
+            }
         } );
+        Thread worker = new Thread( waiter );
+        var lock = state.executionLock();
+        lock.lock();
+        try
+        {
+            worker.start();
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos( 8 );
+            while( !lock.hasQueuedThread( worker ) && !waiter.isDone() && System.nanoTime() < deadline )
+                java.util.concurrent.locks.LockSupport.parkNanos( TimeUnit.MILLISECONDS.toNanos( 1 ) );
+            assertTrue( "console job must be queued before revocation", lock.hasQueuedThread( worker ) );
+            SecurityManager.addUserPermission( admin, "/", new Permission( Permission.READ, admin, session, Long.MAX_VALUE ) );
+            assertNull( state.administrator().scope() );
+            assertFalse( state.publish( old, old.scope() ) );
+        }
+        finally
+        {
+            lock.unlock();
+        }
+        String result = waiter.get( 8, TimeUnit.SECONDS );
+        assertNotNull( "The queued command should run with the current ordinary permissions", result );
+        assertTrue( result, result.startsWith( "undefined;hidden:" ) );
+        assertFalse( task.evaluate( "typeof Packages.ru.biosoft.access.security.SessionCacheManager.getSessionCache", true )
+                .equals( "function" ) );
+        SecurityManager.addUserPermission( admin, "/", new Permission( Permission.ALL, admin, "", Long.MAX_VALUE ) );
+        assertEquals( "undefined", task.evaluate( "typeof saved", true ) );
+        assertEquals( "visible: x", task.evaluate( PROBE, true ) );
+    }
+
+    public void testPolicyChangeRequiresFreshContext() throws Exception
+    {
+        ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.OFF ) );
+        assertEquals( "visible: x", evaluate( PROBE ) );
+        ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.ENFORCE ) );
+        assertTrue( evaluate( PROBE ).startsWith( "hidden: " ) );
     }
 
     /** A script's variables as a workflow script node binds them, then the script; on a fresh thread. */

@@ -49,6 +49,7 @@ import biouml.standard.diagram.CreateReactionDialog;
 import biouml.standard.diagram.MessageBundle;
 import biouml.standard.type.Reaction;
 import biouml.standard.type.SpecieReference;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 
 public class XmlDiagramSemanticController extends DefaultSemanticController
 {
@@ -75,6 +76,11 @@ public class XmlDiagramSemanticController extends DefaultSemanticController
 
     private final Map<String, Context> contextMap = new HashMap<>();
     public Context getContext()
+    {
+        return ScriptClassShutter.runRestricted( () -> getContextRestricted() );
+    }
+
+    private Context getContextRestricted()
     {
         String threadKey = Thread.currentThread().getName();
         Context context;
@@ -135,7 +141,7 @@ public class XmlDiagramSemanticController extends DefaultSemanticController
 
     public void setCanAcceptFunction(String script)
     {
-        canAcceptFunction = getContext().compileFunction( getScope(), script, "canAccept function", 0, null );
+        canAcceptFunction = ScriptClassShutter.runRestricted( () -> getContext().compileFunction( getScope(), script, "canAccept function", 0, null ) );
         canAcceptCode = script;
     }
 
@@ -146,6 +152,11 @@ public class XmlDiagramSemanticController extends DefaultSemanticController
 
     @Override
     public boolean canAccept(Compartment compartment, DiagramElement de)
+    {
+        return ScriptClassShutter.runRestricted( () -> canAcceptRestricted( compartment, de ) );
+    }
+
+    private boolean canAcceptRestricted(Compartment compartment, DiagramElement de)
     {
         if( canAcceptFunction != null )
         {
@@ -176,7 +187,7 @@ public class XmlDiagramSemanticController extends DefaultSemanticController
 
     public void setIsResizableFunction(String script)
     {
-        isResizableFunction = getContext().compileFunction( getScope(), script, "isResizable function", 0, null );
+        isResizableFunction = ScriptClassShutter.runRestricted( () -> getContext().compileFunction( getScope(), script, "isResizable function", 0, null ) );
         isResizableCode = script;
     }
 
@@ -187,6 +198,11 @@ public class XmlDiagramSemanticController extends DefaultSemanticController
 
     @Override
     public boolean isResizable(DiagramElement diagramElement)
+    {
+        return ScriptClassShutter.runRestricted( () -> isResizableRestricted( diagramElement ) );
+    }
+
+    private boolean isResizableRestricted(DiagramElement diagramElement)
     {
         if( diagramElement instanceof SubDiagram )
         {
@@ -215,7 +231,7 @@ public class XmlDiagramSemanticController extends DefaultSemanticController
     protected String moveCode = null;
     public void setMoveFunction(String script)
     {
-        moveFunction = getContext().compileFunction( getScope(), script, "move function", 0, null );
+        moveFunction = ScriptClassShutter.runRestricted( () -> getContext().compileFunction( getScope(), script, "move function", 0, null ) );
         moveCode = script;
     }
     public String getMoveCode()
@@ -239,6 +255,11 @@ public class XmlDiagramSemanticController extends DefaultSemanticController
 
     @Override
     public Dimension move(DiagramElement de, Compartment newParent, Dimension offset, Rectangle oldBounds) throws Exception
+    {
+        return ScriptClassShutter.runRestricted( () -> moveRestricted( de, newParent, offset, oldBounds ) );
+    }
+
+    private Dimension moveRestricted(DiagramElement de, Compartment newParent, Dimension offset, Rectangle oldBounds) throws Exception
     {
         if( isMoveFunctionEnabled() && moveFunction != null )
         {
@@ -307,7 +328,7 @@ public class XmlDiagramSemanticController extends DefaultSemanticController
     protected String removeCode = null;
     public void setRemoveFunction(String script)
     {
-        removeFunction = getContext().compileFunction( getScope(), script, "remove function", 0, null );
+        removeFunction = ScriptClassShutter.runRestricted( () -> getContext().compileFunction( getScope(), script, "remove function", 0, null ) );
         removeCode = script;
     }
     public String getRemoveCode()
@@ -317,6 +338,11 @@ public class XmlDiagramSemanticController extends DefaultSemanticController
 
     @Override
     public boolean remove(DiagramElement de) throws Exception
+    {
+        return ScriptClassShutter.runRestricted( () -> removeRestricted( de ) );
+    }
+
+    private boolean removeRestricted(DiagramElement de) throws Exception
     {
         if( removeFunction != null )
         {
