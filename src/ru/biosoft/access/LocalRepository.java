@@ -366,6 +366,36 @@ public class LocalRepository extends AbstractDataCollection<DataCollection<?>> i
         return dc;
     }
 
+    private final ThreadLocal<RemovalPreparation> removalPreparation = new ThreadLocal<>();
+
+    @FunctionalInterface
+    public interface RemovalAction
+    {
+        void run() throws Exception;
+    }
+
+    private record RemovalPreparation(String name, RemovalAction action)
+    {
+    }
+
+    /** Run preparation only when removal passes repository mutability and veto checks. */
+    public void prepareRemoval(String name, RemovalAction preparation, RemovalAction remove) throws Exception
+    {
+        RemovalPreparation previous = removalPreparation.get();
+        removalPreparation.set( new RemovalPreparation( name, preparation ) );
+        try
+        {
+            remove.run();
+        }
+        finally
+        {
+            if( previous == null )
+                removalPreparation.remove();
+            else
+                removalPreparation.set( previous );
+        }
+    }
+
     /**
      * Remove ru.biosoft.access.core.DataElement from data collection.
      * If ru.biosoft.access.core.DataElement that should be removed is ru.biosoft.access.core.DataCollection,
@@ -382,6 +412,9 @@ public class LocalRepository extends AbstractDataCollection<DataCollection<?>> i
     protected void doRemove(String name) throws Exception
     {
         init();
+        RemovalPreparation preparation = removalPreparation.get();
+        if( preparation != null && preparation.name().equals( name ) )
+            preparation.action().run();
 
         DataCollection<?> dc = get(name);
 
@@ -714,6 +747,18 @@ public class LocalRepository extends AbstractDataCollection<DataCollection<?>> i
      */
     @Override
     public DataCollection createDataCollection(String name, Properties properties, String subDir, File[] files, CreateDataCollectionController controller) throws Exception
+    {
+        String storage = getInfo().getProperty( DataCollectionConfigConstants.FILE_PATH_PROPERTY );
+        java.nio.file.Path projectsRoot = ( storage == null || storage.isBlank() ? root : new File( storage ) ).getCanonicalFile().toPath();
+        try( var storageLock = ProjectStorage.lock( projectsRoot, name ) )
+        {
+            ProjectStorage.checkCreation( projectsRoot, name );
+            return createDataCollectionUnlocked( name, properties, subDir, files, controller );
+        }
+    }
+
+    private DataCollection createDataCollectionUnlocked(String name, Properties properties, String subDir, File[] files,
+            CreateDataCollectionController controller) throws Exception
     {
         File newRoot = root;
         String configName;

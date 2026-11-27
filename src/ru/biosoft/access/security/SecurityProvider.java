@@ -37,7 +37,15 @@ public interface SecurityProvider
     
     // TODO: refactor this method (change semantic or remove)
     public boolean checkUse(String username, String serviceName);
-    //TODO: what to return
+    enum ProjectGroupStatus { PRESENT, ABSENT, UNKNOWN }
+
+    /** ABSENT requires an authoritative lookup. A failed or unsupported lookup must not report absence. */
+    default ProjectGroupStatus getProjectGroupStatus(String groupName) throws Exception
+    {
+        return ProjectGroupStatus.UNKNOWN;
+    }
+
+    /** Treat an authoritatively absent group as already removed. */
     public boolean removeProject(String groupName, String username, String password, String jwToken) throws Exception;
     public default void sendEmail(String username, String subject, String message, Map<String, String> parameters) throws Exception {};
 }

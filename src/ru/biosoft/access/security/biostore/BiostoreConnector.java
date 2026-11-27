@@ -104,11 +104,6 @@ public class BiostoreConnector
                 }
             }
 
-            if( "removeProject".equals( action ) )
-            {
-                log.info( "Removing project via '" + serverLink + "', params =\n" + urlParameters );
-            }
-
             HttpURLConnection urlc = (HttpURLConnection)baseUrl.openConnection();
             urlc.setRequestMethod( "POST" );
 
