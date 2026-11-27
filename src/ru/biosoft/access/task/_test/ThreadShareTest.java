@@ -44,6 +44,15 @@ public class ThreadShareTest extends AbstractBioUMLTest
     protected void setUp() throws Exception
     {
         super.setUp();
+        // The exact-share assertions below assume this test's users are the only ones with work.
+        // A previous test's tasks can keep their pool busy for a few milliseconds after the test
+        // returns, while the workers unwind (seen in CI: TestIterationRunner's pool halved the
+        // share in testPoolFollowsBudget). Wait for a quiet pool so the shares are exact.
+        long deadline = System.currentTimeMillis() + 10000;
+        while( TaskPool.getBusyPoolCount() > 0 && System.currentTimeMillis() < deadline )
+            Thread.sleep( 10 );
+        assertEquals( "pools of earlier tests must drain before exact shares are asserted",
+                0, TaskPool.getBusyPoolCount() );
         saved = Application.getPreferences();
         preferences = new Preferences();
         Application.setPreferences( preferences );
