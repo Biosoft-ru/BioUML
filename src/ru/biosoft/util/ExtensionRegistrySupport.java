@@ -96,16 +96,30 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
                 {
                     if(initializing)
                         throw new InitializationException("Concurrent initialization of extension point "+extensionPointId);
+                    // The platform extension registry can appear after this object was created: in
+                    // tests it is installed by the test harness, and a class touched before that
+                    // (e.g. by a plain TestCase running first) must not freeze the registry empty
+                    // for the whole JVM. Serve an empty list for now and retry on the next access.
+                    if(!isExtensionPointAvailable())
+                    {
+                        if(extensions == null)
+                        {
+                            extensions = Collections.emptyList();
+                            nameToExtension = Collections.emptyMap();
+                            new ExtensionInitException(extensionPointId).log();
+                        }
+                        return;
+                    }
                     initializing = true;
                     try
                     {
                         loadExtensions();
                         postInit();
+                        initialized = true;
                     }
                     finally
                     {
                         initializing = false;
-                        initialized = true;
                     }
                 }
             }
@@ -194,6 +208,13 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
             throw new ParameterNotAcceptableException(e, name, className);
         }
         return clazz;
+    }
+
+    /** Whether the platform extension registry and this extension point are present right now. */
+    private boolean isExtensionPointAvailable()
+    {
+        IExtensionRegistry extensionRegistry = Application.getExtensionRegistry();
+        return extensionRegistry != null && extensionRegistry.getExtensionPoint(extensionPointId) != null;
     }
 
     private void loadExtensions()

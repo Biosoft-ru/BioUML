@@ -1,9 +1,9 @@
 package ru.biosoft.table.datatype;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import com.developmentontheedge.beans.BeanInfoEx;
 import com.developmentontheedge.beans.PropertyDescriptorEx;
@@ -178,8 +178,10 @@ public abstract class DataType
 
     public abstract Object convertValue(Object value);
 
-    private static final Map<String, DataType> registry = new TreeMap<>();
-    private static final Map<Class<?>, DataType> classMap = new HashMap<>();
+    // Concurrent: a lookup miss re-syncs the extension types (see syncExtensions), so the maps can
+    // be written after <clinit> while other threads read them.
+    private static final Map<String, DataType> registry = new ConcurrentSkipListMap<>();
+    private static final Map<Class<?>, DataType> classMap = new ConcurrentHashMap<>();
 
     static
     {
@@ -198,15 +200,31 @@ public abstract class DataType
                 }
             }
         }
-        for(DataType type : DATA_TYPE_REGISTRY.stream())
-        {
-            registry.put( type.name(), type );
-        }
         for(DataType type : registry.values())
         {
             classMap.put( type.getType(), type );
         }
         classMap.put( java.lang.Float.class, Float );
+        syncExtensions();
+    }
+
+    /**
+     * Pull the types contributed through the {@code ru.biosoft.table.dataType} extension point.
+     * The platform extension registry can appear after this class was initialized — in tests it is
+     * installed by the test harness, and this class may be touched earlier by a plain unit test —
+     * so lookups re-sync on a miss instead of degrading unknown types to {@link #Text} for the
+     * whole JVM.
+     */
+    private static synchronized void syncExtensions()
+    {
+        for(DataType type : DATA_TYPE_REGISTRY.stream())
+        {
+            if(registry.get( type.name() ) != type)
+            {
+                registry.put( type.name(), type );
+                classMap.put( type.getType(), type );
+            }
+        }
     }
 
     public static DataType fromClass(Class<?> type)
@@ -214,7 +232,9 @@ public abstract class DataType
         DataType dataType = classMap.get( type );
         if(dataType != null)
             return dataType;
-        return DataType.Text;
+        syncExtensions();
+        dataType = classMap.get( type );
+        return dataType != null ? dataType : DataType.Text;
     }
 
     public static DataType fromString(String type)
@@ -222,11 +242,14 @@ public abstract class DataType
         DataType dataType = registry.get( type );
         if(dataType != null)
             return dataType;
-        return DataType.Text;
+        syncExtensions();
+        dataType = registry.get( type );
+        return dataType != null ? dataType : DataType.Text;
     }
 
     public static String[] names()
     {
+        syncExtensions();
         return registry.keySet().toArray( new String[registry.size()] );
     }
 }
