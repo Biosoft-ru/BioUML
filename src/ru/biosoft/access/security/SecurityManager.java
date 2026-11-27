@@ -149,13 +149,20 @@ public class SecurityManager
         if( sessionId.equals(SYSTEM_SESSION) && !create )
             return null;
         if( !sessionId.equals(SYSTEM_SESSION) )
-            return getUserPermission( sessionId, dataCollectionName, create );
+        {
+            Permission permission = getUserPermission( sessionId, dataCollectionName, create );
+            if( permission != null && (permission.getSessionId() == null || permission.getSessionId().isEmpty()) )
+                return new Permission( permission.getPermissions(), permission.getUserName(), sessionId, permission.getExpirationTime() );
+            return permission;
+        }
         return getGuestPermission( dataCollectionName );
     }
 
-    // Per-user permission resolution. Synchronized on this class: the sessionToPermission map
-    // and the per-user dbToPermission Hashtable are shared mutable state, and this method may
-    // add new entries to both.
+    /**
+     * Returns the cached permission unchanged so administrator authorization can compare its identity.
+     * The public permission lookup fills in a missing session ID before returning it to callers.
+     * Resolution is synchronized because it can update the shared session and per-user permission maps.
+     */
     private static synchronized Permission getUserPermission(String sessionId, String dataCollectionName, boolean create)
     {
         long currentTime = System.currentTimeMillis();
@@ -191,10 +198,6 @@ public class SecurityManager
                 permission = authorize(dataCollectionName, ps, sessionId);
                 dbToPermission.put(dataCollectionName, permission);
             }
-        }
-        if(permission.getSessionId() == null || permission.getSessionId().isEmpty())
-        {
-            permission = new Permission(permission.getPermissions(), permission.getUserName(), sessionId, permission.getExpirationTime());
         }
         return permission;
     }
@@ -359,6 +362,11 @@ public class SecurityManager
             if( fresh == null )
                 return false;
             current.refreshFrom( fresh );
+            // Aliased sessions can share the same UserPermissions instance.
+            sessionToPermission.forEach( (session, permissions) -> {
+                if( permissions == current )
+                    clearAdministratorScriptScope( session );
+            } );
             return true;
         }
         catch( Exception e )
@@ -380,13 +388,14 @@ public class SecurityManager
     {
         if( user == null || user.isEmpty() || path == null || permission == null )
             return;
-        for( UserPermissions ps : sessionToPermission.values() )
-        {
-            if( user.equalsIgnoreCase( ps.getUser() ) )
+        sessionToPermission.forEach( (session, permissions) -> {
+            if( user.equalsIgnoreCase( permissions.getUser() ) )
             {
-                ps.getDbToPermission().put( path, permission );
+                permissions.getDbToPermission().put( path, permission );
+                if( "/".equals( path ) )
+                    clearAdministratorScriptScope( session );
             }
-        }
+        } );
     }
 
     /**
@@ -476,6 +485,10 @@ public class SecurityManager
             if( userPermissions != null )
             {
                 userPermissions.setDead(true);
+                sessionToPermission.forEach( (session, permissions) -> {
+                    if( permissions == userPermissions )
+                        clearAdministratorScriptScope( session );
+                } );
                 removeThreadFromSessionRecord();
                 cleanSessionToPermissionMap(System.currentTimeMillis());
             }
@@ -513,6 +526,8 @@ public class SecurityManager
                 for( String dcName : permissionsToDelete )
                 {
                     dbToPermission.remove(dcName);
+                    if( "/".equals( dcName ) )
+                        clearAdministratorScriptScope( sessionId );
                 }
                 if( dbToPermission.size() == 0 && ps.isExpired() && !threadToSession.containsValue( sessionId ) )
                 {
@@ -843,6 +858,8 @@ public class SecurityManager
             {
                 Permission permission = authorize(dbName, permissions, entry.getKey());
                 dbToPermission.put(dbName, permission);
+                if( "/".equals( dbName ) )
+                    clearAdministratorScriptScope( entry.getKey() );
             }
         }
 
@@ -870,6 +887,15 @@ public class SecurityManager
         Hashtable<String, Permission> dbToPermission = userPermissions.getDbToPermission();
         Permission permission = authorize(path, userPermissions, sessionId);
         dbToPermission.put(path, permission);
+        if( "/".equals( path ) )
+            clearAdministratorScriptScope( sessionId );
+    }
+
+    private static void clearAdministratorScriptScope(String session)
+    {
+        SessionCache cache = SessionCacheManager.getSessionCache( session );
+        if( cache != null )
+            cache.invalidateAdministratorConsoles();
     }
 
     public static boolean isProductAvailable(String productName)

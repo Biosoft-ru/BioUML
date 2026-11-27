@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeArray;
@@ -11,6 +12,7 @@ import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.RhinoException;
+import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
@@ -23,7 +25,11 @@ import ru.biosoft.access.script.DerivedScriptEnvironment;
 import ru.biosoft.access.script.ScriptDataElement;
 import ru.biosoft.access.script.ScriptEnvironment;
 import ru.biosoft.access.script.ScriptJobControl;
+import ru.biosoft.access.security.Permission;
+import ru.biosoft.access.security.SecurityManager;
 import ru.biosoft.access.security.SessionCache;
+import ru.biosoft.access.security.SessionCache.ConsoleKey;
+import ru.biosoft.access.security.SessionCache.ConsoleState;
 import ru.biosoft.access.security.SessionCacheManager;
 import com.developmentontheedge.beans.annot.PropertyName;
 
@@ -34,7 +40,14 @@ import ru.biosoft.jobcontrol.JobControlException;
 @PropertyName("script")
 public class JSElement extends ScriptDataElement
 {
+    private static final int CONSOLE_WAIT_SECONDS = 10;
     private static final String JAVA_SCRIPT_SCOPE_PROPERTY = "properties/JavaScript/scope";
+
+    private static final ConsoleKey<ConsoleScope> CONSOLE = new ConsoleKey<>();
+
+    private record ConsoleScope(Permission authorization, ScriptableObject scope)
+    {
+    }
 
     public JSElement(DataCollection<?> parent, String name, String data)
     {
@@ -81,6 +94,7 @@ public class JSElement extends ScriptDataElement
         private final JScriptDebugger debugger;
         private final ScriptEnvironment env;
         private String result;
+        private volatile boolean cancellationRequested;
         private final boolean sessionContext;
         private final Map<String, Object> scope;
         private final Map<String, Object> outVars;
@@ -100,6 +114,7 @@ public class JSElement extends ScriptDataElement
         @Override
         public void terminate()
         {
+            cancellationRequested = true;
             super.terminate();
             end();
             if(debugger != null)
@@ -302,37 +317,154 @@ public class JSElement extends ScriptDataElement
                 }
             } );
             debugger.init();
+            ScriptClassShutter.runRestricted( () -> {
+                runScript();
+                return null;
+            } );
+        }
+
+        private void runScript() throws JobControlException
+        {
+            String session = SecurityManager.getSession();
+            SessionCache cache = SessionCacheManager.getSessionCache( session );
             Context context = JScriptContext.getContext();
-            ScriptableObject topLevelScope;
-            if(sessionContext)
+            boolean nested = ScriptRuntime.hasTopCall( context );
+            if( nested || !sessionContext || cache == null )
             {
-                SessionCache sessionCache = SessionCacheManager.getSessionCache();
-                synchronized(sessionCache)
+                ScriptableObject scope = createTopLevelScope( context );
+                Permission authorization = nested ? null : administratorPermission();
+                Global scratch = authorization == null ? null : createTopLevelScope( context );
+                if( authorization != null )
                 {
-                    Object scopeObj = sessionCache.getObject(JAVA_SCRIPT_SCOPE_PROPERTY);
-                    if(scopeObj instanceof ScriptableObject)
-                    {
-                        topLevelScope = (ScriptableObject)scopeObj;
-                    } else
-                    {
-                        topLevelScope = createTopLevelScope( context );
-                        sessionCache.addObject(JAVA_SCRIPT_SCOPE_PROPERTY, topLevelScope, true);
-                    }
+                    checkSession( session, cache );
+                    if( administratorPermission() != authorization )
+                        throw authorizationChanged();
                 }
-            } else
+                executeJob( context, scope, scratch );
+                return;
+            }
+
+            ConsoleState<ConsoleScope> console = CONSOLE.forSession( cache );
+            // Cross-worker dependencies must not wait indefinitely for a console that is waiting on them.
+            var execution = console.executionLock();
+            try
             {
-                topLevelScope = createTopLevelScope( context );
+                if( !execution.tryLock( CONSOLE_WAIT_SECONDS, TimeUnit.SECONDS ) )
+                {
+                    checkCancellation();
+                    throw new JobControlException( JobControl.TERMINATED_BY_ERROR, "The JavaScript console is busy" );
+                }
+            }
+            catch( InterruptedException e )
+            {
+                Thread.currentThread().interrupt();
+                throw new JobControlException( JobControl.TERMINATED_BY_REQUEST, "Interrupted while waiting for the JavaScript console" );
             }
             try
             {
-                Scriptable buck = JavaScriptUtils.defineVariables( topLevelScope, scope );
+                checkCancellation();
+                checkStatus();
+                checkSession( session, cache );
+                runConsoleCommand( context, session, cache, console );
+            }
+            finally
+            {
+                execution.unlock();
+            }
+        }
+
+        private void checkCancellation() throws JobControlException
+        {
+            if( cancellationRequested )
+                throw new JobControlException( JobControl.TERMINATED_BY_REQUEST );
+        }
+
+        private void checkSession(String session, SessionCache cache) throws JobControlException
+        {
+            if( !session.equals( SecurityManager.getSession() ) || cache != SessionCacheManager.getSessionCache( session ) )
+                throw new JobControlException( JobControl.TERMINATED_BY_ERROR, "The JavaScript session changed" );
+        }
+
+        private void runConsoleCommand(Context context, String session, SessionCache cache, ConsoleState<ConsoleScope> console)
+                throws JobControlException
+        {
+            // Capture authorization after waiting. A started script may already hold Java objects when it is demoted.
+            var snapshot = console.administrator();
+            Permission authorization = administratorPermission();
+            if( authorization == null )
+            {
+                if( snapshot.scope() != null )
+                    console.publish( snapshot, null );
+                Object existing = cache.getObject( JAVA_SCRIPT_SCOPE_PROPERTY );
+                ScriptableObject scope;
+                if( existing instanceof ScriptableObject ordinary )
+                    scope = ordinary;
+                else
+                {
+                    scope = createTopLevelScope( context );
+                    cache.addObject( JAVA_SCRIPT_SCOPE_PROPERTY, scope, true );
+                }
+                executeJob( context, scope, null );
+                return;
+            }
+
+            ConsoleScope entry = snapshot.scope();
+            boolean fresh = entry == null || entry.authorization() != authorization;
+            if( fresh )
+                entry = new ConsoleScope( authorization, createTopLevelScope( context ) );
+            Global scratch = createTopLevelScope( context );
+            checkSession( session, cache );
+            // Final permission and snapshot validation commits authorization for this execution.
+            // Later revocation affects subsequent commands.
+            if( administratorPermission() != authorization
+                    || ( fresh ? !console.publish( snapshot, entry ) : console.administrator() != snapshot ) )
+                throw authorizationChanged();
+            executeJob( context, entry.scope(), scratch );
+        }
+
+        private JobControlException authorizationChanged()
+        {
+            return new JobControlException( JobControl.TERMINATED_BY_ERROR, "Administrator authorization changed before script execution" );
+        }
+
+        private Permission administratorPermission()
+        {
+            return ScriptClassShutter.getInstance().getMode() == ScriptClassShutter.Mode.OFF
+                    ? null : SecurityManager.getSessionAdministratorPermission();
+        }
+
+        private void executeJob(Context context, ScriptableObject topLevelScope, Global scratch) throws JobControlException
+        {
+            checkCancellation();
+            var previousScope = JScriptContext.getScope();
+            var previousDebugger = context.getDebugger();
+            Object previousDebuggerData = context.getDebuggerContextData();
+            if( scratch != null )
+                JScriptContext.setScope( scratch );
+            try
+            {
+                executeInScope( context, topLevelScope, scratch != null );
+            }
+            finally
+            {
+                if( scratch != null )
+                    JScriptContext.setScope( previousScope );
+                context.setDebugger( previousDebugger, previousDebuggerData );
+            }
+        }
+
+        private void executeInScope(Context context, ScriptableObject topLevelScope, boolean administrator)
+        {
+            try
+            {
+                Scriptable buck = JavaScriptUtils.defineVariables( topLevelScope, scope, administrator );
                 context.setDebugger(debugger, 0);
                 context.setGeneratingDebug(true);
                 context.setOptimizationLevel( -1);
 
 
                 DerivedScriptEnvironment trackingEnv = new DerivedScriptEnvironment( env );
-                result = JScriptContext.evaluateString( context, topLevelScope, content, getName(), trackingEnv );
+                result = JScriptContext.evaluateJob( context, topLevelScope, content, getName(), trackingEnv, administrator );
                 // echo the value like a console does, but not a script document's "undefined" (a workflow's script steps
                 // logged nothing else)
                 if( !trackingEnv.hasData() && result != null && ( sessionContext || !"undefined".equals( result ) ) )

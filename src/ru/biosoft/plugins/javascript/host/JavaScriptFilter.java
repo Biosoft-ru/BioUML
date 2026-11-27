@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Script;
 
 import com.developmentontheedge.beans.model.ComponentFactory;
@@ -13,6 +14,7 @@ import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
 import ru.biosoft.access.core.filter.Filter;
 import ru.biosoft.access.core.filter.FilteredDataCollection;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 import ru.biosoft.plugins.javascript.JavaScriptHostObjectBase;
 import ru.biosoft.util.TextUtil2;
 
@@ -35,15 +37,20 @@ public class JavaScriptFilter extends JavaScriptHostObjectBase
     
     public DataCollection byExpression(Object source, String expression)
     {
+        return ScriptClassShutter.runRestricted( () -> byExpressionRestricted( source, expression ) );
+    }
+
+    private DataCollection byExpressionRestricted(Object source, String expression)
+    {
         DataCollection dc = resolveDataCollection(source);
         if (dc == null)
         {
             setLastError(new Throwable("Cannot resolve source to ru.biosoft.access.core.DataCollection"));
             return null;
         }
-        
+
         Script script;
-        
+
         if (!scriptText2CompiledScript.containsKey(expression))
         {
             try
@@ -61,7 +68,7 @@ public class JavaScriptFilter extends JavaScriptHostObjectBase
         {
             script = scriptText2CompiledScript.get(expression);
         }
-        
+
         ByExpressionFilter filter = new ByExpressionFilter(script);
         return createFilteredDC(dc, filter);
     }
@@ -145,9 +152,12 @@ public class JavaScriptFilter extends JavaScriptHostObjectBase
         @Override
         public boolean isAcceptable(DataElement de)
         {
-            defineColumnVariables(de);
-            Object result = script.exec(getCurrentContext(), scope);
-            return Boolean.valueOf(result.toString());
+            return ScriptClassShutter.runRestricted( () -> {
+                Context context = getCurrentContext();
+                defineColumnVariables(de);
+                Object result = ScriptClassShutter.execRestricted( script, context, scope );
+                return Boolean.valueOf(result.toString());
+            } );
         }
 
         @Override

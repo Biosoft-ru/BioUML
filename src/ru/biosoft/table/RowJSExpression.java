@@ -11,6 +11,7 @@ import org.mozilla.javascript.Scriptable;
 import ru.biosoft.access.BiosoftSecurityManager;
 import ru.biosoft.access.core.DataCollection;
 import ru.biosoft.access.core.DataElement;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 import ru.biosoft.plugins.javascript.JScriptContext;
 
 /**
@@ -31,27 +32,32 @@ public class RowJSExpression
 
     public RowJSExpression(String filterStr, DataCollection dc) throws IllegalArgumentException
     {
-        Context context = JScriptContext.getContext();
-        try
-        {
-            script = context.compileString(COMMON_FUNC+filterStr, "", 1, null);
-        }
-        catch( Exception e )
-        {
-            throw new IllegalArgumentException("Expression compilation error: "+e.getMessage());
-        }
-        checkErrors(dc);
+        ScriptClassShutter.runRestricted( () -> {
+            Context context = JScriptContext.getContext();
+            try
+            {
+                script = context.compileString(COMMON_FUNC+filterStr, "", 1, null);
+            }
+            catch( Exception e )
+            {
+                throw new IllegalArgumentException("Expression compilation error: "+e.getMessage());
+            }
+            checkErrors(dc);
+            return null;
+        } );
     }
 
     public Object evaluate(DataElement rowDataElement)
     {
-        Context context = JScriptContext.getContext();
-        scope.setDataElement(rowDataElement);
-        AtomicReference<Object> result = new AtomicReference<>();
-        BiosoftSecurityManager.runInSandbox( ()->{
-            result.set( script.exec(context, scope) );
+        return ScriptClassShutter.runRestricted( () -> {
+            Context context = JScriptContext.getContext();
+            scope.setDataElement(rowDataElement);
+            AtomicReference<Object> result = new AtomicReference<>();
+            BiosoftSecurityManager.runInSandbox( ()->{
+                result.set( ScriptClassShutter.execRestricted( script, context, scope ) );
+            } );
+            return convertResult( result.get() );
         } );
-        return convertResult( result.get() );
     }
 
     private Object convertResult(Object result)
@@ -72,7 +78,7 @@ public class RowJSExpression
         scope.initStandardObjects(context, false);
         try
         {
-            BiosoftSecurityManager.runInSandbox( () -> script.exec(context, scope) );
+            BiosoftSecurityManager.runInSandbox( () -> ScriptClassShutter.execRestricted( script, context, scope ) );
         }
         catch( Exception e )
         {

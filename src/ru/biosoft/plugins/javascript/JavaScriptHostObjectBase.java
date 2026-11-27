@@ -39,6 +39,11 @@ public abstract class JavaScriptHostObjectBase
     
     protected Context getCurrentContext()
     {
+        return ScriptClassShutter.runRestricted( this::getRestrictedContext );
+    }
+
+    private Context getRestrictedContext()
+    {
         long currentThreadId = Thread.currentThread().getId();
 
         Context cx;

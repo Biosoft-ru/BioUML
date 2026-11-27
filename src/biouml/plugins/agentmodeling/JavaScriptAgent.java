@@ -10,6 +10,7 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 import ru.biosoft.access.BiosoftSecurityManager;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 import ru.biosoft.plugins.javascript.JScriptContext;
 import biouml.plugins.simulation.Span;
 
@@ -27,9 +28,12 @@ public class JavaScriptAgent extends ScriptAgent
     public JavaScriptAgent(String name, Span span, String expression, String initialExcpression)
     {
         super(name, span);
-        Context context = JScriptContext.getContext();
-        prepared = context.compileString(expression, "", 1, null);
-        preparedInitial = context.compileString(initialExcpression, "", 1, null);
+        ScriptClassShutter.runRestricted( () -> {
+            Context context = JScriptContext.getContext();
+            prepared = context.compileString(expression, "", 1, null);
+            preparedInitial = context.compileString(initialExcpression, "", 1, null);
+            return null;
+        } );
     }
     
     @Override
@@ -37,13 +41,16 @@ public class JavaScriptAgent extends ScriptAgent
     {
         try
         {
-            Context context = JScriptContext.getContext();
-            scope = JScriptContext.getScope();
-            defineVariableValues();
-            BiosoftSecurityManager.runInSandbox( () -> {
-                preparedInitial.exec(context, scope);
+            ScriptClassShutter.runRestricted( () -> {
+                Context context = JScriptContext.getContext();
+                scope = JScriptContext.getScope();
+                defineVariableValues();
+                BiosoftSecurityManager.runInSandbox( () -> {
+                    ScriptClassShutter.execRestricted( preparedInitial, context, scope );
+                } );
+                retrieveVariableValues();
+                return null;
             } );
-            retrieveVariableValues();
         }
         catch( Exception e )
         {
@@ -57,15 +64,18 @@ public class JavaScriptAgent extends ScriptAgent
     {
         try
         {
-            Context context = JScriptContext.getContext();
-            scope = JScriptContext.getScope();
-            defineVariableValues();
-            BiosoftSecurityManager.runInSandbox( () -> {
-                prepared.exec(context, scope);    
+            ScriptClassShutter.runRestricted( () -> {
+                Context context = JScriptContext.getContext();
+                scope = JScriptContext.getScope();
+                defineVariableValues();
+                BiosoftSecurityManager.runInSandbox( () -> {
+                    ScriptClassShutter.execRestricted( prepared, context, scope );
+                } );
+                retrieveVariableValues();
+
+                super.iterate();
+                return null;
             } );
-            retrieveVariableValues();
-            
-            super.iterate();
         }
         catch( Exception ex )
         {

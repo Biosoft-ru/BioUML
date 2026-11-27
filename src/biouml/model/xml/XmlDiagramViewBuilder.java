@@ -39,6 +39,7 @@ import ru.biosoft.graphics.ArrowView;
 import ru.biosoft.graphics.CompositeView;
 import ru.biosoft.graphics.View;
 import ru.biosoft.util.TextUtil2;
+import ru.biosoft.plugins.javascript.ScriptClassShutter;
 
 /**
  * Prototype DiagramViewBuider is used:
@@ -74,6 +75,11 @@ public class XmlDiagramViewBuilder extends DefaultDiagramViewBuilder
 
     private final ThreadLocal<Context> contextMap = new ThreadLocal<>();
     public Context getContext()
+    {
+        return ScriptClassShutter.runRestricted( () -> getContextRestricted() );
+    }
+
+    private Context getContextRestricted()
     {
         Context context = contextMap.get();
 
@@ -131,7 +137,7 @@ public class XmlDiagramViewBuilder extends DefaultDiagramViewBuilder
 
     public void addFunction(String type, String script)
     {
-        Function f = getContext().compileFunction(getScope(), script, "view function for " + type, 0, null);
+        Function f = ScriptClassShutter.runRestricted( () -> getContext().compileFunction(getScope(), script, "view function for " + type, 0, null) );
 
         functionsMap.put(type, f);
         functionCodesMap.put(type, script);
@@ -170,6 +176,11 @@ public class XmlDiagramViewBuilder extends DefaultDiagramViewBuilder
 
     @Override
     public boolean createNodeCoreView(CompositeView container, Node node, DiagramViewOptions options, Graphics g)
+    {
+        return ScriptClassShutter.runRestricted( () -> createNodeCoreViewRestricted( container, node, options, g ) );
+    }
+
+    private boolean createNodeCoreViewRestricted(CompositeView container, Node node, DiagramViewOptions options, Graphics g)
     {
         String type;
         Object typeObj = node.getAttributes().getValue(XmlDiagramTypeConstants.XML_TYPE);
@@ -255,6 +266,11 @@ public class XmlDiagramViewBuilder extends DefaultDiagramViewBuilder
     }
     @Override
     public @Nonnull CompositeView createEdgeView(Edge edge, DiagramViewOptions options, Graphics g)
+    {
+        return ScriptClassShutter.runRestricted( () -> createEdgeViewRestricted( edge, options, g ) );
+    }
+
+    private @Nonnull CompositeView createEdgeViewRestricted(Edge edge, DiagramViewOptions options, Graphics g)
     {
         String type;
         if( isReactionEdge(edge) )

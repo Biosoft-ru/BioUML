@@ -1,11 +1,38 @@
 package ru.biosoft.plugins.javascript._test;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.mozilla.javascript.BaseFunction;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ImporterTopLevel;
+import org.mozilla.javascript.Scriptable;
+
 import ru.biosoft.access._test.AbstractBioUMLTest;
+import ru.biosoft.access.script.NullScriptEnvironment;
+import ru.biosoft.access.script.ScriptJobControl;
+import ru.biosoft.access.security.Permission;
+import ru.biosoft.access.security.SecurityManager;
+import ru.biosoft.access.security.SessionCache;
+import ru.biosoft.access.security.SessionCache.ConsoleKey;
+import ru.biosoft.access.security.SessionCache.ConsoleState;
+import ru.biosoft.access.security.SessionCacheManager;
+import ru.biosoft.access.security.TestSecurityProvider;
+import ru.biosoft.access.security.UserPermissions;
+import ru.biosoft.jobcontrol.JobControl;
+import ru.biosoft.plugins.javascript.JSElement;
 import ru.biosoft.plugins.javascript.JScriptContext;
+import ru.biosoft.plugins.javascript.JavaScriptUtils;
 import ru.biosoft.plugins.javascript.ScriptClassShutter;
+import ru.biosoft.table.RowJSExpression;
+import ru.biosoft.table.StandardTableDataCollection;
+import ru.biosoft.table.TableDataCollectionUtils;
 
 /** The class list of {@link ScriptClassShutter}, and that scripts run through {@link JScriptContext} get it. */
 public class ScriptClassShutterTest extends AbstractBioUMLTest
@@ -49,7 +76,8 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
                 "java.lang.Runtime", "java.lang.ProcessBuilder", "java.lang.System", "java.lang.Thread", "java.lang.Class",
                 "java.lang.ClassLoader", "java.lang.reflect.Method", "java.util.concurrent.Executors", "java.util.zip.ZipFile",
                 "java.util.ServiceLoader", "ru.biosoft.access.core.CollectionFactory", "ru.biosoft.access.sql.SqlUtil",
-                "ru.biosoft.access.security.SecurityManager", "ru.biosoft.access.script.ScriptTypeRegistry",
+                "ru.biosoft.access.security.SecurityManager", "ru.biosoft.access.security.SessionCacheManager",
+                "ru.biosoft.access.security.SessionCache$ConsoleKey", "ru.biosoft.access.script.ScriptTypeRegistry",
                 "ru.biosoft.plugins.javascript.JScriptContext", "ru.biosoft.plugins.javascript.ScriptClassShutter",
                 "ru.biosoft.util.ApplicationUtils", "ru.biosoft.util.FileItem", "[Ljava.io.File;",
                 // also seen in the audit log, and kept hidden: files, properties files, server preferences, the registry
@@ -142,6 +170,453 @@ public class ScriptClassShutterTest extends AbstractBioUMLTest
 
         ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.OFF ) );
         assertEquals( "visible: x", evaluate( PROBE ) );
+    }
+
+    private static class ScriptTask extends JSElement
+    {
+        ScriptTask()
+        {
+            super( null, "test", "" );
+        }
+
+        String evaluate(String source, boolean console)
+        {
+            return evaluate( source, console, Map.of( "importPath", new ru.biosoft.util.FileItem( "example" ) ) );
+        }
+
+        String evaluate(String source, boolean console, Map<String, Object> variables)
+        {
+            ScriptJobControl job = job( source, console, variables );
+            job.run();
+            return job.getResult();
+        }
+
+        ScriptJobControl job(String source, boolean console, Map<String, Object> variables)
+        {
+            return createJobControl( source, new NullScriptEnvironment(), variables, new HashMap<>(), console );
+        }
+    }
+
+    public void testAdminSessionAndRoleChangeOnOneWorker() throws Exception
+    {
+        // Use actual logins and root permissions even when the suite runs outside Equinox in test mode.
+        Field provider = SecurityManager.class.getDeclaredField( "securityProvider" );
+        provider.setAccessible( true );
+        Object previous = provider.get( null );
+        AtomicReference<Runnable> onRootPermissionLookup = new AtomicReference<>();
+        TestSecurityProvider fixture = new TestSecurityProvider()
+        {
+            @Override
+            public int getPermissions(String path, UserPermissions user)
+            {
+                if( user.getUser().equals( "unavailable" ) )
+                    throw new IllegalStateException( "Test provider unavailable" );
+                Runnable action = "/".equals( path ) ? onRootPermissionLookup.getAndSet( null ) : null;
+                if( action != null )
+                    action.run();
+                return path.equals( "/" ) && user.getUser().equals( "server-admin" ) || path.equals( "project" )
+                        ? Permission.ALL : Permission.READ;
+            }
+        };
+        fixture.init( new java.util.Properties() );
+        provider.set( null, fixture );
+        try
+        {
+            for( ScriptClassShutter.Mode mode : new ScriptClassShutter.Mode[]{ScriptClassShutter.Mode.ENFORCE, ScriptClassShutter.Mode.AUDIT} )
+            {
+                ScriptClassShutter.setInstance( shutter( mode ) );
+                onFreshThread( () -> {
+                    String sid = SecurityManager.generateSessionId();
+                    SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sid );
+                    try
+                    {
+                        assertNull( SecurityManager.getSessionAdministratorPermission() );
+                        SecurityManager.commonLogin( "server-admin", "", null, null );
+                        ScriptTask task = new ScriptTask();
+                        String script = "var saved = java.nio.file.StandardCopyOption.REPLACE_EXISTING; '' + saved + ',' + importPath.getName()";
+                        assertTrue( logged( () -> {
+                            assertEquals( "REPLACE_EXISTING,example", task.evaluate( script, false ) );
+                            assertEquals( "REPLACE_EXISTING,example", task.evaluate( script, true ) );
+                            assertEquals( "REPLACE_EXISTING", task.evaluate( "'' + saved", true ) );
+                            return null;
+                        } ).stream().noneMatch( message -> message.contains( "StandardCopyOption" ) || message.contains( "FileItem" ) ) );
+
+                        assertNull( SessionCacheManager.getSessionCache().getObject( "properties/JavaScript/scope" ) );
+                        if( mode == ScriptClassShutter.Mode.ENFORCE )
+                        {
+                            checkNestedEvaluation( task );
+                            checkCancelledJob( task );
+                            checkConcurrentConsoleJobs( task, sid );
+                            checkQueuedRevocation( task, sid );
+                            checkQueuedCancellation( task, sid );
+                            checkCancellationDuringPreparation( task, onRootPermissionLookup );
+                            checkNonConsoleSessionChange( sid );
+                        }
+                        // Demote and promote without running a script while demoted.
+                        SecurityManager.addUserPermission( "server-admin", "/", new Permission( Permission.READ, "server-admin", sid, Long.MAX_VALUE ) );
+                        SecurityManager.addUserPermission( "server-admin", "/", new Permission( Permission.ALL, "server-admin", sid, Long.MAX_VALUE ) );
+                        assertEquals( "undefined", task.evaluate( "typeof saved", true ) );
+                        task.evaluate( script, true );
+                        SecurityManager.commonLogout();
+                        SecurityManager.addThreadToSessionRecord( Thread.currentThread(), sid );
+                        SecurityManager.commonLogin( "server-admin", "", null, null );
+                        assertEquals( "undefined", task.evaluate( "typeof saved", true ) );
+                        task.evaluate( script, true );
+                        // Demote in place, retaining both the session cache and the Rhino context.
+                        SecurityManager.getCurrentUserPermission().getDbToPermission().put( "/",
+                                new Permission( Permission.READ, "server-admin", sid, Long.MAX_VALUE ) );
+                        assertNull( SecurityManager.getSessionAdministratorPermission() );
+                        assertEquals( "undefined", task.evaluate( "typeof saved", true ) );
+                        String expected = mode == ScriptClassShutter.Mode.ENFORCE ? "undefined" : "object";
+                        assertEquals( expected, task.evaluate( "typeof importPath", false ) );
+                        String probe = task.evaluate( PROBE, true );
+                        assertTrue( probe, probe.startsWith( mode == ScriptClassShutter.Mode.ENFORCE ? "hidden:" : "visible:" ) );
+                        Context workerContext = JScriptContext.getContext();
+                        SecurityManager.commonLogin( "regular-user", "", null, null );
+                        assertSame( workerContext, JScriptContext.getContext() );
+                        assertNull( SecurityManager.getSessionAdministratorPermission() );
+                        assertEquals( "undefined," + expected, task.evaluate( "typeof saved + ',' + typeof importPath", true ) );
+                        String restricted = task.evaluate( PROBE, false );
+                        assertTrue( restricted, restricted.startsWith( mode == ScriptClassShutter.Mode.ENFORCE ? "hidden:" : "visible:" ) );
+                        assertTrue( SecurityManager.getPermissions( "project" ).isAdminAllowed() );
+                        SecurityManager.runPrivileged( () -> {
+                            assertNull( SecurityManager.getSessionAdministratorPermission() );
+                            return null;
+                        } );
+                        SecurityManager.commonLogin( "unavailable", "", null, null );
+                        assertNull( SecurityManager.getSessionAdministratorPermission() );
+                        SecurityManager.commonLogin( "server-admin", "", null, null );
+                        UserPermissions admin = SecurityManager.getCurrentUserPermission();
+                        Field expiration = UserPermissions.class.getDeclaredField( "expirationTime" );
+                        expiration.setAccessible( true );
+                        expiration.setLong( admin, 0 );
+                        assertNull( SecurityManager.getSessionAdministratorPermission() );
+                        admin.updateExpirationTime();
+                        admin.setDead( true );
+                        assertNull( SecurityManager.getSessionAdministratorPermission() );
+                    }
+                    finally
+                    {
+                        SecurityManager.commonLogout();
+                        SecurityManager.removeThreadFromSessionRecord();
+                    }
+                    return "";
+                } );
+            }
+        }
+        finally
+        {
+            provider.set( null, previous );
+        }
+    }
+
+    private static void checkNestedEvaluation(ScriptTask task)
+    {
+        BaseFunction nested = new BaseFunction()
+        {
+            @Override
+            public Object call(Context context, Scriptable scope, Scriptable thisObject, Object[] args)
+            {
+                // The outer script has already resolved File and invoked its constructor and a member.
+                assertSame( context, JScriptContext.getContext() );
+                ImporterTopLevel binding = ScriptClassShutter.runRestricted( () -> new ImporterTopLevel( context ) );
+                assertNotSame( org.mozilla.javascript.ClassCache.get( scope ), org.mozilla.javascript.ClassCache.get( binding ) );
+                for( int i = 0; i < 2; i++ )
+                {
+                    Object lookup = ScriptClassShutter.evaluateRestricted( context, binding, PROBE, "cache isolation", 1 );
+                    assertTrue( Context.toString( lookup ), Context.toString( lookup ).startsWith( "hidden: " ) );
+                    try
+                    {
+                        ScriptClassShutter.runRestricted( () -> Context.toObject( new java.io.File( "binding" ), binding ) );
+                        fail( "Restricted wrapping must reject File after administrator member lookup" );
+                    }
+                    catch( org.mozilla.javascript.EvaluatorException e )
+                    {
+                        assertTrue( e.getMessage(), e.getMessage().contains( "java.io.File" ) );
+                    }
+                }
+                assertTrue( JScriptContext.evaluateString( PROBE ).startsWith( "hidden: " ) );
+                ScriptClassShutter.evaluateRestricted( context, binding,
+                        "var captured; Object.defineProperty(this, 'input', {set: function(v) { captured = (function() { "
+                                + PROBE + "; return r; })(); }});", "binding fixture", 1 );
+                JavaScriptUtils.defineVariables( binding, Map.of( "input", "value" ) );
+                assertTrue( Context.toString( binding.get( "captured", binding ) ).startsWith( "hidden: " ) );
+
+                var table = new StandardTableDataCollection( null, "test" );
+                TableDataCollectionUtils.addRow( table, "row", new Object[0] );
+                try
+                {
+                    return new RowJSExpression( PROBE, table ).evaluate( table.get( "row" ) );
+                }
+                catch( Exception e )
+                {
+                    throw new AssertionError( e );
+                }
+            }
+        };
+        String result = task.evaluate( "var first = new java.io.File('before').getName(); var nestedResult = nested(); "
+                + "first + ' / ' + nestedResult + ' / ' + new java.io.File('after').getPath()", false, Map.of( "nested", nested ) );
+        assertTrue( result, result.startsWith( "before / hidden: " ) && result.endsWith( " / after" ) );
+        task.evaluate( "throw new Error('test error')", false );
+        assertTrue( JScriptContext.evaluateString( PROBE ).startsWith( "hidden: " ) );
+    }
+
+    private static void checkCancelledJob(ScriptTask task)
+    {
+        AtomicReference<ScriptJobControl> running = new AtomicReference<>();
+        BaseFunction cancel = new BaseFunction()
+        {
+            @Override
+            public Object call(Context context, Scriptable scope, Scriptable thisObject, Object[] args)
+            {
+                running.get().terminate();
+                throw new java.util.concurrent.CancellationException();
+            }
+        };
+        ScriptJobControl job = task.job( "cancel()", false, Map.of( "cancel", cancel ) );
+        running.set( job );
+        job.run();
+        assertEquals( JobControl.TERMINATED_BY_REQUEST, job.getStatus() );
+        assertTrue( JScriptContext.evaluateString( PROBE ).startsWith( "hidden: " ) );
+    }
+
+    private static void checkConcurrentConsoleJobs(ScriptTask task, String session) throws Exception
+    {
+        assertEquals( "0", task.evaluate( "var count = 0; '' + count", true ) );
+        CountDownLatch ready = new CountDownLatch( 2 );
+        CountDownLatch start = new CountDownLatch( 1 );
+        java.util.concurrent.Callable<String> increment = () -> {
+            SecurityManager.addThreadToSessionRecord( Thread.currentThread(), session );
+            try
+            {
+                ready.countDown();
+                assertTrue( start.await( 8, TimeUnit.SECONDS ) );
+                return new ScriptTask().evaluate( "new java.io.File('test'); '' + ++count", true );
+            }
+            finally
+            {
+                SecurityManager.removeThreadFromSessionRecord();
+            }
+        };
+        FutureTask<String> first = new FutureTask<>( increment );
+        FutureTask<String> second = new FutureTask<>( increment );
+        new Thread( first ).start();
+        new Thread( second ).start();
+        assertTrue( ready.await( 8, TimeUnit.SECONDS ) );
+        start.countDown();
+        assertEquals( java.util.Set.of( "1", "2" ),
+                new java.util.HashSet<>( Arrays.asList( first.get( 8, TimeUnit.SECONDS ), second.get( 8, TimeUnit.SECONDS ) ) ) );
+    }
+
+    private static void checkQueuedRevocation(ScriptTask task, String session) throws Exception
+    {
+        String admin = "server-admin";
+        SessionCache cache = SessionCacheManager.getSessionCache( session );
+        ConsoleState<Object> state = consoleState( cache );
+        var old = state.administrator();
+        assertNotNull( old.scope() );
+        assertNull( new ConsoleKey<>().forSession( cache ).administrator().scope() );
+        assertNull( cache.getObject( "properties/JavaScript/scope" ) );
+        for( var property : java.beans.Introspector.getBeanInfo( SessionCache.class ).getPropertyDescriptors() )
+            assertEquals( "class", property.getName() );
+
+        FutureTask<String> waiter = new FutureTask<>( () -> {
+            SecurityManager.addThreadToSessionRecord( Thread.currentThread(), session );
+            try
+            {
+                return new ScriptTask().evaluate( "typeof saved + ';' + (" + "(function() {" + PROBE + "; return r;})())", true );
+            }
+            finally
+            {
+                SecurityManager.removeThreadFromSessionRecord();
+            }
+        } );
+        Thread worker = new Thread( waiter );
+        var lock = state.executionLock();
+        lock.lock();
+        try
+        {
+            worker.start();
+            awaitConsoleWaiter( lock, worker, waiter );
+            SecurityManager.addUserPermission( admin, "/", new Permission( Permission.READ, admin, session, Long.MAX_VALUE ) );
+            assertNull( state.administrator().scope() );
+            assertFalse( state.publish( old, old.scope() ) );
+        }
+        finally
+        {
+            lock.unlock();
+        }
+        String result = waiter.get( 8, TimeUnit.SECONDS );
+        assertNotNull( "The queued command should run with the current ordinary permissions", result );
+        assertTrue( result, result.startsWith( "undefined;hidden:" ) );
+        assertFalse( task.evaluate( "typeof Packages.ru.biosoft.access.security.SessionCacheManager.getSessionCache", true )
+                .equals( "function" ) );
+        SecurityManager.addUserPermission( admin, "/", new Permission( Permission.ALL, admin, "", Long.MAX_VALUE ) );
+        assertEquals( session, SecurityManager.getPermissions( "/" ).getSessionId() );
+        assertEquals( "undefined", task.evaluate( "typeof saved", true ) );
+        assertEquals( "visible: x", task.evaluate( PROBE, true ) );
+    }
+
+    private static void checkQueuedCancellation(ScriptTask task, String session) throws Exception
+    {
+        var lock = consoleState( SessionCacheManager.getSessionCache( session ) ).executionLock();
+        ScriptJobControl job = task.job( "var cancelledCommandRan = true; 'ran'", true, Map.of() );
+        FutureTask<Void> command = new FutureTask<>( () -> {
+            SecurityManager.addThreadToSessionRecord( Thread.currentThread(), session );
+            try
+            {
+                job.run();
+            }
+            finally
+            {
+                SecurityManager.removeThreadFromSessionRecord();
+            }
+            return null;
+        } );
+        Thread worker = new Thread( command );
+        lock.lock();
+        try
+        {
+            worker.start();
+            awaitConsoleWaiter( lock, worker, command );
+            job.terminate();
+        }
+        finally
+        {
+            lock.unlock();
+        }
+        command.get( 8, TimeUnit.SECONDS );
+        assertEquals( JobControl.TERMINATED_BY_REQUEST, job.getStatus() );
+        assertNull( job.getResult() );
+        assertEquals( "undefined", task.evaluate( "typeof cancelledCommandRan", true ) );
+    }
+
+    private static void checkCancellationDuringPreparation(ScriptTask task, AtomicReference<Runnable> onRootPermissionLookup)
+    {
+        for( boolean console : new boolean[]{true, false} )
+        {
+            ScriptJobControl job = task.job( "'must not execute'", console, Map.of() );
+            SecurityManager.getCurrentUserPermission().getDbToPermission().remove( "/" );
+            onRootPermissionLookup.set( job::terminate );
+            job.run();
+            assertNull( "The permission lookup must trigger cancellation", onRootPermissionLookup.get() );
+            assertEquals( JobControl.TERMINATED_BY_REQUEST, job.getStatus() );
+            assertNull( "Cancellation during preparation must prevent script execution", job.getResult() );
+        }
+    }
+
+    private static void awaitConsoleWaiter(java.util.concurrent.locks.ReentrantLock lock, Thread worker, FutureTask<?> command)
+    {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos( 8 );
+        while( !lock.hasQueuedThread( worker ) && !command.isDone() && System.nanoTime() < deadline )
+            java.util.concurrent.locks.LockSupport.parkNanos( TimeUnit.MILLISECONDS.toNanos( 1 ) );
+        assertTrue( "console command must reach the execution lock", lock.hasQueuedThread( worker ) );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private static ConsoleState<Object> consoleState(SessionCache cache) throws Exception
+    {
+        Field field = JSElement.class.getDeclaredField( "CONSOLE" );
+        field.setAccessible( true );
+        return ((ConsoleKey<Object>)field.get( null )).forSession( cache );
+    }
+
+    private static void checkNonConsoleSessionChange(String session) throws Exception
+    {
+        Permission original = SecurityManager.getSessionAdministratorPermission();
+        assertNotNull( original );
+        onFreshThread( () -> {
+            String alias = SecurityManager.generateSessionId();
+            Thread worker = Thread.currentThread();
+            SecurityManager.addThreadToSessionRecord( worker, alias );
+            try
+            {
+                SecurityManager.commonLoginViaOtherSession( session, null, false );
+                assertSame( original, SecurityManager.getSessionAdministratorPermission() );
+                SecurityManager.addThreadToSessionRecord( worker, session );
+                JScriptContext.setScope( new ImporterTopLevel()
+                {
+                    @Override
+                    public void initStandardObjects(Context context, boolean sealed)
+                    {
+                        super.initStandardObjects( context, sealed );
+                        SecurityManager.addThreadToSessionRecord( worker, alias );
+                    }
+                } );
+                ScriptJobControl job = new ScriptTask().job( PROBE, false, Map.of() );
+                job.run();
+                assertEquals( alias, SecurityManager.getSession() );
+                assertEquals( JobControl.TERMINATED_BY_ERROR, job.getStatus() );
+                assertNull( job.getResult() );
+            }
+            finally
+            {
+                SecurityManager.addThreadToSessionRecord( worker, alias );
+                // Replace the alias's shared permissions before logging it out.
+                SecurityManager.commonLogin( "regular-user", "", null, null );
+                SecurityManager.commonLogout();
+                SecurityManager.removeThreadFromSessionRecord();
+            }
+            return "";
+        } );
+    }
+
+    public void testFailedContextInitializationCanRetry() throws Exception
+    {
+        ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.ENFORCE ) );
+        onFreshThread( () -> {
+            checkFailedContextInitialization( null );
+            assertEquals( "2", JScriptContext.evaluateString( "1 + 1" ) );
+            return "";
+        } );
+        onFreshThread( () -> {
+            Context caller = Context.enter();
+            try
+            {
+                checkFailedContextInitialization( caller );
+            }
+            finally
+            {
+                if( Context.getCurrentContext() == caller )
+                    Context.exit();
+            }
+            assertNull( "Initialization must release exactly one entry", Context.getCurrentContext() );
+            return "";
+        } );
+    }
+
+    private static void checkFailedContextInitialization(Context caller)
+    {
+        IllegalStateException failure = new IllegalStateException( "fixture initialization failure" );
+        ImporterTopLevel broken = new ImporterTopLevel()
+        {
+            @Override
+            public void initStandardObjects(Context context, boolean sealed)
+            {
+                assertSame( context, JScriptContext.getContext() );
+                throw failure;
+            }
+        };
+        JScriptContext.setScope( broken );
+        try
+        {
+            JScriptContext.getContext();
+            fail( "Expected the initial scope setup to fail" );
+        }
+        catch( IllegalStateException e )
+        {
+            assertSame( failure, e );
+        }
+        assertSame( caller, Context.getCurrentContext() );
+        assertNotSame( broken, JScriptContext.getScope() );
+    }
+
+    public void testPolicyChangeRequiresFreshContext() throws Exception
+    {
+        ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.OFF ) );
+        assertEquals( "visible: x", evaluate( PROBE ) );
+        ScriptClassShutter.setInstance( shutter( ScriptClassShutter.Mode.ENFORCE ) );
+        assertTrue( evaluate( PROBE ).startsWith( "hidden: " ) );
     }
 
     /** A script's variables as a workflow script node binds them, then the script; on a fresh thread. */

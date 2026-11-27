@@ -73,53 +73,47 @@ public class JScriptContext
 
     private static final SecurityController securityController = new PolicySecurityController();
 
-    //private static ThreadLocal<Context> context = new ThreadLocal<>();
-
-    private static ThreadLocal<Context> context = new ThreadLocal<Context>() {
-        @Override
-        public void remove() {
-            Context cx = get();
-            if (cx != null) {
-                try {
-                    // Exit the context if it's currently entered
-                    if (Context.getCurrentContext() == cx) {
-                        Context.exit();
-                    }
-                } catch (Exception e) {
-                    log.log(Level.WARNING, "Error exiting context during cleanup", e);
-                }
-            }
-            super.remove();
-        }
-        
-        @Override
-        protected Context initialValue() {
-            return null; // Will be set explicitly when needed
-        }
-    };
+    private static final ThreadLocal<Context> context = new ThreadLocal<>();
 
     public static Context getContext()
+    {
+        return ScriptClassShutter.runRestricted( JScriptContext::getRestrictedContext );
+    }
+
+    private static Context getRestrictedContext()
     {
         Context threadContext = context.get();
         if( threadContext == null )
         {
             threadContext = Context.enter();
-            // before the scope and its host objects exist: they are wrapped through it too
-            ScriptClassShutter.install( threadContext );
-            threadContext.setApplicationClassLoader(ClassLoading.getClassLoader());
+            // Publish the entered context for extension initialization that calls getContext() again.
+            context.set( threadContext );
             try
             {
-                threadContext.setSecurityController(securityController);
+                ScriptClassShutter.install( threadContext );
+                threadContext.setApplicationClassLoader( ClassLoading.getClassLoader() );
+                try
+                {
+                    threadContext.setSecurityController( securityController );
+                }
+                catch( SecurityException e )
+                {
+                    // A Rhino context may already have a security controller.
+                }
+                ImporterTopLevel threadScope = getScope();
+                threadScope.initStandardObjects( threadContext, false );
+                JScriptVisiblePlugin plugin = JScriptVisiblePlugin.getInstance();
+                if( plugin != null )
+                    loadExtensions( plugin, threadContext, threadScope );
             }
-            catch( Exception e )
+            catch( RuntimeException | Error e )
             {
+                scope.remove();
+                context.remove();
+                // Release the entry acquired above, including when Rhino reused a caller's context.
+                Context.exit();
+                throw e;
             }
-            ImporterTopLevel scope = getScope();
-            scope.initStandardObjects(threadContext, false);
-            JScriptVisiblePlugin jsPlugin = JScriptVisiblePlugin.getInstance();
-            if( jsPlugin != null )
-                loadExtensions(jsPlugin, threadContext, scope);
-            context.set(threadContext);
         }
 
         if( Context.getCurrentContext() == null )
@@ -164,12 +158,12 @@ public class JScriptContext
 
     public static String evaluateString(String expr)
     {
-        return evaluateString(getContext(), getScope(), expr, "", null);
+        return evaluateString( expr, null );
     }
 
     public static String evaluateString(String expr, ScriptEnvironment environment)
     {
-        return evaluateString(getContext(), getScope(), expr, "", environment);
+        return ScriptClassShutter.runRestricted( () -> evaluateString( getContext(), getScope(), expr, "", environment ) );
     }
 
     public static String evaluateString(Context context, ScriptableObject scope, String expr, ScriptEnvironment environment)
@@ -181,21 +175,24 @@ public class JScriptContext
     {
         private Object result;
         private final Context context;
-        private final Scriptable scope;
+        private final ScriptableObject scope;
         private final Script script;
+        private final boolean administrator;
 
-        public SandboxRunnable(Context context, Scriptable scope, Script script)
+        public SandboxRunnable(Context context, ScriptableObject scope, Script script, boolean administrator)
         {
             this.context = context;
             this.scope = scope;
             this.script = script;
+            this.administrator = administrator;
         }
 
         @Override
         public void run()
         {
             //log.info( "JavaScript ClassLoader: " + script.getClass().getClassLoader() );
-            result = script.exec(context, scope);
+            result = ScriptClassShutter.withAdminAccess( administrator ? scope : null,
+                    () -> script.exec( context, scope ) );
         }
 
         public Object getResult()
@@ -207,6 +204,18 @@ public class JScriptContext
     private static final PerThreadStream threadOutStream = new PerThreadStream( System.out ), threadErrStream = new PerThreadStream( System.err );
 
     public static String evaluateString(Context context, ScriptableObject scope, String expr, String name, ScriptEnvironment environment)
+    {
+        return evaluateJob( context, scope, expr, name, environment, false );
+    }
+
+    static String evaluateJob(Context context, ScriptableObject scope, String expr, String name,
+            ScriptEnvironment environment, boolean administrator)
+    {
+        return ScriptClassShutter.runRestricted( () -> evaluate( context, scope, expr, name, environment, administrator ) );
+    }
+
+    private static String evaluate(Context context, ScriptableObject scope, String expr, String name,
+            ScriptEnvironment environment, boolean administrator)
     {
         //execute preprocessors
         expr = PreprocessorRegistry.preprocessors().foldLeft( expr, (code, prep) -> prep.preprocess( code ) );
@@ -239,7 +248,7 @@ public class JScriptContext
             try
             {
                 Script script = context.compileString(expr, name, 1, null);
-                SandboxRunnable runnable = new SandboxRunnable(context, scope, script);
+                SandboxRunnable runnable = new SandboxRunnable(context, scope, script, administrator);
                 BiosoftSecurityManager.runInSandbox(runnable);
                 result = runnable.getResult();
 
@@ -403,11 +412,10 @@ public class JScriptContext
 
     public static Object evaluateReader(Reader in, String sourceName, int lineno, Object securityDomain)
     {
-        Context cx = getContext();
         Object result = Context.getUndefinedValue();
         try
         {
-            result = cx.evaluateReader( getScope(), in, sourceName, lineno, securityDomain );
+            result = ScriptClassShutter.runRestricted( () -> getContext().evaluateReader( getScope(), in, sourceName, lineno, securityDomain ) );
         }
         catch( WrappedException we )
         {
