@@ -236,7 +236,8 @@ public abstract class DataType
             registry.put( type.name(), type );
             classMap.put( type.getType(), type );
         }
-        extensionsSynced = DATA_TYPE_REGISTRY.isExtensionPointAvailable();
+        // Load-time state, not current availability: the point can appear while the load runs.
+        extensionsSynced = DATA_TYPE_REGISTRY.areExtensionsLoaded();
     }
 
     public static DataType fromClass(Class<?> type)

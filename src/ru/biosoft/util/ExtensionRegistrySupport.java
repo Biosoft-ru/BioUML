@@ -99,16 +99,20 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
                     if(initializing)
                         throw new InitializationException("Concurrent initialization of extension point "+extensionPointId);
                     initializing = true;
+                    boolean loaded = false;
                     try
                     {
-                        loadExtensions(false);
+                        loaded = loadExtensions(false);
                         postInit();
                     }
                     finally
                     {
                         initializing = false;
                         initialized = true;
-                        extensionsLoaded = isExtensionPointAvailable();
+                        // Whether the load above saw the extension point - not whether it is
+                        // available now: the point can appear while postInit runs, and nothing
+                        // was loaded then.
+                        extensionsLoaded = loaded;
                     }
                 }
             }
@@ -123,11 +127,39 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
             {
                 if(!extensionsLoaded && isExtensionPointAvailable())
                 {
-                    loadExtensions(true);
-                    extensionsLoaded = true;
+                    if(initializing)
+                        throw new InitializationException("Concurrent initialization of extension point "+extensionPointId);
+                    initializing = true;
+                    try
+                    {
+                        if(loadExtensions(true))
+                        {
+                            extensionsChanged();
+                            extensionsLoaded = true;
+                        }
+                    }
+                    finally
+                    {
+                        initializing = false;
+                    }
                 }
             }
         }
+    }
+
+    /**
+     * Called after extensions were merged in late (the extension point appeared only after the
+     * first initialization). Subclasses that reorder or index the list in {@link #postInit} must
+     * repeat that here: the late entries were appended unsorted.
+     */
+    protected void extensionsChanged()
+    {
+    }
+
+    /** Whether the extensions were loaded from an available extension point, initially or by a late merge. */
+    public final boolean areExtensionsLoaded()
+    {
+        return extensionsLoaded;
     }
 
     /** Whether the platform extension registry and this extension point are present right now. */
@@ -221,7 +253,8 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
         return clazz;
     }
 
-    private void loadExtensions(boolean merge)
+    /** @return whether the extension point was found, i.e. whether anything could be loaded */
+    private boolean loadExtensions(boolean merge)
     {
         List<T> extensions = new ArrayList<>();
         Map<String, T> nameToExtension = new HashMap<>();
@@ -229,13 +262,17 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
         if(extensionRegistry == null)
         {
             new ExtensionInitException(extensionPointId).log();
-        } else
+            assign(merge, extensions, nameToExtension);
+            return false;
+        }
         {
             IExtensionPoint point = extensionRegistry.getExtensionPoint(extensionPointId);
             if(point == null)
             {
                 new ExtensionInitException(extensionPointId).log();
-            } else
+                assign(merge, extensions, nameToExtension);
+                return false;
+            }
             {
                 Map<String, List<String>> debug = new LinkedHashMap<>();
                 int total = 0, success = 0;
@@ -301,24 +338,42 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
                 log.config(debugInfo.toString());
             }
         }
+        assign(merge, extensions, nameToExtension);
+        return true;
+    }
+
+    private void assign(boolean merge, List<T> loaded, Map<String, T> loadedByName)
+    {
         if( merge && this.extensions != null && this.nameToExtension != null )
         {
             // Keep entries registered dynamically (e.g. hubs added from data collections) and add
-            // the loaded extensions after them; an existing entry with the same name wins.
-            List<T> merged = new ArrayList<>( this.extensions );
-            Map<String, T> mergedByName = new HashMap<>( this.nameToExtension );
-            for(Map.Entry<String, T> entry : nameToExtension.entrySet())
+            // the loaded extensions after them; an existing entry with the same name wins. Dynamic
+            // writers do not take this registry's monitor, so retry if the collections change
+            // while the merged copies are built.
+            List<T> merged;
+            Map<String, T> mergedByName;
+            List<T> currentExtensions;
+            Map<String, T> currentByName;
+            do
             {
-                if( mergedByName.putIfAbsent( entry.getKey(), entry.getValue() ) == null )
-                    merged.add( entry.getValue() );
+                currentExtensions = this.extensions;
+                currentByName = this.nameToExtension;
+                merged = new ArrayList<>( currentExtensions );
+                mergedByName = new HashMap<>( currentByName );
+                for(Map.Entry<String, T> entry : loadedByName.entrySet())
+                {
+                    if( mergedByName.putIfAbsent( entry.getKey(), entry.getValue() ) == null )
+                        merged.add( entry.getValue() );
+                }
             }
+            while( this.extensions != currentExtensions || this.nameToExtension != currentByName );
             this.extensions = merged;
             this.nameToExtension = mergedByName;
         }
         else
         {
-            this.extensions = extensions;
-            this.nameToExtension = nameToExtension;
+            this.extensions = loaded;
+            this.nameToExtension = loadedByName;
         }
     }
 

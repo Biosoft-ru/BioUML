@@ -42,6 +42,11 @@ public class DataTypeLateRegistryTest extends AbstractBioUMLTest
     private static class ProbeRegistry extends ObjectExtensionRegistry<DataType>
     {
         int postInitCalls = 0;
+        /** When set, postInit installs this platform registry - the point appears DURING the load. */
+        IExtensionRegistry installOnPostInit;
+        /** When true, loadElement calls back into this registry (re-entry). */
+        boolean reenter;
+        int loadCalls = 0;
 
         ProbeRegistry(String extensionPointId)
         {
@@ -52,6 +57,17 @@ public class DataTypeLateRegistryTest extends AbstractBioUMLTest
         protected void postInit()
         {
             postInitCalls++;
+            if( installOnPostInit != null )
+                Application.setExtensionRegistry( installOnPostInit );
+        }
+
+        @Override
+        protected DataType loadElement(IConfigurationElement element, String elementName) throws Exception
+        {
+            loadCalls++;
+            if( reenter )
+                iterator(); // re-enter this registry while it is loading
+            return super.loadElement( element, elementName );
         }
 
         void addDynamic(DataType type)
@@ -169,6 +185,97 @@ public class DataTypeLateRegistryTest extends AbstractBioUMLTest
     }
 
     /**
+     * The extension point appearing DURING the first load (e.g. installed by a postInit) must not
+     * mark the registry as loaded: nothing was loaded then, and the next access must merge.
+     */
+    public void testPointAppearingDuringLoadIsStillMergedLate()
+    {
+        IExtensionRegistry real = Application.getExtensionRegistry();
+        ProbeRegistry probe = new ProbeRegistry( "ru.biosoft.table.dataType" );
+        try
+        {
+            Application.setExtensionRegistry( null );
+            probe.installOnPostInit = real;
+            assertFalse( "nothing is loaded while the point is missing",
+                    probe.iterator().hasNext() );
+        }
+        finally
+        {
+            Application.setExtensionRegistry( real );
+        }
+        assertTrue( "the next access must merge the extensions",
+                hasSetType( probe.iterator() ) );
+    }
+
+    /**
+     * Subclasses that sort the list in postInit repeat it in extensionsChanged; late-loaded
+     * entries must not stay appended unsorted (DynamicActionFactory, PerspectiveRegistry).
+     */
+    public void testLateLoadRunsExtensionsChangedHook()
+    {
+        IExtensionRegistry real = Application.getExtensionRegistry();
+        ObjectExtensionRegistry<DataType> probe = new ObjectExtensionRegistry<DataType>( "ru.biosoft.table.dataType", DataType.class )
+        {
+            @Override
+            protected void postInit()
+            {
+                sort();
+            }
+
+            @Override
+            protected void extensionsChanged()
+            {
+                sort();
+            }
+
+            void sort()
+            {
+                extensions.sort( java.util.Comparator.comparing( DataType::name ) );
+            }
+        };
+        try
+        {
+            Application.setExtensionRegistry( null );
+            assertFalse( probe.iterator().hasNext() );
+        }
+        finally
+        {
+            Application.setExtensionRegistry( real );
+        }
+        java.util.List<String> names = new java.util.ArrayList<>();
+        for( DataType type : probe )
+            names.add( type.name() );
+        java.util.List<String> sorted = new java.util.ArrayList<>( names );
+        java.util.Collections.sort( sorted );
+        assertEquals( "late-loaded entries must go through the extensionsChanged hook (sorted)",
+                sorted, names );
+        assertTrue( "extensions must be loaded", names.size() > 1 );
+    }
+
+    /**
+     * A loadElement that calls back into its own registry must hit the re-entry guard on the
+     * late-load path too, not recurse (the first-init path always had the guard).
+     */
+    public void testLateLoadHasReentryGuard()
+    {
+        IExtensionRegistry real = Application.getExtensionRegistry();
+        ProbeRegistry probe = new ProbeRegistry( "ru.biosoft.table.dataType" );
+        try
+        {
+            Application.setExtensionRegistry( null );
+            assertFalse( probe.iterator().hasNext() );
+            probe.reenter = true;
+        }
+        finally
+        {
+            Application.setExtensionRegistry( real );
+        }
+        probe.iterator(); // late load with a re-entering loadElement
+        assertTrue( "the re-entry must be stopped by the guard, not recurse: " + probe.loadCalls
+                + " load calls", probe.loadCalls < 20 );
+    }
+
+    /**
      * A DataType lookup that misses because the snapshot ran before the extension registry was
      * installed must re-sync and find the extension type, not degrade to Text for the whole JVM.
      * Simulated by removing the Set type from the maps and clearing the synced flag, as after an
@@ -224,10 +331,17 @@ public class DataTypeLateRegistryTest extends AbstractBioUMLTest
                 "--add-opens", "java.sql/java.sql=ALL-UNNAMED",
                 "-cp", System.getProperty( "java.class.path" ),
                 DataTypeEarlyTouchMain.class.getName() );
+        // Output goes to a file: reading the pipe would block past the timeout if the child hung.
+        File outFile = File.createTempFile( "earlyTouch", ".log" );
+        outFile.deleteOnExit();
         pb.redirectErrorStream( true );
+        pb.redirectOutput( outFile );
         Process process = pb.start();
-        String output = new String( process.getInputStream().readAllBytes() );
-        assertTrue( "the child JVM did not finish in time", process.waitFor( 300, TimeUnit.SECONDS ) );
+        boolean finished = process.waitFor( 300, TimeUnit.SECONDS );
+        if( !finished )
+            process.destroyForcibly();
+        String output = new String( java.nio.file.Files.readAllBytes( outFile.toPath() ) );
+        assertTrue( "the child JVM did not finish in time; output so far:\n" + output, finished );
         assertEquals( "the early table touch must not break later type lookups; child output:\n" + output,
                 0, process.exitValue() );
     }
