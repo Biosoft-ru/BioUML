@@ -418,8 +418,15 @@ public class SecurityManager
             UserPermissions ps = entry.getValue();
             if( !user.equalsIgnoreCase( ps.getUser() ) || !seen.add( ps ) )
                 continue;
-            Permission permission = authorize( path, ps, entry.getKey() );
-            ps.getDbToPermission().put( path, permission );
+            Hashtable<String, Permission> dbToPermission = ps.getDbToPermission();
+            // Same lock as getUserPermission: authorize() scans the map in isRecursiveDeleteAllowed,
+            // and a concurrent request of that session adding an entry would break the iteration.
+            synchronized( dbToPermission )
+            {
+                // Empty session id: the map can be shared by aliased sessions, so no single id is
+                // right; each reading session adopts its own (see getUserPermission).
+                dbToPermission.put( path, authorize( path, ps, "" ) );
+            }
         }
     }
 

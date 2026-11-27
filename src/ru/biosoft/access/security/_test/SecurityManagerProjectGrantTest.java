@@ -357,4 +357,59 @@ public class SecurityManagerProjectGrantTest extends AbstractBioUMLTest
                 webPermission.isAdminAllowed() );
         assertTrue( webPermission.isWriteAllowed() );
     }
+
+    /**
+     * Concurrency regression: {@code invalidatePermissionsForUser} re-resolves the path via
+     * {@code authorize}, whose recursive-delete scan iterates the session's permission map. A
+     * parallel request of that session adding permissions during the scan used to break the
+     * iteration with {@code ConcurrentModificationException}, failing project creation. The
+     * re-resolution must hold the same map lock as {@code getUserPermission}.
+     */
+    public void testConcurrentSessionActivityDoesNotBreakReResolution() throws Exception
+    {
+        String user = "grantUser6";
+        String project = projectPath( user );
+
+        login( "grant-web-6", user );
+        SnapshotSecurityProvider.grantedPaths.add( project );
+        SecurityManager.addUserPermission( user, project, longLivedGrant( user ) );
+        UserPermissions ps = SecurityManager.getCurrentUserPermission();
+        long expiration = System.currentTimeMillis() + SecurityManager.timeLimit;
+        // Many cached entries so the recursive-delete scan is long enough to collide with a writer.
+        for( int i = 0; i < 5000; i++ )
+            ps.getDbToPermission().put( "users/" + user + "/Projects/P" + i,
+                    new Permission( PROJECT_PERMISSION, user, "", expiration ) );
+
+        // A parallel web request of the same session, constantly resolving new paths.
+        java.util.concurrent.atomic.AtomicReference<Throwable> writerFailure =
+                new java.util.concurrent.atomic.AtomicReference<>();
+        Thread writer = new Thread( () -> {
+            try
+            {
+                for( int i = 0; !Thread.currentThread().isInterrupted(); i++ )
+                    ps.getDbToPermission().put( "users/" + user + "/Projects/W" + i,
+                            new Permission( PROJECT_PERMISSION, user, "", expiration ) );
+            }
+            catch( Throwable t )
+            {
+                writerFailure.set( t );
+            }
+        } );
+        writer.setDaemon( true );
+        writer.start();
+        try
+        {
+            for( int i = 0; i < 200; i++ )
+                SecurityManager.invalidatePermissionsForUser( user, project );
+        }
+        finally
+        {
+            writer.interrupt();
+            writer.join( 10000 );
+        }
+        assertNull( "concurrent session activity must not break the re-resolution: " + writerFailure.get(),
+                writerFailure.get() );
+        switchTo( "grant-web-6" );
+        assertTrue( SecurityManager.getPermissions( project ).isWriteAllowed() );
+    }
 }
