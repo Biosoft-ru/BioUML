@@ -465,6 +465,12 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
+            <scope>test</scope>
+        </dependency>
         <!-- MCP (Model Context Protocol) Java SDK — used by biouml.plugins.mcp to expose
              BioUML functionality to AI agents. The json-mapper modules (mcp-json-jackson2/3)
              do not exist for 0.11.2, so the plugin's custom transports serialize protocol
