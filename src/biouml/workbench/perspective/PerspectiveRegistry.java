@@ -29,6 +29,18 @@ public class PerspectiveRegistry extends ExtensionRegistrySupport<Perspective>
     @Override
     protected void postInit()
     {
+        sortPerspectives();
+    }
+
+    /** Late-loaded extensions are appended unsorted; sort again. */
+    @Override
+    protected void extensionsChanged()
+    {
+        sortPerspectives();
+    }
+
+    private void sortPerspectives()
+    {
         Collections.sort( extensions, Comparator.comparing( Perspective::getPriority ).reversed().thenComparing( Perspective::getTitle ) );
     }
 
