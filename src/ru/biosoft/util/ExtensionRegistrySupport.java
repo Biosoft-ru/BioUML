@@ -41,6 +41,8 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
     protected volatile Map<String, T> nameToExtension;
     private volatile boolean initialized = false;
     private volatile boolean initializing = false;
+    /** Whether the extensions were loaded while the extension point was available; until then, accesses retry the load. */
+    private volatile boolean extensionsLoaded = false;
 
     /**
      * @param extensionPointId - id of extension point like "ru.biosoft.access.import"
@@ -97,19 +99,83 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
                     if(initializing)
                         throw new InitializationException("Concurrent initialization of extension point "+extensionPointId);
                     initializing = true;
+                    boolean loaded = false;
                     try
                     {
-                        loadExtensions();
+                        loaded = loadExtensions(false);
                         postInit();
                     }
                     finally
                     {
                         initializing = false;
                         initialized = true;
+                        // Whether the load above saw the extension point - not whether it is
+                        // available now: the point can appear while postInit runs, and nothing
+                        // was loaded then.
+                        extensionsLoaded = loaded;
                     }
                 }
             }
         }
+        else if(!extensionsLoaded && isExtensionPointAvailable())
+        {
+            // The extension point appeared only after an early initialization without it: in tests
+            // the platform registry is installed by the test harness, and a class touched before
+            // that must not freeze the registry empty for the whole JVM. Load the extensions now,
+            // keeping dynamically registered entries; postInit has already run and is not repeated.
+            synchronized(this)
+            {
+                if(!extensionsLoaded && isExtensionPointAvailable())
+                {
+                    if(initializing)
+                        throw new InitializationException("Concurrent initialization of extension point "+extensionPointId);
+                    initializing = true;
+                    try
+                    {
+                        if(loadExtensions(true))
+                        {
+                            try
+                            {
+                                extensionsChanged();
+                            }
+                            finally
+                            {
+                                // The load happened whatever the hook did: a failing hook
+                                // propagates once and is not retried, as with postInit. The flag
+                                // is set after the hook, so readers never see an unsorted list.
+                                extensionsLoaded = true;
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        initializing = false;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Called after extensions were merged in late (the extension point appeared only after the
+     * first initialization). Subclasses that reorder or index the list in {@link #postInit} must
+     * repeat that here: the late entries were appended unsorted.
+     */
+    protected void extensionsChanged()
+    {
+    }
+
+    /** Whether the extensions were loaded from an available extension point, initially or by a late merge. */
+    public final boolean areExtensionsLoaded()
+    {
+        return extensionsLoaded;
+    }
+
+    /** Whether the platform extension registry and this extension point are present right now. */
+    public final boolean isExtensionPointAvailable()
+    {
+        IExtensionRegistry extensionRegistry = Application.getExtensionRegistry();
+        return extensionRegistry != null && extensionRegistry.getExtensionPoint(extensionPointId) != null;
     }
 
     /**
@@ -196,7 +262,8 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
         return clazz;
     }
 
-    private void loadExtensions()
+    /** @return whether the extension point was found, i.e. whether anything could be loaded */
+    private boolean loadExtensions(boolean merge)
     {
         List<T> extensions = new ArrayList<>();
         Map<String, T> nameToExtension = new HashMap<>();
@@ -204,13 +271,17 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
         if(extensionRegistry == null)
         {
             new ExtensionInitException(extensionPointId).log();
-        } else
+            assign(merge, extensions, nameToExtension);
+            return false;
+        }
         {
             IExtensionPoint point = extensionRegistry.getExtensionPoint(extensionPointId);
             if(point == null)
             {
                 new ExtensionInitException(extensionPointId).log();
-            } else
+                assign(merge, extensions, nameToExtension);
+                return false;
+            }
             {
                 Map<String, List<String>> debug = new LinkedHashMap<>();
                 int total = 0, success = 0;
@@ -276,8 +347,35 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
                 log.config(debugInfo.toString());
             }
         }
-        this.extensions = extensions;
-        this.nameToExtension = nameToExtension;
+        assign(merge, extensions, nameToExtension);
+        return true;
+    }
+
+    private void assign(boolean merge, List<T> loaded, Map<String, T> loadedByName)
+    {
+        if( merge && this.extensions != null && this.nameToExtension != null )
+        {
+            // Keep entries registered dynamically (e.g. hubs added from data collections) and add
+            // the loaded extensions after them; an existing entry with the same name wins.
+            // Known limitation: dynamic writers (BioHubRegistry) mutate the collections in place
+            // without this registry's monitor, so a write racing this copy-and-replace can be
+            // lost. The merge only ever runs when the extension point appears after the first
+            // initialization - a test-environment situation - so the overlap is not expected.
+            List<T> merged = new ArrayList<>( this.extensions );
+            Map<String, T> mergedByName = new HashMap<>( this.nameToExtension );
+            for(Map.Entry<String, T> entry : loadedByName.entrySet())
+            {
+                if( mergedByName.putIfAbsent( entry.getKey(), entry.getValue() ) == null )
+                    merged.add( entry.getValue() );
+            }
+            this.extensions = merged;
+            this.nameToExtension = mergedByName;
+        }
+        else
+        {
+            this.extensions = loaded;
+            this.nameToExtension = loadedByName;
+        }
     }
 
     public StreamEx<T> stream()

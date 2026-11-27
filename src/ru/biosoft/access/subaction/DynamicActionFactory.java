@@ -58,6 +58,13 @@ public class DynamicActionFactory extends ExtensionRegistrySupport<DynamicAction
         Collections.sort( extensions );
     }
 
+    /** Late-loaded extensions are appended unsorted; sort again. */
+    @Override
+    protected void extensionsChanged()
+    {
+        Collections.sort( extensions );
+    }
+
     @Override
     protected DynamicAction loadElement(IConfigurationElement element, String title) throws Exception
     {
