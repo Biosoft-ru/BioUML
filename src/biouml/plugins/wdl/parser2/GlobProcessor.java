@@ -1,4 +1,6 @@
-package biouml.plugins.wdl.parser;
+package biouml.plugins.wdl.parser2;
+
+import biouml.plugins.wdl.nextflow.WDLNextflowFormatter;
 
 public class GlobProcessor
 { 
@@ -6,7 +8,7 @@ public class GlobProcessor
     {
         AstExpression astExpression = new ExpressionParser().parseExpression( expression );
         process( astExpression );
-        return new ExpressionFormatter().format( astExpression );
+        return new WDLNextflowFormatter().format( astExpression );
     }
 
     public void process(Node start)

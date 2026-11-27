@@ -22,7 +22,7 @@ public class AstExpression extends SimpleNode
     @Override
     public String toString()
     {
-        return new ExpressionFormatter().format( this );
+        return new WDLExpressionFormatter().format( this );
     }
 
     private static class ArgumentsCollector

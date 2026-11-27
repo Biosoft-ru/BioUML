@@ -29,7 +29,6 @@ import biouml.plugins.wdl.model.ScriptInfo;
 import biouml.plugins.wdl.model.StructInfo;
 import biouml.plugins.wdl.model.TaskInfo;
 import biouml.plugins.wdl.model.WorkflowInfo;
-import biouml.plugins.wdl.parser.ExpressionParser;
 import biouml.standard.type.Stub;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.core.DataCollection;
@@ -42,8 +41,6 @@ import ru.biosoft.util.DPSUtils;
 public class DiagramGenerator
 {
     protected static final Logger log = Logger.getLogger( WDLImporter.class.getName() );
-
-    //    private boolean doImportDiagram = false;
     private Map<String, Diagram> allimports = new HashMap<>();
     private Map<String, Diagram> imports = new HashMap<>();
     private Map<String, Compartment> importedExecutables = new HashMap<>();
@@ -204,7 +201,6 @@ public class DiagramGenerator
         for( Node node : nodes )
         {
             Node newNode = node;
-            System.out.println( "Clone " + newNode.getName() );
             Edge[] edges = node.getEdges();
             int length = edges.length;
             int j = 0;
@@ -354,16 +350,6 @@ public class DiagramGenerator
                     }
                 }
             }
-            //            else
-            //            {
-            //                List<String> args = WorkflowUtil.findPossibleArguments( expression );
-            //                for( String arg : args )
-            //                {
-            //                    List<Node> sources = WorkflowUtil.findSources( arg, enclosingWorkflow );
-            //                    for( Node source : sources )
-            //                        createLink( source, node );
-            //                }
-            //            }
         }
     }
 
@@ -374,7 +360,6 @@ public class DiagramGenerator
         WorkflowUtil.setExpression( node, expression );
         ExpressionInfo info = new ExpressionInfo();
         info.setExpression( expression );
-        info.setAST( new ExpressionParser().parseExpression( expression ) );
         WorkflowUtil.setExpressionInfo( node, info );
         node.setTitle( name );
         node.setShapeSize( new Dimension( 80, 60 ) );

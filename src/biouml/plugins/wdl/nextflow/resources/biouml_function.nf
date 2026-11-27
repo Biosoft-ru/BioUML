@@ -167,18 +167,24 @@ def defined_wdl(val)
     return val != null && val != "NO_VALUE"
 }
 
-def read_string_wdl(filePath) 
+def read_string_wdl(filePath)
 {
     if (filePath == null)
         return null
 
+    if (filePath instanceof groovyx.gpars.dataflow.DataflowReadChannel)
+        return filePath.map { path -> read_string_wdl(path) }
+
+    def text
+
     if (filePath instanceof java.nio.file.Path)
-        return filePath.toFile().text.trim()
+        text = filePath.toFile().text
+    else if (filePath instanceof File)
+        text = filePath.text
+    else
+        text = new File(filePath.toString()).text
 
-    if (filePath instanceof File)
-        return filePath.text.trim()
-
-    return new File(filePath.toString()).text.trim()
+    return text.replaceFirst(/[\r\n]+$/, '')
 }
 
 def read_map_wdl(filePath)
@@ -1086,15 +1092,20 @@ def saveOutputs(outputs, outputDirectory, isWSL)
 
                 outputs.each { item ->
 
-                    result[item.name] = [
-                        type: item.type,
-                        value: serializeOutputValue(
-                            values[item.name],
-                            outputDir,
-                            isWSL
-                        )
-                    ]
-                }
+                def outputValue  = values[item.name]
+
+                if (item.type in ["String", "String?"] && outputValue  != null)
+                   outputValue  = wdl_to_string(outputValue )
+
+                result[item.name] = [
+                   type: item.type,
+                   value: serializeOutputValue(
+                      outputValue,
+                      outputDir,
+                     isWSL
+                   )
+                ]
+           }
 
                 def json = groovy.json.JsonOutput.prettyPrint(
                     groovy.json.JsonOutput.toJson(result)
@@ -1680,19 +1691,14 @@ def mergeAll(inputs)
     if (inputs.size() == 0)
         return Channel.empty()
 
-    if (inputs.size() == 1)
-        return toChannel(inputs[0]).map { value -> [value] }
-
-    def result = toChannel(inputs[0])
-        .map { value -> [value] }
+    def result = toChannel(inputs[0]).map { value -> [value] }
 
     inputs.drop(1).each { input ->
-
-        def next = toChannel(input)
-            .map { value -> [value] }
-
-        result = result.merge(next)
+        result = result.merge(toChannel(input)) { values, value ->
+            values + [value]
+        }
     }
+
     return result
 }
 

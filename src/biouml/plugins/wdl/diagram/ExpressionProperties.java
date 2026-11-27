@@ -8,13 +8,11 @@ import com.developmentontheedge.beans.annot.PropertyName;
 import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.DiagramElementGroup;
-import biouml.model.InitialElementProperties;
 import biouml.model.InitialElementPropertiesSupport;
 import biouml.model.Node;
 import biouml.model.SemanticController;
 import biouml.plugins.wdl.WorkflowUtil;
 import biouml.standard.type.Stub;
-import com.developmentontheedge.beans.Option;
 
 @SuppressWarnings ( "serial" )
 @PropertyName ( "Expression properties" )

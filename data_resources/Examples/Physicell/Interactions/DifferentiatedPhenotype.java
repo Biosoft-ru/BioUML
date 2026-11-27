@@ -33,7 +33,7 @@ public class DifferentiatedPhenotype extends UpdatePhenotype
         // pressure reduces proliferation 
         signal = pCell.state.simplePressure;
         double pressure_halfmax = pCD.custom_data.get( "cycling_pressure_halfmax" ); // 0.5 
-        hill = BasicSignaling.Hill_response_function( signal, pressure_halfmax, 1.5 );
+        hill = BasicSignaling.hillResponse( signal, pressure_halfmax, 1.5 );
         double base_val = pCD.phenotype.cycle.data.getExitRate( 0 );
 
         phenotype.cycle.data.setExitRate( 0, ( 1 - hill ) * base_val );
@@ -47,7 +47,7 @@ public class DifferentiatedPhenotype extends UpdatePhenotype
         double necrosisThreshold = pCD.custom_data.get( "necrosis_threshold_resource" ); // 0.15 
 
         phenotype.death.rates.set( nNecrosis,
-                max * BasicSignaling.decreasing_linear_response_function( r, necrosisSaturation, necrosisThreshold ) );
+                max * BasicSignaling.decreasingLinearResponse( r, necrosisSaturation, necrosisThreshold ) );
 
         // toxin increases apoptotic death 
         int nApoptosis = phenotype.death.findDeathModelIndex( PhysiCellConstants.apoptosis_death_model );
@@ -58,7 +58,7 @@ public class DifferentiatedPhenotype extends UpdatePhenotype
         signal = toxin;
         base_val = pCD.phenotype.death.rates.get( nApoptosis );
         double maxResponse = base_val * relativeMaxToxDeath;
-        hill = BasicSignaling.Hill_response_function( signal, toxicityHalf, 1.5 );
+        hill = BasicSignaling.hillResponse( signal, toxicityHalf, 1.5 );
         // System.out.println( "tox: " + signal + " " + hill); 
         phenotype.death.rates.set( nApoptosis, base_val + ( maxResponse - base_val ) * hill );
     }

@@ -1,0 +1,597 @@
+/**
+ * Standalone WDL + Nextflow expression parser (JJTree / JavaCC).
+ *
+ * Ordinary WDL expressions deliberately retain the original WDLParser AST:
+ *   foo(1, 2) -> AstFunction(name="foo", children=["(", Expression(1),
+ *                      Comma, Expression(2), ")"])
+ *   a.b.c     -> AstSubSymbol(children=[Symbol(a), Symbol(b), Symbol(c)])
+ *   a[0][1]   -> AstContainerElement(containerName="a",
+ *                       children=[Symbol(a), Expression(0), Expression(1)])
+ *
+ * Nextflow method calls use the same named AstFunction as ordinary calls:
+ *   a.b.toList() -> AstSubSymbol(children=[Symbol(a), Symbol(b),
+ *                                 Function(name="toList", children=["(", ")"])])
+ *   a.map { x -> x * 2 } -> AstSubSymbol(children=[Symbol(a),
+ *                          Function(name="map", children=[Closure(...)])])
+ *   foo().bar().baz(3) -> AstSubSymbol(children=[Function(name="foo"),
+ *                             Function(name="bar"), Function(name="baz")])
+ *
+ * The children of AstSubSymbol follow source order; method names are printed
+ * at their position in the chain, not before the whole receiver expression.
+ *
+ * Truly dynamic invocations, e.g. factory()(1) or values[0](x), are represented
+ * by the new AstInvocation(callee, AstArguments) node rather than an unnamed
+ * AstFunction. AstClosure and AstClosureParameters are also Nextflow extensions.
+ *
+ * Use parser2 to avoid overwriting the existing WDLParser package.
+ */
+options
+{
+    UNICODE_INPUT = true;
+    MULTI = true;
+    BUILD_NODE_FILES = true;
+    NODE_DEFAULT_VOID = true;
+    NODE_PREFIX = "Ast";
+    STATIC = false;
+    TRACK_TOKENS = true;
+    DEBUG_PARSER = false;
+}
+
+PARSER_BEGIN(ExpressionParser)
+package biouml.plugins.wdl.parser2;
+
+import java.io.Reader;
+import java.io.StringReader;
+
+public class ExpressionParser
+{
+    public ExpressionParser()
+    {
+        this(new StringReader(""));
+    }
+
+    public AstExpression parseExpression(String source) throws ParseException
+    {
+        if (source == null)
+            throw new IllegalArgumentException("Expression must not be null");
+        ReInit(new StringReader(source));
+        return expressionStart();
+    }
+
+    public AstExpression parseExpression(Reader source) throws ParseException
+    {
+        if (source == null)
+            throw new IllegalArgumentException("Expression must not be null");
+        ReInit(source);
+        return expressionStart();
+    }
+}
+PARSER_END(ExpressionParser)
+
+SKIP :
+{
+      " " | "\t" | "\r" | "\n"
+    | < "#" (~["\r", "\n"])* >
+    | < "/*" (~["*"] | "*" ~["/"])* "*/" >
+}
+
+TOKEN :
+{
+      < IF: "if" >
+    | < THEN: "then" >
+    | < ELSE: "else" >
+    | < TRUE: "true" >
+    | < FALSE: "false" >
+    | < NULL: "null" >
+    | < NONE: "None" >
+}
+
+TOKEN :
+{
+      < ARROW: "->" >
+    | < OR: "||" >
+    | < AND: "&&" >
+    | < EQ: "==" >
+    | < NE: "!=" >
+    | < LE: "<=" >
+    | < GE: ">=" >
+    | < LT: "<" >
+    | < GT: ">" >
+    | < NOT: "!" >
+    | < PLUS: "+" >
+    | < MINUS: "-" >
+    | < STAR: "*" >
+    | < SLASH: "/" >
+    | < PERCENT: "%" >
+    | < QUESTION: "?" >
+    | < COLON: ":" >
+    | < DOT: "." >
+    | < COMMA: "," >
+    | < LPAREN: "(" >
+    | < RPAREN: ")" >
+    | < LBRACKET: "[" >
+    | < RBRACKET: "]" >
+    | < LBRACE: "{" >
+    | < RBRACE: "}" >
+}
+
+TOKEN :
+{
+      < #DIGIT: ["0"-"9"] >
+
+    | < #EXPONENT: ["e", "E"] ("+" | "-")? (<DIGIT>)+ >
+
+    | < FLOAT:
+            (<DIGIT>)+ "." (<DIGIT>)* (<EXPONENT>)?
+          | "." (<DIGIT>)+ (<EXPONENT>)?
+          | (<DIGIT>)+ (<EXPONENT>)
+      >
+
+    | < INTEGER: (<DIGIT>)+ >
+
+    | < #ESCAPED:
+            "\\" ~[]
+      >
+
+    | < #INNER_SINGLE:
+            "'"
+            ( <ESCAPED> | ~["'", "\\", "\r", "\n"] )*
+            "'"
+      >
+
+    | < #INNER_DOUBLE:
+            "\""
+            ( <ESCAPED> | ~["\"", "\\", "\r", "\n"] )*
+            "\""
+      >
+
+    | < #PLACEHOLDER:
+            ("$" | "~") "{"
+            (
+                <INNER_SINGLE>
+              | <INNER_DOUBLE>
+              | <ESCAPED>
+              | ~["}", "'", "\"", "\\", "\r", "\n"]
+            )*
+            "}"
+      >
+
+    | < STRING:
+            "\""
+            (
+                <PLACEHOLDER>
+              | <ESCAPED>
+              | ~["\"", "\\", "\r", "\n"]
+            )*
+            "\""
+
+          | "'"
+            (
+                <PLACEHOLDER>
+              | <ESCAPED>
+              | ~["'", "\\", "\r", "\n"]
+            )*
+            "'"
+      >
+
+    | < IDENTIFIER:
+            (["a"-"z", "A"-"Z", "_"])
+            (["a"-"z", "A"-"Z", "0"-"9", "_"])*
+      >
+}
+
+/* A single AstExpression root. */
+AstExpression expressionStart() #void :
+{}
+{
+    expression()
+    <EOF>
+    { return (AstExpression) jjtree.rootNode(); }
+}
+
+/* Keep WDL operators as AstRegularFormulaElement siblings within Expression.
+ * Grammar enforces precedence during parsing; AST does not encode it. */
+void expression() #Expression :
+{}
+{
+    conditionalExpression()
+}
+
+void conditionalExpression() :
+{}
+{
+      LOOKAHEAD(<IF>) wdlConditional()
+    | (
+        logicalOrExpression()
+        (
+            (<QUESTION> #Then)
+            expression()
+            (<COLON> #Else)
+            expression()
+            #Ternary(jjtree.nodeArity())
+        )?
+      )
+}
+
+void wdlConditional() #Ternary :
+{}
+{
+    <IF>
+    expression()
+    (<THEN> #Then)
+    expression()
+    (<ELSE> #Else)
+    expression()
+}
+
+void logicalOrExpression() : {} {
+    logicalAndExpression()
+    ( operatorOr() logicalAndExpression() )*
+}
+void logicalAndExpression() : {} {
+    equalityExpression()
+    ( operatorAnd() equalityExpression() )*
+}
+void equalityExpression() : {} {
+    comparisonExpression()
+    ( operatorEq() comparisonExpression() )*
+}
+void comparisonExpression() : {} {
+    additiveExpression()
+    ( operatorComparison() additiveExpression() )*
+}
+void additiveExpression() : {} {
+    multiplicativeExpression()
+    ( operatorAdd() multiplicativeExpression() )*
+}
+void multiplicativeExpression() : {} {
+    unaryExpression()
+    ( operatorMul() unaryExpression() )*
+}
+void unaryExpression() : {} {
+      operatorUnary() unaryExpression()
+    | postfixExpression()
+}
+
+void operatorOr() #RegularFormulaElement : {} { <OR> { jjtThis.setElement(token.image); } }
+void operatorAnd() #RegularFormulaElement : {} { <AND> { jjtThis.setElement(token.image); } }
+void operatorEq() #RegularFormulaElement : {} {
+    ( <EQ> | <NE> ) { jjtThis.setElement(token.image); }
+}
+void operatorComparison() #RegularFormulaElement : {} {
+    ( <LT> | <GT> | <LE> | <GE> ) { jjtThis.setElement(token.image); }
+}
+void operatorAdd() #RegularFormulaElement : {} {
+    ( <PLUS> | <MINUS> ) { jjtThis.setElement(token.image); }
+}
+void operatorMul() #RegularFormulaElement : {} {
+    ( <STAR> | <SLASH> | <PERCENT> ) { jjtThis.setElement(token.image); }
+}
+void operatorUnary() #RegularFormulaElement : {} {
+    ( <PLUS> | <MINUS> | <NOT> ) { jjtThis.setElement(token.image); }
+}
+
+/*
+ * The conditional JJTree node is central to the compatibility fix.
+ *
+ * All dotted members are collected into ONE flat AstSubSymbol, precisely as
+ * in the original WDLParser. Each method is parsed by function(), and thus
+ * retains its own name and ordinary parentheses/argument children.
+ *
+ * If no dot appears, the conditional #SubSymbol(dotted) creates no node.
+ * Hence foo(1,2), [0,1,2] and a[0] keep their old AST shapes.
+ *
+ * Bracket indexing on a simple identifier is handled by indexedSymbol()
+ * (flat old-style AstContainerElement). Bracket indexing on a computed result
+ * produces AstContainerElement(result, index) instead.
+ */
+void postfixExpression() :
+{ int dotCount = 0; }
+{
+    primaryExpression()
+    (
+        (
+            {
+                dotCount = 0;
+            }
+            (
+                <DOT>
+                dotMember()
+                {
+                    dotCount++;
+                }
+            )+
+        ) #SubSymbol(dotCount + 1)
+
+      | (
+            <LBRACKET>
+            expression()
+            <RBRACKET>
+        ) #ContainerElement(2)
+
+      | (
+            dynamicArguments()
+        ) #Invocation(2)
+
+      | (
+            closure()
+        ) #Invocation(2)
+    )*
+}
+
+/* A segment after DOT is a Symbol, old-style indexed Symbol, or named Function. */
+void dotMember() :
+{}
+{
+      LOOKAHEAD(<IDENTIFIER> <LPAREN>) function()
+    | LOOKAHEAD(<IDENTIFIER> <LBRACE>) function()
+    | symbol()
+}
+
+/* No name: the callee is an expression (not a named method/function).
+ * Only used by AstInvocation for cases such as factory()(1). */
+void dynamicArguments() #Arguments :
+{}
+{
+    ((<LPAREN> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+    (
+        expression()
+        (
+            LOOKAHEAD(<COMMA> expression())
+            (<COMMA> #Comma)
+            expression()
+        )*
+        (<COMMA> #Comma)?
+    )?
+    ((<RPAREN> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+}
+
+/* Nextflow closures are new AST nodes. */
+void closure() #Closure :
+{}
+{
+    <LBRACE>
+    (
+        LOOKAHEAD(<IDENTIFIER> (<COMMA> <IDENTIFIER>)* <ARROW>)
+        closureParameters() <ARROW> expression()
+      | <ARROW> expression()
+      | expression()
+    )?
+    <RBRACE>
+}
+
+void closureParameters() #ClosureParameters :
+{}
+{
+    symbol() (<COMMA> symbol())*
+}
+
+void primaryExpression() :
+{}
+{
+      LOOKAHEAD(<IDENTIFIER> <LBRACE> <RBRACE>) constructor()
+    | LOOKAHEAD(<IDENTIFIER> <LBRACE> (<IDENTIFIER> | <STRING>) <COLON>) constructor()
+    | LOOKAHEAD(<IF>) wdlConditional()
+    | LOOKAHEAD(<IDENTIFIER> <LPAREN>) function()
+    | LOOKAHEAD(<IDENTIFIER> <LBRACE>) function()
+    | LOOKAHEAD(<IDENTIFIER> <LBRACKET>) indexedSymbol()
+    | LOOKAHEAD(<IDENTIFIER> <DOT>) symbol()
+    | LOOKAHEAD(<LBRACE> <IDENTIFIER> (<COMMA> <IDENTIFIER>)* <ARROW>) closure()
+    | LOOKAHEAD(<LBRACE> <ARROW>) closure()
+    | LOOKAHEAD(<LPAREN> expression() <COMMA>) pair()
+    | LOOKAHEAD(<LPAREN>) expressionInBrackets()
+    | LOOKAHEAD(<LBRACKET> <LPAREN> primitiveKey() <RPAREN> <COLON>) groovyMap()
+    | LOOKAHEAD(<LBRACKET> primitiveKey() <COLON>) groovyMap()
+    | LOOKAHEAD(<LBRACKET> <COLON> <RBRACKET>) groovyMap()
+    | array()
+    | map()
+    | text()
+    | (<NONE> #None)
+    | (<NULL> #Null)
+    | regularValue()
+}
+
+/* Ordinary scalars and identifiers are represented as in the old WDL AST. */
+void regularValue() #RegularFormulaElement :
+{ Token value; }
+{
+    (
+        value = <IDENTIFIER> { jjtThis.setVariable(true); }
+      | value = <TRUE>
+      | value = <FALSE>
+      | value = <INTEGER> { jjtThis.setNumber(true); }
+      | value = <FLOAT> { jjtThis.setNumber(true); }
+    )
+    { jjtThis.setElement(value.image); }
+}
+
+String symbol() #Symbol :
+{ Token name; }
+{
+    name = <IDENTIFIER>
+    {
+        jjtThis.setName(name.image);
+        return name.image;
+    }
+}
+
+/* Original WDLParser-compatible flat indexing on a named variable. */
+void indexedSymbol() #ContainerElement :
+{ String name; }
+{
+    name = symbol()
+    { jjtThis.setContainerName(name); }
+    (
+        <LBRACKET>
+        expression()
+        <RBRACKET>
+    )+
+}
+
+void text() #Text :
+{ Token stringToken; }
+{
+    stringToken = <STRING>
+    {
+        jjtThis.setText(stringToken.image.substring(1, stringToken.image.length() - 1));
+        jjtThis.setQuote(stringToken.image.charAt(0));
+    }
+}
+void expressionInBrackets() #void :
+{}
+{
+    ((<LPAREN> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+    expression()
+    ((<RPAREN> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+}
+
+void pair() #Pair :
+{}
+{
+    ((<LPAREN> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+    expression()
+    (<COMMA> #Comma)
+    expression()
+    ((<RPAREN> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+}
+
+void array() #Array :
+{}
+{
+    ((<LBRACKET> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+    (
+        expression()
+        (
+            LOOKAHEAD(<COMMA> expression())
+            (<COMMA> #Comma)
+            expression()
+        )*
+        (<COMMA> #Comma)?
+    )?
+    ((<RBRACKET> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+}
+
+void map() #Map :
+{}
+{
+    ((<LBRACE> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+    (
+        keyValue()
+        (
+            LOOKAHEAD(<COMMA> keyValue())
+            (<COMMA> #Comma)
+            keyValue()
+        )*
+        (<COMMA> #Comma)?
+    )?
+    ((<RBRACE> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+}
+
+String primitiveKey() :
+{ Token key; }
+{
+    (
+        key = <STRING> | key = <INTEGER> | key = <FLOAT>
+      | key = <TRUE> | key = <FALSE> | key = <IDENTIFIER>
+    )
+    { return key.image; }
+}
+
+void keyValue() #KeyValue :
+{
+    String key;
+}
+{
+    (
+        LOOKAHEAD(<LPAREN> primitiveKey() <RPAREN> <COLON>)
+        <LPAREN>
+        key = primitiveKey()
+        <RPAREN>
+        {
+            jjtThis.setKey("(" + key + ")");
+        }
+      |
+        LOOKAHEAD(primitiveKey() <COLON>)
+        key = primitiveKey()
+        {
+            jjtThis.setKey(key);
+        }
+      |
+        expression()
+    )
+    (<COLON> #Colon)
+    expression()
+}
+
+void constructor() #Constructor :
+{ Token name; }
+{
+    name = <IDENTIFIER> { jjtThis.setName(name.image); }
+    ((<LBRACE> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+    (
+        constructorKeyValue()
+        (
+            LOOKAHEAD(<COMMA> constructorKeyValue())
+            (<COMMA> #Comma)
+            constructorKeyValue()
+        )*
+        (<COMMA> #Comma)?
+    )?
+    ((<RBRACE> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+}
+
+void constructorKeyValue() #KeyValue :
+{ Token key; }
+{
+    ( key = <IDENTIFIER> | key = <STRING> )
+    { jjtThis.setKey(key.image); }
+    (<COLON> #Colon)
+    expression()
+}
+
+/*
+ * Ordinary WDL call: same AstFunction(name, children) as the old parser.
+ * A Nextflow method call uses this *same* node inside a flat AstSubSymbol.
+ * Nextflow additionally permits a closure instead of (args), or after (args).
+ */
+void function() #Function :
+{ Token name; }
+{
+    name = <IDENTIFIER> { jjtThis.setName(name.image); }
+    (
+        (
+            ((<LPAREN> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+            (
+                expression()
+                (
+                    LOOKAHEAD(<COMMA> expression())
+                    (<COMMA> #Comma)
+                    expression()
+                )*
+                (<COMMA> #Comma)?
+            )?
+            ((<RPAREN> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+            (LOOKAHEAD(<LBRACE>) closure())?
+        )
+        |
+        closure()
+    )
+}
+
+void groovyMap() #Map :
+{}
+{
+    ((<LBRACKET> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+    (
+        (<COLON> #Colon)
+      |
+        keyValue()
+        (
+            LOOKAHEAD(<COMMA> keyValue())
+            (<COMMA> #Comma)
+            keyValue()
+        )*
+        (<COMMA> #Comma)?
+    )
+    ((<RBRACKET> { jjtThis.setElement(token.image); }) #RegularFormulaElement)
+}

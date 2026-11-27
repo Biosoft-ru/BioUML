@@ -1,0 +1,138 @@
+package biouml.plugins.wdl.parser;
+
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import one.util.streamex.StreamEx;
+
+public class WDLExpressionFormatter
+{
+    protected StringBuilder result;
+
+    public String format(SimpleNode start)
+    {
+        result = new StringBuilder();
+
+        if( start != null )
+        {
+            int n = start.jjtGetNumChildren();
+            for( int i = 0; i < n; i++ )
+                processNode( start.jjtGetChild( i ) );
+        }
+        return result.toString();
+    }
+
+    protected void processNode(Node node)
+    {
+        if( node instanceof AstArray )
+            processArray( (AstArray)node );
+        else if( node instanceof AstFunction )
+            processFunction( (AstFunction)node );
+        else if( node instanceof AstText )
+            processText( (AstText)node );
+        else if( node instanceof AstContainerElement )
+            processContainer( (AstContainerElement)node );
+        else if( node instanceof AstSubSymbol )
+            processSubSymbol( (AstSubSymbol)node );
+        else if( node instanceof AstTernary )
+            processTernary( (AstTernary)node );
+        else if( node instanceof AstMap )
+            processMap( (AstMap)node );
+        else if( node instanceof AstConstructor )
+            processConstructor( (AstConstructor)node );
+        else if( node instanceof AstPair )
+            processPair( (AstPair)node );
+        else
+        {
+            result.append( node.toString() );
+        }
+    }
+
+    private void processTernary(AstTernary ternary)
+    {
+        result.append( "if (" );
+        result.append( ternary.children[0] );
+        result.append( ")" );
+        for( int i = 1; i < ternary.children.length; i++ )
+        {
+            result.append( " " );
+            processNode( ternary.jjtGetChild( i ) );
+        }
+    }
+
+    private void processArray(AstArray array)
+    {
+        for( Node child : array.children )
+            processNode( child );
+    }
+
+    protected void processSubSymbol(AstSubSymbol node)
+    {
+        for( int i = 0; i < node.jjtGetNumChildren(); i++ )
+        {
+            if( i > 0 )
+                result.append( "." );
+            processNode( node.jjtGetChild( i ) );
+
+        }
+    }
+
+    protected void processText(AstText node)
+    {
+        String content = node.toString();
+//        boolean hasQuote = content.contains( "\"" );
+//        result.append( hasQuote? "\'": "\"" );
+//        result.append( content );
+//        result.append( hasQuote? "\'": "\"" );
+        boolean hasQuote = Pattern.compile("(?<!\\\\)\"").matcher(content).find();
+
+        result.append(hasQuote ? "'" : "\"");
+        result.append(content);
+        result.append(hasQuote ? "'" : "\"");
+    }
+
+    protected void processContainer(AstContainerElement node)
+    {
+        processNode( node.children[0] );
+        for( int i = 1; i < node.children.length; i++ )
+        {
+            result.append( "[" );
+            processNode( node.children[i] );
+            result.append( "]" );
+        }
+    }
+
+    protected void processFunction(AstFunction node)
+    {
+        result.append( node.toString() );
+        for( Node child : node.children )
+            processNode( child );
+    }
+
+    private void processMap(AstMap astMap)
+    {
+        result.append( "{ " );
+        Map<String, SimpleNode> map = astMap.toMap();
+        result.append( StreamEx.of( map.entrySet() ).map( e -> e.getKey() + ": " + e.getValue() ).joining( ", " ) );
+        result.append( " }" );
+    }
+
+    private void processPair(AstPair astPair)
+    {
+        result.append( "( " );
+        AstExpression[] expressions = astPair.toPair();
+        processNode( expressions[0] );
+        result.append( ", " );
+        processNode( expressions[1] );
+        result.append( " )" );
+    }
+
+    private void processConstructor(AstConstructor astConstructor)
+    {
+        result.append( ( (AstConstructor)astConstructor ).firstToken );
+        for( Node node : astConstructor.children )
+        {
+            result.append( node.toString() );
+        }
+    }
+}

@@ -11,7 +11,6 @@ import biouml.model.Compartment;
 import biouml.model.Diagram;
 import biouml.model.Node;
 import biouml.plugins.wdl.diagram.WDLConstants;
-import biouml.plugins.wdl.model.StructInfo;
 import one.util.streamex.StreamEx;
 
 public class WDLVelocityHelper extends WorkflowVelocityHelper

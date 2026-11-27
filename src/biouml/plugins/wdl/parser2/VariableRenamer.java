@@ -1,4 +1,6 @@
-package biouml.plugins.wdl.parser;
+package biouml.plugins.wdl.parser2;
+
+import biouml.plugins.wdl.nextflow.WDLNextflowFormatter;
 
 public class VariableRenamer
 {
@@ -11,7 +13,7 @@ public class VariableRenamer
             return null;
         AstExpression astExpression = new ExpressionParser().parseExpression( expression );
         rename( astExpression, oldName, newName );
-        return new ExpressionFormatter().format( astExpression );
+        return new WDLNextflowFormatter().format( astExpression );
     }
 
     public void rename(Node start, String oldName, String newName)
@@ -59,9 +61,9 @@ public class VariableRenamer
             return;
         SimpleNode parent = (SimpleNode)node.jjtGetParent();
         int index = ParserUtil.findIndex( parent, node );
-        AstSymbol newChild = new AstSymbol( WDLParserTreeConstants.JJTSYMBOL );
+        AstSymbol newChild = new AstSymbol( ExpressionParserTreeConstants.JJTSYMBOL );
         newChild.setName( newName );
-        newChild.jjtSetFirstToken( new Token( WDLParserTreeConstants.JJTSYMBOL, newName ) );
+        newChild.jjtSetFirstToken( new Token( ExpressionParserTreeConstants.JJTSYMBOL, newName ) );
         parent.children[index] = newChild;
     }
     
@@ -71,7 +73,7 @@ public class VariableRenamer
             return;
         SimpleNode parent = (SimpleNode)node.jjtGetParent();
         int index = ParserUtil.findIndex( parent, node );
-        AstRegularFormulaElement newChild = new AstRegularFormulaElement( WDLParserTreeConstants.JJTREGULARFORMULAELEMENT );
+        AstRegularFormulaElement newChild = new AstRegularFormulaElement( ExpressionParserTreeConstants.JJTREGULARFORMULAELEMENT );
         newChild.setElement( newName );
         parent.children[index] = newChild;
     }

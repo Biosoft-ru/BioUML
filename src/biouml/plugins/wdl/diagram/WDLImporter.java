@@ -267,7 +267,6 @@ public class WDLImporter implements DataElementImporter
             if( expr != null )
             {
                 input.setArguments( expr.getArguments() );
-                input.setAST( expr );
             }
             callInfo.addInputInfo( input );
         }
@@ -306,7 +305,6 @@ public class WDLImporter implements DataElementImporter
         expressionInfo.setName( astDeclaration.getName() );
         expressionInfo.setType( astDeclaration.getType() );
         expressionInfo.setArguments( astDeclaration.getVariables() );
-        expressionInfo.setAST( astDeclaration.getExpression() );
         return expressionInfo;
     }
 
@@ -317,7 +315,6 @@ public class WDLImporter implements DataElementImporter
             inputInfo.setExpression( astDeclaration.getExpression().toString() );
         inputInfo.setName( astDeclaration.getName() );
         inputInfo.setType( astDeclaration.getType() );
-        inputInfo.setAST( astDeclaration.getExpression() );
         return inputInfo;
     }
 
@@ -329,7 +326,6 @@ public class WDLImporter implements DataElementImporter
         outputInfo.setName( astDeclaration.getName() );
         outputInfo.setType( astDeclaration.getType() );
         outputInfo.setArguments( astDeclaration.getVariables() );
-        outputInfo.setAST( astDeclaration.getExpression() );
         return outputInfo;
     }
 
@@ -460,7 +456,6 @@ public class WDLImporter implements DataElementImporter
         AstExpression array = astScatter.getArrayExpression();
         result.setVariable( variable );
         ExpressionInfo expression = new ExpressionInfo();
-        expression.setAST( array );
         expression.setName( variable+"_array" );
         expression.setType("Array[Int]");
         expression.setArguments( array.getArguments() );

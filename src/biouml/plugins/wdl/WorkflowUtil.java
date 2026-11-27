@@ -30,9 +30,6 @@ import biouml.plugins.wdl.diagram.WDLConstants;
 import biouml.plugins.wdl.model.ExpressionInfo;
 import biouml.plugins.wdl.model.MetaInfo;
 import biouml.plugins.wdl.nextflow.NextFlowGenerator;
-import biouml.plugins.wdl.nextflow.WDLNextflowFormatter;
-import biouml.plugins.wdl.parser.AstExpression;
-import biouml.plugins.wdl.parser.ExpressionFormatter;
 import one.util.streamex.StreamEx;
 import ru.biosoft.access.DataCollectionUtils;
 import ru.biosoft.access.core.DataCollection;
@@ -394,39 +391,26 @@ public class WorkflowUtil
             return null;
         }
     }
-    
-    public static String parseExpression(Node n, String type)
-    {
-        ExpressionInfo info = getExpressionInfo(n);
-        if (info != null)
-        {
-            AstExpression expression = info.getAST();
-            if (expression != null)
-            {              
-                if (type.equals( "WDL" ))
-                    return new ExpressionFormatter().format( expression );
-                else 
-                    return new WDLNextflowFormatter().format(expression);
-            }
-        }
-        return null;
-    }
 
     public static String getExpression(Node n)
     {
-        try
-        {
-            return n.getAttributes().getValueAsString( WDLConstants.EXPRESSION_ATTR );
-        }
-        catch( Exception ex )
-        {
-            return "ERROR " + ex.getMessage();
-        }
+        ExpressionInfo info = getExpressionInfo( n );
+        if (info == null)
+            return null;
+        return info.getExpression();
     }
+    
     public static void setExpression(Node n, String expression)
     {
-        n.getAttributes().add( new DynamicProperty( WDLConstants.EXPRESSION_ATTR, String.class, expression ) );
+        ExpressionInfo info = getExpressionInfo( n );
+        if (info == null)
+        {
+            info = new ExpressionInfo();
+            setExpressionInfo( n, info );
+        }
+        info.setExpression( expression );
     }
+    
     public static Integer getPosition(Node n)
     {
         Object val = n.getAttributes().getValue( WDLConstants.POSITION_ATTR );
@@ -446,7 +430,7 @@ public class WorkflowUtil
 
     public static String getType(Node n)
     {
-        return n.getAttributes().getValueAsString( WDLConstants.TYPE_ATTR );
+        return  n.getAttributes().getValueAsString( WDLConstants.TYPE_ATTR );
     }
     
     public static String getDefaultValue(Node n)
@@ -546,8 +530,6 @@ public class WorkflowUtil
             setName( n, getName( from ) );
         if( getType( n ) == null )
             setType( n, getType( from ) );
-        if( getExpression( n ) == null )
-            setExpression( n, getExpression( from ) );
         if( getExpressionInfo( n ) == null )
             setExpressionInfo( n, getExpressionInfo( from ) );
     }
@@ -687,6 +669,8 @@ public class WorkflowUtil
             else
             {
                 DataCollection origin = diagram.getOrigin();
+                if (origin == null)
+                    return null;
                 try
                 {
                     diagram = (Diagram)origin.get( ref );

@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.codehaus.groovy.ast.ASTNode;
+import org.codehaus.groovy.control.CompilePhase;
 import org.json.JSONObject;
 
 import com.developmentontheedge.application.ApplicationUtils;
@@ -26,6 +28,7 @@ import biouml.plugins.wdl.diagram.DiagramGenerator;
 import biouml.plugins.wdl.diagram.WDLImporter;
 import biouml.plugins.wdl.model.ScriptInfo;
 import biouml.plugins.wdl.nextflow.NextFlowGenerator;
+import biouml.plugins.wdl.nextflow.ast.NextflowParser;
 import one.util.streamex.StreamEx;
 
 public class TestDockStore
@@ -34,23 +37,23 @@ public class TestDockStore
     private static boolean skipInvalid = true;
     private static int success = 0;
     private static int total = 0;
-    private static int limit = 60000;
+    private static int limit = 6000;
     private static int incomplete = 0;
     private static int failed = 0;
 
+    private static Set<String> invalidNextflows = new HashSet<>();
     private static Set<String> invalidDirs = new HashSet<>();
     private static String WOM_TOOL_PATH = "C:/Users/Damag/eclipse_2024_6/BioUML/src/biouml/plugins/wdl/test_examples/wdl/womtool-92.jar";
-
     private static String MINI_WDL_PATH = "wsl /home/damag/.local/bin/miniwdl check ";
 
-    //    new File( "C:/Users/Damag/wdl/dockstore/new" );
+    private static String name = null;//"GLNexus_main_9d7b30";//"RareVariantEnrichment_main_91c27d";//"colocboost_main_187086";//"DepthOfCoverageWorkflow_main_b19052";//"BamQC_2.0_0e26e1";//"Pangolin_Update_PHB_main_693d35";
     static File rootDir = new File( "C:/Users/Damag/wdl/dockstore/new3" );
 
+    private static File invalidNextflowsFile = new File( rootDir, "invalid_nextflow.txt" );
     private static File invalidFile = new File( rootDir, "invalid.txt" );
     private static File failedFile = new File( rootDir, "failed.txt" );
-    private static File inputDirs = new File( rootDir, "inputs.txt" );
+    private static File inputDirs = null;//new File( rootDir, "invalid_inputs.txt" );
     private static File errorsFile = new File( rootDir, "error.txt" );
-    //    private static String name = "workflow_github.com_afshinmessiah_gcp-ai-lung1-deep-prognosis_main_pipeline__workflow_github.com_afshinmessiah_gcp-ai-lung1-deep-prognosis_main_pipeline_afshin-branch__712e4b441c81";
     private static Map<String, FailedTests> errors = new HashMap<>();
 
 
@@ -64,7 +67,7 @@ public class TestDockStore
         errorsFile.createNewFile();
         invalidTests = new HashSet<>();
         failedFile.createNewFile();
-
+        invalidNextflowsFile.createNewFile();
         if( doValidate )
             invalidFile.createNewFile();
         else
@@ -76,12 +79,14 @@ public class TestDockStore
             dirs = ApplicationUtils.readAsList( inputDirs );
         for( String dirName : dirs )
         {
-            if( skipInvalid && invalidDirs.contains( dirName ) )
+            if (name != null && !dirName.equals( name ))
                 continue;
-
+            if( skipInvalid && invalidDirs.contains( dirName ) )
+            {
+                System.out.println( "SKIPPED AS INVALID " + dirName );
+                continue;
+            }
             File dir = new File( root, dirName );
-            //                        if (!dir.getName().equals( name ))
-            //                            continue;
             processDirectory( dir );
 
             if( total >= limit )
@@ -89,7 +94,7 @@ public class TestDockStore
         }
         File report = new File( rootDir, "report.txt" );
         report.createNewFile();
-        String content = "Success: " + success + " | Incomplete: " + incomplete + " | Failed: " + failed + " | Total: " + total;
+        String content = "Success: " + success + " | Incomplete: " + incomplete + " | Failed: " + failed + " | Invlid result: " + invalidNextflows.size()+ " | Total: " + total ;
         ApplicationUtils.writeString( report, content );
         System.out.println( content );
 
@@ -138,6 +143,17 @@ public class TestDockStore
                 }
                 bw.close();
             }
+
+//            File folder = new File( rootDir, "invalid_nextflows" );
+//            folder.mkdir();
+            bw = ApplicationUtils.utfWriter( invalidNextflowsFile );
+            for( String test : invalidNextflows )
+            {
+//                File nf = new File( test.contains( "\t" ) ? test.split( "\t" )[0] : test );
+//                ApplicationUtils.copyFile( new File( folder, nf.getName() ), nf );
+                bw.write( test + "\n" );
+            }
+            bw.close();
         }
         catch( Exception ex )
         {
@@ -156,18 +172,7 @@ public class TestDockStore
         try
         {
             JSONObject metadata = new JSONObject( Files.readString( metadataFile, StandardCharsets.UTF_8 ) );
-            //
-            //            if( !metadata.optBoolean( "complete", false ) )
-            //            {
-            //                incomplete++;
-            //                return;
-            //            }
-
-            //            if( ! ( metadata.optString( "tool_id" ).equals( "split_vcf_hom_ref_transform" ) ) )
-            //                return;
-
             String primaryWdl = metadata.getString( "primary_wdl" );
-
             Path wdlFile = dirPath.resolve( primaryWdl ).toAbsolutePath().normalize();
 
             if( !wdlFile.startsWith( dirPath ) )
@@ -176,12 +181,8 @@ public class TestDockStore
             if( !Files.isRegularFile( wdlFile ) )
                 throw new IOException( "WDL file not found: " + wdlFile );
 
-
             System.out.println( total + " Processing: " + directory );
-            //            System.out.println( "Version: " + metadata.optString( "version_name" ) );
-            //            System.out.println( "WDL: " + wdlFile );
-
-            processWdl( wdlFile );
+            processWdl( wdlFile, directory.getName() );
         }
         catch( Exception e )
         {
@@ -204,9 +205,6 @@ public class TestDockStore
             errors.computeIfAbsent( shortMessage, k -> new FailedTests( k ) ).addTest( directory.getName() );
             failed++;
         }
-
-
-
     }
 
     private static class FailedTests
@@ -233,19 +231,21 @@ public class TestDockStore
 
     private static Set<String> invalidTests = new HashSet<>();
 
-    private static void processWdl(Path wdlFile) throws Exception
+    private static void processWdl(Path wdlFile, String dir) throws Exception
     {
-        //        if (!checkVersion(wdlFile.toFile()))
-        //            return;
-
+        
+//        if (!checkVersion(wdlFile.toFile()))
+//            return;
+        
         if( doValidate )
         {
-//            String validated = TestUtil.validateWDL( wdlFile.toFile().getAbsolutePath(), WOM_TOOL_PATH );
-            String validated = TestUtil.execute( MINI_WDL_PATH + wdlFile.toFile().getAbsolutePath().replace( "\\","/" ).replace( "C:/","/mnt/c/" ));
+            //            String validated = TestUtil.validateWDL( wdlFile.toFile().getAbsolutePath(), WOM_TOOL_PATH );
+            String validated = TestUtil
+                    .execute( MINI_WDL_PATH + wdlFile.toFile().getAbsolutePath().replace( "\\", "/" ).replace( "C:/", "/mnt/c/" ) );
             if( !validated.equals( "Ok" ) && !validated.equals( "" ) )
             {
                 System.out.println( "NOT VALIDATED: " + validated );
-                invalidTests.add( wdlFile.toFile().getName() + validated);
+                invalidTests.add( dir );
                 return;
             }
         }
@@ -267,6 +267,21 @@ public class TestDockStore
         String nextflow = nextFlowGenerator.generate( diagram );
         File converted = new File( wdlFile.getParent().toFile(), name + ".nf" );
         converted.createNewFile();
+
+        if( nextflow.contains( "$rhs" ) )
+        {
+            invalidNextflows.add( dir );
+        }
+        try
+        {
+            List<ASTNode> nodes = NextflowParser.parse( nextflow, false, CompilePhase.SEMANTIC_ANALYSIS );
+        }
+        catch( Exception ex )
+        {
+            invalidNextflows.add( dir );
+            ex.printStackTrace();
+        }
+
         ApplicationUtils.writeString( converted, nextflow );
         success++;
     }
@@ -276,7 +291,7 @@ public class TestDockStore
         List<String> content = ApplicationUtils.readAsList( file );
         for( String s : content )
         {
-            if( s.equals( "version 1.0" ) || s.equals( "version 2.0" ) )
+            if( s.equals( "version 1.0" ) || s.equals( "version 1.1" ) || s.equals( "version 1.2" ))
                 return true;
         }
         return false;

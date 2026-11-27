@@ -30,7 +30,7 @@ public class NeutrophilPhenotype extends UpdatePhenotype
         double base = pCD.phenotype.motility.migrationBias;
         double max = 0.75;
         double half = pCD.custom_data.get( "migration_bias_halfmax" ); // 0.25 
-        double hill = BasicSignaling.Hill_response_function( pif, half, 1.5 );
+        double hill = BasicSignaling.hillResponse( pif, half, 1.5 );
         phenotype.motility.migrationBias = base + ( max - base ) * hill;
     }
 
