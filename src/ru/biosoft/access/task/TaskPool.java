@@ -447,6 +447,19 @@ public class TaskPool
         return accountingErrors.get();
     }
 
+    /**
+     * Pools with work right now (see {@link #busyPools}), for tests and diagnostics: a test that
+     * asserts exact thread shares must wait for this to reach 0 first — a finished test's tasks can
+     * keep their pool busy for a few milliseconds while the workers unwind.
+     */
+    public static int getBusyPoolCount()
+    {
+        synchronized( shareLock )
+        {
+            return busyPools.size();
+        }
+    }
+
     /** The current user's pool size: the user's share of threads, and one more for each of the user's waiting tasks. */
     public int getMaximumThreadsCount()
     {
