@@ -4,6 +4,7 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import ru.biosoft.access.core.DataElementPath;
+import ru.biosoft.access.sql.PersistentConnection;
 import ru.biosoft.access.sql.Query;
 import ru.biosoft.access.sql.SqlUtil;
 import ru.biosoft.util.TextUtil2;
@@ -406,11 +408,11 @@ public class SQLSecurityProvider implements SecurityProvider
         try
         {
             Connection connection = GlobalDatabaseManager.getDatabaseConnection();
-            long groupId = SqlUtil.queryLong(connection, new Query("SELECT ID FROM groups WHERE name=$group$").str(groupName), -1);
+            long groupId = SqlUtil.queryLong(connection, new Query("SELECT ID FROM `groups` WHERE name=$group$").str(groupName), -1);
             if(groupId == -1)
             {
                 try (PreparedStatement pstmt = connection
-                        .prepareStatement( "INSERT INTO groups(name, language, description) VALUES(?,?,?)" ))
+                        .prepareStatement( "INSERT INTO `groups`(name, language, description) VALUES(?,?,?)" ))
                 {
                     pstmt.setString( 1, groupName );
                     pstmt.setString( 2, "en" );
@@ -591,48 +593,95 @@ public class SQLSecurityProvider implements SecurityProvider
     }
 
     @Override
+    public ProjectGroupStatus getProjectGroupStatus(String groupName) throws SQLException
+    {
+        return findProjectGroupId( GlobalDatabaseManager.getDatabaseConnection(), groupName, false ) == null
+                ? ProjectGroupStatus.ABSENT : ProjectGroupStatus.PRESENT;
+    }
+
+    private String findProjectGroupId(Connection connection, String groupName, boolean lock) throws SQLException
+    {
+        String sql = "SELECT ID FROM `groups` WHERE name=?" + ( lock ? " FOR UPDATE" : "" );
+        try( PreparedStatement statement = connection.prepareStatement( sql ) )
+        {
+            statement.setString( 1, groupName );
+            try( ResultSet rows = statement.executeQuery() )
+            {
+                return rows.next() ? rows.getString( 1 ) : null;
+            }
+        }
+    }
+
+    private boolean isProjectGroupAdministrator(Connection connection, String groupId, String username) throws SQLException
+    {
+        try( PreparedStatement statement = connection.prepareStatement( "SELECT role FROM user_groups WHERE `user`=? AND groupID=?" ) )
+        {
+            statement.setString( 1, username );
+            statement.setString( 2, groupId );
+            try( ResultSet rows = statement.executeQuery() )
+            {
+                while( rows.next() )
+                {
+                    if( "Administrator".equals( rows.getString( 1 ) ) )
+                        return true;
+                }
+                return false;
+            }
+        }
+    }
+
+    @Override
     public boolean removeProject(String groupName, String username, String password, String jwToken)
     {
-        boolean result = false;
         try
         {
-            Connection connection = GlobalDatabaseManager.getDatabaseConnection();
-            String groupID = SqlUtil.queryString( connection, new Query( "SELECT ID FROM groups WHERE name=$group$" ).str( groupName ) );
-            if( groupID == null )
-                return false;
-
-            List<String> userRoles = SqlUtil.queryStrings( connection,
-                    new Query( "SELECT role FROM user_groups WHERE user=$user$ AND groupID=$groupID$" ).str( username ).str( groupID ) );
-            if( !userRoles.contains( "Administrator" ) )
+            PersistentConnection pooled = (PersistentConnection)GlobalDatabaseManager.getDatabaseConnection();
+            // A dedicated connection cannot reconnect and retry an individual statement inside the transaction.
+            try( Connection connection = pooled.cloneConnection() )
             {
-                //user is not admin, just remove him/her from group
-                try (PreparedStatement pstmt = connection.prepareStatement( "DELETE FROM user_groups WHERE user=? AND groupID=?" ))
+                connection.setAutoCommit( false );
+                try
                 {
-                    pstmt.setString( 1, username );
-                    pstmt.setString( 2, groupID );
-                    pstmt.executeUpdate();
+                    String groupId = findProjectGroupId( connection, groupName, true );
+                    if( groupId != null )
+                    {
+                        if( isProjectGroupAdministrator( connection, groupId, username ) )
+                        {
+                            SqlUtil.execute( connection, new Query( "DELETE FROM user_groups WHERE groupID=$group$" ).str( groupId ) );
+                            SqlUtil.execute( connection, new Query( "DELETE FROM group_permissions WHERE groupID=$group$" ).str( groupId ) );
+                            SqlUtil.execute( connection, new Query( "DELETE FROM `groups` WHERE ID=$group$" ).str( groupId ) );
+                        }
+                        else
+                        {
+                            try( PreparedStatement statement = connection.prepareStatement( "DELETE FROM user_groups WHERE `user`=? AND groupID=?" ) )
+                            {
+                                statement.setString( 1, username );
+                                statement.setString( 2, groupId );
+                                statement.executeUpdate();
+                            }
+                        }
+                    }
+                    connection.commit();
+                    return true;
+                }
+                catch( Exception e )
+                {
+                    try
+                    {
+                        connection.rollback();
+                    }
+                    catch( SQLException rollbackError )
+                    {
+                        e.addSuppressed( rollbackError );
+                    }
+                    throw e;
                 }
             }
-            else
-            {
-                //user is admin, remove group
-                try (PreparedStatement pstmt = connection.prepareStatement( "DELETE FROM user_groups WHERE groupID=?" ))
-                {
-                    pstmt.setString( 1, groupID );
-                    pstmt.executeUpdate();
-                }
-                try (PreparedStatement pstmt = connection.prepareStatement( "DELETE FROM group_permissions WHERE groupID=?" ))
-                {
-                    pstmt.setString( 1, groupID );
-                    pstmt.executeUpdate();
-                }
-            }
-            result = true;
         }
         catch( Exception e )
         {
             log.log( Level.SEVERE, "Cannot remove group:", e );
+            return false;
         }
-        return result;
     }
 }

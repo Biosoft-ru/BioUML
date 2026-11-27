@@ -683,6 +683,45 @@ public class SecurityManager
         }
     }
 
+    /**
+     * Add a permission to all sessions of the given user. Use after granting a user new permissions
+     * when the change must be visible to the user's other sessions (e.g. a web UI session) without
+     * them logging in again.
+     * @param user the user name
+     * @param path the path to grant permission for
+     * @param permission the permission to grant
+     */
+    public static void addUserPermission(String user, String path, Permission permission)
+    {
+        if( user == null || user.isEmpty() || path == null || permission == null )
+            return;
+        sessionToPermission.forEach( (session, permissions) -> {
+            if( user.equalsIgnoreCase( permissions.getUser() ) )
+                permissions.getDbToPermission().put( path, permission );
+        } );
+    }
+
+    /** Resolve root ADMIN from the authenticated session, excluding internal privilege overrides. */
+    public static Permission getSessionAdministratorPermission()
+    {
+        String session = getSession();
+        UserPermissions user = sessionToPermission.get( session );
+        if( SYSTEM_SESSION.equals( session ) || securityProvider == null || user == null || user.isExpired() || user.isDead()
+                || user.getUser() == null || user.getUser().isEmpty() )
+            return null;
+        try
+        {
+            Permission root = getUserPermission( session, "/", false );
+            return root != null && root.isAdminAllowed() && user == sessionToPermission.get( session ) && !user.isDead()
+                    ? root : null;
+        }
+        catch( RuntimeException e )
+        {
+            log.log( Level.WARNING, "Cannot check administrator permission for the current session", e );
+            return null;
+        }
+    }
+
     public static boolean isNode()
     {
         String sessionId = threadToSession.get(Thread.currentThread());
