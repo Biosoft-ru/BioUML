@@ -111,12 +111,8 @@ public class RemoteSecurityProvider implements SecurityProvider
                 if( response.get(ATTR_MESSAGE) != null )
                 {
                     String msg = response.get(ATTR_MESSAGE).asString();
-                    String unameStr = username;
-                    if( msg.indexOf( "Incorrect email or password" ) >= 0 )
-                    {
-                        unameStr += "/" + password;
-                    } 
-                    log.log( Level.SEVERE, "While authorizing " + unameStr + " ("+remoteAddress+"): " + msg );
+                    // Never log the password, even on failed logins.
+                    log.log( Level.SEVERE, "While authorizing " + username + " ("+remoteAddress+"): " + msg );
                     throw new SecurityException( msg );
                 } 
                 else
