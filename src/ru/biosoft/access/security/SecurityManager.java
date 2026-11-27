@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -373,6 +374,47 @@ public class SecurityManager
             log.log( Level.WARNING, "Cannot reload permissions for " + current.getUser(), e );
             return false;
         }
+    }
+
+    /**
+     * Re-authorize every session of the given user with the stored credentials and refresh its permissions
+     * in place. Use after granting the user new permissions (e.g. a new project group) so that all of the
+     * user's sessions (e.g. a web UI session open in parallel with an MCP session) see the change without
+     * logging in again — and keep seeing it after any temporarily injected permission expires, because the
+     * refreshed permissions come from the security provider with the normal long expiration.
+     * @param user the user name
+     * @return the number of distinct permission sets reloaded
+     */
+    public static int reloadUserPermissions(String user)
+    {
+        if( user == null || user.isEmpty() || securityProvider == null )
+            return 0;
+        int reloaded = 0;
+        // Aliased sessions can share the same UserPermissions instance; refresh each instance once.
+        Set<UserPermissions> seen = Collections.newSetFromMap( new IdentityHashMap<>() );
+        for( Map.Entry<String, UserPermissions> entry : sessionToPermission.entrySet() )
+        {
+            UserPermissions ps = entry.getValue();
+            if( !user.equalsIgnoreCase( ps.getUser() ) || !seen.add( ps ) )
+                continue;
+            try
+            {
+                UserPermissions fresh = securityProvider.reauthorize( ps );
+                if( fresh == null )
+                    continue;
+                ps.refreshFrom( fresh );
+                reloaded++;
+                sessionToPermission.forEach( (s, permissions) -> {
+                    if( permissions == ps )
+                        clearAdministratorScriptScope( s );
+                } );
+            }
+            catch( Exception e )
+            {
+                log.log( Level.WARNING, "Cannot reload permissions for " + user, e );
+            }
+        }
+        return reloaded;
     }
 
     /**
