@@ -780,6 +780,27 @@ public class SecurityManager
         }
     }
 
+    /** Resolve root ADMIN from the authenticated session, excluding internal privilege overrides. */
+    public static Permission getSessionAdministratorPermission()
+    {
+        String session = getSession();
+        UserPermissions user = sessionToPermission.get( session );
+        if( SYSTEM_SESSION.equals( session ) || securityProvider == null || user == null || user.isExpired() || user.isDead()
+                || user.getUser() == null || user.getUser().isEmpty() )
+            return null;
+        try
+        {
+            Permission root = getUserPermission( session, "/", false );
+            return root != null && root.isAdminAllowed() && user == sessionToPermission.get( session ) && !user.isDead()
+                    ? root : null;
+        }
+        catch( RuntimeException e )
+        {
+            log.log( Level.WARNING, "Cannot check administrator permission for the current session", e );
+            return null;
+        }
+    }
+
     public static boolean isNode()
     {
         String sessionId = threadToSession.get(Thread.currentThread());
