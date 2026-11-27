@@ -156,6 +156,11 @@ Stack traces typically show fully-qualified class names — map them to file pat
 
 ### Step 4: Implement Improvements
 
+For recurring MySQL quota lookups, Lucene result commits, or TFBS normalization
+stacks, consult [Prior results for recurring wall-clock hot spots](references/profile_analysis.md#prior-results-for-recurring-wall-clock-hot-spots)
+before proposing a change. Revisit an approach when a new measurement addresses
+the limitation recorded there.
+
 When optimizing, follow these patterns (in order of impact):
 
 1. **Eliminate per-step allocations** — reuse objects in loops (e.g., pre-allocated buffers, object pools)
