@@ -19,7 +19,6 @@ import ru.biosoft.access.generic.GenericDataCollection;
 import ru.biosoft.access.security.Permission;
 import ru.biosoft.access.security.SecurityAdminUtils;
 import ru.biosoft.access.security.SecurityManager;
-import ru.biosoft.access.security.UserPermissions;
 import ru.biosoft.server.servlets.support.SupportServlet;
 
 /**
@@ -197,20 +196,7 @@ public final class McpProjectSupport
 			{
 				return McpEnvelope.error( McpConstants.CODE_INTERNAL, "cannot create project group: " + e.getMessage() );
 			}
-			// Re-authorize all sessions of this user against the security provider so a web UI session
-			// sees the project after a refresh without a re-login. Do NOT inject a short-lived in-memory
-			// permission instead: when it expired, re-authorization fell back to the session's login-time
-			// snapshot (which lacks the new project) and the resulting "no permissions" was then cached
-			// for a year, locking the web session out of the project until re-login.
-			if ( SecurityManager.reloadUserPermissions( user ) == 0 )
-			{
-				// The provider could not re-authorize any session (e.g. no stored credentials): fall back
-				// to a temporary in-memory grant so the sessions at least see the project for a while.
-				Permission projectPermission = new Permission( PROJECT_GROUP_PERMISSION, user, SecurityManager.getSession(),
-						System.currentTimeMillis() + UserPermissions.TIMEOUT );
-				SecurityManager.addUserPermission( user, projectPath.toString(), projectPermission );
-			}
-			SecurityManager.invalidatePermissions( projectPath.toString() );
+			grantProjectToUserSessions( user, projectPath );
 			List<String> errors = new ArrayList<String>();
 			try
 			{
@@ -232,6 +218,24 @@ public final class McpProjectSupport
 		{
 			return McpEnvelope.error( McpConstants.CODE_INTERNAL, "cannot create project: " + e.getMessage() );
 		}
+	}
+
+	/**
+	 * Grant the new project's permission to all sessions of the user, so a parallel web UI session sees
+	 * the project after a refresh without a re-login. The grant is already persistent in the security
+	 * provider (the project group created above), so it is mirrored in memory with the same long
+	 * expiration the provider snapshot gets. Do NOT use a short-lived permission here: when it expires,
+	 * re-authorization falls back to each session's login-time snapshot, which lacks the new project,
+	 * and the resulting "no permissions" is cached for a year — locking web sessions out of the project
+	 * until re-login. No re-authorization is attempted either: it can fail per session (expired token,
+	 * changed password, sudo login) and would stall project creation on BioStore round-trips. The empty
+	 * session id lets every session adopt its own (see {@code SecurityManager.getUserPermission}).
+	 */
+	public static void grantProjectToUserSessions( String user, DataElementPath projectPath )
+	{
+		Permission projectPermission = new Permission( PROJECT_GROUP_PERMISSION, user, "",
+				System.currentTimeMillis() + SecurityManager.timeLimit );
+		SecurityManager.addUserPermission( user, projectPath.toString(), projectPermission );
 	}
 
 	/**
