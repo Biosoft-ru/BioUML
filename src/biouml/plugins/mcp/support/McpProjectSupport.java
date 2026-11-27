@@ -227,15 +227,19 @@ public final class McpProjectSupport
 	 * expiration the provider snapshot gets. Do NOT use a short-lived permission here: when it expires,
 	 * re-authorization falls back to each session's login-time snapshot, which lacks the new project,
 	 * and the resulting "no permissions" is cached for a year — locking web sessions out of the project
-	 * until re-login. No re-authorization is attempted either: it can fail per session (expired token,
+	 * until re-login. No provider re-login is attempted either: it can fail per session (expired token,
 	 * changed password, sudo login) and would stall project creation on BioStore round-trips. The empty
 	 * session id lets every session adopt its own (see {@code SecurityManager.getUserPermission}).
+	 * After the mirror, the path is re-resolved in every session from its own snapshot, so the injected
+	 * entry does not shadow wider rights the session already has (a server admin's "/" permission must
+	 * still yield full access to the project).
 	 */
 	public static void grantProjectToUserSessions( String user, DataElementPath projectPath )
 	{
 		Permission projectPermission = new Permission( PROJECT_GROUP_PERMISSION, user, "",
 				System.currentTimeMillis() + SecurityManager.timeLimit );
 		SecurityManager.addUserPermission( user, projectPath.toString(), projectPermission );
+		SecurityManager.invalidatePermissionsForUser( user, projectPath.toString() );
 	}
 
 	/**

@@ -57,6 +57,8 @@ public class SecurityManagerProjectGrantTest extends AbstractBioUMLTest
     {
         /** Paths granted "in the security database"; mutable so the test can grant a project later. */
         static final Set<String> grantedPaths = ConcurrentHashMap.newKeySet();
+        /** Users with server-wide admin rights (their snapshot gets a "/" ADMIN entry at login). */
+        static final Set<String> admins = ConcurrentHashMap.newKeySet();
 
         @Override
         public void init(Properties properties)
@@ -69,6 +71,9 @@ public class SecurityManagerProjectGrantTest extends AbstractBioUMLTest
         {
             UserPermissions result = new UserPermissions( username, password );
             long expiration = System.currentTimeMillis() + 365L * 24 * 3600 * 1000;
+            if( admins.contains( username ) )
+                result.getDbToPermission().put( "/",
+                        new Permission( Permission.ADMIN, username, "", expiration ) );
             for( String path : grantedPaths )
             {
                 if( path.startsWith( "users/" + username + "/" ) )
@@ -81,7 +86,11 @@ public class SecurityManagerProjectGrantTest extends AbstractBioUMLTest
         @Override
         public int getPermissions(String dataCollectionName, UserPermissions userInfo)
         {
-            // Snapshot-only lookup, exactly like RemoteSecurityProvider.getPermissions.
+            // Snapshot-only lookup, exactly like RemoteSecurityProvider.getPermissions: a "/" ADMIN
+            // entry escalates everything to ALL before any exact-path entry is consulted.
+            Permission root = userInfo.getDbToPermission().get( "/" );
+            if( root != null && ( root.getPermissions() & Permission.ADMIN ) != 0 )
+                return Permission.ALL;
             Permission permission = userInfo.getDbToPermission().get( dataCollectionName );
             return permission == null ? 0 : permission.getPermissions();
         }
@@ -175,6 +184,7 @@ public class SecurityManagerProjectGrantTest extends AbstractBioUMLTest
     {
         super.setUp();
         SnapshotSecurityProvider.grantedPaths.clear();
+        SnapshotSecurityProvider.admins.clear();
         Properties properties = new Properties();
         properties.put( SecurityManager.PROVIDER_CLASS_PROPERTY, SnapshotSecurityProvider.class.getName() );
         SecurityManager.initSecurityManager( properties );
@@ -236,6 +246,7 @@ public class SecurityManagerProjectGrantTest extends AbstractBioUMLTest
         switchTo( "grant-web-1" );
         Permission webPermission = SecurityManager.getPermissions( project );
         assertTrue( "grant must heal a session with a cached denial", webPermission.isWriteAllowed() );
+        assertFalse( "a plain user's grant must not include admin", webPermission.isAdminAllowed() );
 
         // Nothing expires an hour later...
         assertTrue( "grant must outlive the one-hour injection window",
@@ -316,5 +327,34 @@ public class SecurityManagerProjectGrantTest extends AbstractBioUMLTest
         assertTrue( SecurityManager.getPermissions( project ).isWriteAllowed() );
         switchTo( "grant-alias-2" );
         assertTrue( "aliased session must see the grant", SecurityManager.getPermissions( project ).isWriteAllowed() );
+    }
+
+    /**
+     * A server admin's sessions must keep full access to the new project: the injected non-admin
+     * grant must not shadow the "/" ADMIN entry their snapshot holds. Re-resolving the path per
+     * session ({@code invalidatePermissionsForUser}, as the fixed grant does after
+     * {@code addUserPermission}) lets the provider escalate admins back to ALL.
+     */
+    public void testAdminKeepsAdminRightsAfterGrant() throws Exception
+    {
+        String admin = "grantAdmin5";
+        String project = projectPath( admin );
+        SnapshotSecurityProvider.admins.add( admin );
+
+        login( "grant-admin-web", admin );
+        login( "grant-admin-mcp", admin );
+        SnapshotSecurityProvider.grantedPaths.add( project );
+
+        // The production grant sequence: mirror, then re-resolve per session.
+        SecurityManager.addUserPermission( admin, project, longLivedGrant( admin ) );
+        SecurityManager.invalidatePermissionsForUser( admin, project );
+
+        assertTrue( "admin session must keep admin rights on the new project",
+                SecurityManager.getPermissions( project ).isAdminAllowed() );
+        switchTo( "grant-admin-web" );
+        Permission webPermission = SecurityManager.getPermissions( project );
+        assertTrue( "admin's other session must keep admin rights on the new project",
+                webPermission.isAdminAllowed() );
+        assertTrue( webPermission.isWriteAllowed() );
     }
 }

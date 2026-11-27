@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -395,6 +396,31 @@ public class SecurityManager
                     clearAdministratorScriptScope( session );
             }
         } );
+    }
+
+    /**
+     * Re-resolve the permission for a path in every session of the given user, from each session's
+     * own permission snapshot (the multi-session version of {@link #invalidatePermissions(String)}).
+     * Use after {@link #addUserPermission} when the injected permission must not shadow wider rights
+     * a session already has — e.g. a server admin's "/" permission, which the provider escalates to
+     * full access during authorization, while the exact-path cache entry would be returned as is.
+     * @param user the user name
+     * @param path the path to re-resolve
+     */
+    public static void invalidatePermissionsForUser(String user, String path)
+    {
+        if( user == null || user.isEmpty() || path == null || securityProvider == null )
+            return;
+        // Aliased sessions can share the same UserPermissions instance; re-resolve once per instance.
+        Set<UserPermissions> seen = Collections.newSetFromMap( new IdentityHashMap<>() );
+        for( Map.Entry<String, UserPermissions> entry : sessionToPermission.entrySet() )
+        {
+            UserPermissions ps = entry.getValue();
+            if( !user.equalsIgnoreCase( ps.getUser() ) || !seen.add( ps ) )
+                continue;
+            Permission permission = authorize( path, ps, entry.getKey() );
+            ps.getDbToPermission().put( path, permission );
+        }
     }
 
     public static Permission commonLoginViaOtherSession(

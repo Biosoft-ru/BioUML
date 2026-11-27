@@ -32,6 +32,8 @@ public class McpProjectGrantTest extends AbstractBioUMLTest
     public static class FailableSnapshotSecurityProvider implements SecurityProvider
     {
         static final Set<String> grantedPaths = ConcurrentHashMap.newKeySet();
+        /** Users with server-wide admin rights (their snapshot gets a "/" ADMIN entry at login). */
+        static final Set<String> admins = ConcurrentHashMap.newKeySet();
         /** When true, any (re-)authorization fails, like BioStore rejecting a stale credential. */
         static volatile boolean failAuthorization = false;
         /** Counts authorization attempts after the flag is set — must stay 0 during the grant. */
@@ -53,6 +55,9 @@ public class McpProjectGrantTest extends AbstractBioUMLTest
             }
             UserPermissions result = new UserPermissions( username, password );
             long expiration = System.currentTimeMillis() + 365L * 24 * 3600 * 1000;
+            if( admins.contains( username ) )
+                result.getDbToPermission().put( "/",
+                        new Permission( Permission.ADMIN, username, "", expiration ) );
             for( String path : grantedPaths )
             {
                 if( path.startsWith( "users/" + username + "/" ) )
@@ -66,6 +71,11 @@ public class McpProjectGrantTest extends AbstractBioUMLTest
         @Override
         public int getPermissions(String dataCollectionName, UserPermissions userInfo)
         {
+            // Snapshot-only lookup, exactly like RemoteSecurityProvider.getPermissions: a "/" ADMIN
+            // entry escalates everything to ALL before any exact-path entry is consulted.
+            Permission root = userInfo.getDbToPermission().get( "/" );
+            if( root != null && ( root.getPermissions() & Permission.ADMIN ) != 0 )
+                return Permission.ALL;
             Permission permission = userInfo.getDbToPermission().get( dataCollectionName );
             return permission == null ? 0 : permission.getPermissions();
         }
@@ -159,6 +169,7 @@ public class McpProjectGrantTest extends AbstractBioUMLTest
     {
         super.setUp();
         FailableSnapshotSecurityProvider.grantedPaths.clear();
+        FailableSnapshotSecurityProvider.admins.clear();
         FailableSnapshotSecurityProvider.failAuthorization = false;
         FailableSnapshotSecurityProvider.authorizationsWhileFailing = 0;
         Properties properties = new Properties();
@@ -232,10 +243,11 @@ public class McpProjectGrantTest extends AbstractBioUMLTest
     }
 
     /**
-     * Deleting and recreating a project under the same name must leave the sessions with a working
-     * grant for the (same) path — the injected permission is path-based and idempotent.
+     * Applying the grant twice (e.g. a project deleted and recreated under the same name re-runs
+     * the same path grant) is idempotent and keeps the long expiration. Note: this exercises the
+     * grant helper, not a full delete + create cycle through {@code create()}.
      */
-    public void testGrantIsIdempotentForRecreatedProject() throws Exception
+    public void testGrantIsIdempotent() throws Exception
     {
         String user = "mcpGrantUser2";
         DataElementPath project = DataElementPath.create( "users", user, "Projects", "ReProject" );
@@ -245,7 +257,6 @@ public class McpProjectGrantTest extends AbstractBioUMLTest
 
         FailableSnapshotSecurityProvider.grantedPaths.add( project.toString() );
         McpProjectSupport.grantProjectToUserSessions( user, project );
-        // Recreate: same path granted again (as after a delete + create with the same name).
         McpProjectSupport.grantProjectToUserSessions( user, project );
 
         assertTrue( SecurityManager.getPermissions( project.toString() ).isWriteAllowed() );
@@ -253,5 +264,31 @@ public class McpProjectGrantTest extends AbstractBioUMLTest
         Permission webPermission = SecurityManager.getPermissions( project.toString() );
         assertTrue( webPermission.isWriteAllowed() );
         assertTrue( webPermission.getExpirationTime() > System.currentTimeMillis() + UserPermissions.TIMEOUT );
+    }
+
+    /**
+     * A server admin creating a project through MCP must keep full (admin) access to it in every
+     * session: the mirrored non-admin grant must not shadow the "/" ADMIN entry in their snapshot.
+     */
+    public void testAdminKeepsAdminRightsOnCreatedProject() throws Exception
+    {
+        String admin = "mcpGrantAdmin3";
+        DataElementPath project = DataElementPath.create( "users", admin, "Projects", "AdminProject" );
+        FailableSnapshotSecurityProvider.admins.add( admin );
+
+        login( "mcp-grant-admin-web", admin );
+        login( "mcp-grant-admin-mcp", admin );
+        FailableSnapshotSecurityProvider.grantedPaths.add( project.toString() );
+
+        McpProjectSupport.grantProjectToUserSessions( admin, project );
+
+        Permission mcpPermission = SecurityManager.getPermissions( project.toString() );
+        assertTrue( "admin's MCP session must keep admin rights on the new project",
+                mcpPermission.isAdminAllowed() );
+        switchTo( "mcp-grant-admin-web" );
+        Permission webPermission = SecurityManager.getPermissions( project.toString() );
+        assertTrue( "admin's web session must keep admin rights on the new project",
+                webPermission.isAdminAllowed() );
+        assertTrue( webPermission.isWriteAllowed() );
     }
 }
