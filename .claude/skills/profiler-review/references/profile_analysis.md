@@ -109,6 +109,35 @@ Look for:
 - Lazy-initialize plugin resources
 - Use weak references for optional dependencies
 
+## Prior results for recurring wall-clock hot spots
+
+- **MySQL quota accounting (`SqlUtil.getInnoDBTableSize`).** On StrangeServer,
+  2,473 of 2,476 size-lookup samples were MySQL socket reads. Keep the
+  `ALLOCATED_SIZE` lookup and the existing fallback behavior. Benchmarks on
+  MySQL 5.7.44 and 8.0.46 found that both `INFORMATION_SCHEMA.TABLES` size
+  estimates and `INFORMATION_SCHEMA.FILES` extent products can differ from
+  the current quota byte count. Selecting the supported tablespace view
+  in advance preserved all 20 fixture results and every timed lookup.
+  At 512 added tables on 5.7 it saved 0.057 ms per lookup
+  (1.266 → 1.209 ms, eight of nine paired rounds). MySQL 8 already tries
+  the correct view first and showed no consistent gain. Replacing
+  `NAME=CONCAT(...)` with a full-name literal added no consistent gain.
+  A repeat of this stack alone is insufficient to reopen those changes.
+  A new proposal should preserve byte counts and show an improvement on
+  a representative catalog or in end-to-end result saves.
+- **Lucene result saves (`IndexWriter.close`).** The batching API from
+  PR #96 is deployed on StrangeServer and applies on the writer thread
+  when the caller opens a scope. Ordinary saves can still commit
+  individually. Evaluate batching at the relevant caller and measure
+  result visibility and save time before changing the scope.
+- **Enriched TFBS normalization (`EnrichedTFBSFinderTx.normalizeScore`).**
+  Reusing one SQLite `getYparams` lookup for the two cutoffs matched all
+  6,144 outputs bitwise in a fixed synthetic fixture. Local JMH showed
+  10–13% lower normalization time with one worker when at least half
+  of the matrices needed both cutoffs. Eight-worker estimates had
+  overlapping intervals. Validate with representative inputs and
+  concurrency before claiming a workflow speedup.
+
 ## Optimization Decision Tree
 
 ```
