@@ -41,6 +41,8 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
     protected volatile Map<String, T> nameToExtension;
     private volatile boolean initialized = false;
     private volatile boolean initializing = false;
+    /** Whether the extensions were loaded while the extension point was available; until then, accesses retry the load. */
+    private volatile boolean extensionsLoaded = false;
 
     /**
      * @param extensionPointId - id of extension point like "ru.biosoft.access.import"
@@ -96,34 +98,43 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
                 {
                     if(initializing)
                         throw new InitializationException("Concurrent initialization of extension point "+extensionPointId);
-                    // The platform extension registry can appear after this object was created: in
-                    // tests it is installed by the test harness, and a class touched before that
-                    // (e.g. by a plain TestCase running first) must not freeze the registry empty
-                    // for the whole JVM. Serve an empty list for now and retry on the next access.
-                    if(!isExtensionPointAvailable())
-                    {
-                        if(extensions == null)
-                        {
-                            extensions = Collections.emptyList();
-                            nameToExtension = Collections.emptyMap();
-                            new ExtensionInitException(extensionPointId).log();
-                        }
-                        return;
-                    }
                     initializing = true;
                     try
                     {
-                        loadExtensions();
+                        loadExtensions(false);
                         postInit();
-                        initialized = true;
                     }
                     finally
                     {
                         initializing = false;
+                        initialized = true;
+                        extensionsLoaded = isExtensionPointAvailable();
                     }
                 }
             }
         }
+        else if(!extensionsLoaded && isExtensionPointAvailable())
+        {
+            // The extension point appeared only after an early initialization without it: in tests
+            // the platform registry is installed by the test harness, and a class touched before
+            // that must not freeze the registry empty for the whole JVM. Load the extensions now,
+            // keeping dynamically registered entries; postInit has already run and is not repeated.
+            synchronized(this)
+            {
+                if(!extensionsLoaded && isExtensionPointAvailable())
+                {
+                    loadExtensions(true);
+                    extensionsLoaded = true;
+                }
+            }
+        }
+    }
+
+    /** Whether the platform extension registry and this extension point are present right now. */
+    public final boolean isExtensionPointAvailable()
+    {
+        IExtensionRegistry extensionRegistry = Application.getExtensionRegistry();
+        return extensionRegistry != null && extensionRegistry.getExtensionPoint(extensionPointId) != null;
     }
 
     /**
@@ -210,14 +221,7 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
         return clazz;
     }
 
-    /** Whether the platform extension registry and this extension point are present right now. */
-    private boolean isExtensionPointAvailable()
-    {
-        IExtensionRegistry extensionRegistry = Application.getExtensionRegistry();
-        return extensionRegistry != null && extensionRegistry.getExtensionPoint(extensionPointId) != null;
-    }
-
-    private void loadExtensions()
+    private void loadExtensions(boolean merge)
     {
         List<T> extensions = new ArrayList<>();
         Map<String, T> nameToExtension = new HashMap<>();
@@ -297,8 +301,25 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
                 log.config(debugInfo.toString());
             }
         }
-        this.extensions = extensions;
-        this.nameToExtension = nameToExtension;
+        if( merge && this.extensions != null && this.nameToExtension != null )
+        {
+            // Keep entries registered dynamically (e.g. hubs added from data collections) and add
+            // the loaded extensions after them; an existing entry with the same name wins.
+            List<T> merged = new ArrayList<>( this.extensions );
+            Map<String, T> mergedByName = new HashMap<>( this.nameToExtension );
+            for(Map.Entry<String, T> entry : nameToExtension.entrySet())
+            {
+                if( mergedByName.putIfAbsent( entry.getKey(), entry.getValue() ) == null )
+                    merged.add( entry.getValue() );
+            }
+            this.extensions = merged;
+            this.nameToExtension = mergedByName;
+        }
+        else
+        {
+            this.extensions = extensions;
+            this.nameToExtension = nameToExtension;
+        }
     }
 
     public StreamEx<T> stream()

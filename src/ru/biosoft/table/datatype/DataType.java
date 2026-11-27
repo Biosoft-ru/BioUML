@@ -208,23 +208,35 @@ public abstract class DataType
         syncExtensions();
     }
 
+    /** Set once a sync ran with the extension point available; misses stop re-syncing then. */
+    private static volatile boolean extensionsSynced = false;
+
     /**
      * Pull the types contributed through the {@code ru.biosoft.table.dataType} extension point.
      * The platform extension registry can appear after this class was initialized — in tests it is
      * installed by the test harness, and this class may be touched earlier by a plain unit test —
      * so lookups re-sync on a miss instead of degrading unknown types to {@link #Text} for the
-     * whole JVM.
+     * whole JVM. After one sync with the extension point available, misses no longer re-sync.
      */
-    private static synchronized void syncExtensions()
+    private static void syncExtensions()
     {
+        if(extensionsSynced)
+            return;
+        syncExtensionsLocked();
+    }
+
+    private static synchronized void syncExtensionsLocked()
+    {
+        if(extensionsSynced)
+            return;
+        // Unconditional puts: the two maps can be out of sync (a name present while its class
+        // mapping is missing), and a name-based guard would then skip restoring the class mapping.
         for(DataType type : DATA_TYPE_REGISTRY.stream())
         {
-            if(registry.get( type.name() ) != type)
-            {
-                registry.put( type.name(), type );
-                classMap.put( type.getType(), type );
-            }
+            registry.put( type.name(), type );
+            classMap.put( type.getType(), type );
         }
+        extensionsSynced = DATA_TYPE_REGISTRY.isExtensionPointAvailable();
     }
 
     public static DataType fromClass(Class<?> type)
