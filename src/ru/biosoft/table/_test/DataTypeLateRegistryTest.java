@@ -276,6 +276,47 @@ public class DataTypeLateRegistryTest extends AbstractBioUMLTest
     }
 
     /**
+     * A failing extensionsChanged hook propagates once and is not retried on later accesses,
+     * matching the postInit semantics.
+     */
+    public void testFailingExtensionsChangedIsNotRetried()
+    {
+        IExtensionRegistry real = Application.getExtensionRegistry();
+        int[] hookCalls = new int[1];
+        ObjectExtensionRegistry<DataType> probe = new ObjectExtensionRegistry<DataType>( "ru.biosoft.table.dataType", DataType.class )
+        {
+            boolean fail = true;
+
+            @Override
+            protected void extensionsChanged()
+            {
+                hookCalls[0]++;
+                if( fail )
+                    throw new IllegalStateException( "hook failed" );
+            }
+        };
+        try
+        {
+            Application.setExtensionRegistry( null );
+            assertFalse( probe.iterator().hasNext() );
+        }
+        finally
+        {
+            Application.setExtensionRegistry( real );
+        }
+        try
+        {
+            probe.iterator();
+            fail( "the failing hook must propagate" );
+        }
+        catch( IllegalStateException expected )
+        {
+        }
+        assertTrue( "the load itself must not be repeated", hasSetType( probe.iterator() ) );
+        assertEquals( "the hook must not be retried", 1, hookCalls[0] );
+    }
+
+    /**
      * A DataType lookup that misses because the snapshot ran before the extension registry was
      * installed must re-sync and find the extension type, not degrade to Text for the whole JVM.
      * Simulated by removing the Set type from the maps and clearing the synced flag, as after an

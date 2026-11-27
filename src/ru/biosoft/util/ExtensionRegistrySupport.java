@@ -134,8 +134,17 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
                     {
                         if(loadExtensions(true))
                         {
-                            extensionsChanged();
-                            extensionsLoaded = true;
+                            try
+                            {
+                                extensionsChanged();
+                            }
+                            finally
+                            {
+                                // The load happened whatever the hook did: a failing hook
+                                // propagates once and is not retried, as with postInit. The flag
+                                // is set after the hook, so readers never see an unsorted list.
+                                extensionsLoaded = true;
+                            }
                         }
                     }
                     finally
@@ -347,26 +356,18 @@ public abstract class ExtensionRegistrySupport<T> implements Iterable<T>
         if( merge && this.extensions != null && this.nameToExtension != null )
         {
             // Keep entries registered dynamically (e.g. hubs added from data collections) and add
-            // the loaded extensions after them; an existing entry with the same name wins. Dynamic
-            // writers do not take this registry's monitor, so retry if the collections change
-            // while the merged copies are built.
-            List<T> merged;
-            Map<String, T> mergedByName;
-            List<T> currentExtensions;
-            Map<String, T> currentByName;
-            do
+            // the loaded extensions after them; an existing entry with the same name wins.
+            // Known limitation: dynamic writers (BioHubRegistry) mutate the collections in place
+            // without this registry's monitor, so a write racing this copy-and-replace can be
+            // lost. The merge only ever runs when the extension point appears after the first
+            // initialization - a test-environment situation - so the overlap is not expected.
+            List<T> merged = new ArrayList<>( this.extensions );
+            Map<String, T> mergedByName = new HashMap<>( this.nameToExtension );
+            for(Map.Entry<String, T> entry : loadedByName.entrySet())
             {
-                currentExtensions = this.extensions;
-                currentByName = this.nameToExtension;
-                merged = new ArrayList<>( currentExtensions );
-                mergedByName = new HashMap<>( currentByName );
-                for(Map.Entry<String, T> entry : loadedByName.entrySet())
-                {
-                    if( mergedByName.putIfAbsent( entry.getKey(), entry.getValue() ) == null )
-                        merged.add( entry.getValue() );
-                }
+                if( mergedByName.putIfAbsent( entry.getKey(), entry.getValue() ) == null )
+                    merged.add( entry.getValue() );
             }
-            while( this.extensions != currentExtensions || this.nameToExtension != currentByName );
             this.extensions = merged;
             this.nameToExtension = mergedByName;
         }
