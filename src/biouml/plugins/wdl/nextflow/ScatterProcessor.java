@@ -99,6 +99,8 @@ public class ScatterProcessor extends NextFlowVelocityHelper
     private void printExpressionInCycle(Node node, List<Node> contextNodes, StringBuilder sb, String contextName)
     {
         String name = getName( node );
+        if( name.endsWith( "_wrapped" ) && contextNodes.contains( node ) )
+            return;
         sb.append( "\n " );
         if( name.endsWith( "_collected" ) )
         {
@@ -193,6 +195,10 @@ public class ScatterProcessor extends NextFlowVelocityHelper
     }
     private void printWrapperInCycle(Node node, List<Node> contextNodes, StringBuilder sb, String condition, String contextName)
     {
+        // A simple wrapper may already have been emitted with its call.
+        if( contextNodes.contains( node ) )
+            return;
+
         String name = getName( node );
         String expression = WorkflowUtil.getExpression( node );
         List<Node> sources = WorkflowUtil.getSources( node ).toList();
@@ -347,88 +353,106 @@ public class ScatterProcessor extends NextFlowVelocityHelper
         List<Node> outputs = WorkflowUtil.getOutputs( call );
         if( outputs.isEmpty() )
             return;
-        if( outputs.size() == 1 )
-        {
-            String outputChannel = getCallOutputChannel( call, outputs.get( 0 ) );
-            if( conditionalContext == null )
-            {
-                sb.append( "\n " );
-                sb.append( parentContextName );
-                sb.append( " = addValue(" );
-                sb.append( parentContextName );
-                sb.append( ", " );
-                sb.append( outputChannel );
-                sb.append( ")" );
-            }
-            else
-            {
-                sb.append( "\n " );
-                sb.append( parentContextName );
-                sb.append( " = addConditionalValue(" );
-                sb.append( parentContextName );
-                sb.append( ", " );
-                sb.append( outputChannel );
-                sb.append( ", " );
-                sb.append( conditionalContext );
-                sb.append( ")" );
-            }
-        }
-        else
-        {
-            String outputChannels = StreamEx.of( outputs ).map( output -> getCallOutputChannel( call, output ) ).joining( ", " );
-            if( conditionalContext == null )
-            {
-                sb.append( "\n " );
-                sb.append( parentContextName );
-                sb.append( " = addValues(" );
-                sb.append( parentContextName );
-                sb.append( ", [" );
-                sb.append( outputChannels );
-                sb.append( "])" );
-            }
-            else
-            {
-                sb.append( "\n " );
-                sb.append( parentContextName );
-                sb.append( " = addConditionalValues(" );
-                sb.append( parentContextName );
-                sb.append( ", [" );
-                sb.append( outputChannels );
-                sb.append( "], " );
-                sb.append( conditionalContext );
-                sb.append( ")" );
-            }
-        }
-        /*
-         * Outputs are now represented inside parent context.
-         */
-        contextNodes.addAll( outputs );
-        /*
-         * Restore standalone output channels.
-         *
-         * Example:
-         *
-         * make_file_deep_outfile =
-         *     calcInScatter(context) {
-         *         i_v,make_file_deep_outfile_v ->
-         *             make_file_deep_outfile_v
-         *     }
-         *
-         * This keeps old generated expressions such as
-         *
-         * make_file_deep_outfile.toList()
-         *
-         * working.
-         */
+
+        List<Node> contextOutputs = new ArrayList<>();
+        List<String> channels = new ArrayList<>();
         for( Node output : outputs )
         {
-            String outputName = getCallName( call ) + "_" + getName( output );
+            String channel = getCallOutputChannel( call, output );
+            Node wrapper = getDirectWrapper( call, output );
+            if( wrapper == null )
+            {
+                contextOutputs.add( output );
+                channels.add( channel );
+                continue;
+            }
+
+            // Apply the wrapper before inserting the result into the context.
+            // For a conditional call, keep the mapped channel separate from
+            // the channel reconstructed with missing rows below.
+            String name = getName( wrapper );
+            String mappedName = conditionalContext == null ? name : name + "_mapped";
+            String expression = WorkflowUtil.getExpression( wrapper );
+            if( conditionalContext != null )
+                expression = "(x1 != \"NO_VALUE\") ? (" + expression + ") : \"NO_VALUE\"";
+
+            sb.append( "\n " );
+            sb.append( mappedName );
+            sb.append( " = " );
+            sb.append( channel );
+            sb.append( ".map { x1 -> " );
+            sb.append( expression );
+            sb.append( " }" );
+            contextOutputs.add( wrapper );
+            channels.add( mappedName );
+        }
+
+        boolean single = contextOutputs.size() == 1;
+        sb.append( "\n " );
+        sb.append( parentContextName );
+        sb.append( " = " );
+        if( conditionalContext == null )
+            sb.append( single ? "addValue(" : "addValues(" );
+        else
+            sb.append( single ? "addConditionalValue(" : "addConditionalValues(" );
+        sb.append( parentContextName );
+        sb.append( ", " );
+        if( !single )
+            sb.append( "[" );
+        sb.append( String.join( ", ", channels ) );
+        if( !single )
+            sb.append( "]" );
+        if( conditionalContext != null )
+        {
+            sb.append( ", " );
+            sb.append( conditionalContext );
+        }
+        sb.append( ")" );
+
+        contextNodes.addAll( contextOutputs );
+
+        // Restore standalone output channels. An unconditional direct wrapper
+        // already provides the correctly ordered standalone channel.
+        for( Node output : contextOutputs )
+        {
+            boolean directWrapper = !outputs.contains( output );
+            if( directWrapper && conditionalContext == null )
+                continue;
+
+            String outputName = directWrapper ? getName( output ) : getCallName( call ) + "_" + getName( output );
             sb.append( "\n " );
             sb.append( outputName );
             sb.append( " = " );
             sb.append( printContextMap( getContextArgumentName( output ), contextNodes, parentContextName ) );
         }
     }
+
+    private Node getDirectWrapper(Compartment call, Node output)
+    {
+        List<Node> targets = output.edges().filter( edge -> edge.getInput().equals( output ) )
+                .map( edge -> edge.getOtherEnd( output ) ).distinct().toList();
+        if( targets.size() != 1 )
+            return null;
+
+        Node wrapper = targets.get( 0 );
+        if( !isExpression( wrapper ) || wrapper.getCompartment() != call.getCompartment()
+                || !getName( wrapper ).equals( getCallName( call ) + "_" + getName( output ) + "_wrapped" ) )
+            return null;
+
+        // Do not optimize wrappers depending on multiple outputs or other
+        // values, or outputs that are also consumed directly elsewhere.
+        List<Node> sources = WorkflowUtil.getSources( wrapper ).toList();
+        if( sources.size() != 1 || !sources.get( 0 ).equals( output ) )
+            return null;
+
+        String wrappedSources = wrapper.getAttributes().getValueAsString( "wrappedSources" );
+        if( wrappedSources != null && !wrappedSources.isEmpty() && !wrappedSources.trim().equals( getName( output ) ) )
+            return null;
+
+        String expression = WorkflowUtil.getExpression( wrapper );
+        return expression != null && !expression.trim().isEmpty() ? wrapper : null;
+    }
+
     private String getCallOutputChannel(Compartment call, Node output)
     {
         String resultName = WorkflowUtil.getResultName( call );
@@ -474,6 +498,8 @@ public class ScatterProcessor extends NextFlowVelocityHelper
                 String name = getName( node );
                 if( name.endsWith( "_wrapped" ) )
                 {
+                    if( contextNodes.contains( node ) )
+                        continue;
                     sb.append( "\n " );
                     printWrapperInCycle( node, contextNodes, sb, condition, parentContextName );
                     continue;
@@ -560,6 +586,8 @@ public class ScatterProcessor extends NextFlowVelocityHelper
                 }
                 if( name.endsWith( "_wrapped" ) )
                 {
+                    if( conditionalContextNodes.contains( node ) )
+                        continue;
                     sb.append( "\n " );
                     printWrapperInCycle( node, conditionalContextNodes, sb, null, conditionalContextName );
                     continue;
