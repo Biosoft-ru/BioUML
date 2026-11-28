@@ -1584,8 +1584,14 @@ def addValues2(context, values)
 
 def addScatter(context, scatter)
 {
-    return mergeAll([ context, scatter ]).flatMap { values ->
+    if (scatter instanceof java.util.List)
+    {
+        return context.flatMap { ctx ->
+            scatter.collect { scatter_v -> ctx + [scatter_v] }
+        }
+    }
 
+    return mergeAll([context, scatter]).flatMap { values ->
         def ctx = values[0]
         def scatter_values = values[1]
 
@@ -1595,20 +1601,34 @@ def addScatter(context, scatter)
 
 def collectScatter(values, scatters)
 {
-    if (scatters == null || scatters.size() == 0)
-        return values.collect()
+    if (scatters == null || scatters.isEmpty())
+        return values.toList()
 
-    def inputs = [ values.collect() ]
+    def inputs = [values.toList()]
 
     scatters.each { scatter ->
-        inputs.add( scatter.map { value -> value.size() }.collect() )
+        if (scatter instanceof java.util.List)
+            inputs.add(Channel.value(scatter.size()))
+        else if (scatter instanceof groovyx.gpars.dataflow.DataflowVariable)
+            inputs.add(scatter.map { value -> value.size() })
+        else
+            inputs.add(scatter.map { value -> value.size() }.toList())
     }
 
     return mergeAll(inputs).map { data ->
-        collectScatterValues(
-            data[0],
-            data[1..-1]
-        )
+        def count = data[1]
+        def sizes = []
+
+        data.drop(2).each { dimension ->
+            def groupSizes = dimension instanceof Number
+                ? (0..<count).collect { dimension }
+                : dimension
+
+            sizes.add(groupSizes)
+            count = groupSizes.sum() ?: 0
+        }
+
+        collectScatterValues(data[0], sizes)
     }
 }
 
@@ -1737,8 +1757,8 @@ def addConditionalValue(context, valueChannel, conditionalContext)
 def addConditionalValues(context, valueChannels, conditionalContext)
 {
     def inputs = [
-        context.map { value -> [value: value] }.collect(),
-        conditionalContext.map { value -> [value: value] }.collect()
+        context.map { value -> [value: value] }.toList(),
+        conditionalContext.map { value -> [value: value] }.toList()
     ]
 
     valueChannels.each { valueChannel ->

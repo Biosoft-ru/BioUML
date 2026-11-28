@@ -1224,7 +1224,7 @@ public class NextFlowPreprocessor
              *     ]
              * )
              */
-            List<Compartment> nestedCycles = StreamEx.ofReversed( cycles ).skip( 1 ).toList();
+            List<Compartment> nestedCycles = StreamEx.ofReversed( cycles ).toList();
 
             StringBuilder sb = new StringBuilder();
             sb.append( "collectScatter(\n" );
