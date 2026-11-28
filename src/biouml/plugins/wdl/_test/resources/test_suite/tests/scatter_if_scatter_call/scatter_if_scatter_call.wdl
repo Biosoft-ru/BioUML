@@ -33,7 +33,7 @@ task sum_values {
     }
 }
 
-workflow nested_scatter_then_call {
+workflow scatter_if_scatter_call {
     Array[Int] samples = [1, 2, 3]
     Array[Int] items = [1, 2]
 

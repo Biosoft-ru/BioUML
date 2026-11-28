@@ -921,3 +921,83 @@
       type: File
       value:
         regex: '(?s).*"name"\s*:\s*"Alice".*'
+- description: |
+    Scatter preserves repeated values and their positions in a conditional.
+  tags:
+  - scatter
+  - conditional
+  - duplicates
+  versions:
+  - '1.0'
+  id: scatter_duplicates
+  inputs:
+    dir: tests/scatter_duplicates
+    wdl: scatter_duplicates.wdl
+  outputs:
+    scatter_duplicates.results:
+      type: Array[Int?]
+      value: [2, null, 2]
+- description: |
+    A conditional inside a scatter is false for every iteration.
+  tags:
+  - scatter
+  - conditional
+  - empty
+  versions:
+  - '1.0'
+  id: scatter_if_false
+  inputs:
+    dir: tests/scatter_if_false
+    wdl: scatter_if_false.wdl
+  outputs:
+    scatter_if_false.results:
+      type: Array[Int?]
+      value: [null, null]
+- description: |
+    An empty inner scatter preserves an empty array in its original position.
+  tags:
+  - scatter
+  - nested
+  - empty
+  versions:
+  - '1.0'
+  id: scatter_empty_inner
+  inputs:
+    dir: tests/scatter_empty_inner
+    wdl: scatter_empty_inner.wdl
+    json: scatter_empty_inner.json
+  outputs:
+    scatter_empty_inner.results:
+      type: Array[Array[Int]]
+      value: [[1], [], [2]]
+- description: |
+    Two sequential calls inside one conditional in a scatter.
+  tags:
+  - scatter
+  - conditional
+  - call
+  versions:
+  - '1.0'
+  id: scatter_if_two_calls
+  inputs:
+    dir: tests/scatter_if_two_calls
+    wdl: scatter_if_two_calls.wdl
+  outputs:
+    scatter_if_two_calls.results:
+      type: Array[Int?]
+      value: [null, 3, 4]
+- description: |
+    Three nested scatters preserve array dimensions and element order.
+  tags:
+  - scatter
+  - nested
+  versions:
+  - '1.0'
+  id: scatter_depth_three
+  inputs:
+    dir: tests/scatter_depth_three
+    wdl: scatter_depth_three.wdl
+  outputs:
+    scatter_depth_three.results:
+      type: Array[Array[Array[Int]]]
+      value: [[[111, 112], [121, 122]], [[211, 212], [221, 222]]]
